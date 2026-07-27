@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'f1d5c016-fc77-44a1-b8a5-d560f3ba2ebe'
-  PropagateID: 'f1d5c016-fc77-44a1-b8a5-d560f3ba2ebe'
-  ReservedCode1: '31611c63-1343-4c13-9ed4-2bc0716e973b'
-  ReservedCode2: '31611c63-1343-4c13-9ed4-2bc0716e973b'
+  ProduceID: 'c7094c79-135b-4df1-8014-40b9162c7b2b'
+  PropagateID: 'c7094c79-135b-4df1-8014-40b9162c7b2b'
+  ReservedCode1: 'cb62bf3f-3daf-472c-b118-2d21f77c1f30'
+  ReservedCode2: 'cb62bf3f-3daf-472c-b118-2d21f77c1f30'
 ---
 
 # PRD 业务需求说明书
@@ -222,6 +222,7 @@ SKU 创建/编辑 → 配置条码信息（厂家条码、供应商条码、内�
 | Redis | 7.x | 缓存 + 队列 + 会话 | ① 缓存：商品列表、系统配置、字典数据 ② 队列：订单通知、报表导出、批量任务 ③ 会话：管理后台 Session 存储 ④ 分布式锁：库存扣减防超卖 ⑤ 限流：API 频率限制 |
 | Laravel Sanctum | 最新 | API Token 认证 | 小程序端（商家端/司机端）登录认证 |
 | Spatie Permission | 最新 | RBAC 角色权限 | 菜单/按钮级权限，角色动态渲染侧边栏 |
+| cknow/laravel-money | ^8.5 | 金额整数存储 | 底层 brick/money，数据库 bigint 存分/厘/毫，Model Cast 自动转换，杜绝浮点精度丢失 |
 | Laravel Queue | 内置 | 异步任务 | 短信/消息通知、Excel 导出、对账任务 |
 | Laravel Reverb | 1.x | WebSocket 实时推送服务器 | ① 订单状态变更实时推送到管理后台 ② 配送轨迹实时推送 ③ 审核待办即时通知 ④ 库存预警弹窗 ⑤ 小程序端消息推送（通过 Laravel Echo） |
 

@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '8e993514-ef9a-4db1-8774-68b28653a8e0'
-  PropagateID: '8e993514-ef9a-4db1-8774-68b28653a8e0'
-  ReservedCode1: '1b4e2b23-68d6-4a3a-88a2-319e76d69f53'
-  ReservedCode2: '1b4e2b23-68d6-4a3a-88a2-319e76d69f53'
+  ProduceID: 'c9bd64c3-ab15-4c88-8608-075f73bfced2'
+  PropagateID: 'c9bd64c3-ab15-4c88-8608-075f73bfced2'
+  ReservedCode1: '97a1d64b-39e2-4441-bef0-9bbf37d9f70b'
+  ReservedCode2: '97a1d64b-39e2-4441-bef0-9bbf37d9f70b'
 ---
 
 # FSD 功能详细说明书
@@ -883,6 +883,10 @@ AIGC:
 - 敏感操作（删除、结算、授权更正、配置修改、金额调整）强制写入 audit_logs（含修改前后数据 + IP）
 - 日志/审计数据按 `audit_retention_days` 每日定时清理（0=永久保留）
 - 队列处理异步任务（消息推送、报表生成）
+- 金额字段采用整数存储方案（cknow/laravel-money ^8.5，底层 brick/money）：
+  - 数据库层：金额 `bigint`（存分×100）、单价 `bigint`（存厘×10000）、数量 `bigint`（存毫×1000）、温度/折扣率 `int`（×100）、坐标 `int`（×10⁷）
+  - Model 层：通过 `Cknow\Money\Casts\MoneyCast` 自动转换，业务代码始终操作 Money 对象，杜绝浮点精度丢失
+  - 前端展示：Livewire 组件通过 Model Accessor 返回格式化字符串（如 "¥199.90"），API 返回分/厘/毫原始值由小程序端自行格式化
 
 ### 7.2 前端
 
@@ -1946,6 +1950,7 @@ docs/
 | `laravel/reverb` | ^1.11 | require | WebSocket 实时推送服务器 |
 | `laravel/sanctum` | ^4.3 | require | API Token 认证（小程序端） |
 | `spatie/laravel-permission` | ^8.3 | require | RBAC 角色权限管理 |
+| `cknow/laravel-money` | ^8.5 | require | 金额整数存储（底层 brick/money），数据库 bigint 存分/厘/毫，Model Cast 自动转换 |
 | `fakerphp/faker` | ^1.24 | require-dev | 测试数据生成 |
 | `larastan/larastan` | ^3.9 | require-dev | PHP 静态分析 |
 | `laravel/pint` | ^1.27 | require-dev | 代码格式化 |
