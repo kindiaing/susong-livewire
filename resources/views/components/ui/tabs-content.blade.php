@@ -3,7 +3,7 @@
 ])
 
 <div
-    x-show="$parent.activeTab === '{{ $value }}'"
+    x-show="$data.activeTab === '{{ $value }}'"
     class="mt-2 focus-visible:outline-none"
     role="tabpanel"
 >

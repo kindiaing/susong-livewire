@@ -4,6 +4,7 @@
     'href' => null,
     'disabled' => false,
     'icon' => false,
+    'loading' => false,
 ])
 
 @php
@@ -36,14 +37,35 @@ $sizeClasses = match($size) {
 };
 
 $classes = $baseClasses . ' ' . $variantClasses . ' ' . $sizeClasses;
+
+// Loading spinner SVG
+$spinnerSvg = '<svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+
+$isDisabled = $disabled || $loading;
 @endphp
 
 @if($href)
-    <a href="{{ $href }}" {{ $attributes->merge(['class' => $classes]) }} @disabled($disabled)>
+    <a href="{{ $href }}" {{ $attributes->merge(['class' => $classes]) }} @if($isDisabled) disabled aria-disabled="true" @endif>
+        @if($loading) {!! $spinnerSvg !!} @elseif(isset($slot->iconLeft) && $slot->iconLeft->isNotEmpty()) <span class="shrink-0">{{ $slot->iconLeft }}</span> @endif
         {{ $slot }}
+        @if(!$loading && isset($slot->iconRight) && $slot->iconRight->isNotEmpty()) <span class="shrink-0">{{ $slot->iconRight }}</span> @endif
     </a>
 @else
-    <button {{ $attributes->merge(['class' => $classes]) }} @disabled($disabled)>
+    <button
+        {{ $attributes->merge(['class' => $classes]) }}
+        @if($isDisabled) disabled @endif
+        @if($loading) aria-busy="true" @endif
+    >
+        @if($loading)
+            {!! $spinnerSvg !!}
+        @else
+            @if(isset($slot->iconLeft) && $slot->iconLeft->isNotEmpty())
+                <span class="shrink-0">{{ $slot->iconLeft }}</span>
+            @endif
+        @endif
         {{ $slot }}
+        @if(!$loading && isset($slot->iconRight) && $slot->iconRight->isNotEmpty())
+            <span class="shrink-0">{{ $slot->iconRight }}</span>
+        @endif
     </button>
 @endif

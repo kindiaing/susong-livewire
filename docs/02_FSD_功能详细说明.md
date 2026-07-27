@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'c9bd64c3-ab15-4c88-8608-075f73bfced2'
-  PropagateID: 'c9bd64c3-ab15-4c88-8608-075f73bfced2'
-  ReservedCode1: '97a1d64b-39e2-4441-bef0-9bbf37d9f70b'
-  ReservedCode2: '97a1d64b-39e2-4441-bef0-9bbf37d9f70b'
+  ProduceID: 'c956bb63-6bbf-41c4-889b-355dc6237f10'
+  PropagateID: 'c956bb63-6bbf-41c4-889b-355dc6237f10'
+  ReservedCode1: '5295aea3-7372-4e90-af54-02aaa76a6798'
+  ReservedCode2: '5295aea3-7372-4e90-af54-02aaa76a6798'
 ---
 
 # FSD 功能详细说明书
@@ -23,11 +23,10 @@ AIGC:
 ### 1.1 登录页
 
 1. 账号（用户名/手机号/邮箱）+ 密码登录
-2. 图形验证码防暴力破解
-3. 记住登录状态 7 天（Token 自动续期）
-4. 登录失败提示：账号不存在 / 密码错误 / 账号禁用
-5. 登录成功跳转首页；登录错误记录日志
-6. 密码重置：发送验证码到绑定手机/邮箱
+2. 记住登录状态 7 天（Remember Token 自动续期）
+3. 登录失败提示：账号不存在 / 密码错误 / 账号禁用
+4. 登录成功跳转首页；登录错误记录日志
+5. 密码重置：发送验证码到绑定手机/邮箱
 
 ### 1.2 全局布局（顶部导航 + 侧边菜单 + 内容区）
 

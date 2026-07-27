@@ -4,10 +4,10 @@
 
 <div
     x-data="{
-        activeTab: '{{ $defaultTab }}' || '{{ collect($slot)->first()?parameter('tab') ?? '' }}',
+        activeTab: '{{ $defaultTab ?? '' }}',
         switchTab(tab) { this.activeTab = tab; }
     }"
-    {{ $attributes->merge(['class' => '']) }}
+    {{ $attributes }}
 >
     {{ $slot }}
 </div>
