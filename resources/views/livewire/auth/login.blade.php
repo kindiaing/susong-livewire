@@ -1,77 +1,3 @@
-<?php
-
-use App\Models\User;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Validation\ValidationException;
-
-new class extends Livewire\Component
-{
-    public string $login = '';
-    public string $password = '';
-    public bool $remember = false;
-
-    public function login(): void
-    {
-        $this->validate([
-            'login' => 'required|string',
-            'password' => 'required|string',
-        ]);
-
-        // 节流：每分钟最多5次尝试
-        $key = 'login:' . strtolower($this->login);
-
-        if (RateLimiter::tooManyAttempts($key, 5)) {
-            $seconds = RateLimiter::availableIn($key);
-            throw ValidationException::withMessages([
-                'login' => "尝试次数过多，请在 {$seconds} 秒后再试。",
-            ]);
-        }
-
-        RateLimiter::hit($key);
-
-        // 尝试查找用户（支持用户名/手机号/邮箱）
-        $user = User::where('username', $this->login)
-            ->orWhere('phone', $this->login)
-            ->orWhere('email', $this->login)
-            ->first();
-
-        if (! $user || ! password_verify($this->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'login' => '用户名/手机号/邮箱或密码不正确。',
-            ]);
-        }
-
-        if ($user->status !== 1) {
-            throw ValidationException::withMessages([
-                'login' => '该账号已被禁用，请联系管理员。',
-            ]);
-        }
-
-        // 登录成功，清除节流
-        RateLimiter::clear($key);
-
-        // 记录登录时间
-        $user->update(['last_login_at' => now()]);
-
-        // 记录登录日志
-        \DB::table('login_logs')->insert([
-            'user_id' => $user->id,
-            'username' => $this->login,
-            'ip' => request()->ip(),
-            'user_agent' => request()->userAgent(),
-            'login_type' => 1,
-            'status' => 1,
-            'created_at' => now(),
-        ]);
-
-        Auth::login($user, $this->remember);
-
-        $this->redirectIntended(default: route('dashboard'));
-    }
-}; ?>
-
-<x-guest-layout>
 <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 px-4 py-12">
     <div class="w-full max-w-md">
         <!-- Logo & Title -->
@@ -92,13 +18,13 @@ new class extends Livewire\Component
                     <!-- Login Field -->
                     <div class="space-y-2">
                         <x-ui.input
-                            wire:model="login"
+                            wire:model="username"
                             type="text"
                             placeholder="用户名 / 手机号 / 邮箱"
                             autofocus
                             required
                         />
-                        @error('login')
+                        @error('username')
                             <p class="text-sm text-destructive">{{ $message }}</p>
                         @enderror
                     </div>
@@ -140,4 +66,3 @@ new class extends Livewire\Component
         </p>
     </div>
 </div>
-</x-guest-layout>

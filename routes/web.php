@@ -1,12 +1,13 @@
 <?php
 
+use App\Livewire\Auth\Login;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
 Route::view('/demo', 'pages.demo')->name('demo');
 
 // 认证路由
-Route::view('/login', 'components.auth.login')->name('login');
+Route::get('/login', Login::class)->name('login');
 Route::post('/logout', function () {
     auth()->logout();
     session()->invalidate();

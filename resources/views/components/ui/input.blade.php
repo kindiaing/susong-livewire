@@ -19,9 +19,15 @@ $sizeClasses = match($size) {
 
 $errorClasses = $error ? 'border-red-600 focus-visible:ring-red-600' : 'border-input focus-visible:ring-ring';
 $disabledClasses = $disabled ? 'opacity-50 cursor-not-allowed bg-muted' : '';
+
+// Extract wire:* and x-* attributes for the <input> element
+// Wrapper <div> gets only non-wire, non-x attributes (like class, id for wrapper)
+$inputWireAttrs = $attributes->whereStartsWith('wire:');
+$inputXAttrs = $attributes->whereStartsWith('x-');
+$inputOtherAttrs = $attributes->whereDoesntStartWith('wire:')->whereDoesntStartWith('x-')->except('class');
 @endphp
 
-<div {{ $attributes->merge(['class' => 'grid gap-1.5']) }}>
+<div {{ $attributes->whereDoesntStartWith('wire:')->whereDoesntStartWith('x-')->merge(['class' => 'grid gap-1.5']) }}>
     @if($label)
         <label class="text-sm font-medium leading-none text-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
             {{ $label }}
@@ -39,8 +45,10 @@ $disabledClasses = $disabled ? 'opacity-50 cursor-not-allowed bg-muted' : '';
             type="{{ $type }}"
             @if($disabled) disabled @endif
             @if($readonly) readonly @endif
-            @if($error) aria-invalid="true" aria-describedby="{{ $attributes->get('id', '') }}-error" @endif
-            {{ $attributes->except('class')->merge(['class' => 'flex-1 bg-transparent file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed ' . $sizeClasses]) }}
+            @if($error) aria-invalid="true" aria-describedby="{{ $inputOtherAttrs->get('id', '') }}-error" @endif
+            {{ $inputWireAttrs }}
+            {{ $inputXAttrs }}
+            {{ $inputOtherAttrs->merge(['class' => 'flex-1 bg-transparent file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed ' . $sizeClasses]) }}
         />
 
         @if($suffix)
@@ -51,7 +59,7 @@ $disabledClasses = $disabled ? 'opacity-50 cursor-not-allowed bg-muted' : '';
     </div>
 
     @if($error)
-        <p id="{{ $attributes->get('id', '') }}-error" class="text-xs text-red-600">{{ $error }}</p>
+        <p id="{{ $inputOtherAttrs->get('id', '') }}-error" class="text-xs text-red-600">{{ $error }}</p>
     @elseif($hint)
         <p class="text-xs text-muted-foreground">{{ $hint }}</p>
     @endif

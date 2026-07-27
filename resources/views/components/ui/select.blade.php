@@ -9,9 +9,14 @@
 @php
 $errorClasses = $error ? 'border-red-600 focus-visible:ring-red-600' : 'border-input focus-visible:ring-ring';
 $disabledClasses = $disabled ? 'opacity-50 cursor-not-allowed bg-muted' : '';
+
+// Extract wire:* and x-* attributes for the <select> element
+$selectWireAttrs = $attributes->whereStartsWith('wire:');
+$selectXAttrs = $attributes->whereStartsWith('x-');
+$selectOtherAttrs = $attributes->whereDoesntStartWith('wire:')->whereDoesntStartWith('x-')->except('class');
 @endphp
 
-<div {{ $attributes->merge(['class' => 'grid gap-1.5']) }}>
+<div {{ $attributes->whereDoesntStartWith('wire:')->whereDoesntStartWith('x-')->merge(['class' => 'grid gap-1.5']) }}>
     @if($label)
         <label class="text-sm font-medium leading-none text-foreground">
             {{ $label }}
@@ -22,7 +27,9 @@ $disabledClasses = $disabled ? 'opacity-50 cursor-not-allowed bg-muted' : '';
         <select
             @if($disabled) disabled @endif
             @if($error) aria-invalid="true" @endif
-            {{ $attributes->except('class')->merge(['class' => 'flex h-9 w-full appearance-none items-center rounded-md border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 transition-colors ' . $errorClasses . ' ' . $disabledClasses]) }}
+            {{ $selectWireAttrs }}
+            {{ $selectXAttrs }}
+            {{ $selectOtherAttrs->merge(['class' => 'flex h-9 w-full appearance-none items-center rounded-md border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 transition-colors ' . $errorClasses . ' ' . $disabledClasses]) }}
         >
             @if($placeholder)
                 <option value="" disabled selected>{{ $placeholder }}</option>
