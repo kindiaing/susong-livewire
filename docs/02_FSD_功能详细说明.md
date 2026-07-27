@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'c956bb63-6bbf-41c4-889b-355dc6237f10'
-  PropagateID: 'c956bb63-6bbf-41c4-889b-355dc6237f10'
-  ReservedCode1: '5295aea3-7372-4e90-af54-02aaa76a6798'
-  ReservedCode2: '5295aea3-7372-4e90-af54-02aaa76a6798'
+  ProduceID: 'c4664404-2a79-4b79-bdc1-bc947feac0d5'
+  PropagateID: 'c4664404-2a79-4b79-bdc1-bc947feac0d5'
+  ReservedCode1: '3d30b307-856f-4dc5-8249-b3ebff42d079'
+  ReservedCode2: '3d30b307-856f-4dc5-8249-b3ebff42d079'
 ---
 
 # FSD 功能详细说明书
@@ -1651,63 +1651,97 @@ database/
 
 系统内置 8 条 `admin:*` 命令，用于运维管理、初始化安装和数据维护。命令文件位于 `app/Console/Commands/`，Laravel 13 自动发现注册。
 
-| 命令 | 说明 | 关键参数 |
+| 命令 | 说明 | 关键选项 |
 |:---|:---|:---|
-| `admin:install` | 安装/初始化数据库 | `--with-test-data`（导入测试数据）、`--force`（不确认）、`--fresh`（清空重建） |
-| `admin:fresh` | 清空并重建数据库（二次确认） | `--with-test-data`、`--force` |
-| `admin:make-user` | 创建管理员账户 | `--name`、`--email`、`--password`、`--role=super-admin`、`--force` |
-| `admin:create-user` | 创建普通用户 | `--name`、`--email`、`--password`、`--role`（交互选择 9 角色） |
-| `admin:reset-password` | 重置用户密码 | `--email`、`--password` |
-| `admin:backup` | 备份数据库（mysqldump） | `--path`、`--compress`、`--only-data`、`--only-structure` |
-| `admin:roles` | 列出角色与权限 | `--with-users`（显示角色下用户） |
-| `admin:status` | 系统状态检查 | 无（检查数据库/Redis/Reverb/队列/用户统计） |
+| `admin:install` | 安装/初始化数据库（迁移 + 角色权限 + 管理员） | `--seed`（导入测试数据）、`--reset`（先清空再迁移）、`--force`（跳过确认） |
+| `admin:fresh` | 清空并重建数据库（内部调用 `admin:install --reset`） | `--seed`（导入测试数据）、`--force`（跳过确认） |
+| `admin:make-user` | 创建管理员账户 | `--name=`、`--email=`、`--password=`、`--role=super-admin`（可选 super-admin / admin）、`--force`（使用默认值不询问） |
+| `admin:create-user` | 创建普通用户 | `--name=`、`--email=`、`--password=`、`--role=user`（可选 user / picker / driver / cashier / finance-manager / ops-manager / merchant） |
+| `admin:reset-password` | 重置用户密码 | `--email=`（用户邮箱）、`--password=`（新密码，最少 8 位） |
+| `admin:backup` | 备份数据库（mysqldump，仅 MySQL） | `--path=`（保存路径，默认 storage/backups）、`--compress`（压缩为 .gz）、`--only-data`（仅数据）、`--only-structure`（仅结构） |
+| `admin:roles` | 列出所有角色与权限 | `--with-users`（同时显示角色下用户） |
+| `admin:status` | 系统状态检查（数据库 / Redis / Reverb / 队列 / 用户统计） | 无 |
+
+> **注意**：角色/审核节点/系统配置由 Migration 自动初始化，`admin:install` 不再重复创建，仅额外运行 `RolePermissionSeeder`（菜单权限）和可选的 `DemoDataSeeder`（测试数据）。
 
 **命令文件目录：**
 
 ```text
 app/Console/Commands/
+├── AdminInstallCommand.php        # admin:install
+├── AdminFreshCommand.php          # admin:fresh
 ├── AdminMakeCommand.php           # admin:make-user
 ├── AdminCreateUserCommand.php     # admin:create-user
-├── AdminInstallCommand.php        # admin:install
-├── AdminBackupCommand.php         # admin:backup
 ├── AdminResetPasswordCommand.php  # admin:reset-password
+├── AdminBackupCommand.php         # admin:backup
 ├── AdminListRolesCommand.php      # admin:roles
-├── AdminFreshCommand.php          # admin:fresh
 └── AdminStatusCommand.php         # admin:status
 ```
 
 **典型使用场景：**
 
 ```bash
-# 首次部署安装（不含测试数据）
+# ── 安装与初始化 ──────────────────────────────────
+
+# 首次部署安装（迁移 + 角色权限 + 管理员，不含测试数据）
 php artisan admin:install
 
-# 首次部署安装（含测试数据）
-php artisan admin:install --with-test-data
+# 首次部署安装（含测试数据：供应商/商家/商品/仓库/司机等）
+php artisan admin:install --seed
 
-# 创建超级管理员（交互式）
+# 清空并重建数据库（危险操作，非 --force 会二次确认）
+php artisan admin:fresh
+
+# 清空重建 + 测试数据（开发环境常用）
+php artisan admin:fresh --seed --force
+
+# ── 用户管理 ──────────────────────────────────────
+
+# 创建管理员（交互式输入用户名/邮箱/密码）
 php artisan admin:make-user
 
-# 创建超级管理员（一行命令，CI/CD 用）
-php artisan admin:make-user --name=Admin --email=admin@example.com --password=Secret123 --force
+# 创建管理员（一行命令，CI/CD 用）
+php artisan admin:make-user --name=Admin --email=admin@susong.com --password=Secret123 --force
 
-# 创建普通用户
+# 创建普通用户（交互式选择角色）
 php artisan admin:create-user
 
-# 重置密码
+# 创建司机（指定角色）
+php artisan admin:create-user --name=driver1 --email=d1@susong.com --password=Password --role=driver
+
+# 重置密码（交互式输入新密码）
 php artisan admin:reset-password --email=admin@susong.com
 
-# 备份数据库（压缩）
-php artisan admin:backup --compress
+# 重置密码（一行命令）
+php artisan admin:reset-password --email=admin@susong.com --password=NewPass123
 
-# 查看角色
-php artisan admin:roles --with-users
+# ── 运维检查 ──────────────────────────────────────
 
-# 系统状态
+# 系统状态检查（数据库/Redis/Reverb/队列/各角色用户数）
 php artisan admin:status
 
-# 清空重建（危险，二次确认）
-php artisan admin:fresh --with-test-data
+# 查看角色与权限
+php artisan admin:roles
+
+# 查看角色 + 每个角色下的用户
+php artisan admin:roles --with-users
+
+# ── 数据库备份 ─────────────────────────────────────
+
+# 全量备份（默认保存到 storage/backups/）
+php artisan admin:backup
+
+# 压缩备份
+php artisan admin:backup --compress
+
+# 仅导出数据（不含表结构）
+php artisan admin:backup --only-data
+
+# 仅导出表结构（不含数据）
+php artisan admin:backup --only-structure
+
+# 指定备份路径
+php artisan admin:backup --path=/tmp/backups --compress
 ```
 
 ---

@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'd377c52f-a18b-47bb-b5ff-9b7a73e7656a'
-  PropagateID: 'd377c52f-a18b-47bb-b5ff-9b7a73e7656a'
-  ReservedCode1: '82dbbaeb-577b-4c7e-8ccf-940c50bb86e5'
-  ReservedCode2: '82dbbaeb-577b-4c7e-8ccf-940c50bb86e5'
+  ProduceID: 'fab449b8-432e-4d27-975f-69ebb527a887'
+  PropagateID: 'fab449b8-432e-4d27-975f-69ebb527a887'
+  ReservedCode1: '2b1e2147-3940-4d9b-9b7e-3cc514395773'
+  ReservedCode2: '2b1e2147-3940-4d9b-9b7e-3cc514395773'
 ---
 
 # Setup 系统安装部署配置手册
@@ -140,7 +140,7 @@ php artisan key:generate
 php artisan admin:install
 
 # 如需测试数据，使用：
-# php artisan admin:install --with-test-data
+# php artisan admin:install --seed
 
 # 7. 创建存储目录软链接
 php artisan storage:link
@@ -486,16 +486,88 @@ sudo certbot renew --dry-run
 
 | 数据类别 | 说明 |
 | :--- | :--- |
-| 超级管理员账号 | admin / admin123（首次登录强制修改密码） |
-| 8 个系统角色 | 超级管理员、运营管理员、运营经理、财务人员、出纳、财务经理、拣货员、司机 |
-| 19 个审核节点配置 | approval_type_configs 默认记录（前 10 个 P0 节点默认开启） |
-| 系统默认配置 | system_configs 默认键值（损耗审批阈值、审计保留天数等） |
-| 2 个默认仓库 | 总仓 + 前置仓 |
-| 2 条默认配送线路 | 线路A + 线路B |
+| 超级管理员账号 | seeding / Password（Migration 自动创建） |
+| 9 个系统角色 | 超级管理员、运营管理员、运营经理、财务人员、出纳、财务经理、拣货员、司机、商家（Migration 自动创建） |
+| 19 个审核节点配置 | approval_type_configs 默认记录（前 10 个 P0 节点 + 第 19 条损耗审核默认开启） |
+| 6 条系统默认配置 | system_configs 默认键值（Migration 自动创建） |
 
 ---
 
-## 10 常见故障排查
+## 10 Artisan 命令速查
+
+### 10.1 框架原生命令（常用）
+
+| 命令 | 说明 | 使用场景 |
+|:---|:---|:---|
+| `php artisan key:generate` | 生成应用密钥 | 首次部署、更换密钥 |
+| `php artisan migrate` | 执行未运行的 Migration | 增量升级 |
+| `php artisan migrate:fresh` | 清空数据库并重新迁移 | 开发环境重置（**会删数据**） |
+| `php artisan db:seed` | 运行 Seeder | 手动补充种子数据 |
+| `php artisan storage:link` | 创建存储目录软链接 | 首次部署 |
+| `php artisan config:cache` | 缓存配置文件 | 生产环境优化 |
+| `php artisan route:cache` | 缓存路由 | 生产环境优化 |
+| `php artisan view:cache` | 缓存 Blade 视图 | 生产环境优化 |
+| `php artisan config:clear` | 清除配置缓存 | 修改 .env 后生效 |
+| `php artisan route:clear` | 清除路由缓存 | 新增路由后生效 |
+| `php artisan view:clear` | 清除视图缓存 | 修改 Blade 后生效 |
+| `php artisan cache:clear` | 清除应用缓存 | 排查缓存问题 |
+| `php artisan queue:work` | 启动队列消费者 | 后台运行（Supervisor 管理） |
+| `php artisan queue:restart` | 重启队列消费者 | 更新代码后让 worker 重新加载 |
+| `php artisan schedule:run` | 手动触发定时任务 | 测试调度、Cron 调用 |
+| `php artisan schedule:list` | 查看所有定时任务 | 排查调度问题 |
+| `php artisan reverb:start` | 启动 Reverb WebSocket 服务器 | 后台运行（Supervisor 管理） |
+| `php artisan serve` | 启动开发服务器 | 本地开发调试 |
+
+### 10.2 项目自定义命令（admin:* 体系）
+
+> 完整参数说明参见 FSD 文档 9.3.4 节。
+
+| 命令 | 说明 | 核心选项 |
+|:---|:---|:---|
+| `admin:install` | 安装/初始化数据库 | `--seed` `--reset` `--force` |
+| `admin:fresh` | 清空并重建数据库 | `--seed` `--force` |
+| `admin:make-user` | 创建管理员账户 | `--name=` `--email=` `--password=` `--role=super-admin` `--force` |
+| `admin:create-user` | 创建普通用户 | `--name=` `--email=` `--password=` `--role=user` |
+| `admin:reset-password` | 重置用户密码 | `--email=` `--password=` |
+| `admin:backup` | 备份 MySQL 数据库 | `--path=` `--compress` `--only-data` `--only-structure` |
+| `admin:roles` | 列出角色与权限 | `--with-users` |
+| `admin:status` | 系统状态检查 | 无 |
+
+### 10.3 快速操作速查
+
+```bash
+# ── 首次部署 ─────────────────────────────
+php artisan key:generate          # 1. 生成密钥
+php artisan admin:install         # 2. 初始化数据库
+php artisan storage:link          # 3. 创建存储链接
+php artisan config:cache          # 4. 缓存优化
+php artisan route:cache
+php artisan view:cache
+
+# ── 开发环境重置 ─────────────────────────
+php artisan admin:fresh --seed --force    # 清空 + 重建 + 测试数据
+
+# ── 生产环境更新 ─────────────────────────
+php artisan down                            # 维护模式
+git pull origin main                        # 拉取代码
+composer install --optimize-autoloader --no-dev
+php artisan migrate                        # 增量迁移
+php artisan config:cache                   # 刷新缓存
+php artisan route:cache
+php artisan view:cache
+php artisan queue:restart                  # 重启队列 worker
+php artisan up                             # 恢复服务
+
+# ── 排查问题 ─────────────────────────────
+php artisan admin:status           # 检查数据库/Redis/Reverb/队列
+php artisan config:clear           # 清缓存后重试
+php artisan cache:clear
+php artisan schedule:list          # 查看定时任务
+```
+
+---
+
+## 11 常见故障排查
 
 | 序号 | 问题 | 排查步骤 | 解决方案 |
 | :--- | :--- | :--- | :--- |
@@ -512,9 +584,9 @@ sudo certbot renew --dry-run
 
 ---
 
-## 11 部署检查清单
+## 12 部署检查清单
 
-### 11.1 上线前必检项
+### 12.1 上线前必检项
 
 - [ ] `.env` 中 `APP_ENV=production`，`APP_DEBUG=false`
 - [ ] `APP_KEY` 已生成且唯一
@@ -529,7 +601,7 @@ sudo certbot renew --dry-run
 - [ ] 文件存储路径可写（本地或 OSS 配置正确）
 - [ ] 跨域配置匹配前端域名
 
-### 11.2 上线后验证项
+### 12.2 上线后验证项
 
 - [ ] 管理后台登录正常
 - [ ] 商家端小程序登录正常
