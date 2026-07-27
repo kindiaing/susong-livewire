@@ -444,6 +444,482 @@ new class extends Component
                 </div>
             </section>
 
+            {{-- ==================== Input ==================== --}}
+            <section>
+                <h2 class="text-lg font-semibold mb-1">Input 输入框</h2>
+                <p class="text-sm text-muted-foreground mb-4">支持 label / hint / error / prefix / suffix / disabled / 多种尺寸</p>
+                <x-ui.card>
+                    <x-ui.card-content class="p-6 space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <x-ui.input label="商品名称" placeholder="请输入商品名称" hint="不超过50个字符" />
+                            <x-ui.input label="手机号" type="tel" placeholder="请输入手机号" prefix="+86" />
+                            <x-ui.input label="采购价" type="number" placeholder="0.00" suffix="元/斤" />
+                            <x-ui.input label="邮箱" type="email" placeholder="admin@example.com" error="邮箱格式不正确" />
+                        </div>
+                        <div class="flex items-end gap-4">
+                            <x-ui.input label="小号" size="sm" placeholder="Small" class="w-40" />
+                            <x-ui.input label="默认" placeholder="Default" class="w-40" />
+                            <x-ui.input label="大号" size="lg" placeholder="Large" class="w-40" />
+                            <x-ui.input label="禁用" placeholder="不可编辑" :disabled="true" class="w-40" />
+                        </div>
+                    </x-ui.card-content>
+                </x-ui.card>
+            </section>
+
+            {{-- ==================== Textarea ==================== --}}
+            <section>
+                <h2 class="text-lg font-semibold mb-1">Textarea 文本域</h2>
+                <p class="text-sm text-muted-foreground mb-4">多行文本输入，支持 label / hint / error</p>
+                <x-ui.card>
+                    <x-ui.card-content class="p-6 space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <x-ui.textarea label="收货地址" placeholder="请输入详细地址" hint="精确到门牌号" />
+                            <x-ui.textarea label="备注" placeholder="请输入备注信息" error="备注内容不能为空" :rows="4" />
+                        </div>
+                    </x-ui.card-content>
+                </x-ui.card>
+            </section>
+
+            {{-- ==================== Select ==================== --}}
+            <section>
+                <h2 class="text-lg font-semibold mb-1">Select 下拉选择</h2>
+                <p class="text-sm text-muted-foreground mb-4">原生 select 组件，支持 label / hint / error / placeholder</p>
+                <x-ui.card>
+                    <x-ui.card-content class="p-6 space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <x-ui.select label="商品分类" placeholder="请选择分类">
+                                <option value="vegetables">蔬菜</option>
+                                <option value="fruits">水果</option>
+                                <option value="meat">肉禽</option>
+                                <option value="seafood">水产</option>
+                                <option value="dairy">乳品</option>
+                            </x-ui.select>
+                            <x-ui.select label="供应商" placeholder="请选择供应商" hint="关联供应商列表" >
+                                <option value="1">鲜达生鲜供应</option>
+                                <option value="2">绿源果蔬批发</option>
+                                <option value="3">海味轩水产</option>
+                            </x-ui.select>
+                            <x-ui.select label="仓库" error="请选择仓库">
+                                <option value="A">仓库 A</option>
+                                <option value="B">仓库 B</option>
+                                <option value="C">仓库 C</option>
+                            </x-ui.select>
+                        </div>
+                    </x-ui.card-content>
+                </x-ui.card>
+            </section>
+
+            {{-- ==================== Checkbox / Radio / Switch ==================== --}}
+            <section>
+                <h2 class="text-lg font-semibold mb-1">Checkbox / Radio / Switch</h2>
+                <p class="text-sm text-muted-foreground mb-4">复选框、单选框、开关切换</p>
+                <x-ui.card>
+                    <x-ui.card-content class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {{-- Checkbox --}}
+                            <div class="space-y-3">
+                                <p class="text-sm font-medium text-foreground">Checkbox 复选框</p>
+                                <div class="space-y-2">
+                                    <x-ui.checkbox label="蔬菜" checked />
+                                    <x-ui.checkbox label="水果" />
+                                    <x-ui.checkbox label="肉禽" checked />
+                                    <x-ui.checkbox label="乳品（禁用）" disabled />
+                                </div>
+                            </div>
+
+                            {{-- Radio --}}
+                            <div class="space-y-3">
+                                <p class="text-sm font-medium text-foreground">Radio 单选框</p>
+                                <div class="space-y-2">
+                                    <x-ui.radio name="sort" label="按时间" value="time" checked />
+                                    <x-ui.radio name="sort" label="按金额" value="amount" />
+                                    <x-ui.radio name="sort" label="按名称" value="name" />
+                                    <x-ui.radio name="sort" label="按状态" value="status" disabled />
+                                </div>
+                            </div>
+
+                            {{-- Switch --}}
+                            <div class="space-y-3">
+                                <p class="text-sm font-medium text-foreground">Switch 开关</p>
+                                <div class="space-y-3">
+                                    <x-ui.switch label="启用通知" checked />
+                                    <x-ui.switch label="自动接单" />
+                                    <x-ui.switch label="审核模式" checked />
+                                    <x-ui.switch label="维护模式（禁用）" disabled />
+                                </div>
+                            </div>
+                        </div>
+                    </x-ui.card-content>
+                </x-ui.card>
+            </section>
+
+            {{-- ==================== Table ==================== --}}
+            <section>
+                <h2 class="text-lg font-semibold mb-1">Table 数据表格</h2>
+                <p class="text-sm text-muted-foreground mb-4">语义化 HTML 表格，可组合 TableHeader / TableBody / TableRow / TableHead / TableCell</p>
+                <x-ui.card>
+                    <x-ui.card-header>
+                        <x-ui.card-title>最近采购单</x-ui.card-title>
+                        <x-ui.card-description>展示最近 5 条采购记录</x-ui.card-description>
+                    </x-ui.card-header>
+                    <x-ui.card-content>
+                        <x-ui.table>
+                            <x-ui.table-header>
+                                <x-ui.table-row>
+                                    <x-ui.table-head>单号</x-ui.table-head>
+                                    <x-ui.table-head>供应商</x-ui.table-head>
+                                    <x-ui.table-head>金额</x-ui.table-head>
+                                    <x-ui.table-head>状态</x-ui.table-head>
+                                    <x-ui.table-head class="text-right">操作</x-ui.table-head>
+                                </x-ui.table-row>
+                            </x-ui.table-header>
+                            <x-ui.table-body>
+                                <x-ui.table-row>
+                                    <x-ui.table-cell class="font-medium">PO-20260727001</x-ui.table-cell>
+                                    <x-ui.table-cell>鲜达生鲜供应</x-ui.table-cell>
+                                    <x-ui.table-cell>¥12,480.00</x-ui.table-cell>
+                                    <x-ui.table-cell><x-ui.badge variant="green">已确认</x-ui.badge></x-ui.table-cell>
+                                    <x-ui.table-cell class="text-right"><x-ui.button variant="ghost" size="xs">详情</x-ui.button></x-ui.table-cell>
+                                </x-ui.table-row>
+                                <x-ui.table-row>
+                                    <x-ui.table-cell class="font-medium">PO-20260727002</x-ui.table-cell>
+                                    <x-ui.table-cell>绿源果蔬批发</x-ui.table-cell>
+                                    <x-ui.table-cell>¥8,320.00</x-ui.table-cell>
+                                    <x-ui.table-cell><x-ui.badge variant="outline-orange">待审核</x-ui.badge></x-ui.table-cell>
+                                    <x-ui.table-cell class="text-right"><x-ui.button variant="ghost" size="xs">详情</x-ui.button></x-ui.table-cell>
+                                </x-ui.table-row>
+                                <x-ui.table-row>
+                                    <x-ui.table-cell class="font-medium">PO-20260727003</x-ui.table-cell>
+                                    <x-ui.table-cell>海味轩水产</x-ui.table-cell>
+                                    <x-ui.table-cell>¥25,600.00</x-ui.table-cell>
+                                    <x-ui.table-cell><x-ui.badge variant="blue">配送中</x-ui.badge></x-ui.table-cell>
+                                    <x-ui.table-cell class="text-right"><x-ui.button variant="ghost" size="xs">详情</x-ui.button></x-ui.table-cell>
+                                </x-ui.table-row>
+                                <x-ui.table-row>
+                                    <x-ui.table-cell class="font-medium">PO-20260726004</x-ui.table-cell>
+                                    <x-ui.table-cell>鲜达生鲜供应</x-ui.table-cell>
+                                    <x-ui.table-cell>¥6,150.00</x-ui.table-cell>
+                                    <x-ui.table-cell><x-ui.badge variant="default">已完成</x-ui.badge></x-ui.table-cell>
+                                    <x-ui.table-cell class="text-right"><x-ui.button variant="ghost" size="xs">详情</x-ui.button></x-ui.table-cell>
+                                </x-ui.table-row>
+                                <x-ui.table-row>
+                                    <x-ui.table-cell class="font-medium">PO-20260726005</x-ui.table-cell>
+                                    <x-ui.table-cell>绿源果蔬批发</x-ui.table-cell>
+                                    <x-ui.table-cell>¥3,280.00</x-ui.table-cell>
+                                    <x-ui.table-cell><x-ui.badge variant="red">已取消</x-ui.badge></x-ui.table-cell>
+                                    <x-ui.table-cell class="text-right"><x-ui.button variant="ghost" size="xs">详情</x-ui.button></x-ui.table-cell>
+                                </x-ui.table-row>
+                            </x-ui.table-body>
+                            <x-ui.table-footer>
+                                <x-ui.table-row>
+                                    <x-ui.table-cell colspan="5" class="text-right text-sm text-muted-foreground">
+                                        共 5 条记录，合计 ¥55,830.00
+                                    </x-ui.table-cell>
+                                </x-ui.table-row>
+                            </x-ui.table-footer>
+                        </x-ui.table>
+                    </x-ui.card-content>
+                </x-ui.card>
+            </section>
+
+            {{-- ==================== Pagination ==================== --}}
+            <section>
+                <h2 class="text-lg font-semibold mb-1">Pagination 分页</h2>
+                <p class="text-sm text-muted-foreground mb-4">页码导航，当前页高亮，支持跳转</p>
+                <x-ui.card>
+                    <x-ui.card-content class="p-6 space-y-6">
+                        <x-ui.pagination :currentPage="3" :totalPages="10" :total="145" :perPage="15" />
+                        <x-ui.pagination :currentPage="1" :totalPages="5" :total="68" :perPage="15" />
+                    </x-ui.card-content>
+                </x-ui.card>
+            </section>
+
+            {{-- ==================== Dialog ==================== --}}
+            <section>
+                <h2 class="text-lg font-semibold mb-1">Dialog 对话框</h2>
+                <p class="text-sm text-muted-foreground mb-4">模态弹窗，支持 header / title / description / content / footer 组合</p>
+                <div class="flex flex-wrap items-center gap-3">
+                    <x-ui.dialog>
+                        <x-slot:trigger>
+                            <x-ui.button variant="blue">新建采购单</x-ui.button>
+                        </x-slot:trigger>
+
+                        <x-ui.dialog-header>
+                            <x-ui.dialog-title>新建采购单</x-ui.dialog-title>
+                            <x-ui.dialog-description>填写基本信息以创建新的采购单，提交后可继续添加明细。</x-ui.dialog-description>
+                        </x-ui.dialog-header>
+
+                        <x-ui.dialog-content>
+                            <div class="space-y-4">
+                                <x-ui.select label="供应商" placeholder="请选择供应商">
+                                    <option value="1">鲜达生鲜供应</option>
+                                    <option value="2">绿源果蔬批发</option>
+                                </x-ui.select>
+                                <x-ui.textarea label="备注" placeholder="可选备注信息" :rows="3" />
+                            </div>
+                        </x-ui.dialog-content>
+
+                        <x-ui.dialog-footer>
+                            <x-ui.button variant="outline">取消</x-ui.button>
+                            <x-ui.button variant="blue">提交</x-ui.button>
+                        </x-ui.dialog-footer>
+                    </x-ui.dialog>
+
+                    <x-ui.dialog size="lg">
+                        <x-slot:trigger>
+                            <x-ui.button variant="outline">大尺寸对话框</x-ui.button>
+                        </x-slot:trigger>
+
+                        <x-ui.dialog-header>
+                            <x-ui.dialog-title>大尺寸对话框</x-ui.dialog-title>
+                            <x-ui.dialog-description>适用于需要展示更多内容的场景，如明细编辑。</x-ui.dialog-description>
+                        </x-ui.dialog-header>
+
+                        <x-ui.dialog-content>
+                            <p class="text-sm text-muted-foreground">此对话框使用了 size="lg" 参数，最大宽度为 max-w-2xl，适合编辑表单或显示详细信息。</p>
+                        </x-ui.dialog-content>
+
+                        <x-ui.dialog-footer>
+                            <x-ui.button variant="outline">关闭</x-ui.button>
+                        </x-ui.dialog-footer>
+                    </x-ui.dialog>
+                </div>
+            </section>
+
+            {{-- ==================== Dropdown Menu ==================== --}}
+            <section>
+                <h2 class="text-lg font-semibold mb-1">Dropdown Menu 下拉菜单</h2>
+                <p class="text-sm text-muted-foreground mb-4">上下文操作菜单，支持分隔线和禁用项</p>
+                <div class="flex flex-wrap items-center gap-3">
+                    <x-ui.dropdown-menu>
+                        <x-slot:trigger>
+                            <x-ui.button variant="outline">更多操作 ▾</x-ui.button>
+                        </x-slot:trigger>
+
+                        <x-slot:content>
+                            <x-ui.dropdown-item>
+                                <span class="flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    查看详情
+                                </span>
+                            </x-ui.dropdown-item>
+                            <x-ui.dropdown-item>
+                                <span class="flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                    编辑
+                                </span>
+                            </x-ui.dropdown-item>
+                            <x-ui.dropdown-item disabled>
+                                <span class="flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                                    转移（已禁用）
+                                </span>
+                            </x-ui.dropdown-item>
+                            <x-ui.dropdown-separator />
+                            <x-ui.dropdown-item variant="destructive">
+                                <span class="flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    删除
+                                </span>
+                            </x-ui.dropdown-item>
+                        </x-slot:content>
+                    </x-ui.dropdown-menu>
+
+                    <x-ui.dropdown-menu align="end">
+                        <x-slot:trigger>
+                            <x-ui.button variant="blue">对齐右 ▾</x-ui.button>
+                        </x-slot:trigger>
+
+                        <x-slot:content>
+                            <x-ui.dropdown-item>操作一</x-ui.dropdown-item>
+                            <x-ui.dropdown-item>操作二</x-ui.dropdown-item>
+                            <x-ui.dropdown-item>操作三</x-ui.dropdown-item>
+                        </x-slot:content>
+                    </x-ui.dropdown-menu>
+                </div>
+            </section>
+
+            {{-- ==================== Tooltip ==================== --}}
+            <section>
+                <h2 class="text-lg font-semibold mb-1">Tooltip 提示</h2>
+                <p class="text-sm text-muted-foreground mb-4">鼠标悬停显示简短说明文字</p>
+                <div class="flex flex-wrap items-center gap-4">
+                    <x-ui.tooltip>
+                        <x-ui.button variant="outline">上方提示</x-ui.button>
+                        <x-slot:tooltip>这是一个上方提示框</x-slot:tooltip>
+                    </x-ui.tooltip>
+
+                    <x-ui.tooltip side="bottom">
+                        <x-ui.button variant="outline-blue">下方提示</x-ui.button>
+                        <x-slot:tooltip>底部出现的提示</x-slot:tooltip>
+                    </x-ui.tooltip>
+
+                    <x-ui.tooltip side="right">
+                        <x-ui.button variant="outline-green">右侧提示</x-ui.button>
+                        <x-slot:tooltip>右侧显示</x-slot:tooltip>
+                    </x-ui.tooltip>
+                </div>
+            </section>
+
+            {{-- ==================== Tabs ==================== --}}
+            <section>
+                <h2 class="text-lg font-semibold mb-1">Tabs 标签页</h2>
+                <p class="text-sm text-muted-foreground mb-4">Alpine.js 驱动的标签页切换</p>
+                <x-ui.card>
+                    <x-ui.card-content class="p-6">
+                        <x-ui.tabs defaultTab="orders">
+                            <div class="flex border-b border-border mb-4 gap-1">
+                                <x-ui.tabs-trigger value="orders">订单管理</x-ui.tabs-trigger>
+                                <x-ui.tabs-trigger value="products">商品管理</x-ui.tabs-trigger>
+                                <x-ui.tabs-trigger value="drivers">司机管理</x-ui.tabs-trigger>
+                                <x-ui.tabs-trigger value="settings">系统设置</x-ui.tabs-trigger>
+                            </div>
+
+                            <x-ui.tabs-content value="orders">
+                                <div class="space-y-3">
+                                    <p class="text-sm text-muted-foreground">订单管理面板 — 查看所有采购、配送订单</p>
+                                    <div class="flex gap-2">
+                                        <x-ui.button variant="blue" size="sm">新建订单</x-ui.button>
+                                        <x-ui.button variant="outline" size="sm">导出</x-ui.button>
+                                    </div>
+                                </div>
+                            </x-ui.tabs-content>
+
+                            <x-ui.tabs-content value="products">
+                                <p class="text-sm text-muted-foreground">商品管理面板 — 管理所有商品 SKU、定价和库存</p>
+                            </x-ui.tabs-content>
+
+                            <x-ui.tabs-content value="drivers">
+                                <p class="text-sm text-muted-foreground">司机管理面板 — 司机排班、线路分配和绩效</p>
+                            </x-ui.tabs-content>
+
+                            <x-ui.tabs-content value="settings">
+                                <p class="text-sm text-muted-foreground">系统设置面板 — 审核开关、业务参数配置</p>
+                            </x-ui.tabs-content>
+                        </x-ui.tabs>
+                    </x-ui.card-content>
+                </x-ui.card>
+            </section>
+
+            {{-- ==================== Separator ==================== --}}
+            <section>
+                <h2 class="text-lg font-semibold mb-1">Separator 分隔线</h2>
+                <p class="text-sm text-muted-foreground mb-4">视觉分隔，支持水平 / 垂直方向</p>
+                <x-ui.card>
+                    <x-ui.card-content class="p-6 space-y-4">
+                        <div>
+                            <p class="text-sm text-muted-foreground">上方内容</p>
+                        </div>
+                        <x-ui.separator />
+                        <div>
+                            <p class="text-sm text-muted-foreground">下方内容</p>
+                        </div>
+                        <div class="flex items-center gap-4 h-8">
+                            <span class="text-sm">选项 A</span>
+                            <x-ui.separator orientation="vertical" class="h-4" />
+                            <span class="text-sm">选项 B</span>
+                            <x-ui.separator orientation="vertical" class="h-4" />
+                            <span class="text-sm">选项 C</span>
+                        </div>
+                    </x-ui.card-content>
+                </x-ui.card>
+            </section>
+
+            {{-- ==================== Spinner / Skeleton ==================== --}}
+            <section>
+                <h2 class="text-lg font-semibold mb-1">Spinner / Skeleton 加载态</h2>
+                <p class="text-sm text-muted-foreground mb-4">加载指示器和骨架屏占位</p>
+                <x-ui.card>
+                    <x-ui.card-content class="p-6 space-y-6">
+                        <div>
+                            <p class="text-sm font-medium mb-3">Spinner 旋转加载</p>
+                            <div class="flex items-center gap-4">
+                                <div class="flex items-center gap-2">
+                                    <x-ui.spinner size="sm" variant="primary" />
+                                    <span class="text-sm text-muted-foreground">小号</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <x-ui.spinner variant="primary" />
+                                    <span class="text-sm text-muted-foreground">默认</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <x-ui.spinner size="lg" variant="primary" />
+                                    <span class="text-sm text-muted-foreground">大号</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <x-ui.spinner variant="muted" />
+                                    <span class="text-sm text-muted-foreground">灰色</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <x-ui.separator />
+
+                        <div>
+                            <p class="text-sm font-medium mb-3">Skeleton 骨架屏</p>
+                            <div class="space-y-3">
+                                <x-ui.skeleton class="h-4 w-[250px]" />
+                                <x-ui.skeleton class="h-4 w-[200px]" />
+                                <x-ui.skeleton class="h-12 w-full" variant="circular" />
+                            </div>
+                        </div>
+                    </x-ui.card-content>
+                </x-ui.card>
+            </section>
+
+            {{-- ==================== Avatar ==================== --}}
+            <section>
+                <h2 class="text-lg font-semibold mb-1">Avatar 头像</h2>
+                <p class="text-sm text-muted-foreground mb-4">用户头像，支持图片 / 首字母 / 占位，多种尺寸</p>
+                <x-ui.card>
+                    <x-ui.card-content class="p-6">
+                        <div class="flex items-center gap-4">
+                            <x-ui.avatar size="xs" fallback="张三" />
+                            <x-ui.avatar size="sm" fallback="李四" />
+                            <x-ui.avatar size="default" fallback="王五" />
+                            <x-ui.avatar size="lg" fallback="赵六" />
+                            <x-ui.avatar size="xl" />
+                        </div>
+                    </x-ui.card-content>
+                </x-ui.card>
+            </section>
+
+            {{-- ==================== Progress ==================== --}}
+            <section>
+                <h2 class="text-lg font-semibold mb-1">Progress 进度条</h2>
+                <p class="text-sm text-muted-foreground mb-4">彩色进度条，支持多种颜色和尺寸</p>
+                <x-ui.card>
+                    <x-ui.card-content class="p-6 space-y-5">
+                        <div class="space-y-3">
+                            <p class="text-sm font-medium">配送完成率</p>
+                            <x-ui.progress :value="78" :max="100" variant="blue" showValue />
+                        </div>
+                        <div class="space-y-3">
+                            <p class="text-sm font-medium">库存达标率</p>
+                            <x-ui.progress :value="45" :max="100" variant="green" showValue />
+                        </div>
+                        <div class="space-y-3">
+                            <p class="text-sm font-medium">审核积压率</p>
+                            <x-ui.progress :value="92" :max="100" variant="orange" showValue />
+                        </div>
+                        <div class="space-y-3">
+                            <p class="text-sm font-medium">退货率</p>
+                            <x-ui.progress :value="12" :max="100" variant="red" showValue />
+                        </div>
+                        <div class="space-y-3">
+                            <p class="text-sm font-medium">默认样式</p>
+                            <x-ui.progress :value="60" :max="100" showValue />
+                        </div>
+                        <div class="space-y-3">
+                            <p class="text-sm font-medium">不同尺寸</p>
+                            <x-ui.progress :value="55" :max="100" variant="blue" size="sm" />
+                            <x-ui.progress :value="55" :max="100" variant="blue" size="default" />
+                            <x-ui.progress :value="55" :max="100" variant="blue" size="lg" />
+                        </div>
+                    </x-ui.card-content>
+                </x-ui.card>
+            </section>
+
             {{-- ==================== Status Badges 组合 ==================== --}}
             <section>
                 <h2 class="text-lg font-semibold mb-1">业务状态组合</h2>
