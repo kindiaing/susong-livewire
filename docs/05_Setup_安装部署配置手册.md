@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '26e0f9f2-b9b3-4dd1-8f8b-eef69aa8d22f'
-  PropagateID: '26e0f9f2-b9b3-4dd1-8f8b-eef69aa8d22f'
-  ReservedCode1: '96c0d3ea-f92d-4c80-a237-cef2a32d5f4f'
-  ReservedCode2: '96c0d3ea-f92d-4c80-a237-cef2a32d5f4f'
+  ProduceID: 'd377c52f-a18b-47bb-b5ff-9b7a73e7656a'
+  PropagateID: 'd377c52f-a18b-47bb-b5ff-9b7a73e7656a'
+  ReservedCode1: '82dbbaeb-577b-4c7e-8ccf-940c50bb86e5'
+  ReservedCode2: '82dbbaeb-577b-4c7e-8ccf-940c50bb86e5'
 ---
 
 # Setup 系统安装部署配置手册
@@ -136,31 +136,30 @@ composer install --optimize-autoloader --no-dev
 # 5. 生成应用密钥
 php artisan key:generate
 
-# 6. 执行数据库迁移（含初始数据）
-php artisan migrate --force
+# 6. 初始化数据库（迁移 + 种子 + 管理员，一条命令搞定）
+php artisan admin:install
 
-# 7. 导入初始化数据（角色、权限、审核配置等）
-mysql -u${DB_USERNAME} -p${DB_DATABASE} < docs/attach/init.sql
+# 如需测试数据，使用：
+# php artisan admin:install --with-test-data
 
-# 8. 创建存储目录软链接
+# 7. 创建存储目录软链接
 php artisan storage:link
 
-# 9. 缓存优化
+# 8. 缓存优化
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-# 10. 设置目录权限
+# 9. 设置目录权限
 sudo chown -R www-data:www-data /var/www/susong
 sudo chmod -R 755 /var/www/susong
 sudo chmod -R 775 storage bootstrap/cache
 
-# 11. 前端构建
-# 11. 前端构建（项目根目录执行）
+# 10. 前端构建（项目根目录执行）
 npm install
 npm run build
 
-# 12. 启动服务（使用 deploy 脚本）
+# 11. 启动服务（使用 deploy 脚本）
 chmod +x docs/attach/install.sh
 ./docs/attach/install.sh
 ```
@@ -173,7 +172,7 @@ git clone <仓库地址> D:\WWW\susong
 cd D:\WWW\susong
 
 REM 2. 复制配置文件
-copy docs\attach\.env.example .env
+copy .env.example .env
 
 REM 3. 修改 .env 配置
 
@@ -183,17 +182,18 @@ composer install
 REM 5. 生成密钥
 php artisan key:generate
 
-REM 6. 执行迁移
-php artisan migrate
+REM 6. 初始化数据库（迁移 + 种子 + 管理员）
+php artisan admin:install
 
-REM 7. 导入初始化数据
-mysql -u账号 -p库名 < docs/attach/init.sql
+REM 7. 前端构建
+npm install
+npm run build
 
 REM 8. 创建存储链接
 php artisan storage:link
 
 REM 9. 启动开发服务
-docs\attach\install.bat
+php artisan serve
 ```
 
 ---

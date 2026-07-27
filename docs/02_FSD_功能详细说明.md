@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'cfba7f28-a3e0-45ba-9ef4-4764d80026d2'
-  PropagateID: 'cfba7f28-a3e0-45ba-9ef4-4764d80026d2'
-  ReservedCode1: '84987bcb-f47e-430e-9955-ef706f29bd24'
-  ReservedCode2: '84987bcb-f47e-430e-9955-ef706f29bd24'
+  ProduceID: '8e993514-ef9a-4db1-8774-68b28653a8e0'
+  PropagateID: '8e993514-ef9a-4db1-8774-68b28653a8e0'
+  ReservedCode1: '1b4e2b23-68d6-4a3a-88a2-319e76d69f53'
+  ReservedCode2: '1b4e2b23-68d6-4a3a-88a2-319e76d69f53'
 ---
 
 # FSD 功能详细说明书
@@ -1642,6 +1642,69 @@ database/
 │   └── SystemConfigSeeder.php                      # 系统配置种子 [待建]
 └── factories/                  # 模型工厂
     └── UserFactory.php                              # Starter Kit 自带
+```
+
+#### 9.3.4 Artisan 命令（admin:* 命令体系）
+
+系统内置 8 条 `admin:*` 命令，用于运维管理、初始化安装和数据维护。命令文件位于 `app/Console/Commands/`，Laravel 13 自动发现注册。
+
+| 命令 | 说明 | 关键参数 |
+|:---|:---|:---|
+| `admin:install` | 安装/初始化数据库 | `--with-test-data`（导入测试数据）、`--force`（不确认）、`--fresh`（清空重建） |
+| `admin:fresh` | 清空并重建数据库（二次确认） | `--with-test-data`、`--force` |
+| `admin:make-user` | 创建管理员账户 | `--name`、`--email`、`--password`、`--role=super-admin`、`--force` |
+| `admin:create-user` | 创建普通用户 | `--name`、`--email`、`--password`、`--role`（交互选择 9 角色） |
+| `admin:reset-password` | 重置用户密码 | `--email`、`--password` |
+| `admin:backup` | 备份数据库（mysqldump） | `--path`、`--compress`、`--only-data`、`--only-structure` |
+| `admin:roles` | 列出角色与权限 | `--with-users`（显示角色下用户） |
+| `admin:status` | 系统状态检查 | 无（检查数据库/Redis/Reverb/队列/用户统计） |
+
+**命令文件目录：**
+
+```text
+app/Console/Commands/
+├── AdminMakeCommand.php           # admin:make-user
+├── AdminCreateUserCommand.php     # admin:create-user
+├── AdminInstallCommand.php        # admin:install
+├── AdminBackupCommand.php         # admin:backup
+├── AdminResetPasswordCommand.php  # admin:reset-password
+├── AdminListRolesCommand.php      # admin:roles
+├── AdminFreshCommand.php          # admin:fresh
+└── AdminStatusCommand.php         # admin:status
+```
+
+**典型使用场景：**
+
+```bash
+# 首次部署安装（不含测试数据）
+php artisan admin:install
+
+# 首次部署安装（含测试数据）
+php artisan admin:install --with-test-data
+
+# 创建超级管理员（交互式）
+php artisan admin:make-user
+
+# 创建超级管理员（一行命令，CI/CD 用）
+php artisan admin:make-user --name=Admin --email=admin@example.com --password=Secret123 --force
+
+# 创建普通用户
+php artisan admin:create-user
+
+# 重置密码
+php artisan admin:reset-password --email=admin@susong.com
+
+# 备份数据库（压缩）
+php artisan admin:backup --compress
+
+# 查看角色
+php artisan admin:roles --with-users
+
+# 系统状态
+php artisan admin:status
+
+# 清空重建（危险，二次确认）
+php artisan admin:fresh --with-test-data
 ```
 
 ---
