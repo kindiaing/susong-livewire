@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '6244578a-126f-4528-9750-73ec90e3e33a'
-  PropagateID: '6244578a-126f-4528-9750-73ec90e3e33a'
-  ReservedCode1: '13c35e3e-636f-4e29-9578-4d3450922738'
-  ReservedCode2: '13c35e3e-636f-4e29-9578-4d3450922738'
+  ProduceID: '26e0f9f2-b9b3-4dd1-8f8b-eef69aa8d22f'
+  PropagateID: '26e0f9f2-b9b3-4dd1-8f8b-eef69aa8d22f'
+  ReservedCode1: '96c0d3ea-f92d-4c80-a237-cef2a32d5f4f'
+  ReservedCode2: '96c0d3ea-f92d-4c80-a237-cef2a32d5f4f'
 ---
 
 # Setup 系统安装部署配置手册
@@ -33,13 +33,14 @@ AIGC:
 
 | 软件 | 最低版本 | 推荐版本 | 说明 |
 | :--- | :--- | :--- | :--- |
-| PHP | 8.2 | 8.3 | 需启用扩展：BCMath、Ctype、cURL、dom、fileinfo、JSON、Mbstring、OpenSSL、PDO、Tokenizer、XML、redis |
+| PHP | 8.4 | 8.4+ | 需启用扩展：BCMath、Ctype、cURL、dom、fileinfo、JSON、Mbstring、OpenSSL、PDO、Tokenizer、XML、redis |
 | MySQL | 8.0 | 8.0.35+ | 字符集 utf8mb4 |
 | Redis | 7.0 | 7.2 | 用于缓存、队列、会话 |
 | Node.js | 18.x | 20.x LTS | 前端构建 |
 | Nginx | 1.20 | 1.24 | Web 服务器 |
 | Composer | 2.6+ | 最新 | PHP 依赖管理 |
 | Git | 2.30+ | 最新 | 版本控制 |
+| Laravel Reverb | 1.x | 最新 | WebSocket 实时推送（`composer require laravel/reverb`） |
 
 ### 1.3 微信小程序相关
 
@@ -61,10 +62,10 @@ AIGC:
 # 更新系统
 sudo apt update && sudo apt upgrade -y
 
-# PHP 8.3 + 扩展
-sudo apt install -y php8.3 php8.3-fpm php8.3-cli php8.3-common \
-  php8.3-mysql php8.3-redis php8.3-mbstring php8.3-xml \
-  php8.3-curl php8.3-bcmath php8.3-gd php8.3-zip php8.3-intl
+# PHP 8.4 + 扩展
+sudo apt install -y php8.4 php8.4-fpm php8.4-cli php8.4-common \
+  php8.4-mysql php8.4-redis php8.4-mbstring php8.4-xml \
+  php8.4-curl php8.4-bcmath php8.4-gd php8.4-zip php8.4-intl
 
 # Composer
 curl -sS https://getcomposer.org/installer | php
@@ -94,9 +95,9 @@ sudo apt install -y git
 # PHP 8.3（Remi 仓库）
 sudo yum install -y epel-release
 sudo yum install -y https://rpms.remirepo.net/enterprise/remi-release-8.rpm
-sudo yum install -y php83 php83-php-fpm php83-php-cli php83-php-common \
-  php83-php-mysqlnd php83-php-redis php83-php-mbstring php83-php-xml \
-  php83-php-curl php83-php-bcmath php83-php-gd php83-php-zip php83-php-intl
+sudo yum install -y php84 php84-php-fpm php84-php-cli php84-php-common \
+  php84-php-mysqlnd php84-php-redis php84-php-mbstring php84-php-xml \
+  php84-php-curl php84-php-bcmath php84-php-gd php84-php-zip php84-php-intl
 
 # 其余软件同 Ubuntu，使用 yum 安装
 sudo yum install -y mysql-server redis nginx git composer nodejs
@@ -104,7 +105,7 @@ sudo yum install -y mysql-server redis nginx git composer nodejs
 
 ### 2.3 Windows（本地开发）
 
-1. 安装 PHP 8.3：下载 [windows.php.net](https://windows.php.net/download/)，解压到 `C:\php`，添加环境变量
+1. 安装 PHP 8.4+：下载 [windows.php.net](https://windows.php.net/download/)，解压到 `C:\php`，添加环境变量
 2. 安装 MySQL 8.0：下载 [MySQL Installer](https://dev.mysql.com/downloads/installer/)
 3. 安装 Redis：下载 [Memurai](https://www.memurai.com/) 或 WSL 运行 Redis
 4. 安装 Node.js 20.x：下载 [nodejs.org](https://nodejs.org/)
@@ -124,7 +125,7 @@ sudo git clone <仓库地址> susong
 cd susong
 
 # 2. 复制环境配置文件
-cp docs/attach/.env.example .env
+cp .env.example .env
 
 # 3. 修改 .env 配置（参见第 4 章）
 vi .env
@@ -155,10 +156,9 @@ sudo chmod -R 755 /var/www/susong
 sudo chmod -R 775 storage bootstrap/cache
 
 # 11. 前端构建
-cd resources/react  # 前端项目目录（按实际调整）
+# 11. 前端构建（项目根目录执行）
 npm install
 npm run build
-cd ../..
 
 # 12. 启动服务（使用 deploy 脚本）
 chmod +x docs/attach/install.sh
@@ -212,7 +212,7 @@ docs\attach\install.bat
 | APP_DEBUG | true | 调试模式（生产必须 false） |
 | APP_URL | http://localhost | 应用 URL |
 | APP_PORT | 8000 | 后端服务端口 |
-| FRONTEND_URL | http://localhost:3000 | 前端 URL（CORS 配置用） |
+| FRONTEND_URL | - | 不再适用（管理后台已集成在 Laravel 中） |
 | TIMEZONE | Asia/Shanghai | 时区 |
 
 #### 4.1.2 数据库
@@ -308,7 +308,7 @@ server {
     # Laravel 后端（Livewire + API）
     location / {
         try_files $uri $uri/ /index.php?$query_string;
-        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        fastcgi_pass unix:/run/php/php8.4-fpm.sock;
         fastcgi_param SCRIPT_FILENAME $realpath_root/index.php;
         include fastcgi_params;
         fastcgi_hide_header X-Powered-By;
@@ -347,7 +347,7 @@ server {
 
     location /api/ {
         try_files $uri $uri/ /index.php?$query_string;
-        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+        fastcgi_pass unix:/run/php/php8.4-fpm.sock;
         fastcgi_param SCRIPT_FILENAME $realpath_root/index.php;
         include fastcgi_params;
     }

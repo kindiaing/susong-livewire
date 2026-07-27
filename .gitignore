@@ -1,18 +1,69 @@
-# Temp / working files
-.temp/
+# ============================
+# Laravel - 速送服务平台
+# ============================
 
-# OS files
-Thumbs.db
-Desktop.ini
-.DS_Store
+# ---------- 环境与密钥 ----------
+.env
+.env.backup
+.env.production
+.env.staging
+.phpactor.json
+auth.json
 
-# Editor / IDE
-.vscode/
+# ---------- Laravel 运行时 ----------
+/bootstrap/cache/
+/storage/*.key
+/storage/framework/
+/storage/logs/
+/storage/app/
+/storage/app/public/
+
+# ---------- Composer ----------
+/vendor/
+/node_modules/
+npm-debug.log
+yarn-error.log
+
+# ---------- 构建产物 ----------
+/public/build/
+/public/hot
+/public/storage
+
+# ---------- PHP ----------
+*.php-cs-fixer.cache
+.php_cs.cache
+.phpunit.result.cache
+phpstan.neon.dist
+
+# ---------- 前端 ----------
+/public/js/
+/public/css/
+/public/mix-manifest.json
+/public/manifest.json
+
+# ---------- IDE / 编辑器 ----------
 .idea/
+.vscode/
 *.swp
 *.swo
 *~
 
-# Backup files
+# ---------- OS ----------
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# ---------- 备份文件 ----------
 *.bkp
 *.bak
+*.tmp
+
+# ---------- 项目临时文件 ----------
+.temp/
+
+# ---------- 其他 ----------
+.homestead
+Homestead.json
+Homestead.yaml
+Vessel

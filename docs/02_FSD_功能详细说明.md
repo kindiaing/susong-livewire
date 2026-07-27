@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '40112282-aeee-437b-8afb-2a2ba23eea64'
-  PropagateID: '40112282-aeee-437b-8afb-2a2ba23eea64'
-  ReservedCode1: 'c56ea026-6311-4717-9654-b5ae59910523'
-  ReservedCode2: 'c56ea026-6311-4717-9654-b5ae59910523'
+  ProduceID: 'cfba7f28-a3e0-45ba-9ef4-4764d80026d2'
+  PropagateID: 'cfba7f28-a3e0-45ba-9ef4-4764d80026d2'
+  ReservedCode1: '84987bcb-f47e-430e-9955-ef706f29bd24'
+  ReservedCode2: '84987bcb-f47e-430e-9955-ef706f29bd24'
 ---
 
 # FSD 功能详细说明书
@@ -1263,53 +1263,673 @@ flowchart TD
 ## 9 项目目录规划
 
 > 本章定义三端（管理后台 Web、商家端小程序、司机端小程序）及 Laravel 后端的完整目录结构，按业务模块组织，指导团队统一开发规范。
+>
+> **关键变更说明**：项目采用单仓结构，Laravel 应用根目录即项目根目录，不再使用 `backend/` 子目录嵌套。小程序端后续独立仓库。
 
 ### 9.1 总体仓库结构
 
 ```text
-susong/                           ← 项目根目录
-├── backend/                      ← Laravel 13 全栈应用（Livewire 管理后台 + API）
-├── mini-merchant/                ← Taro 商家端小程序
-├── mini-driver/                  ← Taro 司机端小程序
-├── docs/                         ← 设计文档（已存在）
-└── README.md
+susong-livewire/                  ← 项目根目录（= Laravel 应用根目录）
+├── app/                          ← Laravel 应用核心代码
+├── bootstrap/                    ← 框架启动引导
+├── config/                       ← 配置文件
+├── database/                     ← 迁移 + 种子 + 工厂
+├── docs/                         ← 设计文档（7 份 + 流程图 + 附件）
+├── public/                       ← Web 入口 + 编译产物
+├── resources/                    ← 前端资源（CSS/JS/Blade 视图）
+├── routes/                       ← 路由定义
+├── storage/                      ← 日志/缓存/上传文件
+├── tests/                        ← 自动化测试（Pest）
+├── .env                          ← 环境配置（不入版本控制）
+├── .env.example                  ← 环境配置模板
+├── composer.json                 ← PHP 依赖
+├── package.json                  ← 前端依赖
+├── vite.config.js                ← Vite 构建配置
+├── artisan                       ← Laravel CLI 入口
+└── README.md                     ← 项目说明
+```
+
+**小程序端独立仓库（后续创建）：**
+
+| 端 | 仓库名 | 技术栈 |
+|:---|:---|:---|
+| 商家端 | `susong-mini-merchant` | Taro 4 + React + TypeScript |
+| 司机端 | `susong-mini-driver` | 原生微信小程序 |
+
+---
+
+### 9.2 Laravel 后端目录规划（app/）
+
+> 按实际 Laravel 13 Starter Kit 结构 + 业务扩展规划。当前为初始化状态，标注 **[待建]** 表示开发迭代中需创建。
+
+```text
+app/
+├── Http/
+│   ├── Controllers/
+│   │   └── Controller.php                          # 基类控制器（Laravel 自带）
+│   │
+│   └── Middleware/                                  # 自定义中间件 [待建]
+│       ├── CheckPermission.php                     # 权限校验
+│       ├── CheckApprovalEnabled.php                # 审核节点开关检查
+│       └── LogOperation.php                        # 操作日志自动记录
+│
+├── Livewire/                                       # Livewire 组件（管理后台）[待建]
+│   ├── Auth/
+│   │   └── Login.php                               # 登录页
+│   ├── User/                                       # 用户与权限
+│   │   ├── UserList.php
+│   │   ├── UserForm.php
+│   │   ├── RoleList.php
+│   │   ├── RoleForm.php
+│   │   ├── PermissionList.php
+│   │   └── PermissionForm.php
+│   ├── Org/                                        # 组织主体
+│   │   ├── SupplierList.php
+│   │   ├── SupplierForm.php
+│   │   ├── MerchantList.php
+│   │   ├── MerchantForm.php
+│   │   ├── RouteList.php
+│   │   ├── RouteSort.php                           # 看板拖拽排序
+│   │   ├── DriverList.php
+│   │   ├── DriverForm.php
+│   │   ├── VehicleList.php
+│   │   └── VehicleForm.php
+│   ├── Product/                                    # 商品管理
+│   │   ├── CategoryList.php
+│   │   ├── ProductList.php
+│   │   ├── ProductForm.php
+│   │   ├── SkuForm.php
+│   │   ├── BarcodeForm.php
+│   │   ├── SkuSupplierForm.php
+│   │   ├── VisibilityConfig.php
+│   │   ├── TagList.php
+│   │   └── KeywordList.php
+│   ├── Purchase/                                   # 平台统采
+│   │   ├── PurchaseItemList.php
+│   │   ├── PurchaseOrderList.php
+│   │   ├── PurchaseOrderDetail.php
+│   │   ├── PurchaseReturnList.php
+│   │   └── PurchaseReturnDetail.php
+│   ├── Order/                                      # 客户直采
+│   │   ├── CartList.php
+│   │   ├── OrderList.php
+│   │   ├── OrderDetail.php
+│   │   ├── WeighingPriceForm.php
+│   │   ├── FrequentlyBoughtList.php
+│   │   ├── RepurchaseList.php
+│   │   ├── OrderReturnList.php
+│   │   └── OrderReturnDetail.php
+│   ├── Inventory/                                  # 库存管理
+│   │   ├── WarehouseList.php
+│   │   ├── InventoryList.php
+│   │   ├── InventoryAdjustForm.php
+│   │   └── InventoryLogList.php
+│   ├── Loss/                                       # 损耗管理
+│   │   ├── LossOrderList.php
+│   │   ├── LossOrderDetail.php
+│   │   ├── LossOrderForm.php
+│   │   └── LossReport.php
+│   ├── Picking/                                    # 拣货管理
+│   │   ├── PickingTaskList.php
+│   │   └── PickingTaskDetail.php
+│   ├── Delivery/                                   # 物流配送
+│   │   ├── DeliveryTaskList.php
+│   │   ├── DeliveryTaskDetail.php
+│   │   ├── TrackMap.php
+│   │   ├── SignatureList.php
+│   │   └── TemperatureList.php
+│   ├── Discrepancy/                                # 差异处理
+│   │   ├── DiscrepancyList.php
+│   │   ├── DiscrepancyDetail.php
+│   │   └── DiscrepancyReport.php
+│   ├── Finance/                                    # 财务对账
+│   │   ├── MerchantAccountList.php
+│   │   ├── RechargeList.php
+│   │   ├── RechargeForm.php
+│   │   ├── SettlementList.php
+│   │   ├── SettlementDetail.php
+│   │   ├── PaymentForm.php
+│   │   ├── ReceivableList.php
+│   │   ├── ReceivableDetail.php
+│   │   ├── ReceivablePaymentForm.php
+│   │   ├── InvoiceList.php
+│   │   ├── CorrectionList.php
+│   │   └── ApportionmentList.php
+│   ├── Price/                                      # 价格策略
+│   │   ├── PriceStrategyList.php
+│   │   ├── PriceStrategyForm.php
+│   │   └── PriceChangeLogList.php
+│   ├── Approval/                                   # 审核管理
+│   │   ├── ApprovalConfig.php
+│   │   ├── ApprovalPendingList.php
+│   │   └── ApprovalReviewedList.php
+│   └── System/                                     # 系统支撑
+│       ├── SystemConfig.php
+│       ├── BannerList.php
+│       ├── PromotionList.php
+│       ├── OperationLogList.php
+│       ├── AuditLogList.php
+│       └── LoginLogList.php
+│
+├── Models/                                         # Eloquent 模型 [待建]
+│   ├── User.php                                    # 已存在（Starter Kit 自带）
+│   ├── Role.php
+│   ├── Permission.php
+│   ├── Supplier.php
+│   ├── Merchant.php
+│   ├── MerchantAddress.php
+│   ├── DeliveryRoute.php
+│   ├── Driver.php
+│   ├── Vehicle.php
+│   ├── DriverVehicle.php
+│   ├── Category.php
+│   ├── Product.php
+│   ├── ProductImage.php
+│   ├── Sku.php
+│   ├── SkuBarcode.php
+│   ├── SkuSupplier.php
+│   ├── MerchantSkuVisibility.php
+│   ├── Tag.php
+│   ├── ProductTag.php
+│   ├── Keyword.php
+│   ├── PurchaseItem.php
+│   ├── PurchaseOrder.php
+│   ├── PurchaseOrderItem.php
+│   ├── PurchaseReturn.php
+│   ├── PurchaseReturnItem.php
+│   ├── Cart.php
+│   ├── CartItem.php
+│   ├── Order.php
+│   ├── OrderItem.php
+│   ├── FrequentlyBought.php
+│   ├── RepurchaseTemplate.php
+│   ├── RepurchaseTemplateItem.php
+│   ├── OrderReturn.php
+│   ├── OrderReturnItem.php
+│   ├── Warehouse.php
+│   ├── Inventory.php
+│   ├── InventoryLog.php
+│   ├── LossOrder.php
+│   ├── LossOrderItem.php
+│   ├── PickingTask.php
+│   ├── PickingTaskItem.php
+│   ├── DeliveryTask.php
+│   ├── DeliveryTaskOrder.php
+│   ├── DeliveryTrack.php
+│   ├── Signature.php
+│   ├── Temperature.php
+│   ├── Discrepancy.php
+│   ├── MerchantAccount.php
+│   ├── Recharge.php
+│   ├── SupplierSettlement.php
+│   ├── SupplierSettlementItem.php
+│   ├── SettlementPayment.php
+│   ├── Receivable.php
+│   ├── ReceivablePayment.php
+│   ├── Invoice.php
+│   ├── CorrectionAuthorization.php
+│   ├── PriceStrategy.php
+│   ├── PriceStrategyItem.php
+│   ├── PriceChangeLog.php
+│   ├── PriceApportionment.php
+│   ├── SystemConfig.php
+│   ├── Banner.php
+│   ├── Promotion.php
+│   ├── OperationLog.php
+│   ├── AuditLog.php
+│   ├── LoginLog.php
+│   ├── WechatUser.php
+│   ├── Notification.php
+│   ├── RestockReminder.php
+│   ├── MerchantFavorite.php
+│   ├── Approval.php
+│   └── ApprovalTypeConfig.php
+│
+├── Services/                                       # 业务逻辑服务层 [待建]
+│   ├── AuthService.php                             # 认证逻辑（登录/登出/Session + Token）
+│   ├── PermissionService.php                      # 权限缓存 + 菜单渲染
+│   ├── PurchaseService.php                         # 采购单生成 + 待采汇总
+│   ├── OrderService.php                            # 订单创建 + 称重改价 + 锁定
+│   ├── InventoryService.php                        # 库存变动 + 预警 + 日志
+│   ├── LossOrderService.php                        # 损耗单 + 阈值判断 + 库存扣减
+│   ├── PickingService.php                          # 拣货任务生成 + 差异
+│   ├── DeliveryService.php                         # 配送任务 + 轨迹 + 签收
+│   ├── DiscrepancyService.php                      # 差异单 + 金额调整
+│   ├── SettlementService.php                       # 供应商结算 + 付款 + 办结
+│   ├── ReceivableService.php                       # 应收 + 收款 + 办结
+│   ├── RechargeService.php                         # 充值 + 审核入账
+│   ├── ApprovalService.php                         # 统一审核引擎（19 节点）
+│   ├── PriceStrategyService.php                    # 策略匹配 + 改价 + 均摊
+│   ├── ReturnService.php                           # 采购退货 + 售后退货
+│   ├── ExportService.php                           # 报表导出（CSV/Excel）
+│   └── WechatMiniService.php                       # 微信小程序登录/消息
+│
+├── Events/                                         # 广播事件（Reverb 驱动）[待建]
+│   ├── OrderCreated.php                            # 订单创建 → 通知商家端 + 管理后台
+│   ├── OrderStatusChanged.php                      # 订单状态变更 → 推送 orders.{merchant_id}
+│   ├── InventoryWarning.php                        # 库存预警 → 推送 inventory.warning
+│   ├── ApprovalPending.php                         # 审核待办 → 推送 approval.{role_id}
+│   ├── ApprovalResolved.php                        # 审核完成 → 通知申请人
+│   ├── DeliveryTrackUpdated.php                    # 配送轨迹更新 → 推送 delivery.{driver_id}
+│   ├── DiscrepancyCreated.php                      # 差异单创建 → 推送 discrepancy.{merchant_id}
+│   ├── LossOrderPending.php                         # 损耗待审核 → 推送 loss-order.pending
+│   ├── RechargeCompleted.php                       # 充值完成 → 推送 recharge.{merchant_id}
+│   └── SystemAnnouncement.php                      # 系统公告 → 推送 system.announcement
+│
+├── Observers/                                      # 模型事件观察者 [待建]
+│   ├── OrderObserver.php                           # 订单状态变更 → 日志/通知
+│   ├── InventoryObserver.php                       # 库存变动 → 预警检查
+│   └── AuditLogObserver.php                        # 敏感模型变更 → 审计日志
+│
+├── Enums/                                          # 枚举常量（替代魔法数字）[待建]
+│   ├── OrderStatus.php
+│   ├── PurchaseOrderStatus.php
+│   ├── LossOrderStatus.php
+│   ├── LossType.php
+│   ├── DiscrepancyStage.php
+│   ├── DiscrepancyType.php
+│   ├── DiscrepancyDecision.php
+│   ├── ApprovalStatus.php
+│   ├── SettlementStatus.php
+│   ├── ReceivableStatus.php
+│   ├── InventoryLogType.php
+│   ├── ResponsibleParty.php
+│   └── PriceStrategyType.php
+│
+├── Policies/                                       # 授权策略 [待建]
+│   ├── UserPolicy.php
+│   ├── OrderPolicy.php
+│   ├── LossOrderPolicy.php
+│   └── ApprovalPolicy.php
+│
+└── Providers/
+    └── AppServiceProvider.php                      # 已存在（Starter Kit 自带）
+```
+
+#### 9.2.1 关键设计原则
+
+| 原则 | 说明 |
+|:---|:---|
+| Livewire 组件瘦、Service 胖 | Livewire 组件仅做表单交互与页面渲染，核心逻辑写在 Service 层 |
+| Form Object 校验入参 | 每个 Livewire 表单对应独立 Form Object，复用 Laravel 验证规则 |
+| 枚举替代魔法数字 | 状态/类型字段全部使用 `app/Enums/` 下的枚举类 |
+| 事件驱动异步 | 审批完成/库存预警等使用 Event + Queue 异步处理，广播走 Reverb |
+| Observer 自动审计 | 敏感模型变更通过 Observer 自动写入 audit_logs |
+| 看板拖拽使用 wire:sort | Livewire 4.x 内置 `wire:sort` + `wire:sort:group` 实现拖拽 |
+| Blade 组件可组合 | 对标 shadcn/ui 可组合结构，业务页面只组装组件、不复制样式 |
+
+---
+
+### 9.3 配置与路由目录规划
+
+#### 9.3.1 配置文件（config/）
+
+```text
+config/
+├── app.php                     # 应用基础（时区、语言、别名）
+├── auth.php                    # 认证配置（Guard：web=Session / sanctrum=Token）
+├── cache.php                   # 缓存驱动（redis）
+├── database.php                # 数据库连接（mysql）
+├── filesystems.php             # 文件系统
+├── logging.php                 # 日志通道（daily）
+├── mail.php                    # 邮件
+├── queue.php                   # 队列驱动（redis）
+├── reverb.php                  # Reverb WebSocket 配置 [已发布]
+├── services.php                # 第三方服务
+└── session.php                 # 会话驱动（redis）
+```
+
+**后续按需新增：**
+
+| 文件 | 用途 |
+|:---|:---|
+| `broadcasting.php` | 广播频道授权（`php artisan vendor:publish --tag=laravel-broadcasting`） |
+| `sanctum.php` | Sanctum Token 认证配置 |
+| `susong.php` | 项目自定义配置（业务常量、UI_SIZE 等） |
+
+#### 9.3.2 路由定义（routes/）
+
+```text
+routes/
+├── web.php                     # 管理后台路由（Livewire 自动注册 + 页面路由）
+├── api.php                     # 小程序端 API 路由（按模块分组）[待建]
+├── channels.php                # 广播频道授权（Private 频道权限校验）[待建]
+└── console.php                 # 定时任务/命令行路由（Laravel Scheduler）
+```
+
+**路由规划（routes/api.php）** — 小程序端按模块分组，前缀 `/api/v1`：
+
+```php
+// ====== 商家端认证 ======
+Route::prefix('v1/mini/merchant')->group(function () {
+    Route::post('auth/login', [MerchantAuthController::class, 'login']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('products', [MerchantProductController::class, 'index']);
+        Route::apiResource('cart', MerchantCartController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::apiResource('orders', MerchantOrderController::class)->only(['index', 'store', 'show']);
+        Route::get('account', [MerchantAccountController::class, 'show']);
+        // ...
+    });
+});
+
+// ====== 司机端认证 ======
+Route::prefix('v1/mini/driver')->group(function () {
+    Route::post('auth/login', [DriverAuthController::class, 'login']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('tasks', [DriverTaskController::class, 'index']);
+        Route::post('tracks', [DriverTrackController::class, 'store']);
+        // ...
+    });
+});
+
+// ====== 广播频道授权 ======
+Route::middleware('auth:sanctum')->post('/broadcasting/auth', [BroadcastController::class, 'auth']);
+```
+
+#### 9.3.3 数据库目录（database/）
+
+```text
+database/
+├── migrations/                 # 迁移文件（按时间戳排序）
+│   ├── 0001_01_01_000000_create_users_table.php      # Starter Kit 自带
+│   ├── 0001_01_01_000001_create_cache_table.php      # Starter Kit 自带
+│   ├── 0001_01_01_000002_create_jobs_table.php        # Starter Kit 自带
+│   └── ...                                            # 业务迁移 [待建]
+├── seeders/                    # 种子数据
+│   ├── DatabaseSeeder.php                          # Starter Kit 自带
+│   ├── RolePermissionSeeder.php                    # 角色 + 权限种子 [待建]
+│   ├── ApprovalConfigSeeder.php                    # 19 个审核节点种子 [待建]
+│   └── SystemConfigSeeder.php                      # 系统配置种子 [待建]
+└── factories/                  # 模型工厂
+    └── UserFactory.php                              # Starter Kit 自带
 ```
 
 ---
 
-### 9.2 Laravel 后端目录规划（backend/）
+### 9.4 管理后台前端目录规划（resources/）
+
+> 管理后台前端全部集成在 Laravel 应用 `resources/` 中，不使用独立前端仓库。
 
 ```text
-backend/
-├── app/
-│   ├── Http/
-│   │   ├── Controllers/
-│   │   │   └── Api/
-│   │   │       └── V1/
-│   │   │           ├── Mini/                      # 小程序端 API 控制器
-│   │   │           │   ├── MerchantAuthController.php
-│   │   │           │   ├── MerchantProductController.php
-│   │   │           │   ├── MerchantCartController.php
-│   │   │           │   ├── MerchantOrderController.php
-│   │   │           │   ├── MerchantAccountController.php
-│   │   │           │   ├── DriverAuthController.php
-│   │   │           │   ├── DriverTaskController.php
-│   │   │           │   └── DriverDeliveryController.php
-│   │   │           │
-│   │   │           └── Controller.php              # API 基类
+resources/
+├── views/
+│   ├── app.blade.php                              # 主布局（顶栏+侧边+内容+Alpine.js）[待建]
+│   ├── components/                                # Blade 组件（对标 shadcn/ui 可组合结构）[待建]
+│   │   ├── layout/
+│   │   │   ├── app-layout.blade.php               # 主布局壳
+│   │   │   ├── app-sidebar.blade.php              # 侧边菜单（角色动态渲染）
+│   │   │   ├── app-header.blade.php               # 顶栏（面包屑+通知+用户）
+│   │   │   └── notification-drawer.blade.php      # 通知面板（右侧 Drawer，Alpine.js）
 │   │   │
-│   │   └── Middleware/                              # 中间件
+│   │   ├── ui/                                    # 基础 UI 组件（shadcn/ui 风格）
+│   │   │   ├── button.blade.php                   # 按钮（variant/size/loading/icon）
+│   │   │   ├── input.blade.php                    # 输入框
+│   │   │   ├── select.blade.php                   # 下拉选择
+│   │   │   ├── textarea.blade.php                 # 多行文本
+│   │   │   ├── checkbox.blade.php                 # 复选框
+│   │   │   ├── radio.blade.php                    # 单选
+│   │   │   ├── badge.blade.php                    # 状态标签
+│   │   │   ├── alert.blade.php                    # 警告提示
+│   │   │   ├── card.blade.php                     # 卡片（CardHeader+CardContent+CardFooter）
+│   │   │   ├── table.blade.php                    # 数据表格（分页/筛选/排序）
+│   │   │   ├── modal.blade.php                    # 弹窗/确认框
+│   │   │   ├── drawer.blade.php                   # 抽屉面板
+│   │   │   ├── tabs.blade.php                     # 标签页
+│   │   │   ├── toast.blade.php                    # 轻提醒（Alpine.js 驱动）
+│   │   │   ├── dropdown.blade.php                 # 下拉菜单
+│   │   │   ├── pagination.blade.php               # 分页组件
+│   │   │   ├── empty-state.blade.php              # 空状态
+│   │   │   ├── stat-block.blade.php               # 数据统计块
+│   │   │   ├── image-upload.blade.php             # 图片上传
+│   │   │   ├── file-upload.blade.php              # 文件上传
+│   │   │   ├── amount-input.blade.php             # 金额输入（精度控制）
+│   │   │   ├── tree-select.blade.php              # 树形选择器
+│   │   │   ├── date-range-picker.blade.php        # 日期范围选择
+│   │   │   └── icon.blade.php                     # 图标（Lucide Blade 组件）
+│   │   │
+│   │   └── business/                              # 业务通用组件
+│   │       ├── approval-dialog.blade.php          # 审核弹窗（通过/拒绝/备注）
+│   │       ├── approval-status-badge.blade.php    # 审核状态标签
+│   │       ├── merchant-select.blade.php          # 商家下拉选择
+│   │       ├── supplier-select.blade.php          # 供应商下拉选择
+│   │       ├── sku-select.blade.php               # SKU 选择器
+│   │       ├── warehouse-select.blade.php         # 仓库选择
+│   │       ├── route-select.blade.php             # 配送线路选择
+│   │       ├── driver-select.blade.php            # 司机选择
+│   │       ├── category-tree.blade.php            # 分类树
+│   │       ├── permission-tree.blade.php          # 权限树
+│   │       ├── amount-display.blade.php           # 金额展示（千分位+符号）
+│   │       └── image-gallery.blade.php            # 图片查看器
 │   │
-│   ├── Livewire/                                   # Livewire 组件（管理后台）
-│   │   ├── Auth/
-│   │   │   └── Login.php                            # 登录页
-│   │   ├── User/                                   # 用户与权限
-│   │   │   ├── UserList.php
-│   │   │   ├── UserForm.php
-│   │   │   ├── RoleList.php
-│   │   │   ├── RoleForm.php
-│   │   │   ├── PermissionList.php
-│   │   │   └── PermissionForm.php
+│   └── livewire/                                  # Livewire 视图（按模块）[待建]
+│       ├── auth/
+│       │   └── login.blade.php
+│       ├── user/
+│       │   ├── user-list.blade.php
+│       │   ├── user-form.blade.php
+│       │   ├── role-list.blade.php
+│       │   ├── role-form.blade.php
+│       │   ├── permission-list.blade.php
+│       │   └── permission-form.blade.php
+│       ├── org/
+│       │   ├── supplier-list.blade.php
+│       │   ├── supplier-form.blade.php
+│       │   ├── merchant-list.blade.php
+│       │   ├── merchant-form.blade.php
+│       │   ├── route-list.blade.php
+│       │   ├── route-sort.blade.php               # wire:sort 拖拽排序
+│       │   ├── driver-list.blade.php
+│       │   ├── driver-form.blade.php
+│       │   ├── vehicle-list.blade.php
+│       │   └── vehicle-form.blade.php
+│       ├── product/
+│       │   ├── category-list.blade.php
+│       │   ├── product-list.blade.php
+│       │   ├── product-form.blade.php
+│       │   ├── sku-form.blade.php
+│       │   ├── barcode-form.blade.php
+│       │   ├── sku-supplier-form.blade.php
+│       │   ├── visibility-config.blade.php
+│       │   ├── tag-list.blade.php
+│       │   └── keyword-list.blade.php
+│       ├── purchase/
+│       │   ├── purchase-item-list.blade.php
+│       │   ├── purchase-order-list.blade.php
+│       │   ├── purchase-order-detail.blade.php
+│       │   ├── purchase-return-list.blade.php
+│       │   └── purchase-return-detail.blade.php
+│       ├── order/
+│       │   ├── cart-list.blade.php
+│       │   ├── order-list.blade.php
+│       │   ├── order-detail.blade.php
+│       │   ├── frequently-bought-list.blade.php
+│       │   ├── repurchase-list.blade.php
+│       │   ├── order-return-list.blade.php
+│       │   └── order-return-detail.blade.php
+│       ├── inventory/
+│       │   ├── warehouse-list.blade.php
+│       │   ├── inventory-list.blade.php
+│       │   ├── inventory-adjust-form.blade.php
+│       │   └── inventory-log-list.blade.php
+│       ├── loss/
+│       │   ├── loss-order-list.blade.php
+│       │   ├── loss-order-detail.blade.php
+│       │   ├── loss-order-form.blade.php
+│       │   └── loss-report.blade.php
+│       ├── picking/
+│       │   ├── picking-task-list.blade.php
+│       │   └── picking-task-detail.blade.php
+│       ├── delivery/
+│       │   ├── delivery-task-list.blade.php
+│       │   ├── delivery-task-detail.blade.php
+│       │   ├── track-map.blade.php
+│       │   ├── signature-list.blade.php
+│       │   └── temperature-list.blade.php
+│       ├── discrepancy/
+│       │   ├── discrepancy-list.blade.php
+│       │   ├── discrepancy-detail.blade.php
+│       │   └── discrepancy-report.blade.php
+│       ├── finance/
+│       │   ├── merchant-account-list.blade.php
+│       │   ├── recharge-list.blade.php
+│       │   ├── settlement-list.blade.php
+│       │   ├── settlement-detail.blade.php
+│       │   ├── receivable-list.blade.php
+│       │   ├── receivable-detail.blade.php
+│       │   ├── invoice-list.blade.php
+│       │   ├── correction-list.blade.php
+│       │   └── apportionment-list.blade.php
+│       ├── price/
+│       │   ├── price-strategy-list.blade.php
+│       │   ├── price-strategy-form.blade.php
+│       │   └── price-change-log-list.blade.php
+│       ├── approval/
+│       │   ├── approval-config.blade.php
+│       │   ├── approval-pending-list.blade.php
+│       │   └── approval-reviewed-list.blade.php
+│       └── system/
+│           ├── system-config.blade.php
+│           ├── banner-list.blade.php
+│           ├── promotion-list.blade.php
+│           ├── operation-log-list.blade.php
+│           ├── audit-log-list.blade.php
+│           └── login-log-list.blade.php
+│
+├── css/
+│   └── app.css                                       # Tailwind CSS 入口 + CSS 变量主题（@import 'tailwindcss'）
+│
+└── js/
+    └── app.js                                        # Laravel + Alpine.js + Echo 入口
+```
+
+**resources/js/app.js 需追加 Echo 初始化：**
+
+```javascript
+import './echo';   // Laravel Echo + Reverb 连接（待建）
+```
+
+**resources/js/echo.js 规划 [待建]：**
+
+```javascript
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
+
+window.Pusher = Pusher;
+window.Echo = new Echo({
+    broadcaster: 'reverb',
+    key: import.meta.env.VITE_REVERB_APP_KEY,
+    wsHost: import.meta.env.VITE_REVERB_HOST,
+    wsPort: import.meta.env.VITE_REVERB_PORT ?? 8080,
+    wssPort: import.meta.env.VITE_REVERB_PORT ?? 443,
+    forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
+    enabledTransports: ['ws', 'wss'],
+});
+```
+
+---
+
+### 9.5 公共目录与构建产物（public/）
+
+```text
+public/
+├── build/                       # Vite 编译产物（自动生成，勿手动修改）
+│   ├── assets/                  # JS/CSS/字体文件（带 hash）
+│   ├── manifest.json            # 资源清单
+│   └── fonts-manifest.json      # 字体清单
+├── index.php                    # Laravel 入口
+├── .htaccess                    # Apache 重写规则
+├── favicon.ico
+├── favicon.svg
+└── robots.txt
+```
+
+---
+
+### 9.6 文档目录（docs/）
+
+```text
+docs/
+├── 01_PRD_业务需求.md
+├── 02_FSD_功能详细说明.md
+├── 03_DB_数据库设计&数据字典.md
+├── 04_API_前后端接口文档.md
+├── 05_Setup_安装部署配置手册.md
+├── 06_Log_开发迭代日志.md
+├── 07_Test_功能验收用例.md
+├── 审核节点全景图.md
+├── attach/                      # 附件
+│   ├── .env.example
+│   ├── DB数据字典.xlsx
+│   ├── init.sql
+│   ├── install.sh
+│   ├── install.bat
+│   └── 开发进度记录表.xlsx
+└── flowcharts/                  # 业务流程图
+    └── ...                      # Draw.io 源文件（19 张）
+```
+
+---
+
+### 9.7 扩展包与前端依赖清单
+
+#### 9.7.1 PHP 扩展包（composer.json）
+
+| 包名 | 版本 | 类型 | 用途 |
+|:---|:---|:---|:---|
+| `laravel/framework` | ^13.17 | require | Laravel 主框架 |
+| `livewire/livewire` | ^4.1 | require | 全栈响应式框架（管理后台 SSR） |
+| `livewire/blaze` | ^1.0 | require | Livewire 编译优化 |
+| `laravel/tinker` | ^3.0 | require | 交互式 REPL |
+| `laravel/reverb` | ^1.11 | require | WebSocket 实时推送服务器 |
+| `laravel/sanctum` | ^4.3 | require | API Token 认证（小程序端） |
+| `spatie/laravel-permission` | ^8.3 | require | RBAC 角色权限管理 |
+| `fakerphp/faker` | ^1.24 | require-dev | 测试数据生成 |
+| `larastan/larastan` | ^3.9 | require-dev | PHP 静态分析 |
+| `laravel/pint` | ^1.27 | require-dev | 代码格式化 |
+| `pestphp/pest` | ^4.7 | require-dev | 测试框架 |
+
+#### 9.7.2 前端依赖（package.json）
+
+| 包名 | 版本 | 用途 |
+|:---|:---|:---|
+| `tailwindcss` | ^4.0.7 | CSS 工具框架 |
+| `@tailwindcss/vite` | ^4.1.11 | Tailwind CSS Vite 插件 |
+| `vite` | ^8.0.0 | 前端构建工具 |
+| `laravel-vite-plugin` | ^3.1 | Laravel Vite 集成 |
+| `laravel-echo` | ^2.4.0 | WebSocket 前端客户端 |
+| `pusher-js` | ^8.6.0 | Reverb 兼容协议层 |
+| `concurrently` | ^9.0.1 | 多进程并行启动 |
+
+---
+
+### 9.8 目录规划对照总表
+
+| 端 | 目录 | 核心技术 | 页面数 | 组件数 |
+|:---|:---|:---|:---|:---|
+| Laravel 全栈（项目根目录） | `app/` + `resources/` | Laravel 13 + Livewire 4.x + Alpine.js + Tailwind CSS | 70+ Livewire 组件 | UI 20+ Blade + 业务 12 Blade |
+| Taro 商家端 | 独立仓库 `susong-mini-merchant` | Taro 4 + React + TS | 13 | 9 |
+| 原生司机端 | 独立仓库 `susong-mini-driver` | 原生微信小程序 | 8 | 5 |
+
+### 9.9 模块↔目录↔组件↔路由↔视图 完整映射
+
+| 业务模块 | Livewire 组件 | Service | Blade 视图 | API（小程序） | 路由 |
+|:---|:---|:---|:---|:---|:---|
+| 用户与权限 | UserList, UserForm, RoleList, RoleForm, PermissionList, PermissionForm | AuthService, PermissionService | user/ | MerchantAuthController | web + api/v1/mini/merchant |
+| 组织主体 | SupplierList, SupplierForm, MerchantList, MerchantForm, RouteList, RouteSort, DriverList, DriverForm, VehicleList, VehicleForm | - | org/ | - | web |
+| 商品管理 | CategoryList, ProductList, ProductForm, SkuForm, BarcodeForm, SkuSupplierForm, VisibilityConfig, TagList, KeywordList | - | product/ | MerchantProductController | web + api/v1/mini/merchant |
+| 平台统采 | PurchaseItemList, PurchaseOrderList, PurchaseOrderDetail, PurchaseReturnList, PurchaseReturnDetail | PurchaseService | purchase/ | - | web |
+| 客户直采 | CartList, OrderList, OrderDetail, FrequentlyBoughtList, RepurchaseList, OrderReturnList, OrderReturnDetail | OrderService | order/ | MerchantCartController, MerchantOrderController | web + api/v1/mini/merchant |
+| 库存管理 | WarehouseList, InventoryList, InventoryAdjustForm, InventoryLogList | InventoryService | inventory/ | - | web |
+| 损耗管理 | LossOrderList, LossOrderDetail, LossOrderForm, LossReport | LossOrderService | loss/ | - | web |
+| 拣货管理 | PickingTaskList, PickingTaskDetail | PickingService | picking/ | - | web |
+| 物流配送 | DeliveryTaskList, DeliveryTaskDetail, TrackMap, SignatureList, TemperatureList | DeliveryService | delivery/ | DriverTaskController | web + api/v1/mini/driver |
+| 差异处理 | DiscrepancyList, DiscrepancyDetail, DiscrepancyReport | DiscrepancyService | discrepancy/ | - | web |
+| 财务对账 | MerchantAccountList, RechargeList, RechargeForm, SettlementList, SettlementDetail, PaymentForm, ReceivableList, ReceivableDetail, ReceivablePaymentForm, InvoiceList, CorrectionList, ApportionmentList | SettlementService, ReceivableService, RechargeService | finance/ | MerchantAccountController | web + api/v1/mini/merchant |
+| 价格策略 | PriceStrategyList, PriceStrategyForm, PriceChangeLogList | PriceStrategyService | price/ | - | web |
+| 审核管理 | ApprovalConfig, ApprovalPendingList, ApprovalReviewedList | ApprovalService | approval/ | - | web |
+| 系统支撑 | SystemConfig, BannerList, PromotionList, OperationLogList, AuditLogList, LoginLogList | - | system/ | - | web |
+
+> AI生成
 │   │   ├── Org/                                    # 组织主体
 │   │   │   ├── SupplierList.php
 │   │   │   ├── SupplierForm.php
@@ -1749,345 +2369,5 @@ Route::prefix('v1/mini/driver')->group(function () {
 | Observer 自动审计 | 敏感模型变更通过 Observer 自动写入 audit_logs |
 | 看板拖拽使用 wire:sort | Livewire 4.x 内置 `wire:sort` + `wire:sort:group` 实现拖拽 |
 | Blade 组件可组合 | 对标 shadcn/ui 可组合结构，业务页面只组装组件、不复制样式 |
-
----
-
-### 9.3 管理后台前端目录规划（Blade + Livewire + Tailwind CSS）
-
-管理后台不再使用独立的前端仓库，全部集成在 Laravel 后端 `backend/` 中：
-
-```text
-backend/
-├── resources/
-│   ├── views/
-│   │   ├── app.blade.php                              # 主布局（顶栏+侧边+内容+Alpine.js）
-│   │   ├── components/                                # Blade 组件（对标 shadcn/ui 可组合结构）
-│   │   │   ├── layout/
-│   │   │   │   ├── app-layout.blade.php               # 主布局壳
-│   │   │   │   ├── app-sidebar.blade.php              # 侧边菜单（角色动态渲染）
-│   │   │   │   ├── app-header.blade.php               # 顶栏（面包屑+通知+用户）
-│   │   │   │   └── notification-drawer.blade.php      # 通知面板（右侧 Drawer，Alpine.js）
-│   │   │   │
-│   │   │   ├── ui/                                    # 基础 UI 组件（shadcn/ui 风格）
-│   │   │   │   ├── button.blade.php                   # 按钮（variant/size/loading/icon）
-│   │   │   │   ├── input.blade.php                    # 输入框
-│   │   │   │   ├── select.blade.php                   # 下拉选择
-│   │   │   │   ├── textarea.blade.php                 # 多行文本
-│   │   │   │   ├── checkbox.blade.php                 # 复选框
-│   │   │   │   ├── radio.blade.php                    # 单选
-│   │   │   │   ├── badge.blade.php                    # 状态标签
-│   │   │   │   ├── alert.blade.php                    # 警告提示
-│   │   │   │   ├── card.blade.php                     # 卡片（CardHeader+CardContent+CardFooter）
-│   │   │   │   ├── table.blade.php                    # 数据表格（分页/筛选/排序）
-│   │   │   │   ├── modal.blade.php                    # 弹窗/确认框
-│   │   │   │   ├── drawer.blade.php                   # 抽屉面板
-│   │   │   │   ├── tabs.blade.php                     # 标签页
-│   │   │   │   ├── toast.blade.php                    # 轻提醒（Alpine.js 驱动）
-│   │   │   │   ├── dropdown.blade.php                 # 下拉菜单
-│   │   │   │   ├── pagination.blade.php               # 分页组件
-│   │   │   │   ├── empty-state.blade.php              # 空状态
-│   │   │   │   ├── stat-block.blade.php               # 数据统计块
-│   │   │   │   ├── image-upload.blade.php             # 图片上传
-│   │   │   │   ├── file-upload.blade.php              # 文件上传
-│   │   │   │   ├── amount-input.blade.php             # 金额输入（精度控制）
-│   │   │   │   ├── tree-select.blade.php              # 树形选择器
-│   │   │   │   ├── date-range-picker.blade.php       # 日期范围选择
-│   │   │   │   └── icon.blade.php                     # 图标（Lucide Blade 组件）
-│   │   │   │
-│   │   │   └── business/                              # 业务通用组件
-│   │   │       ├── approval-dialog.blade.php          # 审核弹窗（通过/拒绝/备注）
-│   │   │       ├── approval-status-badge.blade.php    # 审核状态标签
-│   │   │       ├── merchant-select.blade.php          # 商家下拉选择
-│   │   │       ├── supplier-select.blade.php          # 供应商下拉选择
-│   │   │       ├── sku-select.blade.php               # SKU 选择器
-│   │   │       ├── warehouse-select.blade.php         # 仓库选择
-│   │   │       ├── route-select.blade.php             # 配送线路选择
-│   │   │       ├── driver-select.blade.php            # 司机选择
-│   │   │       ├── category-tree.blade.php            # 分类树
-│   │   │       ├── permission-tree.blade.php          # 权限树
-│   │   │       ├── amount-display.blade.php           # 金额展示（千分位+符号）
-│   │   │       └── image-gallery.blade.php            # 图片查看器
-│   │   │
-│   │   └── livewire/                                  # Livewire 视图（按模块）
-│   │       ├── auth/
-│   │       │   └── login.blade.php
-│   │       ├── user/
-│   │       │   ├── user-list.blade.php
-│   │       │   ├── user-form.blade.php
-│   │       │   ├── role-list.blade.php
-│   │       │   ├── role-form.blade.php
-│   │       │   ├── permission-list.blade.php
-│   │       │   └── permission-form.blade.php
-│   │       ├── org/
-│   │       │   ├── supplier-list.blade.php
-│   │       │   ├── supplier-form.blade.php
-│   │       │   ├── merchant-list.blade.php
-│   │       │   ├── merchant-form.blade.php
-│   │       │   ├── route-list.blade.php
-│   │       │   ├── route-sort.blade.php              # wire:sort 拖拽排序
-│   │       │   ├── driver-list.blade.php
-│   │       │   ├── driver-form.blade.php
-│   │       │   ├── vehicle-list.blade.php
-│   │       │   └── vehicle-form.blade.php
-│   │       ├── product/
-│   │       │   ├── category-list.blade.php
-│   │       │   ├── product-list.blade.php
-│   │       │   ├── product-form.blade.php
-│   │       │   ├── sku-form.blade.php
-│   │       │   ├── barcode-form.blade.php
-│   │       │   ├── sku-supplier-form.blade.php
-│   │       │   ├── visibility-config.blade.php
-│   │       │   ├── tag-list.blade.php
-│   │       │   └── keyword-list.blade.php
-│   │       ├── purchase/
-│   │       │   ├── purchase-item-list.blade.php
-│   │       │   ├── purchase-order-list.blade.php
-│   │       │   ├── purchase-order-detail.blade.php
-│   │       │   ├── purchase-return-list.blade.php
-│   │       │   └── purchase-return-detail.blade.php
-│   │       ├── order/
-│   │       │   ├── cart-list.blade.php
-│   │       │   ├── order-list.blade.php
-│   │       │   ├── order-detail.blade.php
-│   │       │   ├── frequently-bought-list.blade.php
-│   │       │   ├── repurchase-list.blade.php
-│   │       │   ├── order-return-list.blade.php
-│   │       │   └── order-return-detail.blade.php
-│   │       ├── inventory/
-│   │       │   ├── warehouse-list.blade.php
-│   │       │   ├── inventory-list.blade.php
-│   │       │   ├── inventory-adjust-form.blade.php
-│   │       │   └── inventory-log-list.blade.php
-│   │       ├── loss/
-│   │       │   ├── loss-order-list.blade.php
-│   │       │   ├── loss-order-detail.blade.php
-│   │       │   ├── loss-order-form.blade.php
-│   │       │   └── loss-report.blade.php
-│   │       ├── picking/
-│   │       │   ├── picking-task-list.blade.php
-│   │       │   └── picking-task-detail.blade.php
-│   │       ├── delivery/
-│   │       │   ├── delivery-task-list.blade.php
-│   │       │   ├── delivery-task-detail.blade.php
-│   │       │   ├── track-map.blade.php
-│   │       │   ├── signature-list.blade.php
-│   │       │   └── temperature-list.blade.php
-│   │       ├── discrepancy/
-│   │       │   ├── discrepancy-list.blade.php
-│   │       │   ├── discrepancy-detail.blade.php
-│   │       │   └── discrepancy-report.blade.php
-│   │       ├── finance/
-│   │       │   ├── merchant-account-list.blade.php
-│   │       │   ├── recharge-list.blade.php
-│   │       │   ├── settlement-list.blade.php
-│   │       │   ├── settlement-detail.blade.php
-│   │       │   ├── receivable-list.blade.php
-│   │       │   ├── receivable-detail.blade.php
-│   │       │   ├── invoice-list.blade.php
-│   │       │   ├── correction-list.blade.php
-│   │       │   └── apportionment-list.blade.php
-│   │       ├── price/
-│   │       │   ├── price-strategy-list.blade.php
-│   │       │   ├── price-strategy-form.blade.php
-│   │       │   └── price-change-log-list.blade.php
-│   │       ├── approval/
-│   │       │   ├── approval-config.blade.php
-│   │       │   ├── approval-pending-list.blade.php
-│   │       │   └── approval-reviewed-list.blade.php
-│   │       └── system/
-│   │           ├── system-config.blade.php
-│   │           ├── banner-list.blade.php
-│   │           ├── promotion-list.blade.php
-│   │           ├── operation-log-list.blade.php
-│   │           ├── audit-log-list.blade.php
-│   │           └── login-log-list.blade.php
-│
-├── css/
-│   └── app.css                                       # Tailwind CSS 入口 + CSS 变量主题
-│
-└── js/
-    └── app.js                                        # Laravel + Alpine.js 入口
-```
-
----
-
-### 9.4 Taro 商家端小程序目录规划（mini-merchant/）
-
-```text
-mini-merchant/
-├── src/
-│   ├── app.ts                                    # 入口 + 全局样式
-│   ├── app.config.ts                             # 全局配置 + 页面路由注册
-│   │
-│   ├── pages/                                    # 页面（Taro 页面级）
-│   │   ├── login/
-│   │   │   ├── index.tsx                         # 微信登录
-│   │   │   └── index.scss
-│   │   │
-│   │   ├── home/
-│   │   │   ├── index.tsx                         # 首页（搜索+常购+收藏+主推）
-│   │   │   └── index.scss
-│   │   │
-│   │   ├── product/
-│   │   │   ├── list.tsx                          # 商品列表
-│   │   │   └── detail.tsx                        # 商品详情
-│   │   │
-│   │   ├── cart/
-│   │   │   ├── index.tsx                         # 购物车
-│   │   │   └── index.scss
-│   │   │
-│   │   ├── order/
-│   │   │   ├── create.tsx                        # 确认订单
-│   │   │   ├── list.tsx                          # 订单列表
-│   │   │   ├── detail.tsx                        # 订单详情
-│   │   │   └── sign-confirm.tsx                  # 签收确认
-│   │   │
-│   │   ├── account/
-│   │   │   ├── balance.tsx                       # 账户余额
-│   │   │   └── recharge.tsx                      # 充值
-│   │   │
-│   │   ├── message/
-│   │   │   ├── list.tsx                          # 消息列表
-│   │   │   └── restock-remind.tsx                # 补货提醒设置
-│   │   │
-│   │   ├── address/
-│   │   │   ├── list.tsx                          # 收货地址管理
-│   │   │   └── edit.tsx                          # 新增/编辑地址
-│   │   │
-│   │   └── my/
-│   │       └── index.tsx                         # 我的
-│   │
-│   ├── components/                               # 小程序通用组件
-│   │   ├── ProductCard.tsx                       # 商品卡片
-│   │   ├── SkuSelector.tsx                       # SKU 规格选择器
-│   │   ├── CartItem.tsx                          # 购物车项
-│   │   ├── OrderItem.tsx                         # 订单项
-│   │   ├── SearchBar.tsx                         # 搜索栏（AI 联想）
-│   │   ├── AmountDisplay.tsx                     # 金额展示
-│   │   ├── EmptyState.tsx                        # 空状态
-│   │   ├── LoadMore.tsx                          # 加载更多
-│   │   └── TabBar.tsx                            # 底部标签栏
-│   │
-│   ├── api/                                      # API 请求层
-│   │   ├── request.ts                            # Taro.request 封装 + Token 拦截
-│   │   ├── auth.ts
-│   │   ├── product.ts
-│   │   ├── cart.ts
-│   │   ├── order.ts
-│   │   ├── account.ts
-│   │   ├── address.ts
-│   │   └── message.ts
-│   │
-│   ├── stores/                                   # 全局状态
-│   │   ├── useAuthStore.ts
-│   │   ├── useCartStore.ts
-│   │   └── useMerchantStore.ts
-│   │
-│   ├── types/                                    # 类型定义
-│   │   ├── product.d.ts
-│   │   ├── order.d.ts
-│   │   ├── cart.d.ts
-│   │   └── account.d.ts
-│   │
-│   └── utils/
-│       ├── format.ts
-│       └── wechat.ts                            # 微信 SDK 工具
-│
-├── project.config.json                           # 微信小程序项目配置
-├── babel.config.js
-├── tsconfig.json
-└── package.json
-```
-
----
-
-### 9.5 Taro 司机端小程序目录规划（mini-driver/）
-
-```text
-mini-driver/
-├── src/
-│   ├── app.ts
-│   ├── app.config.ts
-│   │
-│   ├── pages/
-│   │   ├── login/
-│   │   │   └── index.tsx                         # 手机号+验证码登录
-│   │   │
-│   │   ├── task/
-│   │   │   ├── list.tsx                          # 今日任务列表
-│   │   │   └── detail.tsx                        # 任务详情（订单/商家/地址）
-│   │   │
-│   │   ├── delivery/
-│   │   │   ├── navigation.tsx                    # 地图导航
-│   │   │   ├── tracking.tsx                      # 轨迹上报（后台持续）
-│   │   │   └── arrive.tsx                        # 到达确认
-│   │   │
-│   │   ├── sign/
-│   │   │   ├── photo.tsx                         # 拍照存证
-│   │   │   ├── signature.tsx                     # 电子签名
-│   │   │   ├── temperature.tsx                   # 温度录入
-│   │   │   └── discrepancy.tsx                   # 实收差异标记
-│   │   │
-│   │   └── history/
-│   │       └── index.tsx                         # 历史任务
-│   │
-│   ├── components/
-│   │   ├── TaskCard.tsx                           # 任务卡片
-│   │   ├── OrderCard.tsx                          # 订单项卡片
-│   │   ├── AddressInfo.tsx                        # 地址+联系方式
-│   │   ├── TemperatureInput.tsx                   # 温度输入
-│   │   └── DiscrepancyForm.tsx                    # 差异标记表单
-│   │
-│   ├── api/
-│   │   ├── request.ts
-│   │   ├── auth.ts
-│   │   ├── task.ts
-│   │   ├── delivery.ts
-│   │   ├── sign.ts
-│   │   └── track.ts
-│   │
-│   ├── stores/
-│   │   ├── useAuthStore.ts
-│   │   └── useTaskStore.ts
-│   │
-│   └── utils/
-│       ├── location.ts                            # GPS 定位工具
-│       ├── map.ts                                 # 地图导航工具
-│       └── wechat.ts
-│
-├── project.config.json
-├── babel.config.js
-├── tsconfig.json
-└── package.json
-```
-
----
-
-### 9.6 目录规划对照总表
-
-| 端 | 目录 | 核心技术 | 页面数 | 组件数 |
-| :--- | :--- | :--- | :--- | :--- |
-| Laravel 全栈 | `backend/` | Laravel 13 + Livewire 4.x + Alpine.js + Tailwind CSS | 70+ Livewire 组件 | UI 20+ Blade + 业务 12 Blade |
-| Taro 商家端 | `mini-merchant/` | Taro + React + TS | 13 | 9 |
-| Taro 司机端 | `mini-driver/` | Taro + React + TS | 8 | 5 |
-
-### 9.7 模块↔目录↔控制器↔路由↔API↔视图 完整映射
-
-| 业务模块 | Livewire 组件 | Service | Blade 视图 | API（小程序） | 路由 |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| 用户与权限 | UserList, UserForm, RoleList, RoleForm, PermissionList, PermissionForm | AuthService, PermissionService | user/ | MerchantAuthController | web + api/v1/mini/merchant |
-| 组织主体 | SupplierList, SupplierForm, MerchantList, MerchantForm, RouteList, RouteSort, DriverList, DriverForm, VehicleList, VehicleForm | - | org/ | - | web |
-| 商品管理 | CategoryList, ProductList, ProductForm, SkuForm, BarcodeForm, SkuSupplierForm, VisibilityConfig, TagList, KeywordList | - | product/ | MerchantProductController | web + api/v1/mini/merchant |
-| 平台统采 | PurchaseItemList, PurchaseOrderList, PurchaseOrderDetail, PurchaseReturnList, PurchaseReturnDetail | PurchaseService | purchase/ | - | web |
-| 客户直采 | CartList, OrderList, OrderDetail, FrequentlyBoughtList, RepurchaseList, OrderReturnList, OrderReturnDetail | OrderService | order/ | MerchantCartController, MerchantOrderController | web + api/v1/mini/merchant |
-| 库存管理 | WarehouseList, InventoryList, InventoryAdjustForm, InventoryLogList | InventoryService | inventory/ | - | web |
-| 损耗管理 | LossOrderList, LossOrderDetail, LossOrderForm, LossReport | LossOrderService | loss/ | - | web |
-| 拣货管理 | PickingTaskList, PickingTaskDetail | PickingService | picking/ | - | web |
-| 物流配送 | DeliveryTaskList, DeliveryTaskDetail, TrackMap, SignatureList, TemperatureList | DeliveryService | delivery/ | DriverTaskController, DriverDeliveryController | web + api/v1/mini/driver |
-| 差异处理 | DiscrepancyList, DiscrepancyDetail, DiscrepancyReport | DiscrepancyService | discrepancy/ | - | web |
-| 财务对账 | MerchantAccountList, RechargeList, RechargeForm, SettlementList, SettlementDetail, PaymentForm, ReceivableList, ReceivableDetail, ReceivablePaymentForm, InvoiceList, CorrectionList, ApportionmentList | SettlementService, ReceivableService, RechargeService | finance/ | MerchantAccountController | web + api/v1/mini/merchant |
-| 价格策略 | PriceStrategyList, PriceStrategyForm, PriceChangeLogList | PriceStrategyService | price/ | - | web |
-| 审核管理 | ApprovalConfig, ApprovalPendingList, ApprovalReviewedList | ApprovalService | approval/ | - | web |
-| 系统支撑 | SystemConfig, BannerList, PromotionList, OperationLogList, AuditLogList, LoginLogList | - | system/ | - | web |
 
 > AI生成
