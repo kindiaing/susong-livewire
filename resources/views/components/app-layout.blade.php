@@ -10,9 +10,20 @@
     @livewireStyles
 
     {{-- 注入后端 UI 配置到前端 Alpine.js --}}
+    @php
+        try {
+            $uiCloseOnOutside = \App\Support\Setting::get('ui_close_on_outside', true);
+            $uiShowFooter = \App\Support\Setting::get('ui_show_footer', true);
+            $icpNumber = \App\Support\Setting::get('site_icp_number', '');
+        } catch (\Throwable) {
+            $uiCloseOnOutside = true;
+            $uiShowFooter = true;
+            $icpNumber = '';
+        }
+    @endphp
     <script>
-        window.__UI_CLOSE_ON_OUTSIDE = {{ \App\Support\Setting::get('ui_close_on_outside', true) ? 'true' : 'false' }};
-        window.__UI_SHOW_FOOTER = {{ \App\Support\Setting::get('ui_show_footer', true) ? 'true' : 'false' }};
+        window.__UI_CLOSE_ON_OUTSIDE = {{ $uiCloseOnOutside ? 'true' : 'false' }};
+        window.__UI_SHOW_FOOTER = {{ $uiShowFooter ? 'true' : 'false' }};
     </script>
 </head>
 <body class="bg-background text-foreground min-h-screen font-sans">
@@ -27,13 +38,8 @@
             </div>
         </main>
 
-        {{-- 底部版权栏 --}}
-        @php
-            $showFooter = \App\Support\Setting::get('ui_show_footer', true);
-            $icpNumber = \App\Support\Setting::get('site_icp_number', '');
-        @endphp
-        @if($showFooter)
-        <footer class="border-t bg-background/95">
+        {{-- 底部版权栏（Alpine 响应式控制，保存后即时生效） --}}
+        <footer x-data x-show="$store.uiSettings.showFooter" class="border-t bg-background/95">
             <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
                 <div class="flex flex-col items-center gap-1 sm:flex-row sm:justify-between">
                     <div class="text-xs text-muted-foreground">
@@ -52,7 +58,6 @@
                 </div>
             </div>
         </footer>
-        @endif
     </div>
 
     {{-- Toast 全局容器 --}}

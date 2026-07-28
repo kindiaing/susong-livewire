@@ -1,5 +1,5 @@
 <div x-data x-cloak>
-    {{-- 界面设置 Drawer（底部滑出） --}}
+    {{-- 界面设置 Drawer（底部窄面板） --}}
     <template x-teleport="body">
         <div x-show="$store.uiSettings.open" class="fixed inset-0 z-50">
             {{-- 遮罩 --}}
@@ -13,8 +13,8 @@
                  x-transition:leave-end="opacity-0"
                  @click="$store.uiSettings.open = false"></div>
 
-            {{-- 底部面板 --}}
-            <div class="fixed inset-x-0 bottom-0 bg-background border-t border-border shadow-xl rounded-t-lg max-h-[85vh] flex flex-col"
+            {{-- 底部窄面板 --}}
+            <div class="fixed inset-x-0 bottom-0 bg-background border-t border-border shadow-xl rounded-t-lg max-w-md mx-auto max-h-[85vh] flex flex-col"
                  x-show="$store.uiSettings.open"
                  x-transition:enter="transition-transform ease-in-out duration-300"
                  x-transition:enter-start="translate-y-full"

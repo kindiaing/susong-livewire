@@ -5,7 +5,10 @@ use App\Livewire\System\Settings;
 use App\Livewire\User\Profile;
 use Illuminate\Support\Facades\Route;
 
-// 认证路由（无需登录）
+// 首页（公开，无需登录）
+Route::view('/', 'welcome')->name('home');
+
+// 认证路由
 Route::get('/login', Login::class)->name('login');
 Route::post('/logout', function () {
     auth()->logout();
@@ -16,8 +19,6 @@ Route::post('/logout', function () {
 
 // 需要登录的路由
 Route::middleware('auth')->group(function () {
-    // 首页 → 仪表盘
-    Route::view('/', 'pages.dashboard')->name('home');
     Route::view('/dashboard', 'pages.dashboard')->name('dashboard');
 
     // 系统管理
