@@ -14,7 +14,7 @@ Route::post('/logout', function () {
     auth()->logout();
     session()->invalidate();
     session()->regenerateToken();
-    return redirect()->route('login');
+    return redirect()->route('home');
 })->name('logout');
 
 // 需要登录的路由

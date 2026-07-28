@@ -97,6 +97,15 @@
 
                 <span class="hidden sm:inline text-border">|</span>
 
+                {{-- 备案号 --}}
+                @if($icpNumber)
+                    <a href="{{ $icpUrl }}" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">{{ $icpNumber }}</a>
+                @else
+                    <a href="{{ $icpUrl }}" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">暂未备案</a>
+                @endif
+
+                <span class="hidden sm:inline text-border">|</span>
+
                 {{-- 开发者 --}}
                 @if($developerName)
                     <span>
@@ -107,14 +116,6 @@
                             <span class="font-medium text-foreground/80">{{ $developerName }}</span>
                         @endif
                     </span>
-                @endif
-
-                {{-- 备案号 --}}
-                <span class="hidden sm:inline text-border">|</span>
-                @if($icpNumber)
-                    <a href="{{ $icpUrl }}" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">{{ $icpNumber }}</a>
-                @else
-                    <a href="{{ $icpUrl }}" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">暂未备案</a>
                 @endif
             </div>
         </div>
