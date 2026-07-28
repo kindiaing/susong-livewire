@@ -5,11 +5,20 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class RolePermissionSeeder extends Seeder
+/**
+ * 内置数据 Seeder
+ *
+ * 包含生产环境必需的基础数据：
+ * - 9 个系统角色（已在 Migration 中初始化，此处确保存在）
+ * - 10 个基础菜单权限
+ * - 超级管理员获得所有权限
+ *
+ * 此 Seeder 由 DatabaseSeeder 自动调用，适用于生产环境。
+ */
+class SystemDataSeeder extends Seeder
 {
     public function run(): void
     {
-        // 角色已在 Migration 8.1 中初始化，此处仅补充权限
         $now = now();
 
         // 创建基础菜单权限

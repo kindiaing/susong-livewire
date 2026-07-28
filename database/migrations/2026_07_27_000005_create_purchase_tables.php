@@ -46,6 +46,10 @@ return new class extends Migration
             $table->bigInteger('actual_price')->default(0)->comment('实际入库单价');
             $table->bigInteger('amount')->default(0)->comment('金额');
             $table->bigInteger('actual_amount')->default(0)->comment('实际金额');
+            $table->bigInteger('strategy_price')->default(0)->comment('改价/促销单价');
+            $table->bigInteger('strategy_amount')->default(0)->comment('改价/促销金额');
+            $table->unsignedBigInteger('price_strategy_id')->nullable()->comment('价格策略ID');
+            $table->unsignedBigInteger('price_strategy_item_id')->nullable()->comment('价格策略明细ID');
             $table->string('discrepancy_reason', 255)->nullable()->comment('入库差异原因');
             $table->timestamps();
             $table->index('purchase_order_id');

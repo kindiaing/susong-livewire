@@ -10,7 +10,8 @@ class DemoDataSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->call(RolePermissionSeeder::class);
+        // 先确保内置数据已就位
+        $this->call(SystemDataSeeder::class);
 
         // 创建各角色测试用户
         $this->seedTestUsers();

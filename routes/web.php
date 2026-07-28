@@ -1,6 +1,10 @@
 <?php
 
 use App\Livewire\Auth\Login;
+use App\Livewire\System\ApprovalConfig;
+use App\Livewire\System\Approvals;
+use App\Livewire\System\AuditLogs;
+use App\Livewire\System\OperationLogs;
 use App\Livewire\System\Settings;
 use App\Livewire\User\Profile;
 use Illuminate\Support\Facades\Route;
@@ -21,11 +25,15 @@ Route::post('/logout', function () {
 Route::middleware('auth')->group(function () {
     Route::view('/dashboard', 'pages.dashboard')->name('dashboard');
 
-    // 系统管理
-    Route::get('/settings', Settings::class)->name('settings');
-
     // 个人中心
     Route::get('/profile', Profile::class)->name('profile');
+
+    // ── 系统管理 ──
+    Route::get('/settings', Settings::class)->name('settings');
+    Route::get('/approval-config', ApprovalConfig::class)->name('approval-config');
+    Route::get('/approvals', Approvals::class)->name('approvals');
+    Route::get('/operation-logs', OperationLogs::class)->name('operation-logs');
+    Route::get('/audit-logs', AuditLogs::class)->name('audit-logs');
 });
 
 // 开发演示页（无需登录，生产环境应移除）

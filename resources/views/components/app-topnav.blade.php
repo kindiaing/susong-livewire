@@ -113,9 +113,9 @@
                         <x-nav-menu-link href="{{ route('settings') }}" description="6组17项系统配置，分组导航+列表编辑">系统配置</x-nav-menu-link>
                         <x-nav-menu-link href="#" description="首页轮播广告管理">轮播广告</x-nav-menu-link>
                         <x-nav-menu-link href="#" description="主推商品/品类配置">运营主推</x-nav-menu-link>
-                        <x-nav-menu-link href="#" description="按操作人/时间/模块筛选">操作日志</x-nav-menu-link>
-                        <x-nav-menu-link href="#" description="敏感操作审计，保留策略0-180天">审计日志</x-nav-menu-link>
-                        <x-nav-menu-link href="#" description="19个审核节点开关、审核列表">审核管理</x-nav-menu-link>
+                        <x-nav-menu-link href="{{ route('operation-logs') }}" description="按操作人/时间/模块筛选">操作日志</x-nav-menu-link>
+                        <x-nav-menu-link href="{{ route('audit-logs') }}" description="敏感操作审计，保留策略0-180天">审计日志</x-nav-menu-link>
+                        <x-nav-menu-link href="{{ route('approval-config') }}" description="19个审核节点开关、审核列表">审核管理</x-nav-menu-link>
                         <x-nav-menu-link href="#" description="改价记录列表/详情、数据快照回溯">改价记录</x-nav-menu-link>
                     </x-nav-menu-content>
                 </x-nav-menu-item>

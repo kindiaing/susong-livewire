@@ -65,6 +65,10 @@ return new class extends Migration
             $table->bigInteger('actual_price')->default(0)->comment('实际称重单价');
             $table->bigInteger('subtotal')->default(0)->comment('小计金额');
             $table->bigInteger('actual_subtotal')->default(0)->comment('实际小计金额');
+            $table->bigInteger('strategy_price')->default(0)->comment('改价/促销单价');
+            $table->bigInteger('strategy_amount')->default(0)->comment('改价/促销金额');
+            $table->unsignedBigInteger('price_strategy_id')->nullable()->comment('价格策略ID');
+            $table->unsignedBigInteger('price_strategy_item_id')->nullable()->comment('价格策略明细ID');
             $table->bigInteger('discrepancy_amount')->default(0)->comment('差异金额');
             $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1正常，2待审核，3已调整');
             $table->timestamps();
