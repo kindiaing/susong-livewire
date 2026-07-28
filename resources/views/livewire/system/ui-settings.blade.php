@@ -11,7 +11,7 @@
                  x-transition:leave="transition-opacity ease-in-out duration-200"
                  x-transition:leave-start="opacity-100"
                  x-transition:leave-end="opacity-0"
-                 @click="$store.uiSettings.open = false"></div>
+                 @click="$store.uiSettings.closeOnOutside ? $store.uiSettings.open = false : null"></div>
 
             {{-- 底部窄面板 --}}
             <div class="fixed inset-x-0 bottom-0 bg-background border-t border-border shadow-xl rounded-t-lg max-w-md mx-auto max-h-[85vh] flex flex-col"
