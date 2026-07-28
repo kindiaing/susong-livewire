@@ -1,10 +1,10 @@
 @props([])
 {{--
   顶部导航栏组件
-  布局：整体居中 max-w-7xl，Logo 靠左，右侧功能区靠右，导航+搜索居中
+  布局：导航栏撑满全宽，Logo靠最左，个人中心靠最右，导航+搜索在中间整体居中
 --}}
 <header class="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-    <div class="flex h-14 items-center px-4 max-w-7xl mx-auto w-full">
+    <div class="flex h-14 items-center px-4 w-full">
 
         {{-- 左侧：Logo + 系统名称（靠近左端） --}}
         <a href="{{ route('dashboard') }}" class="flex items-center gap-2 shrink-0 mr-6">
