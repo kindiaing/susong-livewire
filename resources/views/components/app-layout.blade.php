@@ -15,10 +15,18 @@
             $uiCloseOnOutside = \App\Support\Setting::get('ui_close_on_outside', true);
             $uiShowFooter = \App\Support\Setting::get('ui_show_footer', true);
             $icpNumber = \App\Support\Setting::get('site_icp_number', '');
+            $icpUrl = \App\Support\Setting::get('site_icp_url', 'https://beian.miit.gov.cn/');
+            $techStackUrl = \App\Support\Setting::get('site_tech_stack_url', 'https://laravel.com');
+            $developerName = \App\Support\Setting::get('site_developer_name', 'Seeding');
+            $developerUrl = \App\Support\Setting::get('site_developer_url', '');
         } catch (\Throwable) {
             $uiCloseOnOutside = true;
             $uiShowFooter = true;
             $icpNumber = '';
+            $icpUrl = 'https://beian.miit.gov.cn/';
+            $techStackUrl = 'https://laravel.com';
+            $developerName = 'Seeding';
+            $developerUrl = '';
         }
     @endphp
     <script>
@@ -41,20 +49,35 @@
         {{-- 底部版权栏（Alpine 响应式控制，保存后即时生效） --}}
         <footer x-data x-show="$store.uiSettings.showFooter" class="border-t bg-background/95">
             <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-                <div class="flex flex-col items-center gap-1 sm:flex-row sm:justify-between">
-                    <div class="text-xs text-muted-foreground">
-                        &copy; {{ date('Y') }} {{ config('app.name', '本地速送') }} &middot;
-                        Powered by <span class="font-medium text-foreground/80">Laravel {{ app()->version() }}</span> +
-                        <span class="font-medium text-foreground/80">Livewire 4</span> +
-                        <span class="font-medium text-foreground/80">Alpine.js</span> +
-                        <span class="font-medium text-foreground/80">Tailwind CSS</span>
-                    </div>
-                    <div class="flex items-center gap-3 text-xs text-muted-foreground">
-                        @if($icpNumber)
-                            <span>{{ $icpNumber }}</span>
-                        @endif
-                        <span>Developed by <span class="font-medium text-foreground/80">Seeding</span></span>
-                    </div>
+                <div class="flex flex-col items-center gap-2 sm:flex-row sm:justify-center sm:gap-4 text-xs text-muted-foreground">
+                    {{-- 技术栈 --}}
+                    <span>
+                        Powered by
+                        <a href="{{ $techStackUrl }}" target="_blank" rel="noopener noreferrer" class="font-medium text-foreground/80 hover:text-primary transition-colors">Laravel</a> +
+                        <a href="{{ $techStackUrl }}" target="_blank" rel="noopener noreferrer" class="font-medium text-foreground/80 hover:text-primary transition-colors">Livewire 4</a> +
+                        <a href="{{ $techStackUrl }}" target="_blank" rel="noopener noreferrer" class="font-medium text-foreground/80 hover:text-primary transition-colors">Alpine.js</a> +
+                        <a href="{{ $techStackUrl }}" target="_blank" rel="noopener noreferrer" class="font-medium text-foreground/80 hover:text-primary transition-colors">Tailwind CSS</a>
+                    </span>
+
+                    <span class="hidden sm:inline text-border">|</span>
+
+                    {{-- 开发者 --}}
+                    @if($developerName)
+                        <span>
+                            Developed by
+                            @if($developerUrl)
+                                <a href="{{ $developerUrl }}" target="_blank" rel="noopener noreferrer" class="font-medium text-foreground/80 hover:text-primary transition-colors">{{ $developerName }}</a>
+                            @else
+                                <span class="font-medium text-foreground/80">{{ $developerName }}</span>
+                            @endif
+                        </span>
+                    @endif
+
+                    {{-- 备案号 --}}
+                    @if($icpNumber)
+                        <span class="hidden sm:inline text-border">|</span>
+                        <a href="{{ $icpUrl }}" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">{{ $icpNumber }}</a>
+                    @endif
                 </div>
             </div>
         </footer>

@@ -67,19 +67,54 @@
         </div>
     </main>
 
-    {{-- 底部备案号 --}}
+    {{-- 底部版权栏（独立页面，不使用 app-layout） --}}
     @php
         try {
             $icpNumber = \App\Support\Setting::get('site_icp_number', '');
+            $icpUrl = \App\Support\Setting::get('site_icp_url', 'https://beian.miit.gov.cn/');
+            $techStackUrl = \App\Support\Setting::get('site_tech_stack_url', 'https://laravel.com');
+            $developerName = \App\Support\Setting::get('site_developer_name', 'Seeding');
+            $developerUrl = \App\Support\Setting::get('site_developer_url', '');
         } catch (\Throwable) {
             $icpNumber = '';
+            $icpUrl = 'https://beian.miit.gov.cn/';
+            $techStackUrl = 'https://laravel.com';
+            $developerName = 'Seeding';
+            $developerUrl = '';
         }
     @endphp
     <footer class="border-t bg-background/95">
-        <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 text-center text-xs text-muted-foreground">
-            @if($icpNumber)
-                <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" class="hover:text-foreground transition-colors">{{ $icpNumber }}</a>
-            @endif
+        <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col items-center gap-2 sm:flex-row sm:justify-center sm:gap-4 text-xs text-muted-foreground">
+                {{-- 技术栈 --}}
+                <span>
+                    Powered by
+                    <a href="{{ $techStackUrl }}" target="_blank" rel="noopener noreferrer" class="font-medium text-foreground/80 hover:text-primary transition-colors">Laravel</a> +
+                    <a href="{{ $techStackUrl }}" target="_blank" rel="noopener noreferrer" class="font-medium text-foreground/80 hover:text-primary transition-colors">Livewire 4</a> +
+                    <a href="{{ $techStackUrl }}" target="_blank" rel="noopener noreferrer" class="font-medium text-foreground/80 hover:text-primary transition-colors">Alpine.js</a> +
+                    <a href="{{ $techStackUrl }}" target="_blank" rel="noopener noreferrer" class="font-medium text-foreground/80 hover:text-primary transition-colors">Tailwind CSS</a>
+                </span>
+
+                <span class="hidden sm:inline text-border">|</span>
+
+                {{-- 开发者 --}}
+                @if($developerName)
+                    <span>
+                        Developed by
+                        @if($developerUrl)
+                            <a href="{{ $developerUrl }}" target="_blank" rel="noopener noreferrer" class="font-medium text-foreground/80 hover:text-primary transition-colors">{{ $developerName }}</a>
+                        @else
+                            <span class="font-medium text-foreground/80">{{ $developerName }}</span>
+                        @endif
+                    </span>
+                @endif
+
+                {{-- 备案号 --}}
+                @if($icpNumber)
+                    <span class="hidden sm:inline text-border">|</span>
+                    <a href="{{ $icpUrl }}" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">{{ $icpNumber }}</a>
+                @endif
+            </div>
         </div>
     </footer>
 </body>

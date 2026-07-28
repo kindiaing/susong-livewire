@@ -58,32 +58,39 @@ INSERT INTO `approval_type_configs` (`id`, `type_code`, `type_name`, `module_nam
 (19, 'supplier_disable',     '供应商禁用',         '组织主体', 'P1', 0, 2, 3, 19, '供应商禁用操作需运营经理确认',                              NOW(), NOW());
 
 -- ============================================================
--- 4. 系统配置（system_configs 默认键值，增强版 17 条）
+-- 4. 系统配置（system_configs 默认键值，完整 24 条）
 -- ============================================================
--- 注意：此 SQL 与 Migration 的 17 条初始数据保持一致。
+-- 注意：此 SQL 与 Migration 的初始数据保持一致。
 -- 增强字段（default_value, config_type, config_group, label, hint,
 -- options, validation_rules, sort_order, is_public, is_readonly）
 -- 由 enhance_system_configs_table 迁移自动添加。
 -- 以下 INSERT 仅包含建表时的 4 个业务字段 + timestamps，
--- 增强字段通过 ALTER TABLE 后由应用层或第二个 Migration 填充。
+-- 增强字段通过 ALTER TABLE 后由应用层或后续 Migration 填充。
 INSERT INTO `system_configs` (`id`, `config_key`, `config_value`, `description`, `created_at`, `updated_at`) VALUES
-(1,  'site_name',                     '本地速送服务平台', '站点名称',                                               NOW(), NOW()),
-(2,  'contact_phone',                  '15690631151',      '客服电话',                                               NOW(), NOW()),
-(3,  'max_upload_size_mb',             '20',               '管理后台和商家端文件上传限制（MB）',                       NOW(), NOW()),
-(4,  'order_auto_confirm_hours',       '24',               '订单配送完成后的自动签收等待时长（小时）',                 NOW(), NOW()),
-(5,  'min_delivery_amount',            '0',                '商家下单金额门槛（元），0表示无限制',                     NOW(), NOW()),
-(6,  'allow_merchant_self_order',      '1',                '商家端小程序是否允许自主下单（1=是，0=否）',               NOW(), NOW()),
-(7,  'default_delivery_batch',         '1',                '默认配送批次：1上午，2下午',                               NOW(), NOW()),
-(8,  'delivery_timeout_minutes',       '30',               '配送任务超时自动标记异常（分钟）',                         NOW(), NOW()),
-(9,  'allow_driver_multi_task',        '1',                '司机并发配送开关（1=允许同时接多单，0=否）',               NOW(), NOW()),
-(10, 'max_daily_recharge_amount',      '50000',            '单商家每日充值累计上限（元）',                             NOW(), NOW()),
-(11, 'credit_limit_default',           '5000',             '新注册商家自动分配的信用额度（元）',                       NOW(), NOW()),
-(12, 'enable_weighing_auto_debit',     '0',                '称重差异自动扣款开关（1=自动，0=人工确认）',               NOW(), NOW()),
-(13, 'weighing_diff_threshold',        '20',               '称重差异阈值（百分比），超过需人工确认',                   NOW(), NOW()),
-(14, 'inventory_warning_enabled',      '1',                '库存预警检测开关（1=开启，0=关闭）',                       NOW(), NOW()),
-(15, 'inventory_warning_interval_minutes', '5',            '库存预警定时检测周期（分钟）',                             NOW(), NOW()),
-(16, 'audit_retention_days',           '90',               '审计/日志保留天数：0=永久保留，1-180天，到期每日定时清理', NOW(), NOW()),
-(17, 'loss_approval_threshold',        '200',              '损耗审批阈值（元）：超过此值需运营经理审核',               NOW(), NOW());
+(1,  'site_name',                              '本地速送服务平台',   '站点名称',                                               NOW(), NOW()),
+(2,  'contact_phone',                          '15690631151',        '客服电话',                                               NOW(), NOW()),
+(3,  'max_upload_size_mb',                     '20',                 '管理后台和商家端文件上传限制（MB）',                       NOW(), NOW()),
+(4,  'site_icp_number',                        '',                   'ICP 备案号，留空不显示',                                   NOW(), NOW()),
+(5,  'site_tech_stack_url',                    'https://laravel.com', '底部版权栏技术栈文字跳转链接',                            NOW(), NOW()),
+(6,  'site_developer_name',                    'Seeding',            '底部版权栏显示的开发者名称',                               NOW(), NOW()),
+(7,  'site_developer_url',                     '',                   '底部版权栏开发者名称跳转链接，留空只显示文字',               NOW(), NOW()),
+(8,  'site_icp_url',                           'https://beian.miit.gov.cn/', '底部版权栏备案号跳转链接',                      NOW(), NOW()),
+(9,  'order_auto_confirm_hours',               '24',                 '订单配送完成后的自动签收等待时长（小时）',                 NOW(), NOW()),
+(10, 'min_delivery_amount',                    '0',                  '商家下单金额门槛（元），0表示无限制',                     NOW(), NOW()),
+(11, 'allow_merchant_self_order',              '1',                  '商家端小程序是否允许自主下单（1=是，0=否）',               NOW(), NOW()),
+(12, 'default_delivery_batch',                 '1',                  '默认配送批次：1上午，2下午',                               NOW(), NOW()),
+(13, 'delivery_timeout_minutes',               '30',                 '配送任务超时自动标记异常（分钟）',                         NOW(), NOW()),
+(14, 'allow_driver_multi_task',                '1',                  '司机并发配送开关（1=允许同时接多单，0=否）',               NOW(), NOW()),
+(15, 'max_daily_recharge_amount',              '50000',              '单商家每日充值累计上限（元）',                             NOW(), NOW()),
+(16, 'credit_limit_default',                   '5000',               '新注册商家自动分配的信用额度（元）',                       NOW(), NOW()),
+(17, 'enable_weighing_auto_debit',             '0',                  '称重差异自动扣款开关（1=自动，0=人工确认）',               NOW(), NOW()),
+(18, 'weighing_diff_threshold',                '20',                 '称重差异阈值（百分比），超过需人工确认',                   NOW(), NOW()),
+(19, 'inventory_warning_enabled',              '1',                  '库存预警检测开关（1=开启，0=关闭）',                       NOW(), NOW()),
+(20, 'inventory_warning_interval_minutes',     '5',                  '库存预警定时检测周期（分钟）',                             NOW(), NOW()),
+(21, 'audit_retention_days',                   '90',                 '审计/日志保留天数：0=永久保留，1-180天，到期每日定时清理', NOW(), NOW()),
+(22, 'loss_approval_threshold',                '200',                '损耗审批阈值（元）：超过此值需运营经理审核',               NOW(), NOW()),
+(23, 'ui_close_on_outside',                    '1',                  '点击通知面板外部区域自动关闭（1=是，0=否）',               NOW(), NOW()),
+(24, 'ui_show_footer',                         '1',                  '显示底部版权栏（1=是，0=否）',                             NOW(), NOW());
 
 -- ============================================================
 -- 5. 默认仓库（2 个）
@@ -107,7 +114,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- 角色：8 条（super_admin ~ driver）
 -- 超管账号：admin / admin123（首次登录强制修改）
 -- 审核节点：19 条（1-10 默认开启，11-19 默认关闭）
--- 系统配置：15 条
+-- 系统配置：24 条
 -- 仓库：2 条（总仓 + 前置仓）
 -- 配送线路：2 条
 -- ============================================================
