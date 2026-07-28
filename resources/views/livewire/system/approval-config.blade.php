@@ -115,13 +115,19 @@
 
                 {{-- 操作 --}}
                 <div class="text-right">
-                    <button
-                        wire:click="toggleEnabled({{ $config->id }})"
-                        wire:confirm="{{ $config->enabled ? '确认关闭此审核节点？关闭后相关操作将无需审批' : '确认开启此审核节点？开启后相关操作需要审核人审批' }}"
-                        class="inline-flex items-center justify-center rounded px-2 py-1 text-xs font-medium transition-colors {{ $config->enabled ? 'text-red-600 hover:bg-red-50' : 'text-green-600 hover:bg-green-50' }}"
+                    <x-ui.alert-dialog
+                        :title="$config->enabled ? '确认关闭审核节点' : '确认开启审核节点'"
+                        :description="$config->enabled ? '关闭后相关操作将无需审批，确定要关闭吗？' : '开启后相关操作需要审核人审批，确定要开启吗？'"
+                        :confirmText="$config->enabled ? '确认关闭' : '确认开启'"
+                        :variant="$config->enabled ? 'destructive' : 'warning'"
+                        :confirmAction="'$wire.toggleEnabled(' . $config->id . ')'"
                     >
-                        {{ $config->enabled ? '关闭' : '开启' }}
-                    </button>
+                        <button
+                            class="inline-flex items-center justify-center rounded px-2 py-1 text-xs font-medium transition-colors {{ $config->enabled ? 'text-red-600 hover:bg-red-50' : 'text-green-600 hover:bg-green-50' }}"
+                        >
+                            {{ $config->enabled ? '关闭' : '开启' }}
+                        </button>
+                    </x-ui.alert-dialog>
                 </div>
             </div>
         @empty

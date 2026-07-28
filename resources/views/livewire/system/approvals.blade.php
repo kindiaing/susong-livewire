@@ -224,24 +224,47 @@
                                 ></textarea>
                             </div>
                             <div class="flex items-center justify-end gap-2">
-                                <button
-                                    wire:click="withdraw({{ $detailApproval->id }})"
-                                    class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
+                                <x-ui.alert-dialog
+                                    title="确认撤回"
+                                    description="撤回后该审批申请将被取消，确定要撤回吗？"
+                                    confirmText="确认撤回"
+                                    variant="info"
+                                    :confirmAction="'$wire.withdraw(' . $detailApproval->id . ')'"
                                 >
-                                    撤回
-                                </button>
-                                <button
-                                    wire:click="reject({{ $detailApproval->id }})"
-                                    class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-colors"
+                                    <button
+                                        class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
+                                    >
+                                        撤回
+                                    </button>
+                                </x-ui.alert-dialog>
+
+                                <x-ui.alert-dialog
+                                    title="确认拒绝"
+                                    description="拒绝后申请人需要重新发起审批，确定要拒绝吗？"
+                                    confirmText="确认拒绝"
+                                    variant="destructive"
+                                    :confirmAction="'$wire.reject(' . $detailApproval->id . ')'"
                                 >
-                                    拒绝
-                                </button>
-                                <button
-                                    wire:click="approve({{ $detailApproval->id }})"
-                                    class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
+                                    <button
+                                        class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-colors"
+                                    >
+                                        拒绝
+                                    </button>
+                                </x-ui.alert-dialog>
+
+                                <x-ui.alert-dialog
+                                    title="确认通过"
+                                    description="通过后该审批将立即生效，确定要通过吗？"
+                                    confirmText="确认通过"
+                                    variant="warning"
+                                    :confirmAction="'$wire.approve(' . $detailApproval->id . ')'"
                                 >
-                                    通过
-                                </button>
+                                    <button
+                                        class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
+                                    >
+                                        通过
+                                    </button>
+                                </x-ui.alert-dialog>
                             </div>
                         </div>
                     @endif
