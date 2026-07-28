@@ -112,9 +112,22 @@ class SystemConfig extends Model
      */
     protected static function getAll(): \Illuminate\Support\Collection
     {
-        return Cache::remember('system_configs_all', 3600, fn() =>
-            static::orderBy('config_group')->orderBy('sort_order')->get()
-        );
+        try {
+            $result = Cache::remember('system_configs_all', 3600, fn() =>
+                static::orderBy('config_group')->orderBy('sort_order')->get()
+            );
+
+            // 防御反序列化失败（Migration 变更后旧缓存会返回 __PHP_Incomplete_Class）
+            if (!($result instanceof \Illuminate\Support\Collection)) {
+                Cache::forget('system_configs_all');
+                $result = static::orderBy('config_group')->orderBy('sort_order')->get();
+            }
+
+            return $result;
+        } catch (\Throwable) {
+            Cache::forget('system_configs_all');
+            return static::orderBy('config_group')->orderBy('sort_order')->get();
+        }
     }
 
     /**
@@ -152,6 +165,7 @@ class SystemConfig extends Model
             'finance' => '财务风控',
             'inventory' => '库存设置',
             'audit' => '审核日志',
+            'ui' => '界面设置',
         ];
     }
 

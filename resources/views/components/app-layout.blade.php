@@ -8,6 +8,11 @@
     @fonts
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
+
+    {{-- 注入后端 UI 配置到前端 Alpine.js --}}
+    <script>
+        window.__UI_CLOSE_ON_OUTSIDE = {{ \App\Support\Setting::get('ui_close_on_outside', true) ? 'true' : 'false' }};
+    </script>
 </head>
 <body class="bg-background text-foreground min-h-screen font-sans">
     <div class="flex min-h-screen flex-col">

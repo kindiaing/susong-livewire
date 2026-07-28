@@ -26,7 +26,7 @@ $sideClasses = match($side) {
 >
     {{-- Trigger --}}
     <div @click="open = !open">
-        {{ $slot->trigger ?? '' }}
+        {!! $slot->trigger ?? '' !!}
     </div>
 
     {{-- Dropdown Content --}}
@@ -40,6 +40,6 @@ $sideClasses = match($side) {
         x-transition:leave-end="opacity-0 scale-95"
         class="absolute z-50 min-w-[8rem] overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md {{ $alignClasses }} {{ $sideClasses }}"
     >
-        {{ $slot->content ?? '' }}
+        {!! $slot->content ?? '' !!}
     </div>
 </div>
