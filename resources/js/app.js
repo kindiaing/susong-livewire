@@ -37,8 +37,8 @@ document.addEventListener('alpine:init', () => {
     // 界面设置 store
     Alpine.store('uiSettings', {
         open: false,
-        // 从 meta 标签或全局变量读取后端配置
         closeOnOutside: window.__UI_CLOSE_ON_OUTSIDE ?? true,
+        showFooter: window.__UI_SHOW_FOOTER ?? true,
     });
 });
 
@@ -103,3 +103,5 @@ function notificationDrawer() {
     };
 }
 window.notificationDrawer = notificationDrawer;
+
+

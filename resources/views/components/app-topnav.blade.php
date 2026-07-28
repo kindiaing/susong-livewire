@@ -127,8 +127,8 @@
             <x-ui.icon name="bars" class="w-5 h-5" />
         </button>
 
-        {{-- 右侧功能区 --}}
-        <div class="flex items-center gap-1 ml-auto shrink-0">
+        {{-- 右侧功能区（需要 x-data 让 Alpine.js 处理 @click 等指令） --}}
+        <div x-data class="flex items-center gap-1 ml-auto shrink-0">
 
             {{-- 通知 Drawer --}}
             <div x-data="notificationDrawer()" x-init="init()">
