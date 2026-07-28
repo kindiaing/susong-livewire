@@ -11,7 +11,7 @@
  Target Server Version : 80403 (8.4.3)
  File Encoding         : 65001
 
- Date: 28/07/2026 12:26:39
+ Date: 28/07/2026 12:52:21
 */
 
 SET NAMES utf8mb4;
@@ -44,25 +44,25 @@ CREATE TABLE `approval_type_configs`  (
 -- ----------------------------
 -- Records of approval_type_configs
 -- ----------------------------
-INSERT INTO `approval_type_configs` VALUES (1, 'manual_recharge', '后台手工充值', '财务对账', 'P0', 1, 2, 6, 1, '运营管理员为商家手动充值', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `approval_type_configs` VALUES (2, 'supplier_payment', '供应商付款录入', '财务对账', 'P0', 1, 5, 6, 2, '出纳录入供应商付款记录', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `approval_type_configs` VALUES (3, 'customer_receipt', '客户收款录入', '财务对账', 'P0', 1, 5, 6, 3, '出纳录入客户收款记录', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `approval_type_configs` VALUES (4, 'credit_limit', '信用额度调整', '商家管理', 'P0', 1, 2, 6, 4, '修改商家信用额度', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `approval_type_configs` VALUES (5, 'price_strategy', '价格策略创建/修改', '价格策略', 'P0', 1, 2, 6, 5, '创建或修改促销/临时改价策略', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `approval_type_configs` VALUES (6, 'manual_apportion', '手动均摊调整', '费用均摊', 'P0', 1, 4, 3, 6, '手动修改费用均摊金额', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `approval_type_configs` VALUES (7, 'diff_refund_deduct', '差异退款/扣款决策', '差异处理', 'P0', 1, 2, 6, 7, '差异处理决策为退款或扣款', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `approval_type_configs` VALUES (8, 'sku_price_change', 'SKU 批发价修改(>15%)', '商品管理', 'P1', 1, 2, 3, 8, '修改SKU批发销售价幅度>15%', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `approval_type_configs` VALUES (9, 'receivable_adjust', '应收改价折扣调整', '财务对账', 'P0', 1, 2, 6, 9, '改价/促销导致应收金额调整', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `approval_type_configs` VALUES (10, 'recharge_confirm', '商家充值确认', '财务对账', 'P0', 1, 2, 6, 10, '商家微信/线下充值待确认', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `approval_type_configs` VALUES (11, 'purchase_return', '采购退货', '平台统采', 'P0', 0, 2, 6, 11, '采购退货审批', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `approval_type_configs` VALUES (12, 'after_sale_return', '售后退货退款', '客户直采', 'P0', 0, 2, 6, 12, '售后退货退款审批', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `approval_type_configs` VALUES (13, 'auth_correction', '单据授权更正', '财务对账', 'P0', 0, 4, 6, 13, '解锁已锁定数据允许更正', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `approval_type_configs` VALUES (14, 'weighing_price', '称重改价(≤20%)', '客户直采', 'P1', 0, 7, 3, 14, '称重改价金额生效', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `approval_type_configs` VALUES (15, 'purchase_warehouse', '采购入库确认', '平台统采', 'P1', 0, 2, 3, 15, '入库确认触发库存联动', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `approval_type_configs` VALUES (16, 'supplier_bank_edit', '供应商银行信息修改', '组织主体', 'P1', 0, 2, 6, 16, '银行收付款信息生效', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `approval_type_configs` VALUES (17, 'manual_close', '手动办结', '财务对账', 'P1', 0, 4, 6, 17, '单据办结锁定', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `approval_type_configs` VALUES (18, 'sku_price_minor', 'SKU小幅改价(≤15%)', '商品管理', 'P1', 0, 2, 3, 18, '小幅改价生效', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `approval_type_configs` VALUES (19, 'loss_order', '损耗单审批', '损耗管理', 'P1', 1, 2, 3, 19, '损耗金额超过审批阈值时需运营经理审核', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
+INSERT INTO `approval_type_configs` VALUES (1, 'manual_recharge', '后台手工充值', '财务对账', 'P0', 0, 2, 6, 1, '运营管理员为商家手动充值', '2026-07-28 04:30:16', '2026-07-28 04:50:21');
+INSERT INTO `approval_type_configs` VALUES (2, 'supplier_payment', '供应商付款录入', '财务对账', 'P0', 1, 5, 6, 2, '出纳录入供应商付款记录', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `approval_type_configs` VALUES (3, 'customer_receipt', '客户收款录入', '财务对账', 'P0', 1, 5, 6, 3, '出纳录入客户收款记录', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `approval_type_configs` VALUES (4, 'credit_limit', '信用额度调整', '商家管理', 'P0', 1, 2, 6, 4, '修改商家信用额度', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `approval_type_configs` VALUES (5, 'price_strategy', '价格策略创建/修改', '价格策略', 'P0', 1, 2, 6, 5, '创建或修改促销/临时改价策略', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `approval_type_configs` VALUES (6, 'manual_apportion', '手动均摊调整', '费用均摊', 'P0', 1, 4, 3, 6, '手动修改费用均摊金额', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `approval_type_configs` VALUES (7, 'diff_refund_deduct', '差异退款/扣款决策', '差异处理', 'P0', 1, 2, 6, 7, '差异处理决策为退款或扣款', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `approval_type_configs` VALUES (8, 'sku_price_change', 'SKU 批发价修改(>15%)', '商品管理', 'P1', 1, 2, 3, 8, '修改SKU批发销售价幅度>15%', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `approval_type_configs` VALUES (9, 'receivable_adjust', '应收改价折扣调整', '财务对账', 'P0', 1, 2, 6, 9, '改价/促销导致应收金额调整', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `approval_type_configs` VALUES (10, 'recharge_confirm', '商家充值确认', '财务对账', 'P0', 1, 2, 6, 10, '商家微信/线下充值待确认', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `approval_type_configs` VALUES (11, 'purchase_return', '采购退货', '平台统采', 'P0', 0, 2, 6, 11, '采购退货审批', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `approval_type_configs` VALUES (12, 'after_sale_return', '售后退货退款', '客户直采', 'P0', 0, 2, 6, 12, '售后退货退款审批', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `approval_type_configs` VALUES (13, 'auth_correction', '单据授权更正', '财务对账', 'P0', 0, 4, 6, 13, '解锁已锁定数据允许更正', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `approval_type_configs` VALUES (14, 'weighing_price', '称重改价(≤20%)', '客户直采', 'P1', 0, 7, 3, 14, '称重改价金额生效', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `approval_type_configs` VALUES (15, 'purchase_warehouse', '采购入库确认', '平台统采', 'P1', 0, 2, 3, 15, '入库确认触发库存联动', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `approval_type_configs` VALUES (16, 'supplier_bank_edit', '供应商银行信息修改', '组织主体', 'P1', 0, 2, 6, 16, '银行收付款信息生效', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `approval_type_configs` VALUES (17, 'manual_close', '手动办结', '财务对账', 'P1', 0, 4, 6, 17, '单据办结锁定', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `approval_type_configs` VALUES (18, 'sku_price_minor', 'SKU小幅改价(≤15%)', '商品管理', 'P1', 0, 2, 3, 18, '小幅改价生效', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `approval_type_configs` VALUES (19, 'loss_order', '损耗单审批', '损耗管理', 'P1', 1, 2, 3, 19, '损耗金额超过审批阈值时需运营经理审核', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
 
 -- ----------------------------
 -- Table structure for approvals
@@ -92,11 +92,12 @@ CREATE TABLE `approvals`  (
   INDEX `approvals_status_index`(`status` ASC) USING BTREE,
   INDEX `approvals_reviewer_id_index`(`reviewer_id` ASC) USING BTREE,
   INDEX `approvals_created_at_index`(`created_at` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '审批记录表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '审批记录表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of approvals
 -- ----------------------------
+INSERT INTO `approvals` VALUES (1, 'manual_recharge', 'TestOrder', 100, 1, 'seeding', NULL, '\"{\\\"amount\\\":15000}\"', 15000, 1, NULL, NULL, NULL, NULL, '2026-07-28 04:51:09', '2026-07-28 04:51:09');
 
 -- ----------------------------
 -- Table structure for audit_logs
@@ -120,11 +121,14 @@ CREATE TABLE `audit_logs`  (
   INDEX `audit_logs_model_type_model_id_index`(`model_type` ASC, `model_id` ASC) USING BTREE,
   INDEX `audit_logs_operator_id_index`(`operator_id` ASC) USING BTREE,
   INDEX `audit_logs_created_at_index`(`created_at` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '审计日志表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '审计日志表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of audit_logs
 -- ----------------------------
+INSERT INTO `audit_logs` VALUES (1, 'ApprovalTypeConfig', 1, 'update', '{\"enabled\": 1}', '{\"enabled\": 0}', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', '关闭审核节点', NULL, NULL, '2026-07-28 04:44:04');
+INSERT INTO `audit_logs` VALUES (2, 'ApprovalTypeConfig', 1, 'update', '{\"enabled\": 0}', '{\"enabled\": 1}', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', '启用审核节点', NULL, NULL, '2026-07-28 04:44:38');
+INSERT INTO `audit_logs` VALUES (3, 'ApprovalTypeConfig', 1, 'update', '{\"enabled\": 1}', '{\"enabled\": 0}', 1, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', '关闭审核节点', NULL, NULL, '2026-07-28 04:50:21');
 
 -- ----------------------------
 -- Table structure for banners
@@ -209,14 +213,14 @@ CREATE TABLE `categories`  (
 -- ----------------------------
 -- Records of categories
 -- ----------------------------
-INSERT INTO `categories` VALUES (1, 0, '蔬菜', NULL, 1, 1, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `categories` VALUES (2, 0, '水果', NULL, 2, 1, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `categories` VALUES (3, 0, '肉类', NULL, 3, 1, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `categories` VALUES (4, 0, '水产', NULL, 4, 1, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `categories` VALUES (5, 0, '粮油', NULL, 5, 1, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `categories` VALUES (6, 0, '调料', NULL, 6, 1, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `categories` VALUES (7, 0, '豆制品', NULL, 7, 1, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `categories` VALUES (8, 0, '冷冻食品', NULL, 8, 1, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
+INSERT INTO `categories` VALUES (1, 0, '蔬菜', NULL, 1, 1, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `categories` VALUES (2, 0, '水果', NULL, 2, 1, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `categories` VALUES (3, 0, '肉类', NULL, 3, 1, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `categories` VALUES (4, 0, '水产', NULL, 4, 1, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `categories` VALUES (5, 0, '粮油', NULL, 5, 1, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `categories` VALUES (6, 0, '调料', NULL, 6, 1, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `categories` VALUES (7, 0, '豆制品', NULL, 7, 1, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `categories` VALUES (8, 0, '冷冻食品', NULL, 8, 1, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
 
 -- ----------------------------
 -- Table structure for correction_authorizations
@@ -261,8 +265,8 @@ CREATE TABLE `delivery_routes`  (
 -- ----------------------------
 -- Records of delivery_routes
 -- ----------------------------
-INSERT INTO `delivery_routes` VALUES (1, '城区北线', '人民路-淮海路-汴河路北侧', 0, 1, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `delivery_routes` VALUES (2, '城区南线', '银河路-胜利路-宿怀路南侧', 0, 1, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
+INSERT INTO `delivery_routes` VALUES (1, '城区北线', '人民路-淮海路-汴河路北侧', 0, 1, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `delivery_routes` VALUES (2, '城区南线', '银河路-胜利路-宿怀路南侧', 0, 1, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
 
 -- ----------------------------
 -- Table structure for delivery_task_orders
@@ -398,8 +402,8 @@ CREATE TABLE `driver_vehicles`  (
 -- ----------------------------
 -- Records of driver_vehicles
 -- ----------------------------
-INSERT INTO `driver_vehicles` VALUES (1, 1, 1, 0, NULL, NULL, '2026-07-27 09:23:35', '2026-07-27 09:23:35');
-INSERT INTO `driver_vehicles` VALUES (2, 2, 2, 0, NULL, NULL, '2026-07-27 09:23:35', '2026-07-27 09:23:35');
+INSERT INTO `driver_vehicles` VALUES (1, 1, 1, 0, NULL, NULL, '2026-07-28 04:30:18', '2026-07-28 04:30:18');
+INSERT INTO `driver_vehicles` VALUES (2, 2, 2, 0, NULL, NULL, '2026-07-28 04:30:18', '2026-07-28 04:30:18');
 
 -- ----------------------------
 -- Table structure for drivers
@@ -425,8 +429,8 @@ CREATE TABLE `drivers`  (
 -- ----------------------------
 -- Records of drivers
 -- ----------------------------
-INSERT INTO `drivers` VALUES (1, NULL, '周师傅', '13700000001', NULL, 0, 1, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `drivers` VALUES (2, NULL, '马师傅', '13700000002', NULL, 0, 1, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
+INSERT INTO `drivers` VALUES (1, NULL, '周师傅', '13700000001', NULL, 0, 1, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `drivers` VALUES (2, NULL, '马师傅', '13700000002', NULL, 0, 1, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
 
 -- ----------------------------
 -- Table structure for frequently_bought
@@ -569,27 +573,11 @@ CREATE TABLE `login_logs`  (
   INDEX `login_logs_username_index`(`username` ASC) USING BTREE,
   INDEX `login_logs_ip_index`(`ip` ASC) USING BTREE,
   INDEX `login_logs_created_at_index`(`created_at` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 17 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '登录日志表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '登录日志表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of login_logs
 -- ----------------------------
-INSERT INTO `login_logs` VALUES (1, 1, 'seeding', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 1, 1, NULL, '2026-07-27 09:41:38');
-INSERT INTO `login_logs` VALUES (2, 1, 'seeding', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 1, 1, NULL, '2026-07-27 09:43:02');
-INSERT INTO `login_logs` VALUES (3, 1, 'seeding', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 1, 1, NULL, '2026-07-27 09:45:27');
-INSERT INTO `login_logs` VALUES (4, 1, 'seeding', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0', 1, 1, NULL, '2026-07-27 09:52:24');
-INSERT INTO `login_logs` VALUES (5, 1, 'seeding', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0', 1, 1, NULL, '2026-07-28 00:48:20');
-INSERT INTO `login_logs` VALUES (6, 1, 'seeding', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 1, 1, NULL, '2026-07-28 00:52:04');
-INSERT INTO `login_logs` VALUES (7, 1, 'seeding', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0', 1, 1, NULL, '2026-07-28 01:03:05');
-INSERT INTO `login_logs` VALUES (8, 1, 'seeding', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0', 1, 1, NULL, '2026-07-28 03:13:00');
-INSERT INTO `login_logs` VALUES (9, 1, 'seeding', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0', 1, 1, NULL, '2026-07-28 03:37:47');
-INSERT INTO `login_logs` VALUES (10, 1, 'seeding', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0', 1, 1, NULL, '2026-07-28 03:40:27');
-INSERT INTO `login_logs` VALUES (11, 1, 'seeding', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 1, 1, NULL, '2026-07-28 03:42:56');
-INSERT INTO `login_logs` VALUES (12, 1, 'seeding', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0', 1, 1, NULL, '2026-07-28 04:00:05');
-INSERT INTO `login_logs` VALUES (13, 1, 'seeding', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0', 1, 1, NULL, '2026-07-28 04:05:03');
-INSERT INTO `login_logs` VALUES (14, 1, 'seeding', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0', 1, 1, NULL, '2026-07-28 04:11:06');
-INSERT INTO `login_logs` VALUES (15, 1, 'seeding', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36 Edg/150.0.0.0', 1, 1, NULL, '2026-07-28 04:14:47');
-INSERT INTO `login_logs` VALUES (16, 1, 'seeding', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 1, 1, NULL, '2026-07-28 04:18:19');
 
 -- ----------------------------
 -- Table structure for loss_order_items
@@ -676,11 +664,11 @@ CREATE TABLE `merchant_accounts`  (
 -- ----------------------------
 -- Records of merchant_accounts
 -- ----------------------------
-INSERT INTO `merchant_accounts` VALUES (1, 1, 0, 0, 0, 5000000, 2, '2026-07-27 09:23:35', '2026-07-27 09:23:35');
-INSERT INTO `merchant_accounts` VALUES (2, 2, 0, 0, 0, 5000000, 2, '2026-07-27 09:23:35', '2026-07-27 09:23:35');
-INSERT INTO `merchant_accounts` VALUES (3, 3, 0, 0, 0, 5000000, 2, '2026-07-27 09:23:35', '2026-07-27 09:23:35');
-INSERT INTO `merchant_accounts` VALUES (4, 4, 0, 0, 0, 5000000, 2, '2026-07-27 09:23:35', '2026-07-27 09:23:35');
-INSERT INTO `merchant_accounts` VALUES (5, 5, 0, 0, 0, 5000000, 2, '2026-07-27 09:23:35', '2026-07-27 09:23:35');
+INSERT INTO `merchant_accounts` VALUES (1, 1, 0, 0, 0, 5000000, 2, '2026-07-28 04:30:18', '2026-07-28 04:30:18');
+INSERT INTO `merchant_accounts` VALUES (2, 2, 0, 0, 0, 5000000, 2, '2026-07-28 04:30:18', '2026-07-28 04:30:18');
+INSERT INTO `merchant_accounts` VALUES (3, 3, 0, 0, 0, 5000000, 2, '2026-07-28 04:30:18', '2026-07-28 04:30:18');
+INSERT INTO `merchant_accounts` VALUES (4, 4, 0, 0, 0, 5000000, 2, '2026-07-28 04:30:18', '2026-07-28 04:30:18');
+INSERT INTO `merchant_accounts` VALUES (5, 5, 0, 0, 0, 5000000, 2, '2026-07-28 04:30:18', '2026-07-28 04:30:18');
 
 -- ----------------------------
 -- Table structure for merchant_addresses
@@ -775,11 +763,11 @@ CREATE TABLE `merchants`  (
 -- ----------------------------
 -- Records of merchants
 -- ----------------------------
-INSERT INTO `merchants` VALUES (1, NULL, '味之初餐饮店', '吴老板', '15800000001', '安徽省宿州市埇桥区人民路88号', NULL, 0, 0, 1, 0, 1, NULL, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `merchants` VALUES (2, NULL, '鲜之味快餐店', '郑老板', '15800000002', '安徽省宿州市埇桥区淮海路120号', NULL, 0, 0, 1, 0, 1, NULL, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `merchants` VALUES (3, NULL, '家常菜馆', '冯老板', '15800000003', '安徽省宿州市埇桥区汴河路56号', NULL, 0, 0, 1, 0, 1, NULL, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `merchants` VALUES (4, NULL, '鑫鑫小吃店', '蒋老板', '15800000004', '安徽省宿州市埇桥区银河一路32号', NULL, 0, 0, 1, 0, 1, NULL, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `merchants` VALUES (5, NULL, '老街坊饭店', '韩老板', '15800000005', '安徽省宿州市埇桥区胜利路18号', NULL, 0, 0, 1, 0, 1, NULL, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
+INSERT INTO `merchants` VALUES (1, NULL, '味之初餐饮店', '吴老板', '15800000001', '安徽省宿州市埇桥区人民路88号', NULL, 0, 0, 1, 0, 1, NULL, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `merchants` VALUES (2, NULL, '鲜之味快餐店', '郑老板', '15800000002', '安徽省宿州市埇桥区淮海路120号', NULL, 0, 0, 1, 0, 1, NULL, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `merchants` VALUES (3, NULL, '家常菜馆', '冯老板', '15800000003', '安徽省宿州市埇桥区汴河路56号', NULL, 0, 0, 1, 0, 1, NULL, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `merchants` VALUES (4, NULL, '鑫鑫小吃店', '蒋老板', '15800000004', '安徽省宿州市埇桥区银河一路32号', NULL, 0, 0, 1, 0, 1, NULL, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `merchants` VALUES (5, NULL, '老街坊饭店', '韩老板', '15800000005', '安徽省宿州市埇桥区胜利路18号', NULL, 0, 0, 1, 0, 1, NULL, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
 
 -- ----------------------------
 -- Table structure for migrations
@@ -790,36 +778,31 @@ CREATE TABLE `migrations`  (
   `migration` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `batch` int NOT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 26 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 21 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of migrations
 -- ----------------------------
-INSERT INTO `migrations` VALUES (1, '2026_07_27_085827_create_users_and_permissions_tables', 1);
-INSERT INTO `migrations` VALUES (2, '2026_07_27_085834_create_organization_tables', 1);
-INSERT INTO `migrations` VALUES (3, '2026_07_27_085835_create_product_tables', 1);
-INSERT INTO `migrations` VALUES (4, '2026_07_27_085836_create_sku_barcodes_suppliers_tables', 1);
-INSERT INTO `migrations` VALUES (5, '2026_07_27_085837_create_purchase_tables', 1);
-INSERT INTO `migrations` VALUES (6, '2026_07_27_085838_create_order_tables', 1);
-INSERT INTO `migrations` VALUES (7, '2026_07_27_085839_create_inventory_tables', 1);
-INSERT INTO `migrations` VALUES (8, '2026_07_27_085840_create_loss_tables', 1);
-INSERT INTO `migrations` VALUES (9, '2026_07_27_085841_create_picking_tables', 1);
-INSERT INTO `migrations` VALUES (10, '2026_07_27_085842_create_delivery_tables', 1);
-INSERT INTO `migrations` VALUES (11, '2026_07_27_085843_create_discrepancy_tables', 1);
-INSERT INTO `migrations` VALUES (12, '2026_07_27_085844_create_finance_tables', 1);
-INSERT INTO `migrations` VALUES (13, '2026_07_27_085845_create_system_tables', 1);
-INSERT INTO `migrations` VALUES (14, '2026_07_27_085846_create_wechat_tables', 1);
-INSERT INTO `migrations` VALUES (15, '2026_07_27_085847_create_price_strategy_tables', 1);
-INSERT INTO `migrations` VALUES (16, '2026_07_27_085848_create_return_tables', 1);
-INSERT INTO `migrations` VALUES (17, '2026_07_27_085849_create_price_apportionment_tables', 1);
-INSERT INTO `migrations` VALUES (18, '2026_07_27_085850_create_merchant_extension_tables', 1);
-INSERT INTO `migrations` VALUES (19, '2026_07_27_085851_create_notification_tables', 1);
-INSERT INTO `migrations` VALUES (20, '2026_07_27_085852_create_approval_tables', 1);
-INSERT INTO `migrations` VALUES (21, '2026_07_27_091605_add_price_strategy_fields_to_order_items_and_purchase_order_items', 1);
-INSERT INTO `migrations` VALUES (22, '2026_07_28_004921_enhance_system_configs_table', 2);
-INSERT INTO `migrations` VALUES (23, '2026_07_28_024857_add_ui_settings_to_system_configs', 3);
-INSERT INTO `migrations` VALUES (24, '2026_07_28_034505_add_footer_links_to_system_configs', 4);
-INSERT INTO `migrations` VALUES (25, '2026_07_28_040854_remove_show_footer_config', 5);
+INSERT INTO `migrations` VALUES (1, '2026_07_27_000001_create_users_and_permissions_tables', 1);
+INSERT INTO `migrations` VALUES (2, '2026_07_27_000002_create_organization_tables', 1);
+INSERT INTO `migrations` VALUES (3, '2026_07_27_000003_create_product_tables', 1);
+INSERT INTO `migrations` VALUES (4, '2026_07_27_000004_create_sku_barcodes_suppliers_tables', 1);
+INSERT INTO `migrations` VALUES (5, '2026_07_27_000005_create_purchase_tables', 1);
+INSERT INTO `migrations` VALUES (6, '2026_07_27_000006_create_order_tables', 1);
+INSERT INTO `migrations` VALUES (7, '2026_07_27_000007_create_inventory_tables', 1);
+INSERT INTO `migrations` VALUES (8, '2026_07_27_000008_create_loss_tables', 1);
+INSERT INTO `migrations` VALUES (9, '2026_07_27_000009_create_picking_tables', 1);
+INSERT INTO `migrations` VALUES (10, '2026_07_27_000010_create_delivery_tables', 1);
+INSERT INTO `migrations` VALUES (11, '2026_07_27_000011_create_discrepancy_tables', 1);
+INSERT INTO `migrations` VALUES (12, '2026_07_27_000012_create_finance_tables', 1);
+INSERT INTO `migrations` VALUES (13, '2026_07_27_000013_create_system_tables', 1);
+INSERT INTO `migrations` VALUES (14, '2026_07_27_000014_create_wechat_tables', 1);
+INSERT INTO `migrations` VALUES (15, '2026_07_27_000015_create_price_strategy_tables', 1);
+INSERT INTO `migrations` VALUES (16, '2026_07_27_000016_create_return_tables', 1);
+INSERT INTO `migrations` VALUES (17, '2026_07_27_000017_create_price_apportionment_tables', 1);
+INSERT INTO `migrations` VALUES (18, '2026_07_27_000018_create_merchant_extension_tables', 1);
+INSERT INTO `migrations` VALUES (19, '2026_07_27_000019_create_notification_tables', 1);
+INSERT INTO `migrations` VALUES (20, '2026_07_27_000020_create_approval_tables', 1);
 
 -- ----------------------------
 -- Table structure for model_has_permissions
@@ -884,18 +867,11 @@ CREATE TABLE `notifications`  (
   INDEX `notifications_type_index`(`type` ASC) USING BTREE,
   INDEX `notifications_is_read_index`(`is_read` ASC) USING BTREE,
   INDEX `notifications_created_at_index`(`created_at` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '通知/消息表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '通知/消息表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of notifications
 -- ----------------------------
-INSERT INTO `notifications` VALUES (1, 1, NULL, 4, '库存预警', '商品「有机牛奶」库存低于安全线，当前库存 5 件，安全线 20 件', NULL, 1, '2026-07-28 04:23:06', '2026-07-28 04:22:46', '2026-07-28 04:23:06');
-INSERT INTO `notifications` VALUES (2, 1, NULL, 2, '订单状态变更', '订单 #20260728001 已由配送司机张三确认取货，预计 30 分钟送达', NULL, 1, '2026-07-28 04:23:15', '2026-07-28 04:22:46', '2026-07-28 04:23:15');
-INSERT INTO `notifications` VALUES (3, 1, NULL, 3, '补货提醒', '商家「鲜果超市」有 3 个 SKU 库存不足，请及时补货', NULL, 1, '2026-07-28 04:23:15', '2026-07-28 04:22:46', '2026-07-28 04:23:15');
-INSERT INTO `notifications` VALUES (4, 1, NULL, 5, '账户变动', '商家「鲜果超市」充值 5,000.00 到账，当前余额 12,350.00', NULL, 1, '2026-07-28 02:22:46', '2026-07-28 04:22:46', '2026-07-28 04:22:46');
-INSERT INTO `notifications` VALUES (5, 1, NULL, 1, '系统通知', '系统将于今晚 23:00-23:30 进行维护升级，届时服务将短暂中断', NULL, 1, '2026-07-28 01:22:46', '2026-07-28 04:22:46', '2026-07-28 04:22:46');
-INSERT INTO `notifications` VALUES (6, 1, NULL, 2, '订单状态变更', '订单 #20260728005 客户已签收，签收存证已生成', NULL, 1, '2026-07-27 04:22:46', '2026-07-28 04:22:46', '2026-07-28 04:22:46');
-INSERT INTO `notifications` VALUES (7, 1, NULL, 4, '库存预警', '商品「进口牛排」库存低于安全线，当前库存 2 件，安全线 15 件', NULL, 1, '2026-07-27 04:22:46', '2026-07-28 04:22:46', '2026-07-28 04:22:46');
 
 -- ----------------------------
 -- Table structure for operation_logs
@@ -913,7 +889,7 @@ CREATE TABLE `operation_logs`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `operation_logs_user_id_index`(`user_id` ASC) USING BTREE,
   INDEX `operation_logs_created_at_index`(`created_at` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '操作日志表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 15 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '操作日志表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of operation_logs
@@ -1084,16 +1060,16 @@ CREATE TABLE `permissions`  (
 -- ----------------------------
 -- Records of permissions
 -- ----------------------------
-INSERT INTO `permissions` VALUES (1, 'dashboard', 'web', '仪表盘', 1, 0, 'dashboard', 0, 'layout-dashboard', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `permissions` VALUES (2, 'product.menu', 'web', '商品管理', 1, 0, NULL, 1, 'package', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `permissions` VALUES (3, 'product.index', 'web', '商品列表', 1, 0, 'products.index', 10, NULL, '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `permissions` VALUES (4, 'order.menu', 'web', '订单管理', 1, 0, NULL, 2, 'shopping-cart', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `permissions` VALUES (5, 'purchase.menu', 'web', '采购管理', 1, 0, NULL, 3, 'truck', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `permissions` VALUES (6, 'finance.menu', 'web', '财务管理', 1, 0, NULL, 4, 'banknote', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `permissions` VALUES (7, 'inventory.menu', 'web', '库存管理', 1, 0, NULL, 5, 'warehouse', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `permissions` VALUES (8, 'delivery.menu', 'web', '物流配送', 1, 0, NULL, 6, 'delivery-truck', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `permissions` VALUES (9, 'organization.menu', 'web', '组织管理', 1, 0, NULL, 7, 'building', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
-INSERT INTO `permissions` VALUES (10, 'system.menu', 'web', '系统管理', 1, 0, NULL, 8, 'settings', '2026-07-27 09:23:33', '2026-07-27 09:23:33');
+INSERT INTO `permissions` VALUES (1, 'dashboard', 'web', '仪表盘', 1, 0, 'dashboard', 0, 'layout-dashboard', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `permissions` VALUES (2, 'product.menu', 'web', '商品管理', 1, 0, NULL, 1, 'package', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `permissions` VALUES (3, 'product.index', 'web', '商品列表', 1, 0, 'products.index', 10, NULL, '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `permissions` VALUES (4, 'order.menu', 'web', '订单管理', 1, 0, NULL, 2, 'shopping-cart', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `permissions` VALUES (5, 'purchase.menu', 'web', '采购管理', 1, 0, NULL, 3, 'truck', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `permissions` VALUES (6, 'finance.menu', 'web', '财务管理', 1, 0, NULL, 4, 'banknote', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `permissions` VALUES (7, 'inventory.menu', 'web', '库存管理', 1, 0, NULL, 5, 'warehouse', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `permissions` VALUES (8, 'delivery.menu', 'web', '物流配送', 1, 0, NULL, 6, 'delivery-truck', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `permissions` VALUES (9, 'organization.menu', 'web', '组织管理', 1, 0, NULL, 7, 'building', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
+INSERT INTO `permissions` VALUES (10, 'system.menu', 'web', '系统管理', 1, 0, NULL, 8, 'settings', '2026-07-28 04:30:16', '2026-07-28 04:30:16');
 
 -- ----------------------------
 -- Table structure for personal_access_tokens
@@ -1365,12 +1341,12 @@ CREATE TABLE `products`  (
 -- ----------------------------
 -- Records of products
 -- ----------------------------
-INSERT INTO `products` VALUES (1, 1, NULL, '大白菜', NULL, '斤', 1, 0, 1, NULL, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `products` VALUES (2, 1, NULL, '土豆', NULL, '斤', 1, 0, 1, NULL, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `products` VALUES (3, 1, NULL, '西红柿', NULL, '斤', 1, 0, 1, NULL, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `products` VALUES (4, 3, NULL, '五花肉', NULL, '斤', 1, 0, 1, NULL, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `products` VALUES (5, 4, NULL, '鲜虾', NULL, '斤', 1, 0, 1, NULL, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `products` VALUES (6, 5, NULL, '金龙鱼大豆油', NULL, '桶', 0, 0, 1, NULL, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
+INSERT INTO `products` VALUES (1, 1, NULL, '大白菜', NULL, '斤', 1, 0, 1, NULL, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `products` VALUES (2, 1, NULL, '土豆', NULL, '斤', 1, 0, 1, NULL, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `products` VALUES (3, 1, NULL, '西红柿', NULL, '斤', 1, 0, 1, NULL, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `products` VALUES (4, 3, NULL, '五花肉', NULL, '斤', 1, 0, 1, NULL, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `products` VALUES (5, 4, NULL, '鲜虾', NULL, '斤', 1, 0, 1, NULL, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `products` VALUES (6, 5, NULL, '金龙鱼大豆油', NULL, '桶', 0, 0, 1, NULL, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
 
 -- ----------------------------
 -- Table structure for promotions
@@ -1728,15 +1704,15 @@ CREATE TABLE `roles`  (
 -- ----------------------------
 -- Records of roles
 -- ----------------------------
-INSERT INTO `roles` VALUES (1, 'super_admin', 'web', '超级管理员', '全部功能、系统配置、账号管理', '2026-07-27 09:23:29', '2026-07-27 09:23:29');
-INSERT INTO `roles` VALUES (2, 'operator', 'web', '运营管理员', '商品、订单、商家、供应商管理', '2026-07-27 09:23:29', '2026-07-27 09:23:29');
-INSERT INTO `roles` VALUES (3, 'operator_manager', 'web', '运营经理', '运营审核、商品/订单/价格策略审核确认', '2026-07-27 09:23:29', '2026-07-27 09:23:29');
-INSERT INTO `roles` VALUES (4, 'finance', 'web', '财务人员', '应收、结算、发票、审计', '2026-07-27 09:23:29', '2026-07-27 09:23:29');
-INSERT INTO `roles` VALUES (5, 'cashier', 'web', '出纳', '付款录入、收款录入、资金操作执行', '2026-07-27 09:23:29', '2026-07-27 09:23:29');
-INSERT INTO `roles` VALUES (6, 'finance_manager', 'web', '财务经理', '财务审核、付款/收款/结算单据复核确认', '2026-07-27 09:23:29', '2026-07-27 09:23:29');
-INSERT INTO `roles` VALUES (7, 'picker', 'web', '拣货员', '拣货任务、称重改价', '2026-07-27 09:23:29', '2026-07-27 09:23:29');
-INSERT INTO `roles` VALUES (8, 'driver', 'web', '配送司机', '配送任务、轨迹、签收', '2026-07-27 09:23:29', '2026-07-27 09:23:29');
-INSERT INTO `roles` VALUES (9, 'merchant', 'web', '商家', '小程序商家端', '2026-07-27 09:23:29', '2026-07-27 09:23:29');
+INSERT INTO `roles` VALUES (1, 'super_admin', 'web', '超级管理员', '全部功能、系统配置、账号管理', '2026-07-28 04:30:12', '2026-07-28 04:30:12');
+INSERT INTO `roles` VALUES (2, 'operator', 'web', '运营管理员', '商品、订单、商家、供应商管理', '2026-07-28 04:30:12', '2026-07-28 04:30:12');
+INSERT INTO `roles` VALUES (3, 'operator_manager', 'web', '运营经理', '运营审核、商品/订单/价格策略审核确认', '2026-07-28 04:30:12', '2026-07-28 04:30:12');
+INSERT INTO `roles` VALUES (4, 'finance', 'web', '财务人员', '应收、结算、发票、审计', '2026-07-28 04:30:12', '2026-07-28 04:30:12');
+INSERT INTO `roles` VALUES (5, 'cashier', 'web', '出纳', '付款录入、收款录入、资金操作执行', '2026-07-28 04:30:12', '2026-07-28 04:30:12');
+INSERT INTO `roles` VALUES (6, 'finance_manager', 'web', '财务经理', '财务审核、付款/收款/结算单据复核确认', '2026-07-28 04:30:12', '2026-07-28 04:30:12');
+INSERT INTO `roles` VALUES (7, 'picker', 'web', '拣货员', '拣货任务、称重改价', '2026-07-28 04:30:12', '2026-07-28 04:30:12');
+INSERT INTO `roles` VALUES (8, 'driver', 'web', '配送司机', '配送任务、轨迹、签收', '2026-07-28 04:30:12', '2026-07-28 04:30:12');
+INSERT INTO `roles` VALUES (9, 'merchant', 'web', '商家', '小程序商家端', '2026-07-28 04:30:12', '2026-07-28 04:30:12');
 
 -- ----------------------------
 -- Table structure for settlement_payments
@@ -1870,12 +1846,12 @@ CREATE TABLE `skus`  (
 -- ----------------------------
 -- Records of skus
 -- ----------------------------
-INSERT INTO `skus` VALUES (1, 1, 'SKU-0001', '[{\"label\": \"规格\", \"value\": \"斤\"}]', 8000, 9200, 0, 0, 1, 2, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `skus` VALUES (2, 2, 'SKU-0002', '[{\"label\": \"规格\", \"value\": \"斤\"}]', 12000, 13799, 0, 0, 1, 2, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `skus` VALUES (3, 3, 'SKU-0003', '[{\"label\": \"规格\", \"value\": \"斤\"}]', 25000, 28749, 0, 0, 1, 2, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `skus` VALUES (4, 4, 'SKU-0004', '[{\"label\": \"规格\", \"value\": \"斤\"}]', 130000, 149500, 0, 0, 1, 2, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `skus` VALUES (5, 5, 'SKU-0005', '[{\"label\": \"规格\", \"value\": \"斤\"}]', 350000, 402499, 0, 0, 1, 2, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `skus` VALUES (6, 6, 'SKU-0006', '[{\"label\": \"规格\", \"value\": \"桶\"}]', 450000, 517499, 0, 0, 1, 2, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
+INSERT INTO `skus` VALUES (1, 1, 'SKU-0001', '[{\"label\": \"规格\", \"value\": \"斤\"}]', 8000, 9200, 0, 0, 1, 2, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `skus` VALUES (2, 2, 'SKU-0002', '[{\"label\": \"规格\", \"value\": \"斤\"}]', 12000, 13799, 0, 0, 1, 2, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `skus` VALUES (3, 3, 'SKU-0003', '[{\"label\": \"规格\", \"value\": \"斤\"}]', 25000, 28749, 0, 0, 1, 2, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `skus` VALUES (4, 4, 'SKU-0004', '[{\"label\": \"规格\", \"value\": \"斤\"}]', 130000, 149500, 0, 0, 1, 2, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `skus` VALUES (5, 5, 'SKU-0005', '[{\"label\": \"规格\", \"value\": \"斤\"}]', 350000, 402499, 0, 0, 1, 2, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `skus` VALUES (6, 6, 'SKU-0006', '[{\"label\": \"规格\", \"value\": \"桶\"}]', 450000, 517499, 0, 0, 1, 2, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
 
 -- ----------------------------
 -- Table structure for supplier_settlement_items
@@ -1953,11 +1929,11 @@ CREATE TABLE `suppliers`  (
 -- ----------------------------
 -- Records of suppliers
 -- ----------------------------
-INSERT INTO `suppliers` VALUES (1, '鲜源农业有限公司', '陈供应', '13900000001', '安徽省宿州市埇桥区农批市场A1', NULL, NULL, 1, 1, NULL, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `suppliers` VALUES (2, '绿野蔬菜种植基地', '李蔬菜', '13900000002', '安徽省宿州市埇桥区农批市场B3', NULL, NULL, 1, 1, NULL, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `suppliers` VALUES (3, '丰润肉业有限公司', '王肉业', '13900000003', '安徽省宿州市埇桥区肉联厂C2', NULL, NULL, 1, 1, NULL, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `suppliers` VALUES (4, '海滨水产批发部', '赵水产', '13900000004', '安徽省宿州市埇桥区水产市场D5', NULL, NULL, 1, 1, NULL, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `suppliers` VALUES (5, '恒达粮油贸易公司', '钱粮油', '13900000005', '安徽省宿州市埇桥区粮批市场E1', NULL, NULL, 1, 1, NULL, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
+INSERT INTO `suppliers` VALUES (1, '鲜源农业有限公司', '陈供应', '13900000001', '安徽省宿州市埇桥区农批市场A1', NULL, NULL, 1, 1, NULL, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `suppliers` VALUES (2, '绿野蔬菜种植基地', '李蔬菜', '13900000002', '安徽省宿州市埇桥区农批市场B3', NULL, NULL, 1, 1, NULL, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `suppliers` VALUES (3, '丰润肉业有限公司', '王肉业', '13900000003', '安徽省宿州市埇桥区肉联厂C2', NULL, NULL, 1, 1, NULL, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `suppliers` VALUES (4, '海滨水产批发部', '赵水产', '13900000004', '安徽省宿州市埇桥区水产市场D5', NULL, NULL, 1, 1, NULL, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `suppliers` VALUES (5, '恒达粮油贸易公司', '钱粮油', '13900000005', '安徽省宿州市埇桥区粮批市场E1', NULL, NULL, 1, 1, NULL, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
 
 -- ----------------------------
 -- Table structure for system_configs
@@ -1969,7 +1945,7 @@ CREATE TABLE `system_configs`  (
   `config_value` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT '配置值',
   `default_value` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '默认值（重置用）',
   `config_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'string' COMMENT '值类型：boolean/integer/decimal/string/enum/json',
-  `config_group` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'basic' COMMENT '分组：basic/order/delivery/finance/inventory/audit',
+  `config_group` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'basic' COMMENT '分组：basic/order/delivery/finance/inventory/audit/ui',
   `label` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '中文显示名',
   `hint` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '输入提示',
   `options` json NULL COMMENT '枚举选项 [{\"label\":\"选项名\",\"value\":\"值\"},...]',
@@ -1982,34 +1958,34 @@ CREATE TABLE `system_configs`  (
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `system_configs_config_key_unique`(`config_key` ASC) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 25 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '系统配置表' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 24 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT = '系统配置表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of system_configs
 -- ----------------------------
-INSERT INTO `system_configs` VALUES (1, 'site_name', '洛阳配送服务平台', '本地速送服务平台', 'string', 'basic', '站点名称', NULL, NULL, 'required|max:50', 1, 0, 0, '站点名称', '2026-07-27 09:23:32', '2026-07-28 02:09:40');
-INSERT INTO `system_configs` VALUES (2, 'contact_phone', '15690631151', '15690631151', 'string', 'basic', '客服电话', NULL, NULL, 'required|max:20', 2, 0, 0, '客服电话', '2026-07-27 09:23:32', '2026-07-27 09:23:32');
-INSERT INTO `system_configs` VALUES (3, 'default_delivery_batch', '1', '1', 'enum', 'delivery', '默认配送批次', NULL, '[{\"label\": \"上午\", \"value\": \"1\"}, {\"label\": \"下午\", \"value\": \"2\"}]', NULL, 10, 0, 0, '默认配送批次：1上午，2下午', '2026-07-27 09:23:32', '2026-07-27 09:23:32');
-INSERT INTO `system_configs` VALUES (4, 'weighing_diff_threshold', '20', '20', 'integer', 'inventory', '称重差异阈值（%）', '称重差异超过此百分比需人工确认', NULL, 'required|integer|min:1|max:100', 20, 0, 0, '称重差异阈值（百分比）', '2026-07-27 09:23:32', '2026-07-27 09:23:32');
-INSERT INTO `system_configs` VALUES (5, 'audit_retention_days', '90', '90', 'integer', 'audit', '审计日志保留天数', '0=永久保留，1-180天，到期每日定时清理', NULL, 'required|integer|min:0|max:180', 50, 0, 0, '审计/日志保留天数：0=永久保留，1-180天，到期每日定时清理', '2026-07-27 09:23:32', '2026-07-27 09:23:32');
-INSERT INTO `system_configs` VALUES (6, 'loss_approval_threshold', '200', '200', 'integer', 'audit', '损耗审批阈值（元）', '单张损耗单金额超过此值需运营经理审核，未超阈值直接执行', NULL, 'required|integer|min:0', 51, 0, 0, '损耗审批阈值（元）：单张损耗单金额超过此值需运营经理审核，未超阈值直接执行', '2026-07-27 09:23:32', '2026-07-27 09:23:32');
-INSERT INTO `system_configs` VALUES (7, 'order_auto_confirm_hours', '24', '24', 'integer', 'order', '自动确认收货时长（小时）', '超过此时长未签收将自动确认', NULL, 'required|integer|min:1|max:168', 3, 0, 0, '订单配送完成后的自动签收等待时长', '2026-07-28 00:50:17', '2026-07-28 00:50:17');
-INSERT INTO `system_configs` VALUES (8, 'min_delivery_amount', '0', '0', 'integer', 'order', '最低起送金额（元）', '0表示无限制', NULL, 'required|integer|min:0', 4, 1, 0, '商家下单金额门槛', '2026-07-28 00:50:17', '2026-07-28 00:50:17');
-INSERT INTO `system_configs` VALUES (9, 'allow_merchant_self_order', '1', '1', 'boolean', 'order', '允许商家自助下单', '关闭后商家只能由运营代下单', NULL, 'required|boolean', 5, 1, 0, '商家端小程序是否允许自主下单', '2026-07-28 00:50:17', '2026-07-28 00:50:17');
-INSERT INTO `system_configs` VALUES (10, 'delivery_timeout_minutes', '30', '30', 'integer', 'delivery', '配送超时标记时长（分钟）', '超过此时长未完成配送将标记为异常', NULL, 'required|integer|min:10|max:180', 11, 0, 0, '配送任务超时自动标记异常', '2026-07-28 00:50:17', '2026-07-28 00:50:17');
-INSERT INTO `system_configs` VALUES (11, 'allow_driver_multi_task', '1', '1', 'boolean', 'delivery', '允许司机同时接多单', '关闭后司机同时只能执行一个配送任务', NULL, 'required|boolean', 12, 0, 0, '司机并发配送开关', '2026-07-28 00:50:17', '2026-07-28 00:50:17');
-INSERT INTO `system_configs` VALUES (12, 'max_daily_recharge_amount', '50000', '50000', 'integer', 'finance', '单日最大充值金额（元）', '单商家每日充值累计上限', NULL, 'required|integer|min:1000', 20, 1, 0, '商家充值风控限额', '2026-07-28 00:50:17', '2026-07-28 00:50:17');
-INSERT INTO `system_configs` VALUES (13, 'credit_limit_default', '5000', '5000', 'integer', 'finance', '新商家默认信用额度（元）', '新注册商家自动分配的信用额度', NULL, 'required|integer|min:0', 21, 0, 0, '新商家初始信用额度', '2026-07-28 00:50:17', '2026-07-28 00:50:17');
-INSERT INTO `system_configs` VALUES (14, 'enable_weighing_auto_debit', '0', '0', 'boolean', 'finance', '称重差异自动扣款', '开启后称重差异在阈值内自动扣款，无需人工确认', NULL, 'required|boolean', 22, 0, 0, '称重差异处理方式：自动扣款或人工确认', '2026-07-28 00:50:17', '2026-07-28 00:50:17');
-INSERT INTO `system_configs` VALUES (15, 'inventory_warning_enabled', '1', '1', 'boolean', 'inventory', '启用库存预警', '开启后低于预警值触发通知', NULL, 'required|boolean', 30, 0, 0, '库存预警检测开关', '2026-07-28 00:50:17', '2026-07-28 00:50:17');
-INSERT INTO `system_configs` VALUES (16, 'inventory_warning_interval_minutes', '5', '5', 'integer', 'inventory', '库存预警检测频率（分钟）', '定时任务检测间隔', NULL, 'required|integer|min:1|max:60', 31, 0, 0, '库存预警定时检测周期', '2026-07-28 00:50:17', '2026-07-28 00:50:17');
-INSERT INTO `system_configs` VALUES (17, 'max_upload_size_mb', '21', '20', 'integer', 'basic', '文件上传大小限制（MB）', '单文件上传最大体积', NULL, 'required|integer|min:1|max:100', 6, 0, 0, '管理后台和商家端文件上传限制', '2026-07-28 00:50:17', '2026-07-28 02:16:31');
-INSERT INTO `system_configs` VALUES (18, 'ui_close_on_outside', '1', '1', 'boolean', 'ui', '点击旁边关闭通知', '开启后，点击通知面板外的区域将自动关闭通知菜单', NULL, NULL, 1, 1, 0, '控制点击通知 Drawer 外部区域时是否自动关闭面板。关闭此选项后，只能通过点击关闭按钮或按 ESC 键关闭通知面板。', '2026-07-28 02:49:23', '2026-07-28 03:32:41');
-INSERT INTO `system_configs` VALUES (20, 'site_icp_number', '', '', 'string', 'basic', 'ICP 备案号', '网站 ICP 备案号，留空不显示，如：京ICP备2026XXXXX号', NULL, 'max:50', 7, 1, 0, '显示在页面底部的 ICP 备案号。留空则不显示备案信息。', '2026-07-28 03:09:01', '2026-07-28 03:09:01');
-INSERT INTO `system_configs` VALUES (21, 'site_tech_stack_url', 'https://laravel.com', 'https://laravel.com', 'string', 'basic', '技术栈链接', '底部版权栏\"技术栈\"文字的跳转链接', NULL, 'url|max:255', 8, 1, 0, '点击底部版权栏中的技术栈文字时跳转的 URL。可指向项目介绍页或框架官网。', '2026-07-28 03:46:34', '2026-07-28 03:46:34');
-INSERT INTO `system_configs` VALUES (22, 'site_developer_name', 'Seeding', 'Seeding', 'string', 'basic', '开发者名称', '底部版权栏显示的开发者名称', NULL, 'max:50', 9, 1, 0, '显示在页面底部版权栏中的开发者名称，如\"Seeding\"。留空则不显示开发者信息。', '2026-07-28 03:46:34', '2026-07-28 03:46:34');
-INSERT INTO `system_configs` VALUES (23, 'site_developer_url', '', '', 'string', 'basic', '开发者链接', '底部版权栏\"开发者名称\"的跳转链接，留空则只显示文字不可点击', NULL, 'nullable|url|max:255', 10, 1, 0, '点击底部版权栏中的开发者名称时跳转的 URL。留空则开发者名称仅显示文字，不可点击。', '2026-07-28 03:46:34', '2026-07-28 03:46:34');
-INSERT INTO `system_configs` VALUES (24, 'site_icp_url', 'https://beian.miit.gov.cn/', 'https://beian.miit.gov.cn/', 'string', 'basic', '备案号链接', '底部版权栏\"ICP备案号\"的跳转链接', NULL, 'url|max:255', 11, 1, 0, '点击底部版权栏中的备案号时跳转的 URL，默认指向工信部备案查询页。', '2026-07-28 03:46:34', '2026-07-28 03:46:34');
+INSERT INTO `system_configs` VALUES (1, 'site_name', '本地速送服务平台', '本地速送服务平台', 'string', 'basic', '站点名称', NULL, NULL, 'required|max:50', 1, 0, 0, '站点名称', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
+INSERT INTO `system_configs` VALUES (2, 'contact_phone', '15690631151', '15690631151', 'string', 'basic', '客服电话', NULL, NULL, 'required|max:20', 2, 0, 0, '客服电话', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
+INSERT INTO `system_configs` VALUES (3, 'max_upload_size_mb', '20', '20', 'integer', 'basic', '文件上传大小限制（MB）', '单文件上传最大体积', NULL, 'required|integer|min:1|max:100', 6, 0, 0, '管理后台和商家端文件上传限制', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
+INSERT INTO `system_configs` VALUES (4, 'site_icp_number', '', '', 'string', 'basic', 'ICP 备案号', '网站 ICP 备案号，留空不显示', NULL, 'max:50', 7, 1, 0, '显示在页面底部的 ICP 备案号', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
+INSERT INTO `system_configs` VALUES (5, 'site_tech_stack_url', 'https://laravel.com', 'https://laravel.com', 'string', 'basic', '技术栈链接', '底部版权栏\"技术栈\"文字的跳转链接', NULL, 'url|max:255', 8, 1, 0, '点击底部版权栏中的技术栈文字时跳转的 URL', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
+INSERT INTO `system_configs` VALUES (6, 'site_developer_name', 'Seeding', 'Seeding', 'string', 'basic', '开发者名称', '底部版权栏显示的开发者名称', NULL, 'max:50', 9, 1, 0, '显示在页面底部版权栏中的开发者名称', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
+INSERT INTO `system_configs` VALUES (7, 'site_developer_url', '', '', 'string', 'basic', '开发者链接', '底部版权栏\"开发者名称\"的跳转链接，留空不可点击', NULL, 'nullable|url|max:255', 10, 1, 0, '点击底部版权栏中的开发者名称时跳转的 URL', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
+INSERT INTO `system_configs` VALUES (8, 'site_icp_url', 'https://beian.miit.gov.cn/', 'https://beian.miit.gov.cn/', 'string', 'basic', '备案号链接', '底部版权栏\"ICP备案号\"的跳转链接', NULL, 'url|max:255', 11, 1, 0, '点击底部版权栏中的备案号时跳转的 URL', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
+INSERT INTO `system_configs` VALUES (9, 'order_auto_confirm_hours', '24', '24', 'integer', 'order', '自动确认收货时长（小时）', '超过此时长未签收将自动确认', NULL, 'required|integer|min:1|max:168', 3, 0, 0, '订单配送完成后的自动签收等待时长', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
+INSERT INTO `system_configs` VALUES (10, 'min_delivery_amount', '0', '0', 'integer', 'order', '最低起送金额（元）', '0表示无限制', NULL, 'required|integer|min:0', 4, 1, 0, '商家下单金额门槛', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
+INSERT INTO `system_configs` VALUES (11, 'allow_merchant_self_order', '1', '1', 'boolean', 'order', '允许商家自助下单', '关闭后商家只能由运营代下单', NULL, 'required|boolean', 5, 1, 0, '商家端小程序是否允许自主下单', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
+INSERT INTO `system_configs` VALUES (12, 'default_delivery_batch', '1', '1', 'enum', 'delivery', '默认配送批次', NULL, '[{\"label\": \"上午\", \"value\": \"1\"}, {\"label\": \"下午\", \"value\": \"2\"}]', NULL, 10, 0, 0, '默认配送批次：1上午，2下午', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
+INSERT INTO `system_configs` VALUES (13, 'delivery_timeout_minutes', '30', '30', 'integer', 'delivery', '配送超时标记时长（分钟）', '超过此时长未完成配送将标记为异常', NULL, 'required|integer|min:10|max:180', 11, 0, 0, '配送任务超时自动标记异常', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
+INSERT INTO `system_configs` VALUES (14, 'allow_driver_multi_task', '1', '1', 'boolean', 'delivery', '允许司机同时接多单', '关闭后司机同时只能执行一个配送任务', NULL, 'required|boolean', 12, 0, 0, '司机并发配送开关', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
+INSERT INTO `system_configs` VALUES (15, 'max_daily_recharge_amount', '50000', '50000', 'integer', 'finance', '单日最大充值金额（元）', '单商家每日充值累计上限', NULL, 'required|integer|min:1000', 20, 1, 0, '商家充值风控限额', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
+INSERT INTO `system_configs` VALUES (16, 'credit_limit_default', '5000', '5000', 'integer', 'finance', '新商家默认信用额度（元）', '新注册商家自动分配的信用额度', NULL, 'required|integer|min:0', 21, 0, 0, '新商家初始信用额度', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
+INSERT INTO `system_configs` VALUES (17, 'enable_weighing_auto_debit', '0', '0', 'boolean', 'finance', '称重差异自动扣款', '开启后称重差异在阈值内自动扣款，无需人工确认', NULL, 'required|boolean', 22, 0, 0, '称重差异处理方式', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
+INSERT INTO `system_configs` VALUES (18, 'weighing_diff_threshold', '20', '20', 'integer', 'inventory', '称重差异阈值（%）', '称重差异超过此百分比需人工确认', NULL, 'required|integer|min:1|max:100', 20, 0, 0, '称重差异阈值（百分比）', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
+INSERT INTO `system_configs` VALUES (19, 'inventory_warning_enabled', '1', '1', 'boolean', 'inventory', '启用库存预警', '开启后低于预警值触发通知', NULL, 'required|boolean', 30, 0, 0, '库存预警检测开关', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
+INSERT INTO `system_configs` VALUES (20, 'inventory_warning_interval_minutes', '5', '5', 'integer', 'inventory', '库存预警检测频率（分钟）', '定时任务检测间隔', NULL, 'required|integer|min:1|max:60', 31, 0, 0, '库存预警定时检测周期', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
+INSERT INTO `system_configs` VALUES (21, 'audit_retention_days', '90', '90', 'integer', 'audit', '审计日志保留天数', '0=永久保留，1-180天，到期每日定时清理', NULL, 'required|integer|min:0|max:180', 50, 0, 0, '审计/日志保留天数', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
+INSERT INTO `system_configs` VALUES (22, 'loss_approval_threshold', '200', '200', 'integer', 'audit', '损耗审批阈值（元）', '单张损耗单金额超过此值需运营经理审核', NULL, 'required|integer|min:0', 51, 0, 0, '损耗审批阈值（元）', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
+INSERT INTO `system_configs` VALUES (23, 'ui_close_on_outside', '1', '1', 'boolean', 'ui', '点击旁边关闭通知', '开启后，点击通知面板外的区域将自动关闭通知菜单', NULL, NULL, 1, 1, 0, '控制点击通知 Drawer 外部区域时是否自动关闭面板', '2026-07-28 04:30:15', '2026-07-28 04:30:15');
 
 -- ----------------------------
 -- Table structure for tags
@@ -2077,15 +2053,15 @@ CREATE TABLE `users`  (
 -- ----------------------------
 -- Records of users
 -- ----------------------------
-INSERT INTO `users` VALUES (1, 'seeding', '$2y$12$jDUqr9NaRg/FmYov3LejBeXiDnX3I/u/Sz8OyW2daCAwQOKbSLq5u', '系统管理员', '15690631151', 'seeding@ihopeso.cn', NULL, 1, NULL, NULL, 'Any6CGserUiiDVsidSQFIxspDvx3RJsKcT7z5PKv0LZEnIajvMeyHZn0uQR6', '2026-07-27 09:23:29', '2026-07-27 09:23:29', NULL);
-INSERT INTO `users` VALUES (2, 'operator1', '$2y$12$hbFgRTcNfeXeYdhyXq41n.U6MAGcOlFF01EwNpgjGl.EOcdFFXmqu', '张运营', '13800000001', 'operator@susong.test', NULL, 1, NULL, NULL, NULL, '2026-07-27 09:23:33', '2026-07-27 09:23:33', NULL);
-INSERT INTO `users` VALUES (3, 'ops_manager', '$2y$12$RDDaBxhvu2UQJUW7ov2iq.6Ruzy4P7kVZl7HYSvBck.zARKtJse2e', '李运营经理', '13800000002', 'ops_manager@susong.test', NULL, 1, NULL, NULL, NULL, '2026-07-27 09:23:33', '2026-07-27 09:23:33', NULL);
-INSERT INTO `users` VALUES (4, 'finance1', '$2y$12$78ndvs3ajwYQLzQXnuNcx.mzEEaaJAzF3RpzhkJvlpNxo8h7jtU/W', '王财务', '13800000003', 'finance@susong.test', NULL, 1, NULL, NULL, NULL, '2026-07-27 09:23:33', '2026-07-27 09:23:33', NULL);
-INSERT INTO `users` VALUES (5, 'cashier1', '$2y$12$h.GqcHgsmJwSND8LD/Y6AeAjDpzE5HCX2KEqfa1.ppfrP.piHmPW2', '赵出纳', '13800000004', 'cashier@susong.test', NULL, 1, NULL, NULL, NULL, '2026-07-27 09:23:33', '2026-07-27 09:23:33', NULL);
-INSERT INTO `users` VALUES (6, 'fin_manager', '$2y$12$pRe7quGZa4uHCRT.VDmwseHCL./gFIE6iTPdRnLdAk1FvseGxeW0e', '钱财务经理', '13800000005', 'finance_manager@susong.test', NULL, 1, NULL, NULL, NULL, '2026-07-27 09:23:33', '2026-07-27 09:23:33', NULL);
-INSERT INTO `users` VALUES (7, 'picker1', '$2y$12$46n6.AoZO615W2VNk6KJi.ZS5jmwLN1nKXIcQbkj3pfUY2VlToMky', '孙拣货员', '13800000006', 'picker@susong.test', NULL, 1, NULL, NULL, NULL, '2026-07-27 09:23:33', '2026-07-27 09:23:33', NULL);
-INSERT INTO `users` VALUES (8, 'driver1', '$2y$12$4BBXPnSoUYWVJBIbwjcc..t51PeSUspZHtVL.cU4H3ycquUuO3Z92', '周司机', '13800000007', 'driver@susong.test', NULL, 1, NULL, NULL, NULL, '2026-07-27 09:23:33', '2026-07-27 09:23:33', NULL);
-INSERT INTO `users` VALUES (9, 'merchant1', '$2y$12$usCeuGixnwI.ZUvkp4FqkeG.RoKNYXZVRRP/7Uf/N0JtQ2HSMO086', '吴商家', '13800000008', 'merchant@susong.test', NULL, 1, NULL, NULL, NULL, '2026-07-27 09:23:33', '2026-07-27 09:23:33', NULL);
+INSERT INTO `users` VALUES (1, 'seeding', '$2y$12$jSKTOWPifzZvdqRR8TEpWeEgfMzKP37heVgVNwfuTSJTrFDRvEs9G', '系统管理员', '15690631151', 'seeding@ihopeso.cn', NULL, 1, NULL, NULL, NULL, '2026-07-28 04:30:12', '2026-07-28 04:30:12', NULL);
+INSERT INTO `users` VALUES (2, 'operator1', '$2y$12$f3IENqeZzZYJtFYgeCgwjuM/ROJDp5k5rgWYYTrveaj6cd5h6G0ty', '张运营', '13800000001', 'operator@susong.test', NULL, 1, NULL, NULL, NULL, '2026-07-28 04:30:16', '2026-07-28 04:30:16', NULL);
+INSERT INTO `users` VALUES (3, 'ops_manager', '$2y$12$js2yJUgIRhQxVAkt.BKS8uYywoA9LFEbk4cRfaVFoAGtvS7DnDTLi', '李运营经理', '13800000002', 'ops_manager@susong.test', NULL, 1, NULL, NULL, NULL, '2026-07-28 04:30:16', '2026-07-28 04:30:16', NULL);
+INSERT INTO `users` VALUES (4, 'finance1', '$2y$12$.WKXhkV6lPXUsMYULD3pquDMcbDTdzyKfuE6RgbmLQO1BZlNbjFd6', '王财务', '13800000003', 'finance@susong.test', NULL, 1, NULL, NULL, NULL, '2026-07-28 04:30:16', '2026-07-28 04:30:16', NULL);
+INSERT INTO `users` VALUES (5, 'cashier1', '$2y$12$nLX8vKdHY2yJriH.lB3vAecXilfyRaPQgtS/ysDnx9OBLbYmFa0I6', '赵出纳', '13800000004', 'cashier@susong.test', NULL, 1, NULL, NULL, NULL, '2026-07-28 04:30:16', '2026-07-28 04:30:16', NULL);
+INSERT INTO `users` VALUES (6, 'fin_manager', '$2y$12$wPavuoVV.TU2QyYl1ExQ..m5Q4n3dHYh0PfYgnayl6I1CyP0kNZHW', '钱财务经理', '13800000005', 'finance_manager@susong.test', NULL, 1, NULL, NULL, NULL, '2026-07-28 04:30:16', '2026-07-28 04:30:16', NULL);
+INSERT INTO `users` VALUES (7, 'picker1', '$2y$12$svolnqEJwEPrS6cdNlfjtuz5XaPnbTNziMZlBDP2Efc3APNCgsaKO', '孙拣货员', '13800000006', 'picker@susong.test', NULL, 1, NULL, NULL, NULL, '2026-07-28 04:30:16', '2026-07-28 04:30:16', NULL);
+INSERT INTO `users` VALUES (8, 'driver1', '$2y$12$x/WqS8/ZdTAXolv6bQaWQOIRgcRBfIL2GbCupaBA62ilBvFknwRTK', '周司机', '13800000007', 'driver@susong.test', NULL, 1, NULL, NULL, NULL, '2026-07-28 04:30:16', '2026-07-28 04:30:16', NULL);
+INSERT INTO `users` VALUES (9, 'merchant1', '$2y$12$8DH5pLSBo1P7/ojaJZ9QpOuiPcHz1viX5spAj4pA7VFNm8vxiEOme', '吴商家', '13800000008', 'merchant@susong.test', NULL, 1, NULL, NULL, NULL, '2026-07-28 04:30:16', '2026-07-28 04:30:16', NULL);
 
 -- ----------------------------
 -- Table structure for vehicles
@@ -2108,8 +2084,8 @@ CREATE TABLE `vehicles`  (
 -- ----------------------------
 -- Records of vehicles
 -- ----------------------------
-INSERT INTO `vehicles` VALUES (1, '皖LT0001', '1', 0, 1, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `vehicles` VALUES (2, '皖LT0002', '1', 0, 1, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
+INSERT INTO `vehicles` VALUES (1, '皖LT0001', '1', 0, 1, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `vehicles` VALUES (2, '皖LT0002', '1', 0, 1, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
 
 -- ----------------------------
 -- Table structure for warehouses
@@ -2132,8 +2108,8 @@ CREATE TABLE `warehouses`  (
 -- ----------------------------
 -- Records of warehouses
 -- ----------------------------
-INSERT INTO `warehouses` VALUES (1, '总仓-农批市场', 1, 0, '安徽省宿州市埇桥区农批市场内', 1, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
-INSERT INTO `warehouses` VALUES (2, '分仓-肉联厂', 2, 1, '安徽省宿州市埇桥区肉联厂内', 1, '2026-07-27 09:23:35', '2026-07-27 09:23:35', NULL);
+INSERT INTO `warehouses` VALUES (1, '总仓-农批市场', 1, 0, '安徽省宿州市埇桥区农批市场内', 1, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
+INSERT INTO `warehouses` VALUES (2, '分仓-肉联厂', 2, 1, '安徽省宿州市埇桥区肉联厂内', 1, '2026-07-28 04:30:18', '2026-07-28 04:30:18', NULL);
 
 -- ----------------------------
 -- Table structure for wechat_users
