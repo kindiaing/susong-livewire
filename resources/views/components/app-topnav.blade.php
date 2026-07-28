@@ -154,16 +154,10 @@
                     </button>
                 </x-slot:trigger>
 
-                <x-ui.dropdown-item href="#">
+                <x-ui.dropdown-item href="{{ route('profile') }}">
                     <span class="flex items-center gap-2">
                         <x-ui.icon name="user" class="w-4 h-4" />
-                        个人资料
-                    </span>
-                </x-ui.dropdown-item>
-                <x-ui.dropdown-item href="#">
-                    <span class="flex items-center gap-2">
-                        <x-ui.icon name="lock" class="w-4 h-4" />
-                        修改密码
+                        个人中心
                     </span>
                 </x-ui.dropdown-item>
                 <x-ui.dropdown-separator />

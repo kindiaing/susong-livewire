@@ -21,6 +21,10 @@
             </div>
         </main>
     </div>
+
+    {{-- Toast 全局容器 --}}
+    <x-ui.toaster />
+
     @livewireScripts
 </body>
 </html>
