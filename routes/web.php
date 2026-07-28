@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Auth\Login;
+use App\Livewire\System\Settings;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
@@ -18,4 +19,5 @@ Route::post('/logout', function () {
 // 需要登录的路由
 Route::middleware('auth')->group(function () {
     Route::view('/dashboard', 'pages.dashboard')->name('dashboard');
+    Route::get('/settings', Settings::class)->name('settings');
 });
