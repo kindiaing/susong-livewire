@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'bc833f2b-7611-47a8-b0ed-c9629194b4b4'
-  PropagateID: 'bc833f2b-7611-47a8-b0ed-c9629194b4b4'
-  ReservedCode1: '0ea7d125-43aa-4d24-b48a-77f74d011500'
-  ReservedCode2: '0ea7d125-43aa-4d24-b48a-77f74d011500'
+  ProduceID: 'e7065aeb-7feb-4dbf-9e59-26aa66736a44'
+  PropagateID: 'e7065aeb-7feb-4dbf-9e59-26aa66736a44'
+  ReservedCode1: 'bf273b40-5be9-454b-9082-9987330a839e'
+  ReservedCode2: 'bf273b40-5be9-454b-9082-9987330a839e'
 ---
 
 # API 前后端接口文档
@@ -1527,6 +1527,8 @@ AIGC:
 ## 16 系统支撑接口组
 
 ### 16.1 系统配置接口
+
+> **注意：** 管理后台已迁移至 Livewire 全栈架构，系统配置管理通过 Livewire 组件直接操作，以下 REST API 接口**不适用于管理后台**。如小程序端需要读取公开配置（`is_public=true`），建议新增专用只读接口而非复用以下管理端接口。
 
 #### GET /api/v1/system-configs 配置列表
 

@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'fab449b8-432e-4d27-975f-69ebb527a887'
-  PropagateID: 'fab449b8-432e-4d27-975f-69ebb527a887'
-  ReservedCode1: '2b1e2147-3940-4d9b-9b7e-3cc514395773'
-  ReservedCode2: '2b1e2147-3940-4d9b-9b7e-3cc514395773'
+  ProduceID: '17b0545e-0548-48d9-a699-2f90f2af661b'
+  PropagateID: '17b0545e-0548-48d9-a699-2f90f2af661b'
+  ReservedCode1: '9878ff96-fea5-44f7-8d3f-3c4268c27b12'
+  ReservedCode2: '9878ff96-fea5-44f7-8d3f-3c4268c27b12'
 ---
 
 # Setup 系统安装部署配置手册
@@ -489,7 +489,7 @@ sudo certbot renew --dry-run
 | 超级管理员账号 | seeding / Password（Migration 自动创建） |
 | 9 个系统角色 | 超级管理员、运营管理员、运营经理、财务人员、出纳、财务经理、拣货员、司机、商家（Migration 自动创建） |
 | 19 个审核节点配置 | approval_type_configs 默认记录（前 10 个 P0 节点 + 第 19 条损耗审核默认开启） |
-| 6 条系统默认配置 | system_configs 默认键值（Migration 自动创建） |
+| 6 条系统默认配置 | system_configs 默认键值（Migration 自动创建，增强后共 17 条，分 6 组：基础 3/订单 3/配送 3/财务 3/库存 3/审核 2） |
 
 ---
 

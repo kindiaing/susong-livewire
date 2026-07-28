@@ -58,24 +58,32 @@ INSERT INTO `approval_type_configs` (`id`, `type_code`, `type_name`, `module_nam
 (19, 'supplier_disable',     '供应商禁用',         '组织主体', 'P1', 0, 2, 3, 19, '供应商禁用操作需运营经理确认',                              NOW(), NOW());
 
 -- ============================================================
--- 4. 系统配置（system_configs 默认键值）
+-- 4. 系统配置（system_configs 默认键值，增强版 17 条）
 -- ============================================================
+-- 注意：此 SQL 与 Migration 的 17 条初始数据保持一致。
+-- 增强字段（default_value, config_type, config_group, label, hint,
+-- options, validation_rules, sort_order, is_public, is_readonly）
+-- 由 enhance_system_configs_table 迁移自动添加。
+-- 以下 INSERT 仅包含建表时的 4 个业务字段 + timestamps，
+-- 增强字段通过 ALTER TABLE 后由应用层或第二个 Migration 填充。
 INSERT INTO `system_configs` (`id`, `config_key`, `config_value`, `description`, `created_at`, `updated_at`) VALUES
-(1,  'loss_approval_threshold',   '200',     '损耗审批阈值（元），超过此金额的损耗单需运营经理审核',     NOW(), NOW()),
-(2,  'audit_retention_days',      '365',     '审计日志保留天数',                                       NOW(), NOW()),
-(3,  'login_log_retention_days',  '90',      '登录日志保留天数',                                       NOW(), NOW()),
-(4,  'order_cutoff_time_am',      '08:00',   '上午批截单时间',                                         NOW(), NOW()),
-(5,  'order_cutoff_time_pm',      '14:00',   '下午批截单时间',                                         NOW(), NOW()),
-(6,  'weight_price_diff_pct',     '20',      '称重改价差异阈值（%），超过需审核',                       NOW(), NOW()),
-(7,  'wholesale_price_change_pct','15',      '批发销售价修改幅度阈值（%），超过需审核',                 NOW(), NOW()),
-(8,  'min_order_amount_default',  '0',       '默认起送价（元），0表示无最低限制',                       NOW(), NOW()),
-(9,  'inventory_warning_enabled', '1',       '库存预警开关（1=开启，0=关闭）',                           NOW(), NOW()),
-(10, 'restock_remind_enabled',    '1',       '智能补货提醒开关（1=开启，0=关闭）',                       NOW(), NOW()),
-(11, 'delivery_track_interval',   '60',      '配送轨迹上报间隔（秒）',                                 NOW(), NOW()),
-(12, 'cold_chain_temp_min',       '-25',     '冷链温度下限（℃）',                                     NOW(), NOW()),
-(13, 'cold_chain_temp_max',       '-15',     '冷链温度上限（℃）',                                     NOW(), NOW()),
-(14, 'settlement_auto_close',     '0',       '结算单满额是否自动办结（1=是，0=需手动确认）',             NOW(), NOW()),
-(15, 'receivable_auto_close',     '0',       '应收满额是否自动办结（1=是，0=需手动确认）',               NOW(), NOW());
+(1,  'site_name',                     '本地速送服务平台', '站点名称',                                               NOW(), NOW()),
+(2,  'contact_phone',                  '15690631151',      '客服电话',                                               NOW(), NOW()),
+(3,  'max_upload_size_mb',             '20',               '管理后台和商家端文件上传限制（MB）',                       NOW(), NOW()),
+(4,  'order_auto_confirm_hours',       '24',               '订单配送完成后的自动签收等待时长（小时）',                 NOW(), NOW()),
+(5,  'min_delivery_amount',            '0',                '商家下单金额门槛（元），0表示无限制',                     NOW(), NOW()),
+(6,  'allow_merchant_self_order',      '1',                '商家端小程序是否允许自主下单（1=是，0=否）',               NOW(), NOW()),
+(7,  'default_delivery_batch',         '1',                '默认配送批次：1上午，2下午',                               NOW(), NOW()),
+(8,  'delivery_timeout_minutes',       '30',               '配送任务超时自动标记异常（分钟）',                         NOW(), NOW()),
+(9,  'allow_driver_multi_task',        '1',                '司机并发配送开关（1=允许同时接多单，0=否）',               NOW(), NOW()),
+(10, 'max_daily_recharge_amount',      '50000',            '单商家每日充值累计上限（元）',                             NOW(), NOW()),
+(11, 'credit_limit_default',           '5000',             '新注册商家自动分配的信用额度（元）',                       NOW(), NOW()),
+(12, 'enable_weighing_auto_debit',     '0',                '称重差异自动扣款开关（1=自动，0=人工确认）',               NOW(), NOW()),
+(13, 'weighing_diff_threshold',        '20',               '称重差异阈值（百分比），超过需人工确认',                   NOW(), NOW()),
+(14, 'inventory_warning_enabled',      '1',                '库存预警检测开关（1=开启，0=关闭）',                       NOW(), NOW()),
+(15, 'inventory_warning_interval_minutes', '5',            '库存预警定时检测周期（分钟）',                             NOW(), NOW()),
+(16, 'audit_retention_days',           '90',               '审计/日志保留天数：0=永久保留，1-180天，到期每日定时清理', NOW(), NOW()),
+(17, 'loss_approval_threshold',        '200',              '损耗审批阈值（元）：超过此值需运营经理审核',               NOW(), NOW());
 
 -- ============================================================
 -- 5. 默认仓库（2 个）
