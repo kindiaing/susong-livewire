@@ -38,7 +38,6 @@ document.addEventListener('alpine:init', () => {
     Alpine.store('uiSettings', {
         open: false,
         closeOnOutside: window.__UI_CLOSE_ON_OUTSIDE ?? true,
-        showFooter: window.__UI_SHOW_FOOTER ?? true,
     });
 });
 

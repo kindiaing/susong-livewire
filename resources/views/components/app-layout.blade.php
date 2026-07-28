@@ -9,11 +9,10 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
 
-    {{-- 注入后端 UI 配置到前端 Alpine.js --}}
+    {{-- 注入后端配置 --}}
     @php
         try {
             $uiCloseOnOutside = \App\Support\Setting::get('ui_close_on_outside', true);
-            $uiShowFooter = \App\Support\Setting::get('ui_show_footer', true);
             $icpNumber = \App\Support\Setting::get('site_icp_number', '');
             $icpUrl = \App\Support\Setting::get('site_icp_url', 'https://beian.miit.gov.cn/');
             $techStackUrl = \App\Support\Setting::get('site_tech_stack_url', 'https://laravel.com');
@@ -21,7 +20,6 @@
             $developerUrl = \App\Support\Setting::get('site_developer_url', '');
         } catch (\Throwable) {
             $uiCloseOnOutside = true;
-            $uiShowFooter = true;
             $icpNumber = '';
             $icpUrl = 'https://beian.miit.gov.cn/';
             $techStackUrl = 'https://laravel.com';
@@ -31,7 +29,6 @@
     @endphp
     <script>
         window.__UI_CLOSE_ON_OUTSIDE = {{ $uiCloseOnOutside ? 'true' : 'false' }};
-        window.__UI_SHOW_FOOTER = {{ $uiShowFooter ? 'true' : 'false' }};
     </script>
 </head>
 <body class="bg-background text-foreground min-h-screen font-sans">
@@ -46,9 +43,9 @@
             </div>
         </main>
 
-        {{-- 底部版权栏（Alpine 响应式控制，保存后即时生效） --}}
-        <footer x-data x-show="$store.uiSettings.showFooter" class="border-t bg-background/95">
-            <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+        {{-- 底部版权栏（始终显示） --}}
+        <footer class="border-t bg-background/95">
+            <div class="px-4 py-4 sm:px-6 lg:px-8">
                 <div class="flex flex-col items-center gap-2 sm:flex-row sm:justify-center sm:gap-4 text-xs text-muted-foreground">
                     {{-- 技术栈 --}}
                     <span>
@@ -74,9 +71,11 @@
                     @endif
 
                     {{-- 备案号 --}}
+                    <span class="hidden sm:inline text-border">|</span>
                     @if($icpNumber)
-                        <span class="hidden sm:inline text-border">|</span>
                         <a href="{{ $icpUrl }}" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">{{ $icpNumber }}</a>
+                    @else
+                        <a href="{{ $icpUrl }}" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">暂未备案</a>
                     @endif
                 </div>
             </div>

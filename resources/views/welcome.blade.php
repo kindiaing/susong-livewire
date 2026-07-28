@@ -110,9 +110,11 @@
                 @endif
 
                 {{-- 备案号 --}}
+                <span class="hidden sm:inline text-border">|</span>
                 @if($icpNumber)
-                    <span class="hidden sm:inline text-border">|</span>
                     <a href="{{ $icpUrl }}" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">{{ $icpNumber }}</a>
+                @else
+                    <a href="{{ $icpUrl }}" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors">暂未备案</a>
                 @endif
             </div>
         </div>

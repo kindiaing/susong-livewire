@@ -38,7 +38,7 @@
                     </button>
                 </div>
 
-                {{-- 设置内容（可滚动） --}}
+                {{-- 设置内容 --}}
                 <div class="flex-1 overflow-y-auto px-5 py-4 space-y-6">
 
                     {{-- 通知行为设置组 --}}
@@ -52,23 +52,6 @@
                                 </div>
                                 <label class="relative inline-flex cursor-pointer items-center shrink-0">
                                     <input type="checkbox" wire:model.live="closeOnOutside" class="peer sr-only" />
-                                    <div class="h-5 w-9 rounded-full bg-muted transition-colors peer-checked:bg-primary peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:bg-background after:transition-all peer-checked:after:translate-x-full"></div>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- 底部栏设置组 --}}
-                    <div>
-                        <h4 class="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">底部栏</h4>
-                        <div class="space-y-2">
-                            <div class="flex items-center justify-between rounded-sm border border-border p-3">
-                                <div class="space-y-0.5 pr-3">
-                                    <p class="text-sm font-medium">显示底部版权栏</p>
-                                    <p class="text-xs text-muted-foreground">关闭后页面底部不显示版权信息和技术栈信息</p>
-                                </div>
-                                <label class="relative inline-flex cursor-pointer items-center shrink-0">
-                                    <input type="checkbox" wire:model.live="showFooter" class="peer sr-only" />
                                     <div class="h-5 w-9 rounded-full bg-muted transition-colors peer-checked:bg-primary peer-focus-visible:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:bg-background after:transition-all peer-checked:after:translate-x-full"></div>
                                 </label>
                             </div>
