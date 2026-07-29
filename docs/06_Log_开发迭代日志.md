@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'dc025470-5671-46ac-a5c2-f83c9cb771d1'
-  PropagateID: 'dc025470-5671-46ac-a5c2-f83c9cb771d1'
-  ReservedCode1: 'c8dea1c9-88e6-42ee-9213-5e9bd7539869'
-  ReservedCode2: 'c8dea1c9-88e6-42ee-9213-5e9bd7539869'
+  ProduceID: 'f6559507-5703-4ded-ac0b-c0514634b738'
+  PropagateID: 'f6559507-5703-4ded-ac0b-c0514634b738'
+  ReservedCode1: '29c0c674-9a5d-49e9-942b-bd6cb799b931'
+  ReservedCode2: '29c0c674-9a5d-49e9-942b-bd6cb799b931'
 ---
 
 # 开发迭代日志
@@ -16,6 +16,89 @@ AIGC:
 技术栈：Laravel 13 + Livewire 4.x + Tailwind CSS 4.2+ + Alpine.js + PHP 8.4+ + MySQL 8.0 + Redis 7.x
 
 记录规则：每次迭代新增一节，按版本号倒序排列。每条变更需标注开发人、完成时间和关联模块。
+
+---
+
+## V1.6.0 | 迭代周期：2026-07-29
+
+负责人：项目负责人
+参与开发人员：后端开发、前端开发
+
+### 1 本次新增功能清单
+
+| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 补货提醒 | RestockReminderList Livewire 页面（CRUD + 商家/SKU 选择 + 周期配置） | 后端 | 2026-07-29 | ✅ |
+| 2 | 采购退货 | PurchaseReturnList 从桩升级为完整 CRUD（关联采购单 + 供应商 + 仓库 + 退货原因） | 后端 | 2026-07-29 | ✅ |
+| 3 | 仓库管理 | WarehouseList 从桩升级为完整 CRUD（类型/冷链/地址/状态） | 后端 | 2026-07-29 | ✅ |
+| 4 | 库存管理 | InventoryList 从桩升级为完整 CRUD（仓库/SKU/库存数量/批次/效期/预警值） | 后端 | 2026-07-29 | ✅ |
+| 5 | 库存日志 | InventoryLogList 从桩升级为只读日志查看器（类型/仓库筛选，禁止删除） | 后端 | 2026-07-29 | ✅ |
+| 6 | 损耗管理 | LossOrderList 从桩升级为完整 CRUD + 审核流程（新建/编辑/审核/执行/关闭） | 后端 | 2026-07-29 | ✅ |
+| 7 | 路由 | 新增 /restock-reminders 路由 | 后端 | 2026-07-29 | ✅ |
+| 8 | 用户管理 | UserList Livewire 组件（CRUD + 角色分配 + 禁用启用 + 重置密码 + 搜索） | 后端 | 2026-07-29 | ✅ |
+| 9 | 角色管理 | RoleList 增加权限分配弹窗（模块→页面→按钮 树形复选框） | 后端 | 2026-07-29 | ✅ |
+| 10 | 权限管理 | PermissionList 增加角色分配弹窗（多选框，为权限勾选关联角色） | 后端 | 2026-07-29 | ✅ |
+| 11 | 路由 | 新增 /users 路由 + 导航修复 href="#" → route('users') | 后端 | 2026-07-29 | ✅ |
+
+### 2 本次优化/重构
+
+| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | Model | Warehouse / LossOrder / PurchaseReturn 修复 SoftDeletes trait 错位到类外的 Bug | 后端 | 2026-07-29 |
+| 2 | Model | Inventory / InventoryLog / LossOrderItem / PurchaseReturnItem 清理未使用的 SoftDeletes import | 后端 | 2026-07-29 |
+| 3 | Model | Warehouse 补充 statusMap / relationships / scopeEnabled | 后端 | 2026-07-29 |
+| 4 | Model | LossOrder 补充 statusMap / approvalStatusMap / relationships / scopePending | 后端 | 2026-07-29 |
+| 5 | Model | PurchaseReturn 补充 statusMap / relationships / scopePending | 后端 | 2026-07-29 |
+| 6 | Model | Inventory 补充 warehouse/sku relationships / scopeBelowWarning | 后端 | 2026-07-29 |
+| 7 | Model | InventoryLog 补充 warehouse/sku/operator relationships / typeLabel accessor | 后端 | 2026-07-29 |
+| 8 | Model | LossOrderItem 补充 responsiblePartyMap / lossOrder/sku/supplier relationships | 后端 | 2026-07-29 |
+| 9 | Model | PurchaseReturnItem 补充 purchaseReturn/sku relationships | 后端 | 2026-07-29 |
+| 10 | Model | RestockReminder 补充 remindCycleMap / statusMap / merchant/sku relationships / scopeEnabled | 后端 | 2026-07-29 |
+
+### 3 本次修复 Bug
+
+| 序号 | Bug描述 | 修复内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | Warehouse/LossOrder/PurchaseReturn 的 SoftDeletes trait 写在 class 外面导致软删除不生效 | 将 `use SoftDeletes` 移入 class 内部 | 后端 | 2026-07-29 |
+| 2 | InventoryList 搜索 sku_id 使用 like 查整型字段 | 改为通过 sku 关联搜索 sku_code / product.name | 后端 | 2026-07-29 |
+| 3 | InventoryLogList 允许删除日志记录 | 移除删除功能，改为只读日志查看器 | 后端 | 2026-07-29 |
+
+### 4 数据库变更
+
+无（本次未新增 Migration）
+
+### 5 影响范围
+
+| 影响文件 | 变更类型 |
+| :--- | :--- |
+| app/Models/Warehouse.php | 重写（修复Bug + 补充关系/状态映射） |
+| app/Models/LossOrder.php | 重写（修复Bug + 补充关系/状态映射） |
+| app/Models/PurchaseReturn.php | 重写（修复Bug + 补充关系/状态映射） |
+| app/Models/Inventory.php | 重写（清理import + 补充关系） |
+| app/Models/InventoryLog.php | 重写（清理import + 补充关系） |
+| app/Models/LossOrderItem.php | 重写（清理import + 补充关系/责任方映射） |
+| app/Models/PurchaseReturnItem.php | 重写（补充关系） |
+| app/Models/RestockReminder.php | 重写（补充周期/状态映射/关系） |
+| app/Livewire/Product/RestockReminderList.php | 新增 |
+| app/Livewire/Purchase/PurchaseReturnList.php | 重写（桩→完整CRUD） |
+| app/Livewire/Inventory/WarehouseList.php | 重写（桩→完整CRUD） |
+| app/Livewire/Inventory/InventoryList.php | 重写（桩→完整CRUD） |
+| app/Livewire/Inventory/InventoryLogList.php | 重写（桩→只读查看器） |
+| app/Livewire/Loss/LossOrderList.php | 重写（桩→完整CRUD+审核） |
+| resources/views/livewire/product/restock-reminder-list.blade.php | 新增 |
+| resources/views/livewire/purchase/purchase-return-list.blade.php | 重写 |
+| resources/views/livewire/inventory/warehouse-list.blade.php | 重写 |
+| resources/views/livewire/inventory/inventory-list.blade.php | 重写 |
+| resources/views/livewire/inventory/inventory-log-list.blade.php | 重写 |
+| resources/views/livewire/loss/loss-order-list.blade.php | 重写 |
+| routes/web.php | 修改（新增1条路由） |
+| app/Livewire/User/UserList.php | 新增（用户管理CRUD+角色分配+禁用启用+重置密码） |
+| resources/views/livewire/user/user-list.blade.php | 新增 |
+| app/Livewire/User/RoleList.php | 重写（增加权限分配树弹窗） |
+| resources/views/livewire/user/role-list.blade.php | 重写（增加权限树+删除确认） |
+| app/Livewire/User/PermissionList.php | 重写（增加角色分配弹窗） |
+| resources/views/livewire/user/permission-list.blade.php | 重写（增加角色勾选+删除确认） |
+| resources/views/components/app-topnav.blade.php | 修改（用户管理导航链接 href="#" → route('users')） |
 
 ---
 

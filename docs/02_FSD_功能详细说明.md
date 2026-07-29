@@ -249,6 +249,7 @@ AIGC:
 | 权限列表 | 树形展示所有权限节点 |
 | 新增权限 | 填写权限名称、标识（route）、类型（菜单/按钮）、上级权限、排序 |
 | 编辑权限 | 修改权限信息 |
+| 分配角色 | 为权限勾选关联角色（多选框），自动同步到角色权限 |
 | 删除权限 | 已被角色引用的权限不可删除 |
 
 #### 2.1.4 数据隔离
@@ -1556,12 +1557,10 @@ app/
 │   ├── Auth/
 │   │   └── Login.php                               # 登录页
 │   ├── User/                                       # 用户与权限
-│   │   ├── UserList.php
-│   │   ├── UserForm.php
-│   │   ├── RoleList.php
-│   │   ├── RoleForm.php
-│   │   ├── PermissionList.php
-│   │   └── PermissionForm.php
+│   │   ├── UserList.php                           ✅ 用户CRUD+角色分配+禁用启用+重置密码
+│   │   ├── Profile.php                             ✅ 个人中心
+│   │   ├── RoleList.php                           ✅ 角色CRUD+权限分配树
+│   │   └── PermissionList.php                     ✅ 权限CRUD+角色分配
 │   ├── Org/                                        # 组织主体
 │   │   ├── SupplierList.php
 │   │   ├── SupplierForm.php

@@ -3,19 +3,22 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * 实时库存模型
  *
- * @property mixed $warehouse_id 仓库ID
- * @property mixed $sku_id SKU ID
- * @property mixed $total_stock 总库存
- * @property mixed $locked_stock 锁定库存
- * @property mixed $available_stock 可用库存
- * @property mixed $batch_no 入库批次号
- * @property mixed $expiry_date 效期
- * @property mixed $warning_value 预警值
+ * @property int $id
+ * @property int $warehouse_id 仓库ID
+ * @property int $sku_id SKU ID
+ * @property int $total_stock 总库存
+ * @property int $locked_stock 锁定库存
+ * @property int $available_stock 可用库存
+ * @property string|null $batch_no 入库批次号
+ * @property Carbon|null $expiry_date 效期
+ * @property int $warning_value 预警值
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  */
 class Inventory extends Model
 {
@@ -45,4 +48,27 @@ class Inventory extends Model
         ];
     }
 
+    /**
+     * 关联仓库
+     */
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class);
+    }
+
+    /**
+     * 关联 SKU
+     */
+    public function sku()
+    {
+        return $this->belongsTo(Sku::class);
+    }
+
+    /**
+     * 作用域：低于预警值
+     */
+    public function scopeBelowWarning($query)
+    {
+        return $query->whereColumn('available_stock', '<', 'warning_value');
+    }
 }

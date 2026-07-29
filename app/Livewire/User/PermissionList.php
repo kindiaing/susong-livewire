@@ -3,6 +3,7 @@
 namespace App\Livewire\User;
 
 use App\Models\Permission;
+use App\Models\Role;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -12,7 +13,12 @@ class PermissionList extends Component
 
     public string $search = '';
     public bool $showModal = false;
+    public bool $showDeleteConfirm = false;
+    public bool $showRoleModal = false;
     public ?int $editingId = null;
+    public ?int $deletingId = null;
+    public ?int $rolePermissionId = null;
+
     public string $formName = '';
     public string $formDisplayName = '';
     public int $formType = 1;
@@ -20,6 +26,11 @@ class PermissionList extends Component
     public string $formRoute = '';
     public int $formSort = 0;
     public string $formIcon = '';
+
+    // 角色勾选
+    public array $formRoleIds = [];
+    public string $rolePermissionName = '';
+    public array $allRoles = [];
 
     public function openCreateModal(): void
     {
@@ -44,7 +55,7 @@ class PermissionList extends Component
     public function save(): void
     {
         $this->validate([
-            'formName' => 'required|string|max:50',
+            'formName' => 'required|string|max:50|unique:permissions,name' . ($this->editingId ? ',' . $this->editingId : ''),
             'formDisplayName' => 'required|string|max:50',
             'formType' => 'required|integer|in:1,2,3',
             'formParentId' => 'integer',
@@ -73,15 +84,68 @@ class PermissionList extends Component
         $this->resetForm();
     }
 
-    public function delete(int $id): void
+    public function confirmDelete(int $id): void
     {
-        $perm = Permission::findOrFail($id);
+        $this->deletingId = $id;
+        $this->showDeleteConfirm = true;
+    }
+
+    public function delete(): void
+    {
+        $perm = Permission::findOrFail($this->deletingId);
         if ($perm->roles()->count() > 0) {
             $this->dispatch('toast', message: '该权限已被角色引用，不可删除', type: 'error');
+            $this->showDeleteConfirm = false;
             return;
         }
         $perm->delete();
         $this->dispatch('toast', message: '权限已删除', type: 'success');
+        $this->showDeleteConfirm = false;
+        $this->deletingId = null;
+    }
+
+    public function openRoleModal(int $id): void
+    {
+        $perm = Permission::findOrFail($id);
+        $this->rolePermissionId = $id;
+        $this->rolePermissionName = $perm->display_name;
+        $this->formRoleIds = $perm->roles->pluck('id')->map(fn($v) => (int) $v)->toArray();
+        $this->allRoles = Role::orderBy('id')->get()->map(fn($r) => [
+            'id' => $r->id,
+            'name' => $r->name,
+            'display_name' => $r->display_name,
+        ])->toArray();
+        $this->showRoleModal = true;
+    }
+
+    public function saveRoles(): void
+    {
+        $perm = Permission::findOrFail($this->rolePermissionId);
+        $roles = Role::whereIn('id', $this->formRoleIds)->get();
+
+        // 同步：把该权限从不在 formRoleIds 中的角色移除，添加到在 formRoleIds 中的角色
+        $currentRoleIds = $perm->roles->pluck('id')->toArray();
+        $newRoleIds = collect($this->formRoleIds)->map(fn($v) => (int) $v)->toArray();
+
+        $toAdd = array_diff($newRoleIds, $currentRoleIds);
+        $toRemove = array_diff($currentRoleIds, $newRoleIds);
+
+        foreach ($toAdd as $roleId) {
+            $role = Role::find($roleId);
+            if ($role && !$role->hasPermissionTo($perm)) {
+                $role->givePermissionTo($perm);
+            }
+        }
+
+        foreach ($toRemove as $roleId) {
+            $role = Role::find($roleId);
+            if ($role && $role->hasPermissionTo($perm)) {
+                $role->revokePermissionTo($perm);
+            }
+        }
+
+        $this->dispatch('toast', message: '角色分配已更新', type: 'success');
+        $this->showRoleModal = false;
     }
 
     public function resetFilters(): void

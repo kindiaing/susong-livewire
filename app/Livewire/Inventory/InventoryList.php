@@ -3,6 +3,8 @@
 namespace App\Livewire\Inventory;
 
 use App\Models\Inventory;
+use App\Models\Warehouse;
+use App\Models\Sku;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -11,8 +13,78 @@ class InventoryList extends Component
     use WithPagination;
 
     public string $search = '';
+    public int $filterWarehouseId = 0;
+    public bool $showModal = false;
     public bool $showDeleteConfirm = false;
+    public ?int $editingId = null;
     public ?int $deletingId = null;
+
+    public int $formWarehouseId = 0;
+    public int $formSkuId = 0;
+    public int $formTotalStock = 0;
+    public int $formLockedStock = 0;
+    public int $formAvailableStock = 0;
+    public string $formBatchNo = '';
+    public string $formExpiryDate = '';
+    public int $formWarningValue = 0;
+
+    public function openCreateModal(): void
+    {
+        $this->resetForm();
+        $this->showModal = true;
+    }
+
+    public function openEditModal(int $id): void
+    {
+        $item = Inventory::findOrFail($id);
+        $this->editingId = $id;
+        $this->formWarehouseId = $item->warehouse_id;
+        $this->formSkuId = $item->sku_id;
+        $this->formTotalStock = $item->total_stock;
+        $this->formLockedStock = $item->locked_stock;
+        $this->formAvailableStock = $item->available_stock;
+        $this->formBatchNo = $item->batch_no ?? '';
+        $this->formExpiryDate = $item->expiry_date ? $item->expiry_date->format('Y-m-d') : '';
+        $this->formWarningValue = $item->warning_value;
+        $this->showModal = true;
+    }
+
+    public function save(): void
+    {
+        $validated = $this->validate([
+            'formWarehouseId' => 'required|integer|exists:warehouses,id',
+            'formSkuId' => 'required|integer|exists:skus,id',
+            'formTotalStock' => 'required|integer|min:0',
+            'formLockedStock' => 'required|integer|min:0',
+            'formAvailableStock' => 'required|integer|min:0',
+            'formBatchNo' => 'nullable|string|max:50',
+            'formExpiryDate' => 'nullable|date',
+            'formWarningValue' => 'required|integer|min:0',
+        ]);
+
+        $data = [
+            'warehouse_id' => $validated['formWarehouseId'],
+            'sku_id' => $validated['formSkuId'],
+            'total_stock' => $validated['formTotalStock'],
+            'locked_stock' => $validated['formLockedStock'],
+            'available_stock' => $validated['formAvailableStock'],
+            'batch_no' => $validated['formBatchNo'] ?: null,
+            'expiry_date' => $validated['formExpiryDate'] ?: null,
+            'warning_value' => $validated['formWarningValue'],
+        ];
+
+        if ($this->editingId) {
+            $item = Inventory::findOrFail($this->editingId);
+            $item->update($data);
+            $this->dispatch('toast', message: '库存已更新', type: 'success');
+        } else {
+            Inventory::create($data);
+            $this->dispatch('toast', message: '库存已创建', type: 'success');
+        }
+
+        $this->showModal = false;
+        $this->resetForm();
+    }
 
     public function confirmDelete(int $id): void
     {
@@ -22,8 +94,9 @@ class InventoryList extends Component
 
     public function delete(): void
     {
-        Inventory::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '已删除', type: 'success');
+        $item = Inventory::findOrFail($this->deletingId);
+        $item->delete();
+        $this->dispatch('toast', message: '库存记录已删除', type: 'success');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }
@@ -31,20 +104,43 @@ class InventoryList extends Component
     public function resetFilters(): void
     {
         $this->search = '';
+        $this->filterWarehouseId = 0;
         $this->resetPage();
+    }
+
+    private function resetForm(): void
+    {
+        $this->editingId = null;
+        $this->formWarehouseId = 0;
+        $this->formSkuId = 0;
+        $this->formTotalStock = 0;
+        $this->formLockedStock = 0;
+        $this->formAvailableStock = 0;
+        $this->formBatchNo = '';
+        $this->formExpiryDate = '';
+        $this->formWarningValue = 0;
     }
 
     public function render()
     {
-        $query = Inventory::orderBy('id', 'desc');
+        $query = Inventory::with(['warehouse', 'sku.product'])->orderBy('id', 'desc');
 
         if ($this->search) {
-            $query->where('sku_id', 'like', "%{$this->search}%");
+            $query->whereHas('sku', function ($q) {
+                $q->where('sku_code', 'like', "%{$this->search}%")
+                    ->orWhereHas('product', fn($pq) => $pq->where('name', 'like', "%{$this->search}%"));
+            });
+        }
+
+        if ($this->filterWarehouseId > 0) {
+            $query->where('warehouse_id', $this->filterWarehouseId);
         }
 
         $items = $query->paginate(20);
+        $warehouses = Warehouse::enabled()->orderBy('name')->get();
+        $skus = Sku::with('product')->orderBy('sku_code')->get();
 
-        return view('livewire.inventory.inventory-list', compact('items'))
+        return view('livewire.inventory.inventory-list', compact('items', 'warehouses', 'skus'))
             ->layout('components.app-layout')
             ->title('实时库存');
     }

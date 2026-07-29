@@ -3,25 +3,27 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 /**
  * 采购退货明细模型
  *
- * @property mixed $purchase_return_id 采购退货单ID
- * @property mixed $purchase_order_item_id 采购单明细ID
- * @property mixed $sku_id SKU ID
- * @property mixed $quantity 退货数量
- * @property mixed $price 退货单价
- * @property mixed $amount 退货金额
- * @property mixed $actual_quantity 实际出库数量
- * @property mixed $actual_price 实际出库单价
- * @property mixed $actual_amount 实际出库金额
- * @property mixed $reason 明细退货原因
+ * @property int $id
+ * @property int $purchase_return_id 采购退货单ID
+ * @property int $purchase_order_item_id 采购单明细ID
+ * @property int $sku_id SKU ID
+ * @property int $quantity 退货数量
+ * @property int $price 退货单价（厘）
+ * @property int $amount 退货金额（厘）
+ * @property int $actual_quantity 实际出库数量
+ * @property int $actual_price 实际出库单价（厘）
+ * @property int $actual_amount 实际出库金额（厘）
+ * @property string|null $reason 明细退货原因
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
  */
 class PurchaseReturnItem extends Model
 {
-
     protected $fillable = [
         'purchase_return_id',
         'purchase_order_item_id',
@@ -50,4 +52,19 @@ class PurchaseReturnItem extends Model
         ];
     }
 
+    /**
+     * 关联退货单
+     */
+    public function purchaseReturn()
+    {
+        return $this->belongsTo(PurchaseReturn::class);
+    }
+
+    /**
+     * 关联 SKU
+     */
+    public function sku()
+    {
+        return $this->belongsTo(Sku::class);
+    }
 }

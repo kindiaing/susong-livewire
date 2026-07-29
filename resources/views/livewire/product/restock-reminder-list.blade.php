@@ -2,22 +2,17 @@
     {{-- 页面标题 --}}
     <div class="flex items-center justify-between mb-6">
         <div>
-            <h1 class="text-2xl font-bold text-foreground">仓库管理</h1>
-            <p class="text-muted-foreground mt-1">管理仓库信息及冷链配置</p>
+            <h1 class="text-2xl font-bold text-foreground">补货提醒</h1>
+            <p class="text-muted-foreground mt-1">管理智能补货提醒规则</p>
         </div>
         <button wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
-            新增仓库
+            新增规则
         </button>
     </div>
 
     {{-- 搜索栏 --}}
     <div class="flex items-center gap-3 mb-4">
-        <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background px-3 text-sm" placeholder="搜索仓库名称..." />
-        <select wire:model.live="filterType" class="flex h-9 w-32 rounded-md border border-input bg-background px-3 text-sm">
-            <option value="-1">全部类型</option>
-            <option value="1">总仓</option>
-            <option value="2">前置仓</option>
-        </select>
+        <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background px-3 text-sm" placeholder="搜索商家名称/SKU编码..." />
         <select wire:model.live="filterStatus" class="flex h-9 w-32 rounded-md border border-input bg-background px-3 text-sm">
             <option value="-1">全部状态</option>
             <option value="1">启用</option>
@@ -27,25 +22,27 @@
     </div>
 
     {{-- 列表 --}}
-    <div class="rounded-lg border bg-card">
-        <div class="grid grid-cols-[60px_1fr_100px_100px_1fr_80px_100px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+    <div class="rounded-lg border bg-card overflow-x-auto">
+        <div class="grid grid-cols-[60px_1fr_1fr_100px_100px_120px_80px_100px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider min-w-[800px]">
             <div>ID</div>
-            <div>仓库名称</div>
-            <div>类型</div>
-            <div>冷链</div>
-            <div>地址</div>
+            <div>商家</div>
+            <div>SKU</div>
+            <div>阈值</div>
+            <div>周期</div>
+            <div>上次提醒</div>
             <div>状态</div>
             <div>操作</div>
         </div>
 
         @forelse($items as $item)
-            <div class="grid grid-cols-[60px_1fr_100px_100px_1fr_80px_100px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors"
-                 wire:key="warehouse-{{ $item->id }}">
+            <div class="grid grid-cols-[60px_1fr_1fr_100px_100px_120px_80px_100px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors min-w-[800px]"
+                 wire:key="reminder-{{ $item->id }}">
                 <div class="text-sm text-muted-foreground">{{ $item->id }}</div>
-                <div class="text-sm font-medium text-foreground truncate">{{ $item->name }}</div>
-                <div class="text-sm text-foreground">{{ \App\Models\Warehouse::typeMap()[$item->type] ?? '-' }}</div>
-                <div class="text-sm text-foreground">{{ $item->is_cold_chain ? '是' : '否' }}</div>
-                <div class="text-sm text-muted-foreground truncate">{{ $item->address ?: '-' }}</div>
+                <div class="text-sm font-medium text-foreground truncate">{{ $item->merchant?->name ?? '-' }}</div>
+                <div class="text-sm text-foreground">{{ $item->sku?->sku_code ?? '-' }}</div>
+                <div class="text-sm text-foreground">{{ $item->threshold_quantity }}</div>
+                <div class="text-sm text-foreground">{{ \App\Models\RestockReminder::remindCycleMap()[$item->remind_cycle] ?? '-' }}</div>
+                <div class="text-sm text-muted-foreground">{{ $item->last_reminded_at ? $item->last_reminded_at->format('Y-m-d H:i') : '-' }}</div>
                 <div>
                     @if($item->status === 1)
                         <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
@@ -59,7 +56,7 @@
                 </div>
             </div>
         @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无仓库数据</div>
+            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无补货提醒数据</div>
         @endforelse
     </div>
 
@@ -70,35 +67,43 @@
     <div class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" wire:click="showModal = false"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
-            <h2 class="text-lg font-semibold text-foreground mb-4">{{ $editingId ? '编辑仓库' : '新增仓库' }}</h2>
+            <h2 class="text-lg font-semibold text-foreground mb-4">{{ $editingId ? '编辑补货提醒' : '新增补货提醒' }}</h2>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">仓库名称 <span class="text-red-500">*</span></label>
-                    <input type="text" wire:model="formName" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="请输入仓库名称" />
-                    @error('formName') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    <label class="block text-sm font-medium text-foreground mb-1">商家 <span class="text-red-500">*</span></label>
+                    <select wire:model="formMerchantId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        <option value="0">请选择商家</option>
+                        @foreach($merchants as $m)
+                            <option value="{{ $m->id }}">{{ $m->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('formMerchantId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">SKU <span class="text-red-500">*</span></label>
+                    <select wire:model="formSkuId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        <option value="0">请选择SKU</option>
+                        @foreach($skus as $s)
+                            <option value="{{ $s->id }}">{{ $s->sku_code }}</option>
+                        @endforeach
+                    </select>
+                    @error('formSkuId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-foreground mb-1">类型 <span class="text-red-500">*</span></label>
-                        <select wire:model="formType" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                            <option value="1">总仓</option>
-                            <option value="2">前置仓</option>
-                        </select>
-                        @error('formType') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        <label class="block text-sm font-medium text-foreground mb-1">库存阈值 <span class="text-red-500">*</span></label>
+                        <input type="number" wire:model="formThresholdQuantity" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" />
+                        @error('formThresholdQuantity') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-foreground mb-1">是否冷链 <span class="text-red-500">*</span></label>
-                        <select wire:model="formIsColdChain" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                            <option value="0">否</option>
-                            <option value="1">是</option>
+                        <label class="block text-sm font-medium text-foreground mb-1">提醒周期 <span class="text-red-500">*</span></label>
+                        <select wire:model="formRemindCycle" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                            <option value="1">每日</option>
+                            <option value="2">每周</option>
+                            <option value="3">仅一次</option>
                         </select>
-                        @error('formIsColdChain') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        @error('formRemindCycle') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">地址</label>
-                    <input type="text" wire:model="formAddress" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="详细地址" />
-                    @error('formAddress') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">状态 <span class="text-red-500">*</span></label>
@@ -123,7 +128,7 @@
         <div class="fixed inset-0 bg-black/50" wire:click="showDeleteConfirm = false"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
             <h2 class="text-lg font-semibold text-foreground mb-2">确认删除</h2>
-            <p class="text-sm text-muted-foreground mb-6">确定要删除该仓库吗？此操作不可恢复。</p>
+            <p class="text-sm text-muted-foreground mb-6">确定要删除该补货提醒规则吗？</p>
             <div class="flex justify-end gap-3">
                 <button wire:click="showDeleteConfirm = false" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
                 <button wire:click="delete" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>

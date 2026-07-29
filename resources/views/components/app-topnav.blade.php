@@ -89,7 +89,7 @@
                 <x-nav-menu-item value="user">
                     <x-nav-menu-trigger icon="users">用户权限</x-nav-menu-trigger>
                     <x-nav-menu-content value="user">
-                        <x-nav-menu-icon-link href="#" icon="users" description="用户CRUD、重置密码、禁用启用">用户管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('users') }}" icon="users" description="用户CRUD、重置密码、禁用启用">用户管理</x-nav-menu-icon-link>
                         <x-nav-menu-icon-link href="{{ route('roles') }}" icon="shield-check" description="9个系统角色、权限配置">角色管理</x-nav-menu-icon-link>
                         <x-nav-menu-icon-link href="{{ route('permissions') }}" icon="key" description="模块/页面/按钮级权限控制">权限管理</x-nav-menu-icon-link>
                     </x-nav-menu-content>

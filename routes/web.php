@@ -36,6 +36,7 @@ use App\Livewire\Product\KeywordList;
 use App\Livewire\Product\ProductList;
 use App\Livewire\Product\SkuBarcodeList;
 use App\Livewire\Product\SkuList;
+use App\Livewire\Product\RestockReminderList;
 use App\Livewire\Product\SkuSupplierList;
 use App\Livewire\Product\TagList;
 use App\Livewire\Purchase\PurchaseItemList;
@@ -53,6 +54,7 @@ use App\Livewire\System\WechatUserList;
 use App\Livewire\User\PermissionList;
 use App\Livewire\User\Profile;
 use App\Livewire\User\RoleList;
+use App\Livewire\User\UserList;
 use Illuminate\Support\Facades\Route;
 
 // 首页（公开，无需登录）
@@ -75,6 +77,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', Profile::class)->name('profile');
 
     // ── 用户权限 ──
+    Route::get('/users', UserList::class)->name('users');
     Route::get('/roles', RoleList::class)->name('roles');
     Route::get('/permissions', PermissionList::class)->name('permissions');
 
@@ -93,6 +96,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/keywords', KeywordList::class)->name('keywords');
     Route::get('/sku-barcodes', SkuBarcodeList::class)->name('sku-barcodes');
     Route::get('/sku-suppliers', SkuSupplierList::class)->name('sku-suppliers');
+    Route::get('/restock-reminders', RestockReminderList::class)->name('restock-reminders');
 
     // ── 采购管理 ──
     Route::get('/purchase-items', PurchaseItemList::class)->name('purchase-items');
