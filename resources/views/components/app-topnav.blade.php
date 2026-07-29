@@ -128,16 +128,6 @@
             </div>
         </div>
 
-        {{-- 移动端：汉堡菜单 + Command 搜索 --}}
-        <div class="flex md:hidden items-center gap-1">
-            <x-ui.command />
-            <button class="p-2 rounded-md hover:bg-accent hover:text-accent-foreground"
-                    x-data="{ mobileOpen: false }"
-                    @click="mobileOpen = !mobileOpen">
-                <x-ui.icon name="bars" class="w-5 h-5" />
-            </button>
-        </div>
-
         {{-- 右侧功能区（靠近右端） --}}
         <div class="flex items-center gap-1 shrink-0 ml-4" x-data>
 

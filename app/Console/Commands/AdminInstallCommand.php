@@ -59,11 +59,11 @@ class AdminInstallCommand extends Command
 
         $this->info('  ✓ 迁移完成（角色、审核配置、系统配置、管理员账号已由 Migration 自动初始化）');
 
-        // 2. 运行 Seeder（角色权限 + 基础菜单权限）
+        // 2. 运行 Seeder（系统内置数据：角色权限 + 超级管理员 + 系统配置）
         $this->newLine();
-        $this->info('[2/3] 初始化角色权限与菜单...');
-        Artisan::call('db:seed', ['--class' => 'RolePermissionSeeder', '--force' => true], $this->output);
-        $this->info('  ✓ 角色权限初始化完成');
+        $this->info('[2/3] 初始化系统内置数据...');
+        Artisan::call('db:seed', ['--class' => 'SystemDataSeeder', '--force' => true], $this->output);
+        $this->info('  ✓ 系统内置数据初始化完成');
 
         // 3. 测试数据
         if ($seed) {
