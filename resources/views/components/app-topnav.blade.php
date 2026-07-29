@@ -144,8 +144,8 @@
             {{-- 通知 Drawer（Livewire 组件） --}}
             <livewire:system.notification-drawer />
 
-            {{-- 系统设置 Drawer --}}
-            <button type="button" class="p-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors" title="系统设置"
+            {{-- 界面设置 Drawer --}}
+            <button type="button" class="p-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors" title="界面设置"
                     @click="$store.uiSettings.open = !$store.uiSettings.open">
                 <x-ui.icon name="cog-6-tooth" class="w-5 h-5" />
             </button>
