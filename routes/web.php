@@ -6,6 +6,13 @@ use App\Livewire\Org\MerchantList;
 use App\Livewire\Org\RouteList;
 use App\Livewire\Org\SupplierList;
 use App\Livewire\Org\VehicleList;
+use App\Livewire\Product\CategoryList;
+use App\Livewire\Product\KeywordList;
+use App\Livewire\Product\ProductList;
+use App\Livewire\Product\SkuBarcodeList;
+use App\Livewire\Product\SkuList;
+use App\Livewire\Product\SkuSupplierList;
+use App\Livewire\Product\TagList;
 use App\Livewire\System\ApprovalConfig;
 use App\Livewire\System\Approvals;
 use App\Livewire\System\AuditLogs;
@@ -45,6 +52,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/delivery-routes', RouteList::class)->name('delivery-routes');
     Route::get('/drivers', DriverList::class)->name('drivers');
     Route::get('/vehicles', VehicleList::class)->name('vehicles');
+
+    // ── 商品管理 ──
+    Route::get('/categories', CategoryList::class)->name('categories');
+    Route::get('/products', ProductList::class)->name('products');
+    Route::get('/skus', SkuList::class)->name('skus');
+    Route::get('/tags', TagList::class)->name('tags');
+    Route::get('/keywords', KeywordList::class)->name('keywords');
+    Route::get('/sku-barcodes', SkuBarcodeList::class)->name('sku-barcodes');
+    Route::get('/sku-suppliers', SkuSupplierList::class)->name('sku-suppliers');
 
     // ── 系统管理 ──
     Route::get('/settings', Settings::class)->name('settings');

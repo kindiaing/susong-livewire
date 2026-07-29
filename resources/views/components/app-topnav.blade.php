@@ -23,13 +23,13 @@
                 <x-nav-menu-item value="product">
                     <x-nav-menu-trigger icon="cube">商品管理</x-nav-menu-trigger>
                     <x-nav-menu-content value="product">
-                        <x-nav-menu-icon-link href="#" icon="swatch">分类管理</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="#" icon="cube">商品管理</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="#" icon="tag">SKU 管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('categories') }}" icon="swatch">分类管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('products') }}" icon="cube">商品管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('skus') }}" icon="tag">SKU 管理</x-nav-menu-icon-link>
                         <x-nav-menu-icon-link href="#" icon="eye">可见性配置</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="#" icon="hashtag">关键词标签</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="#" icon="qr-code">条码管理</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="#" icon="squares">一品多供</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('tags') }}" icon="hashtag">关键词标签</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('sku-barcodes') }}" icon="qr-code">条码管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('sku-suppliers') }}" icon="squares">一品多供</x-nav-menu-icon-link>
                     </x-nav-menu-content>
                 </x-nav-menu-item>
 

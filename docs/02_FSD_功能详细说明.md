@@ -1,12 +1,12 @@
----
+﻿---
 AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '9c24537e-2bb4-48b9-a650-903a9d0d1f36'
-  PropagateID: '9c24537e-2bb4-48b9-a650-903a9d0d1f36'
-  ReservedCode1: 'daa2a2ee-3d87-4470-836c-ce6289c268d5'
-  ReservedCode2: 'daa2a2ee-3d87-4470-836c-ce6289c268d5'
+  ProduceID: '4e81412d-9052-47b1-a112-4740fb9afdc7'
+  PropagateID: '4e81412d-9052-47b1-a112-4740fb9afdc7'
+  ReservedCode1: '21f4e6e9-be21-434a-9e99-958f274ca84e'
+  ReservedCode2: '21f4e6e9-be21-434a-9e99-958f274ca84e'
 ---
 
 # FSD 功能详细说明书
@@ -1650,27 +1650,27 @@ app/
 │       ├── AuditLogList.php
 │       └── LoginLogList.php
 │
-├── Models/                                         # Eloquent 模型 [待建]
-│   ├── User.php                                    # 已存在（Starter Kit 自带）
-│   ├── Role.php
-│   ├── Permission.php
-│   ├── Supplier.php
-│   ├── Merchant.php
-│   ├── MerchantAddress.php
-│   ├── DeliveryRoute.php
-│   ├── Driver.php
-│   ├── Vehicle.php
-│   ├── DriverVehicle.php
-│   ├── Category.php
-│   ├── Product.php
-│   ├── ProductImage.php
-│   ├── Sku.php
-│   ├── SkuBarcode.php
-│   ├── SkuSupplier.php
-│   ├── MerchantSkuVisibility.php
-│   ├── Tag.php
-│   ├── ProductTag.php
-│   ├── Keyword.php
+├── Models/                                         # Eloquent 模型
+│   ├── User.php                                    # ✅ 已存在
+│   ├── Role.php                                    # ✅ V1.1.0
+│   ├── Permission.php                              # ✅ V1.1.0
+│   ├── Supplier.php                                # ✅ V1.1.0
+│   ├── Merchant.php                                # ✅ V1.1.0
+│   ├── MerchantAddress.php                         # 待建
+│   ├── DeliveryRoute.php                           # ✅ V1.1.0
+│   ├── Driver.php                                  # ✅ V1.1.0
+│   ├── Vehicle.php                                 # ✅ V1.1.0
+│   ├── DriverVehicle.php                           # ✅ V1.1.0
+│   ├── Category.php                                # ✅ V1.2.0
+│   ├── Product.php                                 # ✅ V1.2.0
+│   ├── ProductImage.php                            # ✅ V1.2.0
+│   ├── Sku.php                                     # ✅ V1.2.0
+│   ├── SkuBarcode.php                              # ✅ V1.2.0
+│   ├── SkuSupplier.php                             # ✅ V1.2.0
+│   ├── MerchantSkuVisibility.php                   # ✅ V1.2.0
+│   ├── Tag.php                                     # ✅ V1.2.0
+│   ├── ProductTag.php                              # ✅ V1.2.0
+│   ├── Keyword.php                                 # ✅ V1.2.0
 │   ├── PurchaseItem.php
 │   ├── PurchaseOrder.php
 │   ├── PurchaseOrderItem.php
@@ -2276,7 +2276,7 @@ docs/
 |:---|:---|:---|:---|:---|:---|
 | 用户与权限 | UserList, UserForm, RoleList, RoleForm, PermissionList, PermissionForm | AuthService, PermissionService | user/ | MerchantAuthController | web + api/v1/mini/merchant |
 | 组织主体 | SupplierList, SupplierForm, MerchantList, MerchantForm, RouteList, RouteSort, DriverList, DriverForm, VehicleList, VehicleForm | - | org/ | - | web |
-| 商品管理 | CategoryList, ProductList, ProductForm, SkuForm, BarcodeForm, SkuSupplierForm, VisibilityConfig, TagList, KeywordList | - | product/ | MerchantProductController | web + api/v1/mini/merchant |
+| 商品管理 | CategoryList ✅, ProductList ✅, SkuList ✅, TagList ✅, KeywordList ✅, SkuBarcodeList ✅, SkuSupplierList ✅, VisibilityConfig, ProductForm | - | product/ ✅ | MerchantProductController | web ✅ + api/v1/mini/merchant |
 | 平台统采 | PurchaseItemList, PurchaseOrderList, PurchaseOrderDetail, PurchaseReturnList, PurchaseReturnDetail | PurchaseService | purchase/ | - | web |
 | 客户直采 | CartList, OrderList, OrderDetail, FrequentlyBoughtList, RepurchaseList, OrderReturnList, OrderReturnDetail | OrderService | order/ | MerchantCartController, MerchantOrderController | web + api/v1/mini/merchant |
 | 库存管理 | WarehouseList, InventoryList, InventoryAdjustForm, InventoryLogList | InventoryService | inventory/ | - | web |
@@ -2288,446 +2288,5 @@ docs/
 | 价格策略 | PriceStrategyList, PriceStrategyForm, PriceChangeLogList | PriceStrategyService | price/ | - | web |
 | 审核管理 | ApprovalConfig, ApprovalPendingList, ApprovalReviewedList | ApprovalService | approval/ | - | web |
 | 系统支撑 | SystemConfig, BannerList, PromotionList, OperationLogList, AuditLogList, LoginLogList | - | system/ | - | web |
-
-> AI生成
-│   │   ├── Org/                                    # 组织主体
-│   │   │   ├── SupplierList.php
-│   │   │   ├── SupplierForm.php
-│   │   │   ├── MerchantList.php
-│   │   │   ├── MerchantForm.php
-│   │   │   ├── RouteList.php
-│   │   │   ├── RouteSort.php                       # 看板拖拽排序
-│   │   │   ├── DriverList.php
-│   │   │   ├── DriverForm.php
-│   │   │   ├── VehicleList.php
-│   │   │   └── VehicleForm.php
-│   │   ├── Product/                                # 商品管理
-│   │   │   ├── CategoryList.php
-│   │   │   ├── ProductList.php
-│   │   │   ├── ProductForm.php
-│   │   │   ├── SkuForm.php
-│   │   │   ├── BarcodeForm.php
-│   │   │   ├── SkuSupplierForm.php
-│   │   │   ├── VisibilityConfig.php
-│   │   │   ├── TagList.php
-│   │   │   └── KeywordList.php
-│   │   ├── Purchase/                               # 平台统采
-│   │   │   ├── PurchaseItemList.php
-│   │   │   ├── PurchaseOrderList.php
-│   │   │   ├── PurchaseOrderDetail.php
-│   │   │   ├── PurchaseReturnList.php
-│   │   │   └── PurchaseReturnDetail.php
-│   │   ├── Order/                                  # 客户直采
-│   │   │   ├── CartList.php
-│   │   │   ├── OrderList.php
-│   │   │   ├── OrderDetail.php
-│   │   │   ├── WeighingPriceForm.php
-│   │   │   ├── FrequentlyBoughtList.php
-│   │   │   ├── RepurchaseList.php
-│   │   │   ├── OrderReturnList.php
-│   │   │   └── OrderReturnDetail.php
-│   │   ├── Inventory/                              # 库存管理
-│   │   │   ├── WarehouseList.php
-│   │   │   ├── InventoryList.php
-│   │   │   ├── InventoryAdjustForm.php
-│   │   │   └── InventoryLogList.php
-│   │   ├── Loss/                                   # 损耗管理
-│   │   │   ├── LossOrderList.php
-│   │   │   ├── LossOrderDetail.php
-│   │   │   ├── LossOrderForm.php
-│   │   │   └── LossReport.php
-│   │   ├── Picking/                                # 拣货管理
-│   │   │   ├── PickingTaskList.php
-│   │   │   └── PickingTaskDetail.php
-│   │   ├── Delivery/                               # 物流配送
-│   │   │   ├── DeliveryTaskList.php
-│   │   │   ├── DeliveryTaskDetail.php
-│   │   │   ├── TrackMap.php
-│   │   │   ├── SignatureList.php
-│   │   │   └── TemperatureList.php
-│   │   ├── Discrepancy/                            # 差异处理
-│   │   │   ├── DiscrepancyList.php
-│   │   │   ├── DiscrepancyDetail.php
-│   │   │   └── DiscrepancyReport.php
-│   │   ├── Finance/                                # 财务对账
-│   │   │   ├── MerchantAccountList.php
-│   │   │   ├── RechargeList.php
-│   │   │   ├── RechargeForm.php
-│   │   │   ├── SettlementList.php
-│   │   │   ├── SettlementDetail.php
-│   │   │   ├── PaymentForm.php
-│   │   │   ├── ReceivableList.php
-│   │   │   ├── ReceivableDetail.php
-│   │   │   ├── ReceivablePaymentForm.php
-│   │   │   ├── InvoiceList.php
-│   │   │   ├── CorrectionList.php
-│   │   │   └── ApportionmentList.php
-│   │   ├── Price/                                  # 价格策略
-│   │   │   ├── PriceStrategyList.php
-│   │   │   ├── PriceStrategyForm.php
-│   │   │   └── PriceChangeLogList.php
-│   │   ├── Approval/                               # 审核管理
-│   │   │   ├── ApprovalConfig.php
-│   │   │   ├── ApprovalPendingList.php
-│   │   │   └── ApprovalReviewedList.php
-│   │   └── System/                                 # 系统支撑
-│   │       ├── SystemConfig.php
-│   │       ├── BannerList.php
-│   │       ├── PromotionList.php
-│   │       ├── OperationLogList.php
-│   │       ├── AuditLogList.php
-│   │       └── LoginLogList.php
-│   │
-│   ├── Models/                                 # Eloquent 模型（55+）
-│   │   ├── User.php
-│   │   ├── Role.php
-│   │   ├── Permission.php
-│   │   ├── Supplier.php
-│   │   ├── Merchant.php
-│   │   ├── MerchantAddress.php
-│   │   ├── DeliveryRoute.php
-│   │   ├── Driver.php
-│   │   ├── Vehicle.php
-│   │   ├── DriverVehicle.php
-│   │   ├── Category.php
-│   │   ├── Product.php
-│   │   ├── ProductImage.php
-│   │   ├── Sku.php
-│   │   ├── SkuBarcode.php
-│   │   ├── SkuSupplier.php
-│   │   ├── MerchantSkuVisibility.php
-│   │   ├── Tag.php
-│   │   ├── ProductTag.php
-│   │   ├── Keyword.php
-│   │   ├── PurchaseItem.php
-│   │   ├── PurchaseOrder.php
-│   │   ├── PurchaseOrderItem.php
-│   │   ├── PurchaseReturn.php
-│   │   ├── PurchaseReturnItem.php
-│   │   ├── Cart.php
-│   │   ├── CartItem.php
-│   │   ├── Order.php
-│   │   ├── OrderItem.php
-│   │   ├── FrequentlyBought.php
-│   │   ├── RepurchaseTemplate.php
-│   │   ├── RepurchaseTemplateItem.php
-│   │   ├── OrderReturn.php
-│   │   ├── OrderReturnItem.php
-│   │   ├── Warehouse.php
-│   │   ├── Inventory.php
-│   │   ├── InventoryLog.php
-│   │   ├── LossOrder.php
-│   │   ├── LossOrderItem.php
-│   │   ├── PickingTask.php
-│   │   ├── PickingTaskItem.php
-│   │   ├── DeliveryTask.php
-│   │   ├── DeliveryTaskOrder.php
-│   │   ├── DeliveryTrack.php
-│   │   ├── Signature.php
-│   │   ├── Temperature.php
-│   │   ├── Discrepancy.php
-│   │   ├── MerchantAccount.php
-│   │   ├── Recharge.php
-│   │   ├── SupplierSettlement.php
-│   │   ├── SupplierSettlementItem.php
-│   │   ├── SettlementPayment.php
-│   │   ├── Receivable.php
-│   │   ├── ReceivablePayment.php
-│   │   ├── Invoice.php
-│   │   ├── CorrectionAuthorization.php
-│   │   ├── PriceStrategy.php
-│   │   ├── PriceStrategyItem.php
-│   │   ├── PriceChangeLog.php
-│   │   ├── PriceApportionment.php
-│   │   ├── SystemConfig.php
-│   │   ├── Banner.php
-│   │   ├── Promotion.php
-│   │   ├── OperationLog.php
-│   │   ├── AuditLog.php
-│   │   ├── LoginLog.php
-│   │   ├── WechatUser.php
-│   │   ├── Notification.php
-│   │   ├── RestockReminder.php
-│   │   ├── MerchantFavorite.php
-│   │   ├── Approval.php
-│   │   └── ApprovalTypeConfig.php
-│   │
-│   ├── Services/                               # 业务逻辑服务层
-│   │   ├── AuthService.php                     # 认证逻辑（登录/登出/Token）
-│   │   ├── PermissionService.php               # 权限缓存 + 菜单渲染
-│   │   ├── PurchaseService.php                  # 采购单生成 + 待采汇总
-│   │   ├── OrderService.php                     # 订单创建 + 称重改价 + 锁定
-│   │   ├── InventoryService.php                 # 库存变动 + 预警 + 日志
-│   │   ├── LossOrderService.php                 # 损耗单 + 阈值判断 + 库存扣减
-│   │   ├── PickingService.php                   # 拣货任务生成 + 差异
-│   │   ├── DeliveryService.php                  # 配送任务 + 轨迹 + 签收
-│   │   ├── DiscrepancyService.php               # 差异单 + 金额调整
-│   │   ├── SettlementService.php                # 供应商结算 + 付款 + 办结
-│   │   ├── ReceivableService.php                # 应收 + 收款 + 办结
-│   │   ├── RechargeService.php                  # 充值 + 审核入账
-│   │   ├── ApprovalService.php                  # 统一审核引擎（19 节点）
-│   │   ├── PriceStrategyService.php             # 策略匹配 + 改价 + 均摊
-│   │   ├── ReturnService.php                    # 采购退货 + 售后退货
-│   │   ├── ExportService.php                    # 报表导出（CSV/Excel）
-│   │   └── WechatMiniService.php                # 微信小程序登录/消息
-│   │
-│   ├── Middleware/
-│   │   ├── CheckPermission.php            # 权限校验中间件
-│   │   ├── CheckApprovalEnabled.php       # 审核节点开关检查
-│   │   ├── LogOperation.php               # 操作日志自动记录
-│   │   └── SetLocale.php                   # 多语言（预留）
-│   │
-│   └── Resources/                          # API 响应资源（小程序端按模块）
-│       └── V1/
-│           ├── MerchantProductResource.php
-│           ├── MerchantCartResource.php
-│           ├── MerchantOrderResource.php
-│           ├── MerchantAccountResource.php
-│           ├── DriverTaskResource.php
-│           ├── ApprovalResource.php
-│           └── NotificationResource.php
-│   │
-│   ├── Observers/                               # 模型事件观察者
-│   │   ├── OrderObserver.php                   # 订单状态变更 → 日志/通知
-│   │   ├── InventoryObserver.php               # 库存变动 → 预警检查
-│   │   └── AuditLogObserver.php                # 敏感模型变更 → 审计日志
-│   │
-│   ├── Enums/                                   # 枚举常量（替代魔法数字）
-│   │   ├── OrderStatus.php                     # 订单状态枚举
-│   │   ├── PurchaseOrderStatus.php             # 采购单状态枚举
-│   │   ├── LossOrderStatus.php                 # 损耗单状态枚举
-│   │   ├── LossType.php                        # 损耗类型枚举
-│   │   ├── DiscrepancyStage.php                # 差异环节枚举
-│   │   ├── DiscrepancyType.php                 # 差异类型枚举
-│   │   ├── DiscrepancyDecision.php             # 差异决策枚举
-│   │   ├── ApprovalStatus.php                  # 审核状态枚举
-│   │   ├── SettlementStatus.php                # 结算状态枚举
-│   │   ├── ReceivableStatus.php                # 应收状态枚举
-│   │   ├── InventoryLogType.php                # 库存变动类型枚举
-│   │   ├── ResponsibleParty.php                # 责任方枚举
-│   │   └── PriceStrategyType.php               # 价格策略类型枚举
-│   │
-│   ├── Policies/                                # 授权策略
-│   │   ├── UserPolicy.php
-│   │   ├── OrderPolicy.php
-│   │   ├── LossOrderPolicy.php
-│   │   └── ApprovalPolicy.php
-│   │
-│   └── Events/                                  # 事件（广播 + 队列驱动）
-│       ├── OrderCreated.php                    # 订单创建 → 通知商家端 + 管理后台
-│       ├── OrderStatusChanged.php              # 订单状态变更 → 推送 orders.{merchant_id}
-│       ├── InventoryWarning.php                # 库存预警 → 推送 inventory.warning
-│       ├── ApprovalPending.php                 # 审核待办 → 推送 approval.{role_id}
-│       ├── ApprovalResolved.php               # 审核完成 → 通知申请人
-│       ├── DeliveryTrackUpdated.php            # 配送轨迹更新 → 推送 delivery.{driver_id}
-│       ├── DiscrepancyCreated.php              # 差异单创建 → 推送 discrepancy.{merchant_id}
-│       ├── LossOrderPending.php                # 损耗待审核 → 推送 loss-order.pending
-│       ├── RechargeCompleted.php               # 充值完成 → 推送 recharge.{merchant_id}
-│       └── SystemAnnouncement.php              # 系统公告 → 推送 system.announcement
-│
-├── routes/
-│   ├── web.php                                   # 管理后台路由（Livewire 自动注册）
-│   ├── api.php                                    # 小程序端 API 路由（按模块分组）
-│   └── channels.php                               # 广播频道授权（Private 频道权限校验）
-│
-├── database/
-│   ├── migrations/                              # 22 个迁移文件（按时间戳排序）
-│   └── seeders/
-│       ├── DatabaseSeeder.php
-│       ├── RolePermissionSeeder.php             # 角色 + 权限种子
-│       ├── ApprovalConfigSeeder.php             # 19 个审核节点种子
-│       └── SystemConfigSeeder.php               # 系统配置种子（已内联到 Migration，无需独立 Seeder）
-│
-├── config/
-│   ├── auth.php
-│   ├── sanctum.php
-│   ├── database.php
-│   ├── cache.php
-│   ├── queue.php
-│   ├── broadcasting.php                          # 广播配置（Reverb 驱动）
-│   ├── filesystems.php
-│   └── susong.php                               # 项目自定义配置
-│
-└── storage/
-    └── logs/
-        └── susong.log
-```
-
-#### 9.2.1 路由规划（routes/api.php）
-
-路由按模块分组，前缀统一 `/api/v1`，认证路由使用 `sanctum` 中间件：
-
-```php
-// ====== 认证 ======
-Route::post('auth/login', [AuthController::class, 'login']);
-Route::post('auth/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
-Route::post('auth/refresh', [AuthController::class, 'refresh'])->middleware('auth:sanctum');
-
-Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
-
-    // ====== 用户与权限 ======
-    Route::apiResource('users', UserController::class);
-    Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword']);
-    Route::apiResource('roles', RoleController::class);
-    Route::post('roles/{role}/permissions', [RoleController::class, 'syncPermissions']);
-    Route::apiResource('permissions', PermissionController::class);
-
-    // ====== 组织主体 ======
-    Route::apiResource('suppliers', SupplierController::class);
-    Route::apiResource('merchants', MerchantController::class);
-    Route::apiResource('merchants.addresses', MerchantAddressController::class)->shallow();
-    Route::apiResource('delivery-routes', DeliveryRouteController::class);
-    Route::apiResource('drivers', DriverController::class);
-    Route::apiResource('vehicles', VehicleController::class);
-
-    // ====== 商品管理 ======
-    Route::apiResource('categories', CategoryController::class);
-    Route::apiResource('products', ProductController::class);
-    Route::apiResource('skus', SkuController::class);
-    Route::apiResource('sku-barcodes', SkuBarcodeController::class);
-    Route::apiResource('sku-suppliers', SkuSupplierController::class);
-    Route::apiResource('merchant-sku-visibility', MerchantSkuVisibilityController::class);
-    Route::apiResource('tags', TagController::class);
-    Route::apiResource('keywords', KeywordController::class);
-
-    // ====== 平台统采 ======
-    Route::apiResource('purchase-items', PurchaseItemController::class);
-    Route::post('purchase-items/generate-order', [PurchaseItemController::class, 'generateOrder']);
-    Route::apiResource('purchase-orders', PurchaseOrderController::class);
-    Route::post('purchase-orders/{id}/confirm-ship', [PurchaseOrderController::class, 'confirmShip']);
-    Route::post('purchase-orders/{id}/confirm-warehouse', [PurchaseOrderController::class, 'confirmWarehouse']);
-    Route::apiResource('purchase-returns', PurchaseReturnController::class);
-    Route::post('purchase-returns/{id}/audit', [PurchaseReturnController::class, 'audit']);
-    Route::post('purchase-returns/{id}/confirm-out', [PurchaseReturnController::class, 'confirmOut']);
-
-    // ====== 客户直采 ======
-    Route::apiResource('carts', CartController::class)->only(['index', 'destroy']);
-    Route::apiResource('orders', OrderController::class);
-    Route::post('orders/{id}/lock', [OrderController::class, 'lock']);
-    Route::post('orders/{id}/weighing-price', [OrderController::class, 'weighingPrice']);
-    Route::apiResource('frequently-bought', FrequentlyBoughtController::class)->only(['index']);
-    Route::apiResource('repurchase-templates', RepurchaseController::class);
-    Route::apiResource('order-returns', OrderReturnController::class);
-    Route::post('order-returns/{id}/audit', [OrderReturnController::class, 'audit']);
-    Route::post('order-returns/{id}/refund', [OrderReturnController::class, 'refund']);
-
-    // ====== 库存管理 ======
-    Route::apiResource('warehouses', WarehouseController::class);
-    Route::apiResource('inventory', InventoryController::class)->only(['index', 'show', 'update']);
-    Route::apiResource('inventory-logs', InventoryLogController::class)->only(['index']);
-
-    // ====== 损耗管理 ======
-    Route::apiResource('loss-orders', LossOrderController::class);
-    Route::post('loss-orders/{id}/execute', [LossOrderController::class, 'execute']);
-    Route::get('loss-orders/statistics', [LossOrderController::class, 'statistics']);
-    Route::get('loss-orders/trend', [LossOrderController::class, 'trend']);
-    Route::get('loss-orders/export', [LossOrderController::class, 'export']);
-
-    // ====== 拣货管理 ======
-    Route::apiResource('picking-tasks', PickingTaskController::class);
-    Route::post('picking-tasks/{id}/assign', [PickingTaskController::class, 'assign']);
-    Route::post('picking-tasks/{id}/pick', [PickingTaskController::class, 'pick']);
-
-    // ====== 物流配送 ======
-    Route::apiResource('delivery-tasks', DeliveryTaskController::class);
-    Route::post('delivery-tasks/{id}/assign', [DeliveryTaskController::class, 'assign']);
-    Route::post('delivery-tasks/{id}/start', [DeliveryTaskController::class, 'start']);
-    Route::post('delivery-tasks/{id}/complete', [DeliveryTaskController::class, 'complete']);
-    Route::apiResource('delivery-tracks', DeliveryTrackController::class)->only(['store', 'index']);
-    Route::apiResource('signatures', SignatureController::class)->only(['store', 'index']);
-    Route::apiResource('temperatures', TemperatureController::class)->only(['store', 'index']);
-
-    // ====== 差异处理 ======
-    Route::apiResource('discrepancies', DiscrepancyController::class);
-    Route::post('discrepancies/{id}/handle', [DiscrepancyController::class, 'handle']);
-    Route::post('discrepancies/{id}/approve', [DiscrepancyController::class, 'approve']);
-    Route::get('discrepancies/statistics', [DiscrepancyController::class, 'statistics']);
-    Route::get('discrepancies/export', [DiscrepancyController::class, 'export']);
-
-    // ====== 财务对账 ======
-    Route::apiResource('merchant-accounts', MerchantAccountController::class)->only(['index', 'show']);
-    Route::apiResource('recharges', RechargeController::class);
-    Route::post('recharges/{id}/audit', [RechargeController::class, 'audit']);
-    Route::apiResource('supplier-settlements', SupplierSettlementController::class);
-    Route::post('supplier-settlements/{id}/close', [SupplierSettlementController::class, 'close']);
-    Route::apiResource('settlement-payments', SettlementPaymentController::class)->only(['store', 'index']);
-    Route::apiResource('receivables', ReceivableController::class);
-    Route::post('receivables/{id}/close', [ReceivableController::class, 'close']);
-    Route::apiResource('receivable-payments', ReceivablePaymentController::class)->only(['store', 'index']);
-    Route::apiResource('invoices', InvoiceController::class);
-    Route::apiResource('correction-authorizations', CorrectionAuthorizationController::class);
-    Route::apiResource('price-apportionments', PriceApportionmentController::class);
-
-    // ====== 价格策略 ======
-    Route::apiResource('price-strategies', PriceStrategyController::class);
-    Route::apiResource('price-change-logs', PriceChangeLogController::class)->only(['index', 'show']);
-
-    // ====== 审核管理 ======
-    Route::get('approvals/config', [ApprovalController::class, 'configIndex']);
-    Route::put('approvals/config/{id}', [ApprovalController::class, 'configUpdate']);
-    Route::get('approvals/pending', [ApprovalController::class, 'pending']);
-    Route::get('approvals/reviewed', [ApprovalController::class, 'reviewed']);
-    Route::post('approvals/{id}/approve', [ApprovalController::class, 'approve']);
-    Route::post('approvals/{id}/reject', [ApprovalController::class, 'reject']);
-    Route::get('approvals/pending-count', [ApprovalController::class, 'pendingCount']);
-
-    // ====== 系统支撑 ======
-    Route::apiResource('system-configs', SystemConfigController::class)->only(['index', 'update']);
-    Route::apiResource('banners', BannerController::class);
-    Route::apiResource('promotions', PromotionController::class);
-    Route::apiResource('operation-logs', OperationLogController::class)->only(['index']);
-    Route::apiResource('audit-logs', AuditLogController::class)->only(['index', 'show']);
-    Route::apiResource('login-logs', LoginLogController::class)->only(['index']);
-
-    // ====== 文件上传 & 报表导出 ======
-    Route::post('files/upload', [FileUploadController::class, 'upload']);
-    Route::get('reports/export', [ReportExportController::class, 'export']);
-});
-
-// ====== 微信小程序商家端 ======
-Route::prefix('v1/mini/merchant')->group(function () {
-    Route::post('auth/login', [MiniApp\MerchantAuthController::class, 'login']);
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::get('home', [MiniApp\MerchantHomeController::class, 'index']);
-        Route::get('products', [MiniApp\MerchantProductController::class, 'index']);
-        Route::get('products/{id}', [MiniApp\MerchantProductController::class, 'show']);
-        Route::apiResource('cart', MiniApp\MerchantCartController::class)->only(['index', 'store', 'update', 'destroy']);
-        Route::apiResource('orders', MiniApp\MerchantOrderController::class)->only(['index', 'store', 'show']);
-        Route::post('orders/{id}/confirm-sign', [MiniApp\MerchantOrderController::class, 'confirmSign']);
-        Route::get('account', [MiniApp\MerchantAccountController::class, 'show']);
-        Route::post('account/recharge', [MiniApp\MerchantAccountController::class, 'recharge']);
-        Route::apiResource('messages', MiniApp\MerchantMessageController::class)->only(['index', 'show']);
-        Route::apiResource('restock-reminders', MiniApp\MerchantMessageController::class . '@reminders');
-    });
-});
-
-// ====== 微信小程序司机端 ======
-Route::prefix('v1/mini/driver')->group(function () {
-    Route::post('auth/login', [MiniApp\DriverAuthController::class, 'login']);
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::get('tasks', [MiniApp\DriverTaskController::class, 'index']);
-        Route::get('tasks/{id}', [MiniApp\DriverTaskController::class, 'show']);
-        Route::post('tasks/{id}/start', [MiniApp\DriverTaskController::class, 'start']);
-        Route::post('tasks/{id}/arrive', [MiniApp\DriverTaskController::class, 'arrive']);
-        Route::post('tasks/{id}/sign', [MiniApp\DriverTaskController::class, 'sign']);
-        Route::post('tracks', [MiniApp\DriverTaskController::class, 'reportTrack']);
-        Route::post('temperatures', [MiniApp\DriverTaskController::class, 'recordTemperature']);
-        Route::post('discrepancies', [MiniApp\DriverTaskController::class, 'markDiscrepancy']);
-        Route::get('history', [MiniApp\DriverHistoryController::class, 'index']);
-    });
-});
-```
-
-#### 9.2.2 关键设计原则
-
-| 原则 | 说明 |
-| :--- | :--- |
-| Livewire 组件瘦、Service 胖 | Livewire 组件仅做表单交互与页面渲染，核心逻辑写在 Service 层 |
-| Form Object 校验入参 | 每个 Livewire 表单对应独立 Form Object，复用 Laravel 验证规则 |
-| 枚举替代魔法数字 | 状态/类型字段全部使用 `app/Enums/` 下的枚举类 |
-| 事件驱动异步 | 审批完成/库存预警等使用 Event + Queue 异步处理 |
-| Observer 自动审计 | 敏感模型变更通过 Observer 自动写入 audit_logs |
-| 看板拖拽使用 wire:sort | Livewire 4.x 内置 `wire:sort` + `wire:sort:group` 实现拖拽 |
-| Blade 组件可组合 | 对标 shadcn/ui 可组合结构，业务页面只组装组件、不复制样式 |
 
 > AI生成

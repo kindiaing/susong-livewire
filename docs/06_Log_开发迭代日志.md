@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '210f8f5c-659a-4b16-bc9c-2c46d832394a'
-  PropagateID: '210f8f5c-659a-4b16-bc9c-2c46d832394a'
-  ReservedCode1: 'd79c02de-c251-4477-9e4d-81b2c690055d'
-  ReservedCode2: 'd79c02de-c251-4477-9e4d-81b2c690055d'
+  ProduceID: 'c41026f5-7cf2-4f16-9646-b069070e2a4e'
+  PropagateID: 'c41026f5-7cf2-4f16-9646-b069070e2a4e'
+  ReservedCode1: '31e40ba1-269e-4783-bb0f-7171db1cacba'
+  ReservedCode2: '31e40ba1-269e-4783-bb0f-7171db1cacba'
 ---
 
 # 开发迭代日志
@@ -16,6 +16,75 @@ AIGC:
 技术栈：Laravel 13 + Livewire 4.x + Tailwind CSS 4.2+ + Alpine.js + PHP 8.4+ + MySQL 8.0 + Redis 7.x
 
 记录规则：每次迭代新增一节，按版本号倒序排列。每条变更需标注开发人、完成时间和关联模块。
+
+---
+
+## V1.2.0 | 迭代周期：2026-07-29
+
+负责人：项目负责人
+参与开发人员：后端开发、前端开发
+
+### 1 本次新增功能清单
+
+| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 商品管理 | Category Model（树形分类，parent_id/状态/排序） | AI | 2026-07-29 | 已完成 |
+| 2 | 商品管理 | Product Model（商品主表，分类/供应商/称重改价/上下架） | AI | 2026-07-29 | 已完成 |
+| 3 | 商品管理 | ProductImage Model（商品多图） | AI | 2026-07-29 | 已完成 |
+| 4 | 商品管理 | Sku Model（SKU规格，价格整数存储，审核状态） | AI | 2026-07-29 | 已完成 |
+| 5 | 商品管理 | MerchantSkuVisibility Model（商家SKU可见性） | AI | 2026-07-29 | 已完成 |
+| 6 | 商品管理 | Tag / ProductTag Model（标签词库+商品标签关联） | AI | 2026-07-29 | 已完成 |
+| 7 | 商品管理 | Keyword Model（搜索关键词联想+热度） | AI | 2026-07-29 | 已完成 |
+| 8 | 条码管理 | SkuBarcode Model（4种条码类型：厂家/供应商/内部/备用） | AI | 2026-07-29 | 已完成 |
+| 9 | 一品多供 | SkuSupplier Model（SKU-供应商关联，默认供应商/采购价） | AI | 2026-07-29 | 已完成 |
+| 10 | 商品管理 | CategoryList Livewire（分类CRUD+搜索+弹窗表单） | AI | 2026-07-29 | 已完成 |
+| 11 | 商品管理 | ProductList Livewire（商品CRUD+分类筛选+状态筛选） | AI | 2026-07-29 | 已完成 |
+| 12 | 商品管理 | SkuList Livewire（SKU列表+审核状态标签） | AI | 2026-07-29 | 已完成 |
+| 13 | 商品管理 | TagList Livewire（标签CRUD+搜索） | AI | 2026-07-29 | 已完成 |
+| 14 | 商品管理 | KeywordList Livewire（关键词CRUD+搜索次数排序） | AI | 2026-07-29 | 已完成 |
+| 15 | 条码管理 | SkuBarcodeList Livewire（条码CRUD+类型筛选） | AI | 2026-07-29 | 已完成 |
+| 16 | 一品多供 | SkuSupplierList Livewire（关联CRUD+供应商下拉） | AI | 2026-07-29 | 已完成 |
+| 17 | 路由 | web.php 新增 7 条路由（categories/products/skus/tags/keywords/sku-barcodes/sku-suppliers） | AI | 2026-07-29 | 已完成 |
+| 18 | 导航 | 商品管理子菜单全部指向真实路由 | AI | 2026-07-29 | 已完成 |
+| 19 | 文档 | FSD 9.2 Models 目录标注已创建状态，清理尾部重复残留 | AI | 2026-07-29 | 已完成 |
+
+### 2 原有功能优化项
+
+1. FSD 文档清理 — 删除尾部 2293-2733 行重复残留内容（旧版 Livewire 组件/Model/路由规划重复段）（2026-07-29）
+
+### 3 BUG 修复记录
+
+无
+
+### 4 遗留待迭代需求（下一版本处理）
+
+| 序号 | 需求描述 | 优先级 | 备注 |
+| :--- | :--- | :--- | :--- |
+| 1 | Model 第5~15批（约39个） | P0 | 采购→订单→拣货→配送→差异损耗→退货→价格策略→财务→均摊+扩展+系统+微信 |
+| 2 | 安装 Redis PHP 扩展 | P1 | .env 目前用 file 驱动 |
+
+### 5 完成统计
+
+| 维度 | 已完成 | 待开发 | 合计 |
+| :--- | :--- | :--- | :--- |
+| 功能点 | 38 | 15 | 53 |
+| 数据库表 | 77（已建 Migration） | 0 | 77 |
+| Blade 组件 | 34+ | - | 34+ |
+| Model | 26 | ~42 | ~68 |
+| Livewire 组件 | 22 | - | 22 |
+| 路由 | 24 | - | 24 |
+
+### 6 版本发布记录
+
+| 项目 | 内容 |
+| :--- | :--- |
+| 版本号 | V1.2.0-alpha |
+| 发布时间 | 2026-07-29 |
+| 部署环境 | 开发环境（Laragon，https://livewire.test） |
+| Git 分支 | navigate |
+| 远程仓库 | git@github.com:kindiaing/susong-livewire.git |
+| 新增文件 | 10 Model + 7 Livewire 组件 + 7 Livewire 视图 |
+| 修改文件 | web.php / app-topnav.blade.php / FSD 9.2 + 9.9 |
 
 ---
 
@@ -132,7 +201,7 @@ AIGC:
 | 24 | 组织主体 | 供应商管理 | AI | 2026-07-29 | V1.1.0 已完成 |
 | 25 | 组织主体 | 商家管理（含多地址） | AI | 2026-07-29 | V1.1.0 已完成 |
 | 26 | 组织主体 | 配送线路/司机/车辆管理 | AI | 2026-07-29 | V1.1.0 已完成 |
-| 27 | 商品管理 | 分类/商品/SKU/条码/一品多供/可见性/关键词 | - | - | 待开发 |
+| 27 | 商品管理 | 分类/商品/SKU/条码/一品多供/可见性/关键词 | AI | 2026-07-29 | V1.2.0 已完成 |
 | 28 | 平台统采 | 待采清单/采购单/采购入库/采购退货 | - | - | 待开发 |
 | 29 | 客户直采 | 购物车/订单/称重改价/售后退货 | - | - | 待开发 |
 | 30 | 库存管理 | 仓库/实时库存/库存日志/库存预警 | - | - | 待开发 |
