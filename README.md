@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'd22db7c0-4136-4323-9417-3395d6092ddd'
-  PropagateID: 'd22db7c0-4136-4323-9417-3395d6092ddd'
-  ReservedCode1: 'e3dc77cd-c961-4ea2-a149-3ec3335caf02'
-  ReservedCode2: 'e3dc77cd-c961-4ea2-a149-3ec3335caf02'
+  ProduceID: '814e0a55-b9bd-4fb2-8616-1a5264cfd742'
+  PropagateID: '814e0a55-b9bd-4fb2-8616-1a5264cfd742'
+  ReservedCode1: 'ad522715-5830-40f9-a15c-d5ecb4190a1f'
+  ReservedCode2: 'ad522715-5830-40f9-a15c-d5ecb4190a1f'
 ---
 
 # 速送 — 生鲜配送平台
@@ -61,13 +61,12 @@ susong/
 | 文档 | 说明 |
 |:---|:---|
 | `docs/01_PRD_业务需求.md` | 产品需求文档 — 功能模块、角色权限、业务流程、技术栈（Livewire 4.x） |
-| `docs/02_FSD_功能详细说明.md` | 功能详细说明 — 14+1 模块、权限矩阵、目录规划（Livewire + Blade 组件） |
+| `docs/02_FSD_功能详细说明.md` | 功能详细说明 — 14+1 模块、权限矩阵、审核节点全景图（P0~P3）、目录规划 |
 | `docs/03_DB_数据库设计&数据字典.md` | 数据库设计 — 55+ 表结构、22 个 Migration、数据字典 |
 | `docs/04_API_前后端接口文档.md` | 接口文档 — 21 章节 150+ RESTful 接口 |
 | `docs/05_Setup_安装部署配置手册.md` | 部署手册 — 11 章，含环境/数据库/缓存/队列等配置 |
 | `docs/06_Log_开发迭代日志.md` | 迭代日志 — 版本记录、功能清单 |
 | `docs/07_Test_功能验收用例.md` | 验收用例 — 108 条功能用例 |
-| `docs/审核节点全景图.md` | 审核体系 — 19 节点、P0/P1 风险等级 |
 | `docs/flowcharts/draw 03.drawio` | 流程图主文件 — 19 张合并 |
 | `docs/flowcharts/draw 03/` | 流程图子文件 — 19 个独立 .drawio |
 | `docs/attach/.env.example` | 环境变量模板 |

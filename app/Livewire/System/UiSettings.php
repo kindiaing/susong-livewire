@@ -2,8 +2,9 @@
 
 namespace App\Livewire\System;
 
-use Livewire\Component;
+use App\Models\SystemConfig;
 use App\Support\Setting;
+use Livewire\Component;
 
 class UiSettings extends Component
 {
@@ -14,19 +15,20 @@ class UiSettings extends Component
         $this->closeOnOutside = (bool) Setting::get('ui_close_on_outside', true);
     }
 
-    public function save(): void
+    public function toggleCloseOnOutside(): void
     {
-        Setting::set('ui_close_on_outside', $this->closeOnOutside ? '1' : '0');
+        $this->closeOnOutside = !$this->closeOnOutside;
 
-        $closeOnOutsideJs = $this->closeOnOutside ? 'true' : 'false';
+        SystemConfig::setValue('ui_close_on_outside', $this->closeOnOutside);
 
-        $this->js("window.__UI_CLOSE_ON_OUTSIDE = {$closeOnOutsideJs};");
+        $jsBool = $this->closeOnOutside ? 'true' : 'false';
         $this->js(<<<JS
             if (Alpine.store('uiSettings')) {
-                Alpine.store('uiSettings').closeOnOutside = {$closeOnOutsideJs};
+                Alpine.store('uiSettings').closeOnOutside = {$jsBool};
             }
         JS);
-        $this->js("window.\$toast.success('界面设置已保存');");
+
+        $this->js("window.\$toast.success('设置已保存');");
     }
 
     public function render()

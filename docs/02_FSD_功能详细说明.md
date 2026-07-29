@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '5b27291a-9113-4e6f-a379-b3f07f4f5b22'
-  PropagateID: '5b27291a-9113-4e6f-a379-b3f07f4f5b22'
-  ReservedCode1: '1c98ae21-2070-47fb-a2dd-3e2606324bb1'
-  ReservedCode2: '1c98ae21-2070-47fb-a2dd-3e2606324bb1'
+  ProduceID: 'afb1a7c3-87e1-4de6-a21d-2b15aa230e1e'
+  PropagateID: 'afb1a7c3-87e1-4de6-a21d-2b15aa230e1e'
+  ReservedCode1: 'b9779974-c2ec-4246-b284-6660517e9d2b'
+  ReservedCode2: 'b9779974-c2ec-4246-b284-6660517e9d2b'
 ---
 
 # FSD 功能详细说明书
@@ -2192,7 +2192,6 @@ docs/
 ├── 05_Setup_安装部署配置手册.md
 ├── 06_Log_开发迭代日志.md
 ├── 07_Test_功能验收用例.md
-├── 审核节点全景图.md
 ├── attach/                      # 附件
 │   ├── .env.example
 │   ├── DB数据字典.xlsx

@@ -108,7 +108,7 @@
 
                 {{-- 系统管理 --}}
                 <x-nav-menu-item value="system">
-                    <x-nav-menu-trigger icon="cog">系统管理</x-nav-menu-trigger>
+                    <x-nav-menu-trigger icon="adjustments-horizontal">系统管理</x-nav-menu-trigger>
                     <x-nav-menu-content value="system">
                         <x-nav-menu-link href="{{ route('settings') }}" description="6组17项系统配置，分组导航+列表编辑">系统配置</x-nav-menu-link>
                         <x-nav-menu-link href="#" description="首页轮播广告管理">轮播广告</x-nav-menu-link>
@@ -144,10 +144,10 @@
             {{-- 通知 Drawer（Livewire 组件） --}}
             <livewire:system.notification-drawer />
 
-            {{-- 界面设置 --}}
-            <button type="button" class="p-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors" title="界面设置"
+            {{-- 系统设置 Drawer --}}
+            <button type="button" class="p-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors" title="系统设置"
                     @click="$store.uiSettings.open = !$store.uiSettings.open">
-                <x-ui.icon name="paintbrush" class="w-5 h-5" />
+                <x-ui.icon name="cog-6-tooth" class="w-5 h-5" />
             </button>
 
             {{-- 分隔线 --}}
