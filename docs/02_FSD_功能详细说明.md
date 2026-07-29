@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'afb1a7c3-87e1-4de6-a21d-2b15aa230e1e'
-  PropagateID: 'afb1a7c3-87e1-4de6-a21d-2b15aa230e1e'
-  ReservedCode1: 'b9779974-c2ec-4246-b284-6660517e9d2b'
-  ReservedCode2: 'b9779974-c2ec-4246-b284-6660517e9d2b'
+  ProduceID: '9c24537e-2bb4-48b9-a650-903a9d0d1f36'
+  PropagateID: '9c24537e-2bb4-48b9-a650-903a9d0d1f36'
+  ReservedCode1: 'daa2a2ee-3d87-4470-836c-ce6289c268d5'
+  ReservedCode2: 'daa2a2ee-3d87-4470-836c-ce6289c268d5'
 ---
 
 # FSD 功能详细说明书
@@ -1867,21 +1867,45 @@ Route::middleware('auth:sanctum')->post('/broadcasting/auth', [BroadcastControll
 
 #### 9.3.3 数据库目录（database/）
 
+> **说明**：本项目从 Inertia + React SPA 架构迁移至 Livewire 4.x 全栈架构。迁移文件采用编号前缀（000001~000020）保证执行顺序，所有业务表集中在 20 个 Migration 中创建，无外键约束。Seeder 已合并整理为 SystemDataSeeder（生产必需）+ DemoDataSeeder（测试数据）。
+
 ```text
 database/
-├── migrations/                 # 迁移文件（按时间戳排序）
-│   ├── 0001_01_01_000000_create_users_table.php      # Starter Kit 自带
-│   ├── 0001_01_01_000001_create_cache_table.php      # Starter Kit 自带
-│   ├── 0001_01_01_000002_create_jobs_table.php        # Starter Kit 自带
-│   └── ...                                            # 业务迁移 [待建]
-├── seeders/                    # 种子数据
-│   ├── DatabaseSeeder.php                          # Starter Kit 自带
-│   ├── RolePermissionSeeder.php                    # 角色 + 权限种子 [待建]
-│   ├── ApprovalConfigSeeder.php                    # 19 个审核节点种子 [待建]
-│   └── SystemConfigSeeder.php                      # 系统配置种子（已内联到 Migration，无需独立 Seeder） [已废弃]
-└── factories/                  # 模型工厂
-    └── UserFactory.php                              # Starter Kit 自带
+├── migrations/                                        # 迁移文件（按编号前缀排序，共 20 个）
+│   ├── 2026_07_27_000001_create_users_and_permissions_tables.php    # 用户/角色/权限/Token（8 表）
+│   ├── 2026_07_27_000002_create_organization_tables.php             # 供应商/商家/线路/司机/车辆（6 表）
+│   ├── 2026_07_27_000003_create_product_tables.php                  # 分类/商品/SKU/可见性/标签/关键词（8 表）
+│   ├── 2026_07_27_000004_create_sku_barcodes_suppliers_tables.php   # SKU 条码/供应商关联（2 表）
+│   ├── 2026_07_27_000005_create_purchase_tables.php                  # 待采清单/采购单/明细（3 表）
+│   ├── 2026_07_27_000006_create_order_tables.php                    # 购物车/订单/常购/复购模板（7 表）
+│   ├── 2026_07_27_000007_create_inventory_tables.php                 # 仓库/实时库存/库存日志（3 表）
+│   ├── 2026_07_27_000008_create_loss_tables.php                      # 损耗单/明细（2 表）
+│   ├── 2026_07_27_000009_create_picking_tables.php                   # 拣货任务/明细（2 表）
+│   ├── 2026_07_27_000010_create_delivery_tables.php                  # 配送任务/轨迹/签收/温度（5 表）
+│   ├── 2026_07_27_000011_create_discrepancy_tables.php               # 差异单（1 表）
+│   ├── 2026_07_27_000012_create_finance_tables.php                  # 客户账户/充值/结算/应收/发票/更正（9 表）
+│   ├── 2026_07_27_000013_create_system_tables.php                    # 系统配置/轮播/主推/操作日志/审计日志/登录日志（6 表）
+│   ├── 2026_07_27_000014_create_wechat_tables.php                   # 微信用户绑定（1 表）
+│   ├── 2026_07_27_000015_create_price_strategy_tables.php            # 价格策略/明细/改价记录（3 表）
+│   ├── 2026_07_27_000016_create_return_tables.php                    # 采购退货/售后退货及明细（4 表）
+│   ├── 2026_07_27_000017_create_price_apportionment_tables.php       # 费用均摊（1 表）
+│   ├── 2026_07_27_000018_create_merchant_extension_tables.php        # 商家地址/收藏（2 表）
+│   ├── 2026_07_27_000019_create_notification_tables.php             # 通知/补货提醒（2 表）
+│   └── 2026_07_27_000020_create_approval_tables.php                  # 审批记录/审核配置（2 表）
+│
+├── seeders/                                           # 种子数据
+│   ├── DatabaseSeeder.php                            # Laravel 默认入口（空壳）
+│   ├── SystemDataSeeder.php                           # 系统内置数据（角色/权限/超级管理员/审核节点/系统配置）✓
+│   └── DemoDataSeeder.php                            # 测试数据（9 用户 + 23 配置 + 9 角色）✓
+│
+├── factories/                                        # 模型工厂
+│   └── UserFactory.php                               # 用户工厂 ✓
+│
+├── database.sqlite                                   # SQLite 备份（不入版本控制）
+└── livewire-navigate.sql                             # SQL 备份（不入版本控制）
 ```
+
+**数据库统计**：77 张表 / 20 个 Migration / 无外键约束 / 金额字段整数存储（bigint 分/厘/毫）
 
 #### 9.3.4 Artisan 命令（admin:* 命令体系）
 

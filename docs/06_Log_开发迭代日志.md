@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '80d497ba-a2fb-4c19-9248-d13180004cf4'
-  PropagateID: '80d497ba-a2fb-4c19-9248-d13180004cf4'
-  ReservedCode1: 'f13426d0-97a4-46a1-8ed9-9d039092c4ae'
-  ReservedCode2: 'f13426d0-97a4-46a1-8ed9-9d039092c4ae'
+  ProduceID: '210f8f5c-659a-4b16-bc9c-2c46d832394a'
+  PropagateID: '210f8f5c-659a-4b16-bc9c-2c46d832394a'
+  ReservedCode1: 'd79c02de-c251-4477-9e4d-81b2c690055d'
+  ReservedCode2: 'd79c02de-c251-4477-9e4d-81b2c690055d'
 ---
 
 # 开发迭代日志
@@ -16,6 +16,84 @@ AIGC:
 技术栈：Laravel 13 + Livewire 4.x + Tailwind CSS 4.2+ + Alpine.js + PHP 8.4+ + MySQL 8.0 + Redis 7.x
 
 记录规则：每次迭代新增一节，按版本号倒序排列。每条变更需标注开发人、完成时间和关联模块。
+
+---
+
+## V1.1.0 | 迭代周期：2026-07-29
+
+负责人：项目负责人
+参与开发人员：后端开发、前端开发
+
+### 1 本次新增功能清单
+
+| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 用户权限 | Role Model（继承 SpatieRole，扩展 display_name/type/parent_id） | AI | 2026-07-29 | 已完成 |
+| 2 | 用户权限 | Permission Model（继承 SpatiePermission，扩展 display_name/type/parent_id） | AI | 2026-07-29 | 已完成 |
+| 3 | 组织主体 | Supplier Model（供应商，含状态/类型常量、关联关系、作用域） | AI | 2026-07-29 | 已完成 |
+| 4 | 组织主体 | Merchant Model（商家，含状态常量、多地址关联） | AI | 2026-07-29 | 已完成 |
+| 5 | 组织主体 | DeliveryRoute Model（配送线路，含排序/状态常量） | AI | 2026-07-29 | 已完成 |
+| 6 | 组织主体 | Driver Model（司机，含状态/类型常量、车辆绑定关联） | AI | 2026-07-29 | 已完成 |
+| 7 | 组织主体 | Vehicle Model（车辆，含车型/状态/冷链标记常量） | AI | 2026-07-29 | 已完成 |
+| 8 | 组织主体 | DriverVehicle Model（司机-车辆绑定，多对多中间表） | AI | 2026-07-29 | 已完成 |
+| 9 | 用户权限 | RoleList Livewire（角色列表+搜索+弹窗表单+删除） | AI | 2026-07-29 | 已完成 |
+| 10 | 用户权限 | PermissionList Livewire（权限列表+搜索+弹窗表单+删除） | AI | 2026-07-29 | 已完成 |
+| 11 | 组织主体 | SupplierList Livewire（供应商CRUD+搜索+状态标签） | AI | 2026-07-29 | 已完成 |
+| 12 | 组织主体 | MerchantList Livewire（商家CRUD+搜索+状态标签） | AI | 2026-07-29 | 已完成 |
+| 13 | 组织主体 | RouteList Livewire（线路CRUD+搜索+排序） | AI | 2026-07-29 | 已完成 |
+| 14 | 组织主体 | DriverList Livewire（司机CRUD+搜索+状态标签） | AI | 2026-07-29 | 已完成 |
+| 15 | 组织主体 | VehicleList Livewire（车辆CRUD+搜索+冷链/状态标签） | AI | 2026-07-29 | 已完成 |
+| 16 | 路由 | web.php 新增 7 条路由（roles/permissions/suppliers/merchants/delivery-routes/drivers/vehicles） | AI | 2026-07-29 | 已完成 |
+| 17 | 导航 | 用户权限子菜单链接真实路由（角色管理→roles、权限管理→permissions） | AI | 2026-07-29 | 已完成 |
+| 18 | 导航 | 组织主体全部 5 个子菜单指向真实路由 | AI | 2026-07-29 | 已完成 |
+| 19 | 文档 | 08_用户使用手册.md 创建（覆盖已完成的全部功能模块操作说明） | AI | 2026-07-29 | 已完成 |
+| 20 | 文档 | FSD 9.3.3 数据库目录更新为 Livewire 项目实际状态 | AI | 2026-07-29 | 已完成 |
+
+### 2 原有功能优化项
+
+1. .env.example 中文乱码修复 — 重写为无 BOM UTF-8 编码（2026-07-29）
+2. AdminInstallCommand 引用修复 — RolePermissionSeeder → SystemDataSeeder（2026-07-29）
+3. 移动端汉堡菜单代码清除 — 管理后台不做移动端适配（2026-07-29）
+4. composer.json post-autoload-dump 添加自动创建缺失目录脚本（2026-07-29）
+
+### 3 BUG 修复记录
+
+| BUG编号 | 问题描述 | 复现步骤 | 修复方案 | 验证状态 |
+| :--- | :--- | :--- | :--- | :--- |
+| 8 | AdminInstallCommand 引用已删除的 RolePermissionSeeder | `php artisan admin:install --reset --force` 报错类不存在 | 改为引用 SystemDataSeeder | 已验证 |
+| 9 | .env.example UTF-8 BOM 导致中文注释乱码 | Git clone 后在其他环境打开 .env.example 中文全部乱码 | 重写为无 BOM UTF-8 | 已验证 |
+
+### 4 遗留待迭代需求（下一版本处理）
+
+| 序号 | 需求描述 | 优先级 | 备注 |
+| :--- | :--- | :--- | :--- |
+| 1 | Model 第3~15批（约49个） | P0 | 商品→SKU条码→仓库库存→采购→订单→拣货→配送→差异损耗→退货→价格策略→财务→均摊+扩展+系统+微信 |
+| 2 | 对应 Livewire 页面 | P0 | 每批 Model 配套列表/详情/表单页面 |
+| 3 | 安装 Redis PHP 扩展 | P1 | .env 目前用 file 驱动 |
+| 4 | 数据大屏统计功能 | P2 | 展示订单量、销售额、损耗率等实时指标 |
+
+### 5 完成统计
+
+| 维度 | 已完成 | 待开发 | 合计 |
+| :--- | :--- | :--- | :--- |
+| 功能点 | 38 | 15 | 53 |
+| 数据库表 | 77（已建 Migration） | 0 | 77 |
+| Blade 组件 | 34+ | - | 34+ |
+| Model | 16 | ~52 | ~68 |
+| Livewire 组件 | 15 | - | 15 |
+| 路由 | 17 | - | 17 |
+
+### 6 版本发布记录
+
+| 项目 | 内容 |
+| :--- | :--- |
+| 版本号 | V1.1.0-alpha |
+| 发布时间 | 2026-07-29 |
+| 部署环境 | 开发环境（Laragon，https://livewire.test） |
+| Git 分支 | navigate |
+| 远程仓库 | git@github.com:kindiaing/susong-livewire.git |
+| 新增文件 | 7 Model + 7 Livewire 组件 + 7 Livewire 视图 + 1 用户手册 |
+| 修改文件 | web.php / app-topnav.blade.php / .env.example / AdminInstallCommand / composer.json / FSD |
 
 ---
 
@@ -51,9 +129,9 @@ AIGC:
 | 21 | UI 增强 | Alert Dialog 组件（shadcn/ui 风格，4 种 variant，支持 Livewire 回调） | AI | 2026-07-28 | 已完成 |
 | 22 | UI 增强 | Toast 通知（全局 Alpine store，5 种类型，统一 duration 5s） | AI | 2026-07-28 | 已完成 |
 | 23 | 安全 | CSRF Token 过期自动刷新（419 → reload，用户无感知） | AI | 2026-07-29 | 已完成 |
-| 24 | 组织主体 | 供应商管理 | - | - | 待开发 |
-| 25 | 组织主体 | 商家管理（含多地址） | - | - | 待开发 |
-| 26 | 组织主体 | 配送线路/司机/车辆管理 | - | - | 待开发 |
+| 24 | 组织主体 | 供应商管理 | AI | 2026-07-29 | V1.1.0 已完成 |
+| 25 | 组织主体 | 商家管理（含多地址） | AI | 2026-07-29 | V1.1.0 已完成 |
+| 26 | 组织主体 | 配送线路/司机/车辆管理 | AI | 2026-07-29 | V1.1.0 已完成 |
 | 27 | 商品管理 | 分类/商品/SKU/条码/一品多供/可见性/关键词 | - | - | 待开发 |
 | 28 | 平台统采 | 待采清单/采购单/采购入库/采购退货 | - | - | 待开发 |
 | 29 | 客户直采 | 购物车/订单/称重改价/售后退货 | - | - | 待开发 |
@@ -95,14 +173,13 @@ AIGC:
 
 | 序号 | 需求描述 | 优先级 | 备注 |
 | :--- | :--- | :--- | :--- |
-| 1 | Model 层开发 | P0 | 目前仅 User/SystemConfig/Notification/RestockReminder/Approval/ApprovalTypeConfig/AuditLog/OperationLog |
-| 2 | 移动端汉堡菜单展开面板 | P1 | 按钮已有但面板未实现 |
-| 3 | 安装 Redis PHP 扩展 | P1 | .env 目前用 file 驱动 |
-| 4 | 数据大屏统计功能 | P2 | 展示订单量、销售额、损耗率等实时指标 |
-| 5 | 操作日志导出 | P2 | 支持按时间范围、操作人、模块导出 |
-| 6 | 效期管理（二期损耗增强） | P2 | 效期预警、自动触发损耗申报 |
-| 7 | 损耗分析报表（二期） | P2 | 按品类、供应商、时间维度损耗趋势分析 |
-| 8 | AI 智能补货推荐 | P3 | 基于采购频次和库存自动推荐补货清单 |
+| 1 | Model 层开发（第3~15批） | P0 | 商品/SKU/库存/采购/订单/拣货/配送/差异/退货/价格/财务等约 49 个 |
+| 2 | 安装 Redis PHP 扩展 | P1 | .env 目前用 file 驱动 |
+| 3 | 数据大屏统计功能 | P2 | 展示订单量、销售额、损耗率等实时指标 |
+| 4 | 操作日志导出 | P2 | 支持按时间范围、操作人、模块导出 |
+| 5 | 效期管理（二期损耗增强） | P2 | 效期预警、自动触发损耗申报 |
+| 6 | 损耗分析报表（二期） | P2 | 按品类、供应商、时间维度损耗趋势分析 |
+| 7 | AI 智能补货推荐 | P3 | 基于采购频次和库存自动推荐补货清单 |
 
 ### 5 完成统计
 
@@ -112,7 +189,8 @@ AIGC:
 | 数据库表 | 77（已建 Migration） | 0 | 77 |
 | Blade 组件 | 34+ | - | 34+ |
 | Model | 8 | ~60 | ~68 |
-| 路由 | 8 | - | 8 |
+| Livewire 组件 | 8 | - | 8 |
+| 路由 | 10 | - | 10 |
 
 ### 6 版本发布记录
 

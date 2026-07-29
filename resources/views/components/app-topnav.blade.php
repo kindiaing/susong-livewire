@@ -89,8 +89,8 @@
                     <x-nav-menu-trigger icon="users">用户权限</x-nav-menu-trigger>
                     <x-nav-menu-content value="user">
                         <x-nav-menu-link href="#" description="用户CRUD、重置密码、禁用/启用">用户管理</x-nav-menu-link>
-                        <x-nav-menu-link href="#" description="9个系统角色、权限配置（树形结构）">角色管理</x-nav-menu-link>
-                        <x-nav-menu-link href="#" description="权限树形列表、模块/页面/按钮级控制">权限管理</x-nav-menu-link>
+                        <x-nav-menu-link href="{{ route('roles') }}" description="9个系统角色、权限配置（树形结构）">角色管理</x-nav-menu-link>
+                        <x-nav-menu-link href="{{ route('permissions') }}" description="权限树形列表、模块/页面/按钮级控制">权限管理</x-nav-menu-link>
                     </x-nav-menu-content>
                 </x-nav-menu-item>
 
@@ -98,11 +98,11 @@
                 <x-nav-menu-item value="org">
                     <x-nav-menu-trigger icon="building">组织主体</x-nav-menu-trigger>
                     <x-nav-menu-content value="org">
-                        <x-nav-menu-icon-link href="#" icon="building-office">供应商管理</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="#" icon="store">商家管理</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="#" icon="signal">配送线路</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="#" icon="user-circle">司机管理</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="#" icon="truck">车辆管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('suppliers') }}" icon="building-office">供应商管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('merchants') }}" icon="store">商家管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('delivery-routes') }}" icon="signal">配送线路</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('drivers') }}" icon="user-circle">司机管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('vehicles') }}" icon="truck">车辆管理</x-nav-menu-icon-link>
                     </x-nav-menu-content>
                 </x-nav-menu-item>
 
