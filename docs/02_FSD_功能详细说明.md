@@ -1671,58 +1671,58 @@ app/
 │   ├── Tag.php                                     # ✅ V1.2.0
 │   ├── ProductTag.php                              # ✅ V1.2.0
 │   ├── Keyword.php                                 # ✅ V1.2.0
-│   ├── PurchaseItem.php
-│   ├── PurchaseOrder.php
-│   ├── PurchaseOrderItem.php
-│   ├── PurchaseReturn.php
-│   ├── PurchaseReturnItem.php
-│   ├── Cart.php
-│   ├── CartItem.php
-│   ├── Order.php
-│   ├── OrderItem.php
-│   ├── FrequentlyBought.php
-│   ├── RepurchaseTemplate.php
-│   ├── RepurchaseTemplateItem.php
-│   ├── OrderReturn.php
-│   ├── OrderReturnItem.php
-│   ├── Warehouse.php
-│   ├── Inventory.php
-│   ├── InventoryLog.php
-│   ├── LossOrder.php
-│   ├── LossOrderItem.php
-│   ├── PickingTask.php
-│   ├── PickingTaskItem.php
-│   ├── DeliveryTask.php
-│   ├── DeliveryTaskOrder.php
-│   ├── DeliveryTrack.php
-│   ├── Signature.php
-│   ├── Temperature.php
-│   ├── Discrepancy.php
-│   ├── MerchantAccount.php
-│   ├── Recharge.php
-│   ├── SupplierSettlement.php
-│   ├── SupplierSettlementItem.php
-│   ├── SettlementPayment.php
-│   ├── Receivable.php
-│   ├── ReceivablePayment.php
-│   ├── Invoice.php
-│   ├── CorrectionAuthorization.php
-│   ├── PriceStrategy.php
-│   ├── PriceStrategyItem.php
-│   ├── PriceChangeLog.php
-│   ├── PriceApportionment.php
-│   ├── SystemConfig.php
-│   ├── Banner.php
-│   ├── Promotion.php
-│   ├── OperationLog.php
-│   ├── AuditLog.php
-│   ├── LoginLog.php
-│   ├── WechatUser.php
-│   ├── Notification.php
-│   ├── RestockReminder.php
-│   ├── MerchantFavorite.php
-│   ├── Approval.php
-│   └── ApprovalTypeConfig.php
+│   ├── PurchaseItem.php                            # ✅ V1.3.0
+│   ├── PurchaseOrder.php                           # ✅ V1.3.0
+│   ├── PurchaseOrderItem.php                       # ✅ V1.3.0
+│   ├── PurchaseReturn.php                          # 待建
+│   ├── PurchaseReturnItem.php                      # 待建
+│   ├── Cart.php                                    # ✅ V1.3.0
+│   ├── CartItem.php                                # ✅ V1.3.0
+│   ├── Order.php                                   # ✅ V1.3.0
+│   ├── OrderItem.php                               # ✅ V1.3.0
+│   ├── FrequentlyBought.php                       # ✅ V1.3.0
+│   ├── RepurchaseTemplate.php                     # ✅ V1.3.0
+│   ├── RepurchaseTemplateItem.php                 # ✅ V1.3.0
+│   ├── OrderReturn.php                            # 待建
+│   ├── OrderReturnItem.php                        # 待建
+│   ├── Warehouse.php                              # 待建
+│   ├── Inventory.php                              # 待建
+│   ├── InventoryLog.php                           # 待建
+│   ├── LossOrder.php                              # 待建
+│   ├── LossOrderItem.php                          # 待建
+│   ├── PickingTask.php                            # 待建
+│   ├── PickingTaskItem.php                        # 待建
+│   ├── DeliveryTask.php                           # 待建
+│   ├── DeliveryTaskOrder.php                      # 待建
+│   ├── DeliveryTrack.php                          # 待建
+│   ├── Signature.php                              # 待建
+│   ├── Temperature.php                            # 待建
+│   ├── Discrepancy.php                            # 待建
+│   ├── MerchantAccount.php                        # 待建
+│   ├── Recharge.php                              # 待建
+│   ├── SupplierSettlement.php                     # 待建
+│   ├── SupplierSettlementItem.php                 # 待建
+│   ├── SettlementPayment.php                       # 待建
+│   ├── Receivable.php                             # 待建
+│   ├── ReceivablePayment.php                      # 待建
+│   ├── Invoice.php                                # 待建
+│   ├── CorrectionAuthorization.php                # 待建
+│   ├── PriceStrategy.php                          # 待建
+│   ├── PriceStrategyItem.php                      # 待建
+│   ├── PriceChangeLog.php                         # 待建
+│   ├── PriceApportionment.php                     # 待建
+│   ├── SystemConfig.php                           # ✅ V1.0.0
+│   ├── Banner.php                                 # 待建
+│   ├── Promotion.php                              # 待建
+│   ├── OperationLog.php                           # ✅ V1.0.0
+│   ├── AuditLog.php                               # ✅ V1.0.0
+│   ├── LoginLog.php                               # 待建
+│   ├── WechatUser.php                             # 待建
+│   ├── Notification.php                           # ✅ V1.0.0
+│   ├── RestockReminder.php                        # ✅ V1.0.0
+│   ├── MerchantFavorite.php                       # 待建
+│   ├── Approval.php                               # ✅ V1.0.0
+│   └── ApprovalTypeConfig.php                     # ✅ V1.0.0
 │
 ├── Services/                                       # 业务逻辑服务层 [待建]
 │   ├── AuthService.php                             # 认证逻辑（登录/登出/Session + Token）
@@ -2277,8 +2277,8 @@ docs/
 | 用户与权限 | UserList, UserForm, RoleList, RoleForm, PermissionList, PermissionForm | AuthService, PermissionService | user/ | MerchantAuthController | web + api/v1/mini/merchant |
 | 组织主体 | SupplierList, SupplierForm, MerchantList, MerchantForm, RouteList, RouteSort, DriverList, DriverForm, VehicleList, VehicleForm | - | org/ | - | web |
 | 商品管理 | CategoryList ✅, ProductList ✅, SkuList ✅, TagList ✅, KeywordList ✅, SkuBarcodeList ✅, SkuSupplierList ✅, VisibilityConfig, ProductForm | - | product/ ✅ | MerchantProductController | web ✅ + api/v1/mini/merchant |
-| 平台统采 | PurchaseItemList, PurchaseOrderList, PurchaseOrderDetail, PurchaseReturnList, PurchaseReturnDetail | PurchaseService | purchase/ | - | web |
-| 客户直采 | CartList, OrderList, OrderDetail, FrequentlyBoughtList, RepurchaseList, OrderReturnList, OrderReturnDetail | OrderService | order/ | MerchantCartController, MerchantOrderController | web + api/v1/mini/merchant |
+| 平台统采 | PurchaseItemList ✅, PurchaseOrderList ✅, PurchaseOrderDetail, PurchaseReturnList, PurchaseReturnDetail | PurchaseService | purchase/ ✅ | - | web ✅ |
+| 客户直采 | CartList ✅, OrderList ✅, OrderDetail, FrequentlyBoughtList ✅, RepurchaseTemplateList ✅, OrderReturnList, OrderReturnDetail | OrderService | order/ ✅ | MerchantCartController, MerchantOrderController | web ✅ + api/v1/mini/merchant |
 | 库存管理 | WarehouseList, InventoryList, InventoryAdjustForm, InventoryLogList | InventoryService | inventory/ | - | web |
 | 损耗管理 | LossOrderList, LossOrderDetail, LossOrderForm, LossReport | LossOrderService | loss/ | - | web |
 | 拣货管理 | PickingTaskList, PickingTaskDetail | PickingService | picking/ | - | web |

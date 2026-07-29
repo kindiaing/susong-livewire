@@ -37,9 +37,8 @@
                 <x-nav-menu-item value="purchase">
                     <x-nav-menu-trigger icon="cart">采购管理</x-nav-menu-trigger>
                     <x-nav-menu-content value="purchase">
-                        <x-nav-menu-link href="#" description="自动汇总待采商品，一键生成采购单">待采清单</x-nav-menu-link>
-                        <x-nav-menu-link href="#" description="采购单全流程管理：创建→接单→发货→入库→完成">采购单管理</x-nav-menu-link>
-                        <x-nav-menu-link href="#" description="退货审批、库存联动扣减、应付扣减">采购退货</x-nav-menu-link>
+                        <x-nav-menu-icon-link href="{{ route('purchase-items') }}" icon="clipboard-document-list">待采清单</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('purchase-orders') }}" icon="document-text">采购单管理</x-nav-menu-icon-link>
                     </x-nav-menu-content>
                 </x-nav-menu-item>
 
@@ -47,12 +46,10 @@
                 <x-nav-menu-item value="order">
                     <x-nav-menu-trigger icon="clipboard">订单配送</x-nav-menu-trigger>
                     <x-nav-menu-content value="order">
-                        <x-nav-menu-icon-link href="#" icon="lock-closed">客户订单</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="#" icon="shopping-bag">购物车</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="#" icon="truck">配送任务</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="#" icon="check-badge">签收存证</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="#" icon="exclamation-triangle">差异处理</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="#" icon="arrow-uturn-left">售后退货</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('orders') }}" icon="clipboard-document-list">客户订单</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('carts') }}" icon="shopping-bag">购物车</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('frequently-bought') }}" icon="star">常购清单</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('repurchase-templates') }}" icon="arrow-path">复购模板</x-nav-menu-icon-link>
                     </x-nav-menu-content>
                 </x-nav-menu-item>
 

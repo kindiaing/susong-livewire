@@ -6,6 +6,10 @@ use App\Livewire\Org\MerchantList;
 use App\Livewire\Org\RouteList;
 use App\Livewire\Org\SupplierList;
 use App\Livewire\Org\VehicleList;
+use App\Livewire\Order\CartList;
+use App\Livewire\Order\FrequentlyBoughtList;
+use App\Livewire\Order\OrderList;
+use App\Livewire\Order\RepurchaseTemplateList;
 use App\Livewire\Product\CategoryList;
 use App\Livewire\Product\KeywordList;
 use App\Livewire\Product\ProductList;
@@ -13,6 +17,8 @@ use App\Livewire\Product\SkuBarcodeList;
 use App\Livewire\Product\SkuList;
 use App\Livewire\Product\SkuSupplierList;
 use App\Livewire\Product\TagList;
+use App\Livewire\Purchase\PurchaseItemList;
+use App\Livewire\Purchase\PurchaseOrderList;
 use App\Livewire\System\ApprovalConfig;
 use App\Livewire\System\Approvals;
 use App\Livewire\System\AuditLogs;
@@ -61,6 +67,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/keywords', KeywordList::class)->name('keywords');
     Route::get('/sku-barcodes', SkuBarcodeList::class)->name('sku-barcodes');
     Route::get('/sku-suppliers', SkuSupplierList::class)->name('sku-suppliers');
+
+    // ── 采购管理 ──
+    Route::get('/purchase-items', PurchaseItemList::class)->name('purchase-items');
+    Route::get('/purchase-orders', PurchaseOrderList::class)->name('purchase-orders');
+
+    // ── 订单配送 ──
+    Route::get('/orders', OrderList::class)->name('orders');
+    Route::get('/carts', CartList::class)->name('carts');
+    Route::get('/frequently-bought', FrequentlyBoughtList::class)->name('frequently-bought');
+    Route::get('/repurchase-templates', RepurchaseTemplateList::class)->name('repurchase-templates');
 
     // ── 系统管理 ──
     Route::get('/settings', Settings::class)->name('settings');

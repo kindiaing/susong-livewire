@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'c41026f5-7cf2-4f16-9646-b069070e2a4e'
-  PropagateID: 'c41026f5-7cf2-4f16-9646-b069070e2a4e'
-  ReservedCode1: '31e40ba1-269e-4783-bb0f-7171db1cacba'
-  ReservedCode2: '31e40ba1-269e-4783-bb0f-7171db1cacba'
+  ProduceID: 'e454da6f-92bb-4c98-a858-b6f51f033094'
+  PropagateID: 'e454da6f-92bb-4c98-a858-b6f51f033094'
+  ReservedCode1: '9e0830b6-538f-42ac-b71c-68c0e0a1456e'
+  ReservedCode2: '9e0830b6-538f-42ac-b71c-68c0e0a1456e'
 ---
 
 # 开发迭代日志
@@ -16,6 +16,65 @@ AIGC:
 技术栈：Laravel 13 + Livewire 4.x + Tailwind CSS 4.2+ + Alpine.js + PHP 8.4+ + MySQL 8.0 + Redis 7.x
 
 记录规则：每次迭代新增一节，按版本号倒序排列。每条变更需标注开发人、完成时间和关联模块。
+
+---
+
+## V1.3.0 | 迭代周期：2026-07-29
+
+负责人：项目负责人
+参与开发人员：后端开发、前端开发
+
+### 1 本次新增功能清单
+
+| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 采购管理 | PurchaseItem Model + Livewire 列表页 | 后端 | 2026-07-29 | ✅ |
+| 2 | 采购管理 | PurchaseOrder / PurchaseOrderItem Model + Livewire 列表页 | 后端 | 2026-07-29 | ✅ |
+| 3 | 订单配送 | Cart / CartItem Model + Livewire 列表页 | 后端 | 2026-07-29 | ✅ |
+| 4 | 订单配送 | Order / OrderItem Model + Livewire 列表页 | 后端 | 2026-07-29 | ✅ |
+| 5 | 订单配送 | FrequentlyBought Model + Livewire 列表页 | 后端 | 2026-07-29 | ✅ |
+| 6 | 订单配送 | RepurchaseTemplate / RepurchaseTemplateItem Model + Livewire 列表页 | 后端 | 2026-07-29 | ✅ |
+| 7 | 路由 | 新增 6 条路由（purchase-items / purchase-orders / orders / carts / frequently-bought / repurchase-templates） | 后端 | 2026-07-29 | ✅ |
+| 8 | 导航 | 采购管理子菜单链接待采清单/采购单管理 | 前端 | 2026-07-29 | ✅ |
+| 9 | 导航 | 订单配送子菜单链接客户订单/购物车/常购清单/复购模板 | 前端 | 2026-07-29 | ✅ |
+| 10 | 文档 | FSD 9.2 Models 状态标注 + 9.9 映射表更新 | 后端 | 2026-07-29 | ✅ |
+
+### 2 本次优化/重构
+
+| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 导航 | 采购管理子菜单改用 icon-link 样式（与商品管理/订单配送统一） | 前端 | 2026-07-29 |
+
+### 3 本次修复 Bug
+
+无
+
+### 4 待办事项
+
+| 序号 | 模块 | 待办内容 | 优先级 |
+| :--- | :--- | :--- | :--- |
+| 1 | 采购管理 | PurchaseOrderDetail / PurchaseReturn / PurchaseReturnDetail 页面待开发 | 中 |
+| 2 | 订单配送 | OrderDetail / OrderReturn / OrderReturnDetail 页面待开发 | 中 |
+| 3 | 订单配送 | 配送任务/签收存证/差异处理模块待开发 | 高 |
+
+### 5 累计完成统计
+
+| 指标 | V1.2.0 | V1.3.0 | 增量 |
+| :--- | :--- | :--- | :--- |
+| Model 数 | 26 | 36 | +10 |
+| Livewire 组件 | 22 | 28 | +6 |
+| 路由数 | 24 | 30 | +6 |
+| 数据库表 | 77 | 77 | — |
+
+### 6 数据库/配置变更记录
+
+无新增 Migration，Model 基于已有表结构创建。
+
+### 7 发布记录
+
+| 日期 | 版本 | 操作人 | Git Commit | 备注 |
+| :--- | :--- | :--- | :--- | :--- |
+| 2026-07-29 | V1.3.0 | 项目负责人 | — | 采购管理+订单配送 Model/Livewire/路由/导航 |
 
 ---
 
