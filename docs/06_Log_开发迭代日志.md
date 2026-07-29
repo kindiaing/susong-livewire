@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'e454da6f-92bb-4c98-a858-b6f51f033094'
-  PropagateID: 'e454da6f-92bb-4c98-a858-b6f51f033094'
-  ReservedCode1: '9e0830b6-538f-42ac-b71c-68c0e0a1456e'
-  ReservedCode2: '9e0830b6-538f-42ac-b71c-68c0e0a1456e'
+  ProduceID: 'dcf5f417-d7c8-40b0-aa84-3bb8ac10942e'
+  PropagateID: 'dcf5f417-d7c8-40b0-aa84-3bb8ac10942e'
+  ReservedCode1: 'c715bcc5-acef-4305-9daa-4e6c61faded1'
+  ReservedCode2: 'c715bcc5-acef-4305-9daa-4e6c61faded1'
 ---
 
 # 开发迭代日志
@@ -16,6 +16,65 @@ AIGC:
 技术栈：Laravel 13 + Livewire 4.x + Tailwind CSS 4.2+ + Alpine.js + PHP 8.4+ + MySQL 8.0 + Redis 7.x
 
 记录规则：每次迭代新增一节，按版本号倒序排列。每条变更需标注开发人、完成时间和关联模块。
+
+---
+
+## V1.4.0 | 迭代周期：2026-07-29
+
+负责人：项目负责人
+参与开发人员：后端开发、前端开发
+
+### 1 本次新增功能清单
+
+| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 库存管理 | Warehouse / Inventory / InventoryLog Model + 3 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
+| 2 | 损耗管理 | LossOrder / LossOrderItem Model + 1 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
+| 3 | 拣货管理 | PickingTask / PickingTaskItem Model + 1 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
+| 4 | 配送管理 | DeliveryTask / DeliveryTaskOrder / DeliveryTrack / Signature / Temperature Model + 3 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
+| 5 | 差异处理 | Discrepancy Model + 1 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
+| 6 | 财务对账 | MerchantAccount / Recharge / SupplierSettlement / SupplierSettlementItem / SettlementPayment / Receivable / ReceivablePayment / Invoice / CorrectionAuthorization Model + 8 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
+| 7 | 退货+价格 | PurchaseReturn / PurchaseReturnItem / OrderReturn / OrderReturnItem / PriceStrategy / PriceStrategyItem / PriceChangeLog Model + 4 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
+| 8 | 扩展+系统 | PriceApportionment / MerchantAddress / MerchantFavorite / Banner / Promotion / LoginLog / WechatUser Model + 5 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
+| 9 | 路由 | 新增 26 条路由覆盖全部模块 | 后端 | 2026-07-29 | ✅ |
+| 10 | 导航 | 全部导航菜单链接替换为真实路由 | 前端 | 2026-07-29 | ✅ |
+
+### 2 本次优化/重构
+
+| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 导航 | 全部子菜单统一改用 icon-link 样式 | 前端 | 2026-07-29 |
+
+### 3 本次修复 Bug
+
+无
+
+### 4 待办事项
+
+| 序号 | 模块 | 待办内容 | 优先级 |
+| :--- | :--- | :--- | :--- |
+| 1 | 全模块 | 各模块 Detail/Form 页面待开发 | 中 |
+| 2 | 全模块 | 业务逻辑 Service 层待实现 | 高 |
+| 3 | 全模块 | 小程序端 API 待开发 | 高 |
+
+### 5 累计完成统计
+
+| 指标 | V1.3.0 | V1.4.0 | 增量 |
+| :--- | :--- | :--- | :--- |
+| Model 数 | 36 | 72 | +36 |
+| Livewire 组件 | 28 | 54 | +26 |
+| 路由数 | 30 | 56 | +26 |
+| 数据库表 | 77 | 77 | — |
+
+### 6 数据库/配置变更记录
+
+无新增 Migration，Model 基于已有表结构创建。
+
+### 7 发布记录
+
+| 日期 | 版本 | 操作人 | Git Commit | 备注 |
+| :--- | :--- | :--- | :--- | :--- |
+| 2026-07-29 | V1.4.0 | 项目负责人 | — | 全模块 Model/Livewire/路由/导航一次性交付 |
 
 ---
 

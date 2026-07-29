@@ -1674,8 +1674,8 @@ app/
 │   ├── PurchaseItem.php                            # ✅ V1.3.0
 │   ├── PurchaseOrder.php                           # ✅ V1.3.0
 │   ├── PurchaseOrderItem.php                       # ✅ V1.3.0
-│   ├── PurchaseReturn.php                          # 待建
-│   ├── PurchaseReturnItem.php                      # 待建
+│   ├── PurchaseReturn.php                          # ✅ V1.4.0
+│   ├── PurchaseReturnItem.php                      # ✅ V1.4.0
 │   ├── Cart.php                                    # ✅ V1.3.0
 │   ├── CartItem.php                                # ✅ V1.3.0
 │   ├── Order.php                                   # ✅ V1.3.0
@@ -1683,44 +1683,44 @@ app/
 │   ├── FrequentlyBought.php                       # ✅ V1.3.0
 │   ├── RepurchaseTemplate.php                     # ✅ V1.3.0
 │   ├── RepurchaseTemplateItem.php                 # ✅ V1.3.0
-│   ├── OrderReturn.php                            # 待建
-│   ├── OrderReturnItem.php                        # 待建
-│   ├── Warehouse.php                              # 待建
-│   ├── Inventory.php                              # 待建
-│   ├── InventoryLog.php                           # 待建
-│   ├── LossOrder.php                              # 待建
-│   ├── LossOrderItem.php                          # 待建
-│   ├── PickingTask.php                            # 待建
-│   ├── PickingTaskItem.php                        # 待建
-│   ├── DeliveryTask.php                           # 待建
-│   ├── DeliveryTaskOrder.php                      # 待建
-│   ├── DeliveryTrack.php                          # 待建
-│   ├── Signature.php                              # 待建
-│   ├── Temperature.php                            # 待建
-│   ├── Discrepancy.php                            # 待建
-│   ├── MerchantAccount.php                        # 待建
-│   ├── Recharge.php                              # 待建
-│   ├── SupplierSettlement.php                     # 待建
-│   ├── SupplierSettlementItem.php                 # 待建
-│   ├── SettlementPayment.php                       # 待建
-│   ├── Receivable.php                             # 待建
-│   ├── ReceivablePayment.php                      # 待建
-│   ├── Invoice.php                                # 待建
-│   ├── CorrectionAuthorization.php                # 待建
-│   ├── PriceStrategy.php                          # 待建
-│   ├── PriceStrategyItem.php                      # 待建
-│   ├── PriceChangeLog.php                         # 待建
-│   ├── PriceApportionment.php                     # 待建
+│   ├── OrderReturn.php                            # ✅ V1.4.0
+│   ├── OrderReturnItem.php                        # ✅ V1.4.0
+│   ├── Warehouse.php                              # ✅ V1.4.0
+│   ├── Inventory.php                              # ✅ V1.4.0
+│   ├── InventoryLog.php                           # ✅ V1.4.0
+│   ├── LossOrder.php                              # ✅ V1.4.0
+│   ├── LossOrderItem.php                          # ✅ V1.4.0
+│   ├── PickingTask.php                            # ✅ V1.4.0
+│   ├── PickingTaskItem.php                        # ✅ V1.4.0
+│   ├── DeliveryTask.php                           # ✅ V1.4.0
+│   ├── DeliveryTaskOrder.php                      # ✅ V1.4.0
+│   ├── DeliveryTrack.php                          # ✅ V1.4.0
+│   ├── Signature.php                              # ✅ V1.4.0
+│   ├── Temperature.php                            # ✅ V1.4.0
+│   ├── Discrepancy.php                            # ✅ V1.4.0
+│   ├── MerchantAccount.php                        # ✅ V1.4.0
+│   ├── Recharge.php                              # ✅ V1.4.0
+│   ├── SupplierSettlement.php                     # ✅ V1.4.0
+│   ├── SupplierSettlementItem.php                 # ✅ V1.4.0
+│   ├── SettlementPayment.php                       # ✅ V1.4.0
+│   ├── Receivable.php                             # ✅ V1.4.0
+│   ├── ReceivablePayment.php                      # ✅ V1.4.0
+│   ├── Invoice.php                                # ✅ V1.4.0
+│   ├── CorrectionAuthorization.php                # ✅ V1.4.0
+│   ├── PriceStrategy.php                          # ✅ V1.4.0
+│   ├── PriceStrategyItem.php                      # ✅ V1.4.0
+│   ├── PriceChangeLog.php                         # ✅ V1.4.0
+│   ├── PriceApportionment.php                     # ✅ V1.4.0
 │   ├── SystemConfig.php                           # ✅ V1.0.0
-│   ├── Banner.php                                 # 待建
-│   ├── Promotion.php                              # 待建
+│   ├── Banner.php                                 # ✅ V1.4.0
+│   ├── Promotion.php                              # ✅ V1.4.0
 │   ├── OperationLog.php                           # ✅ V1.0.0
 │   ├── AuditLog.php                               # ✅ V1.0.0
-│   ├── LoginLog.php                               # 待建
-│   ├── WechatUser.php                             # 待建
+│   ├── LoginLog.php                               # ✅ V1.4.0
+│   ├── WechatUser.php                             # ✅ V1.4.0
 │   ├── Notification.php                           # ✅ V1.0.0
 │   ├── RestockReminder.php                        # ✅ V1.0.0
-│   ├── MerchantFavorite.php                       # 待建
+│   ├── MerchantFavorite.php                       # ✅ V1.4.0
 │   ├── Approval.php                               # ✅ V1.0.0
 │   └── ApprovalTypeConfig.php                     # ✅ V1.0.0
 │
@@ -2275,18 +2275,18 @@ docs/
 | 业务模块 | Livewire 组件 | Service | Blade 视图 | API（小程序） | 路由 |
 |:---|:---|:---|:---|:---|:---|
 | 用户与权限 | UserList, UserForm, RoleList, RoleForm, PermissionList, PermissionForm | AuthService, PermissionService | user/ | MerchantAuthController | web + api/v1/mini/merchant |
-| 组织主体 | SupplierList, SupplierForm, MerchantList, MerchantForm, RouteList, RouteSort, DriverList, DriverForm, VehicleList, VehicleForm | - | org/ | - | web |
+| 组织主体 | SupplierList ✅, SupplierForm, MerchantList ✅, MerchantForm, RouteList ✅, RouteSort, DriverList ✅, DriverForm, VehicleList ✅, VehicleForm | - | org/ ✅ | - | web ✅ |
 | 商品管理 | CategoryList ✅, ProductList ✅, SkuList ✅, TagList ✅, KeywordList ✅, SkuBarcodeList ✅, SkuSupplierList ✅, VisibilityConfig, ProductForm | - | product/ ✅ | MerchantProductController | web ✅ + api/v1/mini/merchant |
-| 平台统采 | PurchaseItemList ✅, PurchaseOrderList ✅, PurchaseOrderDetail, PurchaseReturnList, PurchaseReturnDetail | PurchaseService | purchase/ ✅ | - | web ✅ |
-| 客户直采 | CartList ✅, OrderList ✅, OrderDetail, FrequentlyBoughtList ✅, RepurchaseTemplateList ✅, OrderReturnList, OrderReturnDetail | OrderService | order/ ✅ | MerchantCartController, MerchantOrderController | web ✅ + api/v1/mini/merchant |
-| 库存管理 | WarehouseList, InventoryList, InventoryAdjustForm, InventoryLogList | InventoryService | inventory/ | - | web |
-| 损耗管理 | LossOrderList, LossOrderDetail, LossOrderForm, LossReport | LossOrderService | loss/ | - | web |
-| 拣货管理 | PickingTaskList, PickingTaskDetail | PickingService | picking/ | - | web |
-| 物流配送 | DeliveryTaskList, DeliveryTaskDetail, TrackMap, SignatureList, TemperatureList | DeliveryService | delivery/ | DriverTaskController | web + api/v1/mini/driver |
-| 差异处理 | DiscrepancyList, DiscrepancyDetail, DiscrepancyReport | DiscrepancyService | discrepancy/ | - | web |
-| 财务对账 | MerchantAccountList, RechargeList, RechargeForm, SettlementList, SettlementDetail, PaymentForm, ReceivableList, ReceivableDetail, ReceivablePaymentForm, InvoiceList, CorrectionList, ApportionmentList | SettlementService, ReceivableService, RechargeService | finance/ | MerchantAccountController | web + api/v1/mini/merchant |
-| 价格策略 | PriceStrategyList, PriceStrategyForm, PriceChangeLogList | PriceStrategyService | price/ | - | web |
-| 审核管理 | ApprovalConfig, ApprovalPendingList, ApprovalReviewedList | ApprovalService | approval/ | - | web |
-| 系统支撑 | SystemConfig, BannerList, PromotionList, OperationLogList, AuditLogList, LoginLogList | - | system/ | - | web |
+| 平台统采 | PurchaseItemList ✅, PurchaseOrderList ✅, PurchaseOrderDetail, PurchaseReturnList ✅, PurchaseReturnDetail | PurchaseService | purchase/ ✅ | - | web ✅ |
+| 客户直采 | CartList ✅, OrderList ✅, OrderDetail, FrequentlyBoughtList ✅, RepurchaseTemplateList ✅, OrderReturnList ✅, OrderReturnDetail | OrderService | order/ ✅ | MerchantCartController, MerchantOrderController | web ✅ + api/v1/mini/merchant |
+| 库存管理 | WarehouseList ✅, InventoryList ✅, InventoryAdjustForm, InventoryLogList ✅ | InventoryService | inventory/ ✅ | - | web ✅ |
+| 损耗管理 | LossOrderList ✅, LossOrderDetail, LossOrderForm, LossReport | LossOrderService | loss/ ✅ | - | web ✅ |
+| 拣货管理 | PickingTaskList ✅, PickingTaskDetail | PickingService | picking/ ✅ | - | web ✅ |
+| 物流配送 | DeliveryTaskList ✅, DeliveryTaskDetail, TrackMap, SignatureList ✅, TemperatureList ✅ | DeliveryService | delivery/ ✅ | DriverTaskController | web ✅ + api/v1/mini/driver |
+| 差异处理 | DiscrepancyList ✅, DiscrepancyDetail, DiscrepancyReport | DiscrepancyService | discrepancy/ ✅ | - | web ✅ |
+| 财务对账 | MerchantAccountList ✅, RechargeList ✅, RechargeForm, SupplierSettlementList ✅, SettlementDetail, PaymentForm, ReceivableList ✅, ReceivableDetail, ReceivablePaymentForm, InvoiceList ✅, CorrectionAuthorizationList ✅, PriceApportionmentList ✅ | SettlementService, ReceivableService, RechargeService | finance/ ✅ | MerchantAccountController | web ✅ + api/v1/mini/merchant |
+| 价格策略 | PriceStrategyList ✅, PriceStrategyForm, PriceChangeLogList ✅ | PriceStrategyService | price/ ✅ | - | web ✅ |
+| 审核管理 | ApprovalConfig ✅, ApprovalPendingList, ApprovalReviewedList | ApprovalService | approval/ ✅ | - | web ✅ |
+| 系统支撑 | SystemConfig ✅, BannerList ✅, PromotionList ✅, OperationLogList ✅, AuditLogList ✅, LoginLogList ✅, WechatUserList ✅ | - | system/ ✅ | - | web ✅ |
 
 > AI生成
