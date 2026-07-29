@@ -139,7 +139,7 @@
         </div>
 
         {{-- 右侧功能区（靠近右端） --}}
-        <div class="flex items-center gap-1 shrink-0 ml-4">
+        <div class="flex items-center gap-1 shrink-0 ml-4" x-data>
 
             {{-- 通知 Drawer（Livewire 组件） --}}
             <livewire:system.notification-drawer />
