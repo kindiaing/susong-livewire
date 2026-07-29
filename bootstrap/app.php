@@ -4,6 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Session\TokenMismatchException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -20,4 +21,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        // CSRF / Session 过期时：Livewire 请求返回 419（前端自动刷新），普通请求重定向到登录页
+        $exceptions->render(function (TokenMismatchException $e, Request $request) {
+            if ($request->hasHeader('X-Livewire')) {
+                abort(419);
+            }
+
+            return redirect()->route('login')->with('status', '页面已过期，请重新登录。');
+        });
     })->create();

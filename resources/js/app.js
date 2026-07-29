@@ -65,6 +65,14 @@ document.addEventListener('alpine:initialized', () => {
     });
 });
 
-
-
-
+// CSRF Token 过期自动刷新：Livewire 收到 419 时前端会显示 "This page has expired" 对话框
+// 监听 Livewire 的请求错误，自动刷新页面获取新 token
+document.addEventListener('livewire:init', () => {
+    Livewire.hook('request', ({ status, respond }) => {
+        respond(({ response }) => {
+            if (response.status === 419) {
+                window.location.reload();
+            }
+        });
+    });
+});
