@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'dcf5f417-d7c8-40b0-aa84-3bb8ac10942e'
-  PropagateID: 'dcf5f417-d7c8-40b0-aa84-3bb8ac10942e'
-  ReservedCode1: 'c715bcc5-acef-4305-9daa-4e6c61faded1'
-  ReservedCode2: 'c715bcc5-acef-4305-9daa-4e6c61faded1'
+  ProduceID: 'dc025470-5671-46ac-a5c2-f83c9cb771d1'
+  PropagateID: 'dc025470-5671-46ac-a5c2-f83c9cb771d1'
+  ReservedCode1: 'c8dea1c9-88e6-42ee-9213-5e9bd7539869'
+  ReservedCode2: 'c8dea1c9-88e6-42ee-9213-5e9bd7539869'
 ---
 
 # 开发迭代日志
@@ -16,6 +16,45 @@ AIGC:
 技术栈：Laravel 13 + Livewire 4.x + Tailwind CSS 4.2+ + Alpine.js + PHP 8.4+ + MySQL 8.0 + Redis 7.x
 
 记录规则：每次迭代新增一节，按版本号倒序排列。每条变更需标注开发人、完成时间和关联模块。
+
+---
+
+## V1.5.0 | 迭代周期：2026-07-29
+
+负责人：项目负责人
+参与开发人员：后端开发、前端开发
+
+### 1 本次新增功能清单
+
+| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 图标 | icon.blade.php 新增 16 个 Heroicons 图标（clipboard-document-list / document-text / star / arrow-path / photo / sparkles / key / chat-bubble-left-right / map-pin / clock / plus / x-mark / magnifying-glass / shield-check / shield-exclamation / check-circle） | 前端 | 2026-07-29 | ✅ |
+| 2 | 导航 | nav-menu-icon-link 组件增加 description 参数，全部子菜单添加简短功能描述 | 前端 | 2026-07-29 | ✅ |
+| 3 | 导航 | 用户权限/系统管理子菜单统一改用 icon-link+description 样式（原部分使用 nav-menu-link） | 前端 | 2026-07-29 | ✅ |
+| 4 | 测试数据 | DemoDataSeeder 扩展全模块示例数据（30+ 张业务表，覆盖采购/订单/库存/配送/损耗/拣货/差异/财务/退货/价格策略/Banner/登录日志等） | 后端 | 2026-07-29 | ✅ |
+
+### 2 本次优化/重构
+
+| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 导航 | nav-menu-icon-link 组件重构：文字区改为 flex 容器，支持可选 description 行 | 前端 | 2026-07-29 |
+
+### 3 本次修复 Bug
+
+无
+
+### 4 数据库变更
+
+无（本次未新增 Migration）
+
+### 5 影响范围
+
+| 影响文件 | 变更类型 |
+| :--- | :--- |
+| resources/views/components/ui/icon.blade.php | 修改（新增16个图标） |
+| resources/views/components/nav-menu-icon-link.blade.php | 修改（新增description参数） |
+| resources/views/components/app-topnav.blade.php | 修改（全部子菜单添加description） |
+| database/seeders/DemoDataSeeder.php | 修改（扩展30+表示例数据） |
 
 ---
 

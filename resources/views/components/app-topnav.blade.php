@@ -23,13 +23,13 @@
                 <x-nav-menu-item value="product">
                     <x-nav-menu-trigger icon="cube">商品管理</x-nav-menu-trigger>
                     <x-nav-menu-content value="product">
-                        <x-nav-menu-icon-link href="{{ route('categories') }}" icon="swatch">分类管理</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('products') }}" icon="cube">商品管理</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('skus') }}" icon="tag">SKU 管理</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('merchant-addresses') }}" icon="eye">可见性配置</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('tags') }}" icon="hashtag">关键词标签</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('sku-barcodes') }}" icon="qr-code">条码管理</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('sku-suppliers') }}" icon="squares">一品多供</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('categories') }}" icon="swatch" description="商品分类层级树">分类管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('products') }}" icon="cube" description="商品信息与图片维护">商品管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('skus') }}" icon="tag" description="规格、价格、库存单位">SKU 管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('merchant-addresses') }}" icon="eye" description="商家可见SKU配置">可见性配置</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('tags') }}" icon="hashtag" description="商品搜索与标签">关键词标签</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('sku-barcodes') }}" icon="qr-code" description="SKU条码绑定">条码管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('sku-suppliers') }}" icon="squares" description="多供应商供应关系">一品多供</x-nav-menu-icon-link>
                     </x-nav-menu-content>
                 </x-nav-menu-item>
 
@@ -37,9 +37,9 @@
                 <x-nav-menu-item value="purchase">
                     <x-nav-menu-trigger icon="cart">采购管理</x-nav-menu-trigger>
                     <x-nav-menu-content value="purchase">
-                        <x-nav-menu-icon-link href="{{ route('purchase-items') }}" icon="clipboard-document-list">待采清单</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('purchase-orders') }}" icon="document-text">采购单管理</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('purchase-returns') }}" icon="arrow-uturn-left">采购退货</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('purchase-items') }}" icon="clipboard-document-list" description="采购需求汇总">待采清单</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('purchase-orders') }}" icon="document-text" description="采购订单创建与跟踪">采购单管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('purchase-returns') }}" icon="arrow-uturn-left" description="退货给供应商">采购退货</x-nav-menu-icon-link>
                     </x-nav-menu-content>
                 </x-nav-menu-item>
 
@@ -47,14 +47,14 @@
                 <x-nav-menu-item value="order">
                     <x-nav-menu-trigger icon="clipboard">订单配送</x-nav-menu-trigger>
                     <x-nav-menu-content value="order">
-                        <x-nav-menu-icon-link href="{{ route('orders') }}" icon="clipboard-document-list">客户订单</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('carts') }}" icon="shopping-bag">购物车</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('frequently-bought') }}" icon="star">常购清单</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('repurchase-templates') }}" icon="arrow-path">复购模板</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('delivery-tasks') }}" icon="truck">配送任务</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('signatures') }}" icon="check-badge">签收存证</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('discrepancies') }}" icon="exclamation-triangle">差异处理</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('order-returns') }}" icon="arrow-uturn-left">售后退货</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('orders') }}" icon="clipboard-document-list" description="商家下单记录">客户订单</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('carts') }}" icon="shopping-bag" description="商家选购暂存">购物车</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('frequently-bought') }}" icon="star" description="商家频繁购买记录">常购清单</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('repurchase-templates') }}" icon="arrow-path" description="一键快速复购">复购模板</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('delivery-tasks') }}" icon="truck" description="司机配送调度">配送任务</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('signatures') }}" icon="check-badge" description="签收照片与温度记录">签收存证</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('discrepancies') }}" icon="exclamation-triangle" description="配送差异与短少处理">差异处理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('order-returns') }}" icon="arrow-uturn-left" description="客户退货处理">售后退货</x-nav-menu-icon-link>
                     </x-nav-menu-content>
                 </x-nav-menu-item>
 
@@ -62,10 +62,10 @@
                 <x-nav-menu-item value="inventory">
                     <x-nav-menu-trigger icon="chart-bar">库存拣货</x-nav-menu-trigger>
                     <x-nav-menu-content value="inventory">
-                        <x-nav-menu-icon-link href="{{ route('warehouses') }}" icon="building-office">仓库管理</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('inventories') }}" icon="chart-bar">实时库存</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('inventory-logs') }}" icon="document-text">库存日志</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('picking-tasks') }}" icon="clipboard-document-list">拣货任务</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('warehouses') }}" icon="building-office" description="仓库信息与分区">仓库管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('inventories') }}" icon="chart-bar" description="各仓库SKU存量">实时库存</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('inventory-logs') }}" icon="document-text" description="出入库变动记录">库存日志</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('picking-tasks') }}" icon="clipboard-document-list" description="拣货分配与执行">拣货任务</x-nav-menu-icon-link>
                     </x-nav-menu-content>
                 </x-nav-menu-item>
 
@@ -73,15 +73,15 @@
                 <x-nav-menu-item value="finance">
                     <x-nav-menu-trigger icon="banknotes">财务管理</x-nav-menu-trigger>
                     <x-nav-menu-content value="finance">
-                        <x-nav-menu-icon-link href="{{ route('merchant-accounts') }}" icon="wallet">客户账户</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('recharges') }}" icon="bank">客户充值</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('supplier-settlements') }}" icon="briefcase">供应商结算</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('receivables') }}" icon="banknotes">应收账款</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('invoices') }}" icon="document">发票管理</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('correction-authorizations') }}" icon="pencil">授权更正</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('price-strategies') }}" icon="shield">价格策略</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('price-apportionments') }}" icon="pie-chart">费用均摊</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('loss-orders') }}" icon="trash">损耗管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('merchant-accounts') }}" icon="wallet" description="商家账户余额与额度">客户账户</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('recharges') }}" icon="bank" description="充值记录与审核">客户充值</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('supplier-settlements') }}" icon="briefcase" description="采购结算与付款">供应商结算</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('receivables') }}" icon="banknotes" description="客户欠款与收款">应收账款</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('invoices') }}" icon="document" description="开票记录与审核">发票管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('correction-authorizations') }}" icon="pencil" description="账目更正审批">授权更正</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('price-strategies') }}" icon="shield" description="客户定价规则">价格策略</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('price-apportionments') }}" icon="pie-chart" description="费用分摊配置">费用均摊</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('loss-orders') }}" icon="trash" description="损耗记录与审核">损耗管理</x-nav-menu-icon-link>
                     </x-nav-menu-content>
                 </x-nav-menu-item>
 
@@ -89,9 +89,9 @@
                 <x-nav-menu-item value="user">
                     <x-nav-menu-trigger icon="users">用户权限</x-nav-menu-trigger>
                     <x-nav-menu-content value="user">
-                        <x-nav-menu-link href="#" description="用户CRUD、重置密码、禁用/启用">用户管理</x-nav-menu-link>
-                        <x-nav-menu-link href="{{ route('roles') }}" description="9个系统角色、权限配置（树形结构）">角色管理</x-nav-menu-link>
-                        <x-nav-menu-link href="{{ route('permissions') }}" description="权限树形列表、模块/页面/按钮级控制">权限管理</x-nav-menu-link>
+                        <x-nav-menu-icon-link href="#" icon="users" description="用户CRUD、重置密码、禁用启用">用户管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('roles') }}" icon="shield-check" description="9个系统角色、权限配置">角色管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('permissions') }}" icon="key" description="模块/页面/按钮级权限控制">权限管理</x-nav-menu-icon-link>
                     </x-nav-menu-content>
                 </x-nav-menu-item>
 
@@ -99,11 +99,11 @@
                 <x-nav-menu-item value="org">
                     <x-nav-menu-trigger icon="building">组织主体</x-nav-menu-trigger>
                     <x-nav-menu-content value="org">
-                        <x-nav-menu-icon-link href="{{ route('suppliers') }}" icon="building-office">供应商管理</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('merchants') }}" icon="store">商家管理</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('delivery-routes') }}" icon="signal">配送线路</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('drivers') }}" icon="user-circle">司机管理</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('vehicles') }}" icon="truck">车辆管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('suppliers') }}" icon="building-office" description="供应商信息与资质">供应商管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('merchants') }}" icon="store" description="商家信息与账户">商家管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('delivery-routes') }}" icon="signal" description="配送区域与线路">配送线路</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('drivers') }}" icon="user-circle" description="司机信息与排班">司机管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('vehicles') }}" icon="truck" description="车辆信息与司机绑定">车辆管理</x-nav-menu-icon-link>
                     </x-nav-menu-content>
                 </x-nav-menu-item>
 
@@ -111,15 +111,15 @@
                 <x-nav-menu-item value="system">
                     <x-nav-menu-trigger icon="adjustments-horizontal">系统管理</x-nav-menu-trigger>
                     <x-nav-menu-content value="system">
-                        <x-nav-menu-link href="{{ route('settings') }}" description="6组17项系统配置，分组导航+列表编辑">系统配置</x-nav-menu-link>
-                        <x-nav-menu-icon-link href="{{ route('banners') }}" icon="photo">轮播广告</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('promotions') }}" icon="sparkles">运营主推</x-nav-menu-icon-link>
-                        <x-nav-menu-link href="{{ route('operation-logs') }}" description="按操作人/时间/模块筛选">操作日志</x-nav-menu-link>
-                        <x-nav-menu-link href="{{ route('audit-logs') }}" description="敏感操作审计，保留策略0-180天">审计日志</x-nav-menu-link>
-                        <x-nav-menu-link href="{{ route('approval-config') }}" description="19个审核节点开关、审核列表">审核管理</x-nav-menu-link>
-                        <x-nav-menu-icon-link href="{{ route('price-change-logs') }}" icon="document-text">改价记录</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('login-logs') }}" icon="key">登录日志</x-nav-menu-icon-link>
-                        <x-nav-menu-icon-link href="{{ route('wechat-users') }}" icon="chat-bubble-left-right">微信用户</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('settings') }}" icon="adjustments-horizontal" description="6组17项系统配置">系统配置</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('banners') }}" icon="photo" description="首页轮播图管理">轮播广告</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('promotions') }}" icon="sparkles" description="推荐商品配置">运营主推</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('operation-logs') }}" icon="document-text" description="按操作人/时间/模块筛选">操作日志</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('audit-logs') }}" icon="shield-exclamation" description="敏感操作审计记录">审计日志</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('approval-config') }}" icon="check-circle" description="19个审核节点开关与列表">审核管理</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('price-change-logs') }}" icon="document-text" description="价格变更历史">改价记录</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('login-logs') }}" icon="key" description="用户登录记录">登录日志</x-nav-menu-icon-link>
+                        <x-nav-menu-icon-link href="{{ route('wechat-users') }}" icon="chat-bubble-left-right" description="小程序用户绑定">微信用户</x-nav-menu-icon-link>
                     </x-nav-menu-content>
                 </x-nav-menu-item>
 
