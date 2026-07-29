@@ -5,7 +5,9 @@
   支持 Ctrl+K / Cmd+K 快捷键唤起
   ESC 关闭
 --}}
-<div x-data="commandPalette()" x-init="init()">
+<div x-data="commandPalette()" x-init="init()"
+     @keydown.window="if(($event.metaKey || $event.ctrlKey) && $event.key === 'k') { $event.preventDefault(); open = !open }"
+     @keydown.window.escape="if(open) open = false">
 
     {{-- 触发按钮 --}}
     <button type="button" @click="open = true"
@@ -181,17 +183,6 @@
                 },
 
                 init() {
-                    // Ctrl+K / Cmd+K 快捷键
-                    window.addEventListener('keydown', (e) => {
-                        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-                            e.preventDefault();
-                            this.open = !this.open;
-                        }
-                        if (e.key === 'Escape' && this.open) {
-                            this.open = false;
-                        }
-                    });
-
                     // 打开时聚焦输入框
                     this.$watch('open', (val) => {
                         if (val) {
