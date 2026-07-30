@@ -1,4 +1,4 @@
-﻿<div class="p-6">
+<div class="p-6">
     <div class="flex items-center justify-between mb-6">
         <div>
             <h1 class="text-2xl font-bold text-foreground">签收存证</h1>

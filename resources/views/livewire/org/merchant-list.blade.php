@@ -1,4 +1,4 @@
-﻿<div class="p-6">
+<div class="p-6">
     {{-- 页面标题 --}}
     <div class="flex items-center justify-between mb-6">
         <div>
