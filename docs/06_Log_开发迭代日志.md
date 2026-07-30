@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'afd1b8e2-bcbc-47f3-991c-3b1ee33fe15a'
-  PropagateID: 'afd1b8e2-bcbc-47f3-991c-3b1ee33fe15a'
-  ReservedCode1: 'a5014fa9-46df-439f-98af-a4c4f4a9ca5d'
-  ReservedCode2: 'a5014fa9-46df-439f-98af-a4c4f4a9ca5d'
+  ProduceID: '6185b3a7-508f-470e-a2b0-1a18b759476a'
+  PropagateID: '6185b3a7-508f-470e-a2b0-1a18b759476a'
+  ReservedCode1: '540f6fe8-c8f5-4486-b037-aa8defc7d6eb'
+  ReservedCode2: '540f6fe8-c8f5-4486-b037-aa8defc7d6eb'
 ---
 
 # 开发迭代日志
@@ -16,6 +16,54 @@ AIGC:
 技术栈：Laravel 13 + Livewire 4.x + Tailwind CSS 4.2+ + Alpine.js + PHP 8.4+ + MySQL 8.0 + Redis 7.x
 
 记录规则：每次迭代新增一节，按版本号倒序排列。每条变更需标注开发人、完成时间和关联模块。
+
+---
+
+## V1.6.2 | 迭代周期：2026-07-30
+
+负责人：项目负责人
+参与开发人员：后端开发、前端开发
+
+### 1 本次新增功能清单
+
+| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 权限管理 | 类型下拉筛选（全部/模块/页面/按钮） | 后端 | 2026-07-30 | ✅ |
+| 2 | 权限管理 | 模块下拉筛选（全部/指定模块，含子级页面+按钮） | 后端 | 2026-07-30 | ✅ |
+| 3 | 权限管理 | 类型+模块组合筛选 + 重置按钮 | 后端 | 2026-07-30 | ✅ |
+
+### 2 本次优化/重构
+
+无。
+
+### 3 本次修复 Bug
+
+| 序号 | Bug描述 | 修复内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | UTF-8 BOM 导致 Livewire 4 组件边界错位 | 批量移除 38 个 Blade 视图文件的 UTF-8 BOM（\xEF\xBB\xBF） | 后端 | 2026-07-30 |
+| 2 | 弹窗取消按钮被 Livewire 验证管道拦截 | 用户/角色/权限三个页面的所有 `<button>` 添加 `type="button"` | 前端 | 2026-07-30 |
+
+### 4 数据库变更
+
+无。
+
+### 5 影响范围
+
+| 影响文件 | 变更类型 |
+| :--- | :--- |
+| app/Livewire/User/PermissionList.php | 修改（增加 filterType/filterModule 属性、筛选逻辑、resetFilters） |
+| resources/views/livewire/user/permission-list.blade.php | 修改（增加类型+模块两个 select 下拉筛选、重置按钮） |
+| 38 个 Blade 视图文件 | 修改（移除 UTF-8 BOM） |
+| resources/views/livewire/user/user-list.blade.php | 修改（button 添加 type="button"） |
+| resources/views/livewire/user/role-list.blade.php | 修改（button 添加 type="button"） |
+| resources/views/livewire/user/permission-list.blade.php | 修改（button 添加 type="button"） |
+
+### 6 关键技术记录
+
+**UTF-8 BOM 导致 Livewire 4 morphing 错位问题：**
+- 根因：Blade 视图文件开头包含 UTF-8 BOM（\xEF\xBB\xBF），在组件根 `<div>` 前产生了不可见文本节点
+- 影响：Livewire 4 morphing 算法将 `wire:id` 绑定到错误子元素（如 `class="flex items-center justify-between mb-6"` 而非 `class="p-6"`），导致弹窗内容和操作按钮脱离组件 DOM 边界
+- 修复：批量移除所有 Blade 文件 BOM + 为 `<button>` 添加 `type="button"` 防止 form 提交行为
 
 ---
 
