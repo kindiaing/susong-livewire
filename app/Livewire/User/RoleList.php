@@ -37,6 +37,12 @@ class RoleList extends Component
     public array $formPermissionIds = [];
     public string $permissionRoleName = '';
 
+    /**
+     * 权限树结构（缓存在组件属性上，避免每次 toggle 都查数据库）
+     * 结构：[{ id, name, display_name, childIds[], children: [{ id, name, display_name, childIds[], children: [...] }] }]
+     */
+    public array $permissionTreeData = [];
+
     public function mount(): void
     {
         $this->initColumnVisibility();
@@ -123,55 +129,161 @@ class RoleList extends Component
         $this->permissionRoleId = $id;
         $this->permissionRoleName = $role->display_name;
         $this->formPermissionIds = $role->permissions->pluck('id')->map(fn($v) => (int) $v)->toArray();
+        $this->buildPermissionTreeData();
         $this->showPermissionModal = true;
     }
 
-    public function toggleModulePermissions(int $moduleId): void
+    /**
+     * 构建权限树数据缓存（避免每次 toggle 都查数据库）
+     */
+    private function buildPermissionTreeData(): void
     {
-        $module = Permission::with('children.children')->find($moduleId);
-        if (!$module) return;
+        $tree = Permission::with('children.children')->roots()->orderBy('sort')->get();
+        $this->permissionTreeData = $tree->map(function ($module) {
+            $childIds = [];
+            $pages = $module->children->map(function ($page) use (&$childIds) {
+                $btnIds = $page->children->pluck('id')->map(fn($v) => (int) $v)->toArray();
+                $childIds = array_merge($childIds, [$page->id], $btnIds);
+                return [
+                    'id' => (int) $page->id,
+                    'name' => $page->name,
+                    'display_name' => $page->display_name,
+                    'btnIds' => $btnIds,
+                    'allIds' => array_merge([(int) $page->id], $btnIds),
+                    'children' => $page->children->map(fn($btn) => [
+                        'id' => (int) $btn->id,
+                        'name' => $btn->name,
+                        'display_name' => $btn->display_name,
+                    ])->values()->toArray(),
+                ];
+            })->values()->toArray();
 
-        // 收集该模块下所有子权限ID
-        $childIds = [];
-        foreach ($module->children as $page) {
-            $childIds[] = $page->id;
-            foreach ($page->children as $btn) {
-                $childIds[] = $btn->id;
-            }
-        }
+            return [
+                'id' => (int) $module->id,
+                'name' => $module->name,
+                'display_name' => $module->display_name,
+                'childIds' => $childIds,
+                'allIds' => array_merge([(int) $module->id], $childIds),
+                'children' => $pages,
+            ];
+        })->values()->toArray();
+    }
 
-        $allIds = array_merge([$moduleId], $childIds);
-        $allSelected = !array_diff($allIds, $this->formPermissionIds);
-
-        if ($allSelected) {
-            // 取消全选：移除模块及所有子权限
-            $this->formPermissionIds = array_values(array_diff($this->formPermissionIds, $allIds));
+    /**
+     * 切换单个权限（按钮级）
+     */
+    public function togglePermission(int $permissionId): void
+    {
+        $permissionId = (int) $permissionId;
+        $key = array_search($permissionId, $this->formPermissionIds);
+        if ($key !== false) {
+            array_splice($this->formPermissionIds, $key, 1);
         } else {
-            // 全选：添加模块及所有子权限
-            $this->formPermissionIds = array_values(array_unique(array_merge($this->formPermissionIds, $allIds)));
+            $this->formPermissionIds[] = $permissionId;
         }
     }
 
-    public function togglePagePermissions(int $pageId): void
+    /**
+     * 切换模块级权限（全选/全不选）
+     * 逻辑：如果模块下所有权限都已选中 → 全不选；否则 → 全选
+     */
+    public function toggleModulePermissions(int $moduleId): void
     {
-        $page = Permission::with('children')->find($pageId);
-        if (!$page) return;
+        $moduleData = null;
+        foreach ($this->permissionTreeData as $m) {
+            if ($m['id'] === $moduleId) {
+                $moduleData = $m;
+                break;
+            }
+        }
+        if (!$moduleData) return;
 
-        $childIds = $page->children->pluck('id')->map(fn($v) => (int) $v)->toArray();
-        $allIds = array_merge([$pageId], $childIds);
-        $allSelected = !array_diff($allIds, $this->formPermissionIds);
+        $allIds = $moduleData['allIds'];
+        $selected = $this->formPermissionIds;
+
+        // 判断：所有子权限是否都在 selected 中
+        $allSelected = empty(array_diff($allIds, $selected));
 
         if ($allSelected) {
-            $this->formPermissionIds = array_values(array_diff($this->formPermissionIds, $allIds));
+            // 全不选：移除模块下所有权限
+            $this->formPermissionIds = array_values(array_diff($selected, $allIds));
         } else {
-            $this->formPermissionIds = array_values(array_unique(array_merge($this->formPermissionIds, $allIds)));
+            // 全选：添加模块下所有权限
+            $this->formPermissionIds = array_values(array_unique(array_merge($selected, $allIds)));
         }
+    }
+
+    /**
+     * 切换页面级权限（全选/全不选）
+     */
+    public function togglePagePermissions(int $pageId): void
+    {
+        $pageData = null;
+        foreach ($this->permissionTreeData as $module) {
+            foreach ($module['children'] as $page) {
+                if ($page['id'] === $pageId) {
+                    $pageData = $page;
+                    break 2;
+                }
+            }
+        }
+        if (!$pageData) return;
+
+        $allIds = $pageData['allIds'];
+        $selected = $this->formPermissionIds;
+
+        $allSelected = empty(array_diff($allIds, $selected));
+
+        if ($allSelected) {
+            $this->formPermissionIds = array_values(array_diff($selected, $allIds));
+        } else {
+            $this->formPermissionIds = array_values(array_unique(array_merge($selected, $allIds)));
+        }
+    }
+
+    /**
+     * 获取模块的三态状态（用于前端渲染）
+     * 返回：'checked' / 'partial' / 'unchecked'
+     */
+    private function getModuleState(array $moduleData): string
+    {
+        $allIds = $moduleData['allIds'];
+        $selected = $this->formPermissionIds;
+        $intersect = array_intersect($allIds, $selected);
+
+        if (count($intersect) === 0) {
+            return 'unchecked';
+        }
+        if (count($intersect) === count($allIds)) {
+            return 'checked';
+        }
+        return 'partial';
+    }
+
+    /**
+     * 获取页面的三态状态
+     */
+    private function getPageState(array $pageData): string
+    {
+        $allIds = $pageData['allIds'];
+        $selected = $this->formPermissionIds;
+        $intersect = array_intersect($allIds, $selected);
+
+        if (count($intersect) === 0) {
+            return 'unchecked';
+        }
+        if (count($intersect) === count($allIds)) {
+            return 'checked';
+        }
+        return 'partial';
     }
 
     public function savePermissions(): void
     {
         $role = Role::findOrFail($this->permissionRoleId);
-        $permissions = Permission::whereIn('id', $this->formPermissionIds)->get();
+        // 确保类型一致
+        $ids = array_map('intval', $this->formPermissionIds);
+        $permissions = Permission::whereIn('id', $ids)->get();
         $role->syncPermissions($permissions);
         $this->toastSuccess('权限分配已更新');
         $this->showPermissionModal = false;
@@ -266,15 +378,10 @@ class RoleList extends Component
 
         $roles = $query->paginate(20);
 
-        // 权限树（用于弹窗）
-        $permissionTree = Permission::with('children.children')
-            ->roots()
-            ->orderBy('sort')
-            ->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
 
-        return view('livewire.user.role-list', compact('roles', 'permissionTree', 'allColumns', 'selectedCount'))
+        return view('livewire.user.role-list', compact('roles', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('角色管理');
     }

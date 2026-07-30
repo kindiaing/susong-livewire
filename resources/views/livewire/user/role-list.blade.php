@@ -122,8 +122,12 @@
     </div>
     @endif
 
-    {{-- 权限分配弹窗（表格形式） --}}
+    {{-- 权限分配弹窗（表格形式 + 自定义三态checkbox） --}}
     @if($showPermissionModal)
+    @php
+        $selected = $formPermissionIds;
+        $treeData = $permissionTreeData;
+    @endphp
     <div class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" wire:click="closePermissionModal"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-4xl mx-4 p-6">
@@ -141,75 +145,79 @@
                         </tr>
                     </thead>
                     <tbody>
-                    @foreach($permissionTree as $module)
+                    @foreach($treeData as $module)
                         @php
-                            $moduleChildIds = [];
-                            foreach ($module->children as $page) {
-                                $moduleChildIds[] = $page->id;
-                                foreach ($page->children as $btn) {
-                                    $moduleChildIds[] = $btn->id;
-                                }
-                            }
-                            $allModuleIds = array_merge([$module->id], $moduleChildIds);
-                            $moduleChecked = !array_diff($allModuleIds, $formPermissionIds);
-                            $modulePartial = !$moduleChecked && count(array_intersect($allModuleIds, $formPermissionIds)) > 0;
+                            $moduleIntersect = array_intersect($module['allIds'], $selected);
+                            $moduleState = count($moduleIntersect) === 0 ? 'unchecked' : (count($moduleIntersect) === count($module['allIds']) ? 'checked' : 'partial');
                         @endphp
                         <tr class="border-b last:border-b-0 hover:bg-muted/20 transition-colors">
-                            {{-- 模块复选框 --}}
+                            {{-- 模块三态 checkbox --}}
                             <td class="px-3 py-2">
-                                <input
-                                    type="checkbox"
-                                    value="{{ $module->id }}"
-                                    wire:click="toggleModulePermissions({{ $module->id }})"
-                                    @checked(in_array($module->id, $formPermissionIds))
-                                    class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500"
-                                    @if($modulePartial) x-ref="module{{ $module->id }}" x-init="$refs.module{{ $module->id }}.indeterminate = true" @endif
-                                />
+                                <button type="button" wire:click="toggleModulePermissions({{ $module['id'] }})"
+                                    class="h-4 w-4 rounded border flex items-center justify-center transition-colors
+                                    @if($moduleState === 'checked') bg-blue-600 border-blue-600
+                                    @elseif($moduleState === 'partial') bg-blue-600 border-blue-600
+                                    @else border-input bg-background hover:border-blue-400 @endif"
+                                    title="{{ $moduleState === 'checked' ? '全选（点击取消）' : ($moduleState === 'partial' ? '部分选中（点击全选）' : '未选（点击全选）') }}">
+                                    @if($moduleState === 'checked')
+                                        <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                                    @elseif($moduleState === 'partial')
+                                        <span class="block w-2 h-0.5 bg-white rounded"></span>
+                                    @endif
+                                </button>
                             </td>
                             <td class="px-3 py-2">
-                                <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-blue-50 text-blue-700">模块</span>
-                                <span class="ml-1 font-medium text-foreground">{{ $module->display_name }}</span>
-                                <span class="ml-1 text-xs text-muted-foreground font-mono">{{ $module->name }}</span>
+                                <button type="button" wire:click="toggleModulePermissions({{ $module['id'] }})" class="inline-flex items-center gap-1 cursor-pointer hover:opacity-80 transition-opacity">
+                                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-blue-50 text-blue-700">模块</span>
+                                    <span class="font-medium text-foreground">{{ $module['display_name'] }}</span>
+                                    <span class="text-xs text-muted-foreground font-mono">{{ $module['name'] }}</span>
+                                </button>
                             </td>
-                            <td colspan="2" class="px-3 py-2">
-                                {{-- 第一行的页面和按钮放在这里为空，具体在子行 --}}
-                            </td>
+                            <td colspan="2" class="px-3 py-2"></td>
                         </tr>
-                        @foreach($module->children as $pageIdx => $page)
+                        @foreach($module['children'] as $page)
                             @php
-                                $pageChildIds = $page->children->pluck('id')->map(fn($v) => (int) $v)->toArray();
-                                $allPageIds = array_merge([$page->id], $pageChildIds);
-                                $pageChecked = !array_diff($allPageIds, $formPermissionIds);
-                                $pagePartial = !$pageChecked && count(array_intersect($allPageIds, $formPermissionIds)) > 0;
+                                $pageIntersect = array_intersect($page['allIds'], $selected);
+                                $pageState = count($pageIntersect) === 0 ? 'unchecked' : (count($pageIntersect) === count($page['allIds']) ? 'checked' : 'partial');
                             @endphp
                             <tr class="border-b last:border-b-0 bg-muted/10 hover:bg-muted/30 transition-colors">
                                 <td class="px-3 py-1.5"></td>
                                 <td class="px-3 py-1.5"></td>
                                 <td class="px-3 py-1.5">
                                     <label class="inline-flex items-center gap-1.5 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            value="{{ $page->id }}"
-                                            wire:click="togglePagePermissions({{ $page->id }})"
-                                            @checked(in_array($page->id, $formPermissionIds))
-                                            class="h-3.5 w-3.5 rounded border-input text-green-600 focus:ring-green-500"
-                                        />
+                                        {{-- 页面三态 checkbox --}}
+                                        <button type="button" wire:click="togglePagePermissions({{ $page['id'] }})"
+                                            class="h-3.5 w-3.5 rounded border flex items-center justify-center transition-colors
+                                            @if($pageState === 'checked') bg-green-600 border-green-600
+                                            @elseif($pageState === 'partial') bg-green-600 border-green-600
+                                            @else border-input bg-background hover:border-green-400 @endif"
+                                            title="{{ $pageState === 'checked' ? '全选（点击取消）' : ($pageState === 'partial' ? '部分选中（点击全选）' : '未选（点击全选）') }}">
+                                            @if($pageState === 'checked')
+                                                <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                                            @elseif($pageState === 'partial')
+                                                <span class="block w-1.5 h-0.5 bg-white rounded"></span>
+                                            @endif
+                                        </button>
                                         <span class="inline-flex items-center rounded px-1 py-0.5 text-[10px] font-medium bg-green-50 text-green-700">页面</span>
-                                        <span class="text-foreground">{{ $page->display_name }}</span>
+                                        <span class="text-foreground">{{ $page['display_name'] }}</span>
                                     </label>
                                 </td>
                                 <td class="px-3 py-1.5">
-                                    @if($page->children->isNotEmpty())
+                                    @if(!empty($page['children']))
                                         <div class="flex flex-wrap gap-x-4 gap-y-1">
-                                            @foreach($page->children as $btn)
+                                            @foreach($page['children'] as $btn)
+                                                @php $btnChecked = in_array($btn['id'], $selected) @endphp
                                                 <label class="inline-flex items-center gap-1 cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        value="{{ $btn->id }}"
-                                                        wire:model.live="formPermissionIds"
-                                                        class="h-3.5 w-3.5 rounded border-input text-orange-600 focus:ring-orange-500"
-                                                    />
-                                                    <span class="text-foreground">{{ $btn->display_name }}</span>
+                                                    {{-- 按钮两级 checkbox --}}
+                                                    <button type="button" wire:click="togglePermission({{ $btn['id'] }})"
+                                                        class="h-3.5 w-3.5 rounded border flex items-center justify-center transition-colors
+                                                        @if($btnChecked) bg-orange-500 border-orange-500
+                                                        @else border-input bg-background hover:border-orange-400 @endif">
+                                                        @if($btnChecked)
+                                                            <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                                                        @endif
+                                                    </button>
+                                                    <span class="text-foreground">{{ $btn['display_name'] }}</span>
                                                 </label>
                                             @endforeach
                                         </div>
@@ -219,7 +227,7 @@
                         @endforeach
                     @endforeach
 
-                    @if($permissionTree->isEmpty())
+                    @if(empty($treeData))
                         <tr><td colspan="4" class="px-4 py-8 text-center text-muted-foreground">暂无权限数据，请先在权限管理中创建</td></tr>
                     @endif
                     </tbody>
