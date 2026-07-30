@@ -1,0 +1,295 @@
+<?php
+
+namespace App\Livewire\Order;
+
+use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithRowSelection;
+use App\Models\Merchant;
+use App\Models\OrderReturn;
+use Livewire\Component;
+use Livewire\WithPagination;
+
+class OrderReturnList extends Component
+{
+    use WithPagination;
+    use WithRowSelection;
+    use WithColumnVisibility;
+    use WithExcelExport;
+    use WithExcelImport;
+
+    protected string $modelClass = OrderReturn::class;
+
+    public string $search = '';
+    public int $filterStatus = -1;
+    public bool $showModal = false;
+    public bool $showDeleteConfirm = false;
+    public ?int $editingId = null;
+    public ?int $deletingId = null;
+
+    public int $formOrderId = 0;
+    public int $formMerchantId = 0;
+    public string $formReason = '';
+    public string $formNote = '';
+
+    public static array $statusMap = [
+        0 => '待审核', 1 => '已通过', 2 => '已拒绝',
+        3 => '退货中', 4 => '已完成',
+    ];
+
+    public static array $statusColorMap = [
+        0 => 'yellow', 1 => 'green', 2 => 'red',
+        3 => 'blue', 4 => 'gray',
+    ];
+
+    public function mount(): void
+    {
+        $this->initColumnVisibility();
+    }
+
+    public function getAllColumns(): array
+    {
+        return [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'order_id', 'label' => '订单号', 'sortable' => false, 'exportable' => true],
+            ['key' => 'merchant_id', 'label' => '商家', 'sortable' => false, 'exportable' => true],
+            ['key' => 'reason', 'label' => '退货原因', 'sortable' => false, 'exportable' => true],
+            ['key' => 'status', 'label' => '状态', 'sortable' => true, 'exportable' => true],
+            ['key' => 'refund_amount', 'label' => '退款金额', 'sortable' => true, 'exportable' => true],
+            ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => false],
+            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
+        ];
+    }
+
+    public function getExportQuery()
+    {
+        return $this->buildQuery();
+    }
+
+    public function getExportFileName(): string
+    {
+        return '售后退货_' . now()->format('Ymd_His');
+    }
+
+    public function getImportModelClass(): string
+    {
+        return OrderReturn::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            '订单ID' => 'order_id',
+            '商家ID' => 'merchant_id',
+            '退货原因' => 'reason',
+            '退款金额(分)' => 'refund_amount',
+            '备注' => 'note',
+        ];
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['order_id'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function (OrderReturn $row) {
+            return [
+                'id' => $row->id,
+                'order_id' => $row->order?->order_no ?? '',
+                'merchant_id' => $row->merchant?->name ?? '',
+                'reason' => $row->reason ?? '',
+                'status' => self::$statusMap[$row->status] ?? '',
+                'refund_amount' => money_format($row->refund_amount, false),
+                'note' => $row->note ?? '',
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getPageIds(): array
+    {
+        return $this->buildQuery()->forPage($this->page, 20)->pluck('id')->toArray();
+    }
+
+    public function openCreateModal(): void
+    {
+        $this->resetForm();
+        $this->showModal = true;
+    }
+
+    public function openEditModal(int $id): void
+    {
+        $item = OrderReturn::findOrFail($id);
+        $this->editingId = $id;
+        $this->formReason = $item->reason ?? '';
+        $this->formNote = $item->note ?? '';
+        $this->showModal = true;
+    }
+
+    public function save(): void
+    {
+        if ($this->editingId) {
+            $validated = $this->validate([
+                'formReason' => 'nullable|string|max:255',
+                'formNote' => 'nullable|string|max:500',
+            ]);
+            OrderReturn::findOrFail($this->editingId)->update([
+                'reason' => $validated['formReason'],
+                'note' => $validated['formNote'],
+            ]);
+            $this->dispatch('toast', message: '退货单已更新', type: 'success');
+        } else {
+            $validated = $this->validate([
+                'formOrderId' => 'required|integer|exists:orders,id',
+                'formMerchantId' => 'required|integer|exists:merchants,id',
+                'formReason' => 'required|string|max:255',
+            ]);
+            OrderReturn::create([
+                'return_no' => 'RT' . date('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT),
+                'order_id' => $validated['formOrderId'],
+                'merchant_id' => $validated['formMerchantId'],
+                'reason' => $validated['formReason'],
+                'status' => 0,
+                'refund_amount' => 0,
+            ]);
+            $this->dispatch('toast', message: '退货单已创建', type: 'success');
+        }
+
+        $this->showModal = false;
+        $this->resetForm();
+    }
+
+    public function approveReturn(int $id): void
+    {
+        $item = OrderReturn::findOrFail($id);
+        if ($item->status != 0) {
+            $this->dispatch('toast', message: '只有待审核退货单可审核通过', type: 'error');
+            return;
+        }
+        $item->update(['status' => 1]);
+        $this->dispatch('toast', message: '退货单已审核通过', type: 'success');
+    }
+
+    public function rejectReturn(int $id): void
+    {
+        $item = OrderReturn::findOrFail($id);
+        if ($item->status != 0) {
+            $this->dispatch('toast', message: '只有待审核退货单可拒绝', type: 'error');
+            return;
+        }
+        $item->update(['status' => 2]);
+        $this->dispatch('toast', message: '退货单已拒绝', type: 'success');
+    }
+
+    public function startReturn(int $id): void
+    {
+        $item = OrderReturn::findOrFail($id);
+        if ($item->status != 1) {
+            $this->dispatch('toast', message: '只有已通过的退货单可开始退货', type: 'error');
+            return;
+        }
+        $item->update(['status' => 3]);
+        $this->dispatch('toast', message: '退货单已开始退货', type: 'success');
+    }
+
+    public function completeReturn(int $id): void
+    {
+        $item = OrderReturn::findOrFail($id);
+        if ($item->status != 3) {
+            $this->dispatch('toast', message: '只有退货中的单据可完成', type: 'error');
+            return;
+        }
+        $item->update(['status' => 4]);
+        $this->dispatch('toast', message: '退货单已完成', type: 'success');
+    }
+
+    public function confirmDelete(int $id): void
+    {
+        $this->deletingId = $id;
+        $this->showDeleteConfirm = true;
+    }
+
+    public function delete(): void
+    {
+        OrderReturn::findOrFail($this->deletingId)->delete();
+        $this->dispatch('toast', message: '退货单已删除', type: 'success');
+        $this->showDeleteConfirm = false;
+        $this->deletingId = null;
+    }
+
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->filterStatus = -1;
+        $this->resetPage();
+    }
+
+    public function getBatchActions(): array
+    {
+        return [
+            ['label' => '批量删除', 'method' => 'batchDelete', 'color' => 'bg-red-600 hover:bg-red-700'],
+        ];
+    }
+
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->resetErrorBag();
+        $this->resetForm();
+    }
+
+    public function closeDeleteConfirm(): void
+    {
+        $this->showDeleteConfirm = false;
+        $this->resetErrorBag();
+    }
+
+    private function resetForm(): void
+    {
+        $this->editingId = null;
+        $this->formOrderId = 0;
+        $this->formMerchantId = 0;
+        $this->formReason = '';
+        $this->formNote = '';
+    }
+
+    private function buildQuery()
+    {
+        $query = OrderReturn::with(['order', 'merchant'])->orderBy('id', 'desc');
+
+        if ($this->search) {
+            $query->where(function ($q) {
+                $q->whereHas('order', function ($oq) {
+                    $oq->where('order_no', 'like', "%{$this->search}%");
+                })->orWhereHas('merchant', function ($mq) {
+                    $mq->where('name', 'like', "%{$this->search}%");
+                });
+            });
+        }
+
+        if ($this->filterStatus >= 0) {
+            $query->where('status', $this->filterStatus);
+        }
+
+        return $query;
+    }
+
+    public function render()
+    {
+        $items = $this->buildQuery()->paginate(20);
+        $merchants = Merchant::orderBy('name')->get();
+
+        return view('livewire.order.order-return-list', [
+            'items' => $items,
+            'merchants' => $merchants,
+            'allColumns' => $this->getAllColumns(),
+            'selectedCount' => $this->getSelectedCount(),
+            'batchActions' => $this->getBatchActions(),
+        ])
+            ->layout('components.app-layout')
+            ->title('售后退货');
+    }
+}

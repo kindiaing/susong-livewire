@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '80d497ba-a2fb-4c19-9248-d13180004cf4'
-  PropagateID: '80d497ba-a2fb-4c19-9248-d13180004cf4'
-  ReservedCode1: 'f13426d0-97a4-46a1-8ed9-9d039092c4ae'
-  ReservedCode2: 'f13426d0-97a4-46a1-8ed9-9d039092c4ae'
+  ProduceID: 'afd1b8e2-bcbc-47f3-991c-3b1ee33fe15a'
+  PropagateID: 'afd1b8e2-bcbc-47f3-991c-3b1ee33fe15a'
+  ReservedCode1: 'a5014fa9-46df-439f-98af-a4c4f4a9ca5d'
+  ReservedCode2: 'a5014fa9-46df-439f-98af-a4c4f4a9ca5d'
 ---
 
 # 开发迭代日志
@@ -16,6 +16,447 @@ AIGC:
 技术栈：Laravel 13 + Livewire 4.x + Tailwind CSS 4.2+ + Alpine.js + PHP 8.4+ + MySQL 8.0 + Redis 7.x
 
 记录规则：每次迭代新增一节，按版本号倒序排列。每条变更需标注开发人、完成时间和关联模块。
+
+---
+
+## V1.6.1 | 迭代周期：2026-07-30
+
+负责人：项目负责人
+参与开发人员：后端开发、前端开发
+
+### 1 本次新增功能清单
+
+无新增功能模块。
+
+### 2 本次优化/重构
+
+| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 用户管理 | 状态列改为 toggle switch 开关，行内直接点击切换启用/禁用 | 前端 | 2026-07-30 |
+| 2 | 用户管理 | 操作按钮从文字改为 SVG 图标（编辑/角色分配/重置密码/删除） | 前端 | 2026-07-30 |
+| 3 | 角色管理 | 操作按钮从文字改为 SVG 图标（编辑/权限分配/删除） | 前端 | 2026-07-30 |
+| 4 | 权限管理 | 操作按钮从文字改为 SVG 图标（编辑/角色分配/删除） | 前端 | 2026-07-30 |
+| 5 | 用户管理 | 超级管理员（super-admin 角色）禁止删除和禁用，列表不显示删除按钮和 toggle 开关 | 后端 | 2026-07-30 |
+| 6 | 角色管理 | super-admin 角色禁止删除和编辑，列表不显示编辑/删除按钮 | 后端 | 2026-07-30 |
+
+### 3 本次修复 Bug
+
+| 序号 | Bug描述 | 修复内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 超级管理员可被删除/禁用 | delete() 和 toggleStatus() 增加 hasRole('super-admin') 检查 | 后端 | 2026-07-30 |
+| 2 | super-admin 角色可被删除/编辑 | RoleList delete() 和 openEditModal() 增加 name==='super-admin' 保护 | 后端 | 2026-07-30 |
+
+### 4 数据库变更
+
+无。
+
+### 5 影响范围
+
+| 影响文件 | 变更类型 |
+| :--- | :--- |
+| app/Livewire/User/UserList.php | 修改（增加超级管理员保护逻辑） |
+| app/Livewire/User/RoleList.php | 修改（增加超级管理员角色保护逻辑） |
+| resources/views/livewire/user/user-list.blade.php | 修改（toggle switch + 图标按钮 + 超级管理员行 UI 保护） |
+| resources/views/livewire/user/role-list.blade.php | 修改（图标按钮 + 超级管理员角色行 UI 保护） |
+| resources/views/livewire/user/permission-list.blade.php | 修改（图标按钮） |
+
+---
+
+## V1.6.0 | 迭代周期：2026-07-29
+
+负责人：项目负责人
+参与开发人员：后端开发、前端开发
+
+### 1 本次新增功能清单
+
+| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 补货提醒 | RestockReminderList Livewire 页面（CRUD + 商家/SKU 选择 + 周期配置） | 后端 | 2026-07-29 | ✅ |
+| 2 | 采购退货 | PurchaseReturnList 从桩升级为完整 CRUD（关联采购单 + 供应商 + 仓库 + 退货原因） | 后端 | 2026-07-29 | ✅ |
+| 3 | 仓库管理 | WarehouseList 从桩升级为完整 CRUD（类型/冷链/地址/状态） | 后端 | 2026-07-29 | ✅ |
+| 4 | 库存管理 | InventoryList 从桩升级为完整 CRUD（仓库/SKU/库存数量/批次/效期/预警值） | 后端 | 2026-07-29 | ✅ |
+| 5 | 库存日志 | InventoryLogList 从桩升级为只读日志查看器（类型/仓库筛选，禁止删除） | 后端 | 2026-07-29 | ✅ |
+| 6 | 损耗管理 | LossOrderList 从桩升级为完整 CRUD + 审核流程（新建/编辑/审核/执行/关闭） | 后端 | 2026-07-29 | ✅ |
+| 7 | 路由 | 新增 /restock-reminders 路由 | 后端 | 2026-07-29 | ✅ |
+| 8 | 用户管理 | UserList Livewire 组件（CRUD + 角色分配 + 禁用启用 + 重置密码 + 搜索） | 后端 | 2026-07-29 | ✅ |
+| 9 | 角色管理 | RoleList 增加权限分配弹窗（模块→页面→按钮 树形复选框） | 后端 | 2026-07-29 | ✅ |
+| 10 | 权限管理 | PermissionList 增加角色分配弹窗（多选框，为权限勾选关联角色） | 后端 | 2026-07-29 | ✅ |
+| 11 | 路由 | 新增 /users 路由 + 导航修复 href="#" → route('users') | 后端 | 2026-07-29 | ✅ |
+| 12 | 全局基础设施 | 安装 maatwebsite/excel + 创建4个通用Trait(WithRowSelection/WithColumnVisibility/WithExcelExport/WithExcelImport) + GenericExport/GenericImport + money_format/status_badge 助手函数 | 后端 | 2026-07-30 | ✅ |
+| 13 | 全模块升级 | 49个列表组件全面升级：checkbox多选、批量操作、自定义显示列、Excel导入导出（自定义列）、金额格式化 | 后端 | 2026-07-30 | ✅ |
+| 14 | 订单模块 | OrderList/CartList/OrderReturnList 从桩升级为完整CRUD+状态流转+金额格式化 | 后端 | 2026-07-30 | ✅ |
+| 15 | 配送模块 | DeliveryTaskList/SignatureList/DiscrepancyList/TemperatureList 升级（修复温度记录搜索bug） | 后端 | 2026-07-30 | ✅ |
+| 16 | 财务模块 | 5个财务组件升级为完整CRUD+审核/付款/收款操作+金额格式化+搜索优化 | 后端 | 2026-07-30 | ✅ |
+| 17 | 价格策略 | 3个价格组件升级为完整CRUD+审核启停操作 | 后端 | 2026-07-30 | ✅ |
+| 18 | 采购库存 | 8个采购/库存组件升级为完整CRUD+状态流转+搜索优化 | 后端 | 2026-07-30 | ✅ |
+
+### 2 本次优化/重构
+
+| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | Model | Warehouse / LossOrder / PurchaseReturn 修复 SoftDeletes trait 错位到类外的 Bug | 后端 | 2026-07-29 |
+| 2 | Model | Inventory / InventoryLog / LossOrderItem / PurchaseReturnItem 清理未使用的 SoftDeletes import | 后端 | 2026-07-29 |
+| 3 | Model | Warehouse 补充 statusMap / relationships / scopeEnabled | 后端 | 2026-07-29 |
+| 4 | Model | LossOrder 补充 statusMap / approvalStatusMap / relationships / scopePending | 后端 | 2026-07-29 |
+| 5 | Model | PurchaseReturn 补充 statusMap / relationships / scopePending | 后端 | 2026-07-29 |
+| 6 | Model | Inventory 补充 warehouse/sku relationships / scopeBelowWarning | 后端 | 2026-07-29 |
+| 7 | Model | InventoryLog 补充 warehouse/sku/operator relationships / typeLabel accessor | 后端 | 2026-07-29 |
+| 8 | Model | LossOrderItem 补充 responsiblePartyMap / lossOrder/sku/supplier relationships | 后端 | 2026-07-29 |
+| 9 | Model | PurchaseReturnItem 补充 purchaseReturn/sku relationships | 后端 | 2026-07-29 |
+| 10 | Model | RestockReminder 补充 remindCycleMap / statusMap / merchant/sku relationships / scopeEnabled | 后端 | 2026-07-29 |
+
+### 3 本次修复 Bug
+
+| 序号 | Bug描述 | 修复内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | Warehouse/LossOrder/PurchaseReturn 的 SoftDeletes trait 写在 class 外面导致软删除不生效 | 将 `use SoftDeletes` 移入 class 内部 | 后端 | 2026-07-29 |
+| 2 | InventoryList 搜索 sku_id 使用 like 查整型字段 | 改为通过 sku 关联搜索 sku_code / product.name | 后端 | 2026-07-29 |
+| 3 | InventoryLogList 允许删除日志记录 | 移除删除功能，改为只读日志查看器 | 后端 | 2026-07-29 |
+| 4 | 弹窗取消按钮不关闭 | wire:click="showModal=false" 被 Livewire 验证管道拦截，改用 closeXxxModal() 方法 | 后端 | 2026-07-30 |
+| 5 | Model 重复 SoftDeletes import | Banner/Discrepancy/MerchantAddress/OrderReturn/PriceStrategy 删除多余 use SoftDeletes 行 | 后端 | 2026-07-30 |
+| 6 | 财务搜索bug | MerchantAccountList 用 merchant_id like 搜索改为关联商家名搜索 | 后端 | 2026-07-30 |
+| 7 | 价格搜索bug | PriceApportionmentList 用 amount like 搜索改为按名称搜索 | 后端 | 2026-07-30 |
+
+### 4 数据库变更
+
+无（本次未新增 Migration）
+
+### 5 影响范围
+
+| 影响文件 | 变更类型 |
+| :--- | :--- |
+| app/Models/Warehouse.php | 重写（修复Bug + 补充关系/状态映射） |
+| app/Models/LossOrder.php | 重写（修复Bug + 补充关系/状态映射） |
+| app/Models/PurchaseReturn.php | 重写（修复Bug + 补充关系/状态映射） |
+| app/Models/Inventory.php | 重写（清理import + 补充关系） |
+| app/Models/InventoryLog.php | 重写（清理import + 补充关系） |
+| app/Models/LossOrderItem.php | 重写（清理import + 补充关系/责任方映射） |
+| app/Models/PurchaseReturnItem.php | 重写（补充关系） |
+| app/Models/RestockReminder.php | 重写（补充周期/状态映射/关系） |
+| app/Livewire/Product/RestockReminderList.php | 新增 |
+| app/Livewire/Purchase/PurchaseReturnList.php | 重写（桩→完整CRUD） |
+| app/Livewire/Inventory/WarehouseList.php | 重写（桩→完整CRUD） |
+| app/Livewire/Inventory/InventoryList.php | 重写（桩→完整CRUD） |
+| app/Livewire/Inventory/InventoryLogList.php | 重写（桩→只读查看器） |
+| app/Livewire/Loss/LossOrderList.php | 重写（桩→完整CRUD+审核） |
+| resources/views/livewire/product/restock-reminder-list.blade.php | 新增 |
+| resources/views/livewire/purchase/purchase-return-list.blade.php | 重写 |
+| resources/views/livewire/inventory/warehouse-list.blade.php | 重写 |
+| resources/views/livewire/inventory/inventory-list.blade.php | 重写 |
+| resources/views/livewire/inventory/inventory-log-list.blade.php | 重写 |
+| resources/views/livewire/loss/loss-order-list.blade.php | 重写 |
+| routes/web.php | 修改（新增1条路由） |
+| app/Livewire/User/UserList.php | 新增（用户管理CRUD+角色分配+禁用启用+重置密码） |
+| resources/views/livewire/user/user-list.blade.php | 新增 |
+| app/Livewire/User/RoleList.php | 重写（增加权限分配树弹窗） |
+| resources/views/livewire/user/role-list.blade.php | 重写（增加权限树+删除确认） |
+| app/Livewire/User/PermissionList.php | 重写（增加角色分配弹窗） |
+| resources/views/livewire/user/permission-list.blade.php | 重写（增加角色勾选+删除确认） |
+| resources/views/components/app-topnav.blade.php | 修改（用户管理导航链接 href="#" → route('users')） |
+
+---
+
+## V1.5.0 | 迭代周期：2026-07-29
+
+负责人：项目负责人
+参与开发人员：后端开发、前端开发
+
+### 1 本次新增功能清单
+
+| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 图标 | icon.blade.php 新增 16 个 Heroicons 图标（clipboard-document-list / document-text / star / arrow-path / photo / sparkles / key / chat-bubble-left-right / map-pin / clock / plus / x-mark / magnifying-glass / shield-check / shield-exclamation / check-circle） | 前端 | 2026-07-29 | ✅ |
+| 2 | 导航 | nav-menu-icon-link 组件增加 description 参数，全部子菜单添加简短功能描述 | 前端 | 2026-07-29 | ✅ |
+| 3 | 导航 | 用户权限/系统管理子菜单统一改用 icon-link+description 样式（原部分使用 nav-menu-link） | 前端 | 2026-07-29 | ✅ |
+| 4 | 测试数据 | DemoDataSeeder 扩展全模块示例数据（30+ 张业务表，覆盖采购/订单/库存/配送/损耗/拣货/差异/财务/退货/价格策略/Banner/登录日志等） | 后端 | 2026-07-29 | ✅ |
+
+### 2 本次优化/重构
+
+| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 导航 | nav-menu-icon-link 组件重构：文字区改为 flex 容器，支持可选 description 行 | 前端 | 2026-07-29 |
+
+### 3 本次修复 Bug
+
+无
+
+### 4 数据库变更
+
+无（本次未新增 Migration）
+
+### 5 影响范围
+
+| 影响文件 | 变更类型 |
+| :--- | :--- |
+| resources/views/components/ui/icon.blade.php | 修改（新增16个图标） |
+| resources/views/components/nav-menu-icon-link.blade.php | 修改（新增description参数） |
+| resources/views/components/app-topnav.blade.php | 修改（全部子菜单添加description） |
+| database/seeders/DemoDataSeeder.php | 修改（扩展30+表示例数据） |
+
+---
+
+## V1.4.0 | 迭代周期：2026-07-29
+
+负责人：项目负责人
+参与开发人员：后端开发、前端开发
+
+### 1 本次新增功能清单
+
+| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 库存管理 | Warehouse / Inventory / InventoryLog Model + 3 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
+| 2 | 损耗管理 | LossOrder / LossOrderItem Model + 1 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
+| 3 | 拣货管理 | PickingTask / PickingTaskItem Model + 1 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
+| 4 | 配送管理 | DeliveryTask / DeliveryTaskOrder / DeliveryTrack / Signature / Temperature Model + 3 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
+| 5 | 差异处理 | Discrepancy Model + 1 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
+| 6 | 财务对账 | MerchantAccount / Recharge / SupplierSettlement / SupplierSettlementItem / SettlementPayment / Receivable / ReceivablePayment / Invoice / CorrectionAuthorization Model + 8 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
+| 7 | 退货+价格 | PurchaseReturn / PurchaseReturnItem / OrderReturn / OrderReturnItem / PriceStrategy / PriceStrategyItem / PriceChangeLog Model + 4 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
+| 8 | 扩展+系统 | PriceApportionment / MerchantAddress / MerchantFavorite / Banner / Promotion / LoginLog / WechatUser Model + 5 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
+| 9 | 路由 | 新增 26 条路由覆盖全部模块 | 后端 | 2026-07-29 | ✅ |
+| 10 | 导航 | 全部导航菜单链接替换为真实路由 | 前端 | 2026-07-29 | ✅ |
+
+### 2 本次优化/重构
+
+| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 导航 | 全部子菜单统一改用 icon-link 样式 | 前端 | 2026-07-29 |
+
+### 3 本次修复 Bug
+
+无
+
+### 4 待办事项
+
+| 序号 | 模块 | 待办内容 | 优先级 |
+| :--- | :--- | :--- | :--- |
+| 1 | 全模块 | 各模块 Detail/Form 页面待开发 | 中 |
+| 2 | 全模块 | 业务逻辑 Service 层待实现 | 高 |
+| 3 | 全模块 | 小程序端 API 待开发 | 高 |
+
+### 5 累计完成统计
+
+| 指标 | V1.3.0 | V1.4.0 | 增量 |
+| :--- | :--- | :--- | :--- |
+| Model 数 | 36 | 72 | +36 |
+| Livewire 组件 | 28 | 54 | +26 |
+| 路由数 | 30 | 56 | +26 |
+| 数据库表 | 77 | 77 | — |
+
+### 6 数据库/配置变更记录
+
+无新增 Migration，Model 基于已有表结构创建。
+
+### 7 发布记录
+
+| 日期 | 版本 | 操作人 | Git Commit | 备注 |
+| :--- | :--- | :--- | :--- | :--- |
+| 2026-07-29 | V1.4.0 | 项目负责人 | — | 全模块 Model/Livewire/路由/导航一次性交付 |
+
+---
+
+## V1.3.0 | 迭代周期：2026-07-29
+
+负责人：项目负责人
+参与开发人员：后端开发、前端开发
+
+### 1 本次新增功能清单
+
+| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 采购管理 | PurchaseItem Model + Livewire 列表页 | 后端 | 2026-07-29 | ✅ |
+| 2 | 采购管理 | PurchaseOrder / PurchaseOrderItem Model + Livewire 列表页 | 后端 | 2026-07-29 | ✅ |
+| 3 | 订单配送 | Cart / CartItem Model + Livewire 列表页 | 后端 | 2026-07-29 | ✅ |
+| 4 | 订单配送 | Order / OrderItem Model + Livewire 列表页 | 后端 | 2026-07-29 | ✅ |
+| 5 | 订单配送 | FrequentlyBought Model + Livewire 列表页 | 后端 | 2026-07-29 | ✅ |
+| 6 | 订单配送 | RepurchaseTemplate / RepurchaseTemplateItem Model + Livewire 列表页 | 后端 | 2026-07-29 | ✅ |
+| 7 | 路由 | 新增 6 条路由（purchase-items / purchase-orders / orders / carts / frequently-bought / repurchase-templates） | 后端 | 2026-07-29 | ✅ |
+| 8 | 导航 | 采购管理子菜单链接待采清单/采购单管理 | 前端 | 2026-07-29 | ✅ |
+| 9 | 导航 | 订单配送子菜单链接客户订单/购物车/常购清单/复购模板 | 前端 | 2026-07-29 | ✅ |
+| 10 | 文档 | FSD 9.2 Models 状态标注 + 9.9 映射表更新 | 后端 | 2026-07-29 | ✅ |
+
+### 2 本次优化/重构
+
+| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 导航 | 采购管理子菜单改用 icon-link 样式（与商品管理/订单配送统一） | 前端 | 2026-07-29 |
+
+### 3 本次修复 Bug
+
+无
+
+### 4 待办事项
+
+| 序号 | 模块 | 待办内容 | 优先级 |
+| :--- | :--- | :--- | :--- |
+| 1 | 采购管理 | PurchaseOrderDetail / PurchaseReturn / PurchaseReturnDetail 页面待开发 | 中 |
+| 2 | 订单配送 | OrderDetail / OrderReturn / OrderReturnDetail 页面待开发 | 中 |
+| 3 | 订单配送 | 配送任务/签收存证/差异处理模块待开发 | 高 |
+
+### 5 累计完成统计
+
+| 指标 | V1.2.0 | V1.3.0 | 增量 |
+| :--- | :--- | :--- | :--- |
+| Model 数 | 26 | 36 | +10 |
+| Livewire 组件 | 22 | 28 | +6 |
+| 路由数 | 24 | 30 | +6 |
+| 数据库表 | 77 | 77 | — |
+
+### 6 数据库/配置变更记录
+
+无新增 Migration，Model 基于已有表结构创建。
+
+### 7 发布记录
+
+| 日期 | 版本 | 操作人 | Git Commit | 备注 |
+| :--- | :--- | :--- | :--- | :--- |
+| 2026-07-29 | V1.3.0 | 项目负责人 | — | 采购管理+订单配送 Model/Livewire/路由/导航 |
+
+---
+
+## V1.2.0 | 迭代周期：2026-07-29
+
+负责人：项目负责人
+参与开发人员：后端开发、前端开发
+
+### 1 本次新增功能清单
+
+| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 商品管理 | Category Model（树形分类，parent_id/状态/排序） | AI | 2026-07-29 | 已完成 |
+| 2 | 商品管理 | Product Model（商品主表，分类/供应商/称重改价/上下架） | AI | 2026-07-29 | 已完成 |
+| 3 | 商品管理 | ProductImage Model（商品多图） | AI | 2026-07-29 | 已完成 |
+| 4 | 商品管理 | Sku Model（SKU规格，价格整数存储，审核状态） | AI | 2026-07-29 | 已完成 |
+| 5 | 商品管理 | MerchantSkuVisibility Model（商家SKU可见性） | AI | 2026-07-29 | 已完成 |
+| 6 | 商品管理 | Tag / ProductTag Model（标签词库+商品标签关联） | AI | 2026-07-29 | 已完成 |
+| 7 | 商品管理 | Keyword Model（搜索关键词联想+热度） | AI | 2026-07-29 | 已完成 |
+| 8 | 条码管理 | SkuBarcode Model（4种条码类型：厂家/供应商/内部/备用） | AI | 2026-07-29 | 已完成 |
+| 9 | 一品多供 | SkuSupplier Model（SKU-供应商关联，默认供应商/采购价） | AI | 2026-07-29 | 已完成 |
+| 10 | 商品管理 | CategoryList Livewire（分类CRUD+搜索+弹窗表单） | AI | 2026-07-29 | 已完成 |
+| 11 | 商品管理 | ProductList Livewire（商品CRUD+分类筛选+状态筛选） | AI | 2026-07-29 | 已完成 |
+| 12 | 商品管理 | SkuList Livewire（SKU列表+审核状态标签） | AI | 2026-07-29 | 已完成 |
+| 13 | 商品管理 | TagList Livewire（标签CRUD+搜索） | AI | 2026-07-29 | 已完成 |
+| 14 | 商品管理 | KeywordList Livewire（关键词CRUD+搜索次数排序） | AI | 2026-07-29 | 已完成 |
+| 15 | 条码管理 | SkuBarcodeList Livewire（条码CRUD+类型筛选） | AI | 2026-07-29 | 已完成 |
+| 16 | 一品多供 | SkuSupplierList Livewire（关联CRUD+供应商下拉） | AI | 2026-07-29 | 已完成 |
+| 17 | 路由 | web.php 新增 7 条路由（categories/products/skus/tags/keywords/sku-barcodes/sku-suppliers） | AI | 2026-07-29 | 已完成 |
+| 18 | 导航 | 商品管理子菜单全部指向真实路由 | AI | 2026-07-29 | 已完成 |
+| 19 | 文档 | FSD 9.2 Models 目录标注已创建状态，清理尾部重复残留 | AI | 2026-07-29 | 已完成 |
+
+### 2 原有功能优化项
+
+1. FSD 文档清理 — 删除尾部 2293-2733 行重复残留内容（旧版 Livewire 组件/Model/路由规划重复段）（2026-07-29）
+
+### 3 BUG 修复记录
+
+无
+
+### 4 遗留待迭代需求（下一版本处理）
+
+| 序号 | 需求描述 | 优先级 | 备注 |
+| :--- | :--- | :--- | :--- |
+| 1 | Model 第5~15批（约39个） | P0 | 采购→订单→拣货→配送→差异损耗→退货→价格策略→财务→均摊+扩展+系统+微信 |
+| 2 | 安装 Redis PHP 扩展 | P1 | .env 目前用 file 驱动 |
+
+### 5 完成统计
+
+| 维度 | 已完成 | 待开发 | 合计 |
+| :--- | :--- | :--- | :--- |
+| 功能点 | 38 | 15 | 53 |
+| 数据库表 | 77（已建 Migration） | 0 | 77 |
+| Blade 组件 | 34+ | - | 34+ |
+| Model | 26 | ~42 | ~68 |
+| Livewire 组件 | 22 | - | 22 |
+| 路由 | 24 | - | 24 |
+
+### 6 版本发布记录
+
+| 项目 | 内容 |
+| :--- | :--- |
+| 版本号 | V1.2.0-alpha |
+| 发布时间 | 2026-07-29 |
+| 部署环境 | 开发环境（Laragon，https://livewire.test） |
+| Git 分支 | navigate |
+| 远程仓库 | git@github.com:kindiaing/susong-livewire.git |
+| 新增文件 | 10 Model + 7 Livewire 组件 + 7 Livewire 视图 |
+| 修改文件 | web.php / app-topnav.blade.php / FSD 9.2 + 9.9 |
+
+---
+
+## V1.1.0 | 迭代周期：2026-07-29
+
+负责人：项目负责人
+参与开发人员：后端开发、前端开发
+
+### 1 本次新增功能清单
+
+| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 用户权限 | Role Model（继承 SpatieRole，扩展 display_name/type/parent_id） | AI | 2026-07-29 | 已完成 |
+| 2 | 用户权限 | Permission Model（继承 SpatiePermission，扩展 display_name/type/parent_id） | AI | 2026-07-29 | 已完成 |
+| 3 | 组织主体 | Supplier Model（供应商，含状态/类型常量、关联关系、作用域） | AI | 2026-07-29 | 已完成 |
+| 4 | 组织主体 | Merchant Model（商家，含状态常量、多地址关联） | AI | 2026-07-29 | 已完成 |
+| 5 | 组织主体 | DeliveryRoute Model（配送线路，含排序/状态常量） | AI | 2026-07-29 | 已完成 |
+| 6 | 组织主体 | Driver Model（司机，含状态/类型常量、车辆绑定关联） | AI | 2026-07-29 | 已完成 |
+| 7 | 组织主体 | Vehicle Model（车辆，含车型/状态/冷链标记常量） | AI | 2026-07-29 | 已完成 |
+| 8 | 组织主体 | DriverVehicle Model（司机-车辆绑定，多对多中间表） | AI | 2026-07-29 | 已完成 |
+| 9 | 用户权限 | RoleList Livewire（角色列表+搜索+弹窗表单+删除） | AI | 2026-07-29 | 已完成 |
+| 10 | 用户权限 | PermissionList Livewire（权限列表+搜索+弹窗表单+删除） | AI | 2026-07-29 | 已完成 |
+| 11 | 组织主体 | SupplierList Livewire（供应商CRUD+搜索+状态标签） | AI | 2026-07-29 | 已完成 |
+| 12 | 组织主体 | MerchantList Livewire（商家CRUD+搜索+状态标签） | AI | 2026-07-29 | 已完成 |
+| 13 | 组织主体 | RouteList Livewire（线路CRUD+搜索+排序） | AI | 2026-07-29 | 已完成 |
+| 14 | 组织主体 | DriverList Livewire（司机CRUD+搜索+状态标签） | AI | 2026-07-29 | 已完成 |
+| 15 | 组织主体 | VehicleList Livewire（车辆CRUD+搜索+冷链/状态标签） | AI | 2026-07-29 | 已完成 |
+| 16 | 路由 | web.php 新增 7 条路由（roles/permissions/suppliers/merchants/delivery-routes/drivers/vehicles） | AI | 2026-07-29 | 已完成 |
+| 17 | 导航 | 用户权限子菜单链接真实路由（角色管理→roles、权限管理→permissions） | AI | 2026-07-29 | 已完成 |
+| 18 | 导航 | 组织主体全部 5 个子菜单指向真实路由 | AI | 2026-07-29 | 已完成 |
+| 19 | 文档 | 08_用户使用手册.md 创建（覆盖已完成的全部功能模块操作说明） | AI | 2026-07-29 | 已完成 |
+| 20 | 文档 | FSD 9.3.3 数据库目录更新为 Livewire 项目实际状态 | AI | 2026-07-29 | 已完成 |
+
+### 2 原有功能优化项
+
+1. .env.example 中文乱码修复 — 重写为无 BOM UTF-8 编码（2026-07-29）
+2. AdminInstallCommand 引用修复 — RolePermissionSeeder → SystemDataSeeder（2026-07-29）
+3. 移动端汉堡菜单代码清除 — 管理后台不做移动端适配（2026-07-29）
+4. composer.json post-autoload-dump 添加自动创建缺失目录脚本（2026-07-29）
+
+### 3 BUG 修复记录
+
+| BUG编号 | 问题描述 | 复现步骤 | 修复方案 | 验证状态 |
+| :--- | :--- | :--- | :--- | :--- |
+| 8 | AdminInstallCommand 引用已删除的 RolePermissionSeeder | `php artisan admin:install --reset --force` 报错类不存在 | 改为引用 SystemDataSeeder | 已验证 |
+| 9 | .env.example UTF-8 BOM 导致中文注释乱码 | Git clone 后在其他环境打开 .env.example 中文全部乱码 | 重写为无 BOM UTF-8 | 已验证 |
+
+### 4 遗留待迭代需求（下一版本处理）
+
+| 序号 | 需求描述 | 优先级 | 备注 |
+| :--- | :--- | :--- | :--- |
+| 1 | Model 第3~15批（约49个） | P0 | 商品→SKU条码→仓库库存→采购→订单→拣货→配送→差异损耗→退货→价格策略→财务→均摊+扩展+系统+微信 |
+| 2 | 对应 Livewire 页面 | P0 | 每批 Model 配套列表/详情/表单页面 |
+| 3 | 安装 Redis PHP 扩展 | P1 | .env 目前用 file 驱动 |
+| 4 | 数据大屏统计功能 | P2 | 展示订单量、销售额、损耗率等实时指标 |
+
+### 5 完成统计
+
+| 维度 | 已完成 | 待开发 | 合计 |
+| :--- | :--- | :--- | :--- |
+| 功能点 | 38 | 15 | 53 |
+| 数据库表 | 77（已建 Migration） | 0 | 77 |
+| Blade 组件 | 34+ | - | 34+ |
+| Model | 16 | ~52 | ~68 |
+| Livewire 组件 | 15 | - | 15 |
+| 路由 | 17 | - | 17 |
+
+### 6 版本发布记录
+
+| 项目 | 内容 |
+| :--- | :--- |
+| 版本号 | V1.1.0-alpha |
+| 发布时间 | 2026-07-29 |
+| 部署环境 | 开发环境（Laragon，https://livewire.test） |
+| Git 分支 | navigate |
+| 远程仓库 | git@github.com:kindiaing/susong-livewire.git |
+| 新增文件 | 7 Model + 7 Livewire 组件 + 7 Livewire 视图 + 1 用户手册 |
+| 修改文件 | web.php / app-topnav.blade.php / .env.example / AdminInstallCommand / composer.json / FSD |
 
 ---
 
@@ -51,10 +492,10 @@ AIGC:
 | 21 | UI 增强 | Alert Dialog 组件（shadcn/ui 风格，4 种 variant，支持 Livewire 回调） | AI | 2026-07-28 | 已完成 |
 | 22 | UI 增强 | Toast 通知（全局 Alpine store，5 种类型，统一 duration 5s） | AI | 2026-07-28 | 已完成 |
 | 23 | 安全 | CSRF Token 过期自动刷新（419 → reload，用户无感知） | AI | 2026-07-29 | 已完成 |
-| 24 | 组织主体 | 供应商管理 | - | - | 待开发 |
-| 25 | 组织主体 | 商家管理（含多地址） | - | - | 待开发 |
-| 26 | 组织主体 | 配送线路/司机/车辆管理 | - | - | 待开发 |
-| 27 | 商品管理 | 分类/商品/SKU/条码/一品多供/可见性/关键词 | - | - | 待开发 |
+| 24 | 组织主体 | 供应商管理 | AI | 2026-07-29 | V1.1.0 已完成 |
+| 25 | 组织主体 | 商家管理（含多地址） | AI | 2026-07-29 | V1.1.0 已完成 |
+| 26 | 组织主体 | 配送线路/司机/车辆管理 | AI | 2026-07-29 | V1.1.0 已完成 |
+| 27 | 商品管理 | 分类/商品/SKU/条码/一品多供/可见性/关键词 | AI | 2026-07-29 | V1.2.0 已完成 |
 | 28 | 平台统采 | 待采清单/采购单/采购入库/采购退货 | - | - | 待开发 |
 | 29 | 客户直采 | 购物车/订单/称重改价/售后退货 | - | - | 待开发 |
 | 30 | 库存管理 | 仓库/实时库存/库存日志/库存预警 | - | - | 待开发 |
@@ -95,14 +536,13 @@ AIGC:
 
 | 序号 | 需求描述 | 优先级 | 备注 |
 | :--- | :--- | :--- | :--- |
-| 1 | Model 层开发 | P0 | 目前仅 User/SystemConfig/Notification/RestockReminder/Approval/ApprovalTypeConfig/AuditLog/OperationLog |
-| 2 | 移动端汉堡菜单展开面板 | P1 | 按钮已有但面板未实现 |
-| 3 | 安装 Redis PHP 扩展 | P1 | .env 目前用 file 驱动 |
-| 4 | 数据大屏统计功能 | P2 | 展示订单量、销售额、损耗率等实时指标 |
-| 5 | 操作日志导出 | P2 | 支持按时间范围、操作人、模块导出 |
-| 6 | 效期管理（二期损耗增强） | P2 | 效期预警、自动触发损耗申报 |
-| 7 | 损耗分析报表（二期） | P2 | 按品类、供应商、时间维度损耗趋势分析 |
-| 8 | AI 智能补货推荐 | P3 | 基于采购频次和库存自动推荐补货清单 |
+| 1 | Model 层开发（第3~15批） | P0 | 商品/SKU/库存/采购/订单/拣货/配送/差异/退货/价格/财务等约 49 个 |
+| 2 | 安装 Redis PHP 扩展 | P1 | .env 目前用 file 驱动 |
+| 3 | 数据大屏统计功能 | P2 | 展示订单量、销售额、损耗率等实时指标 |
+| 4 | 操作日志导出 | P2 | 支持按时间范围、操作人、模块导出 |
+| 5 | 效期管理（二期损耗增强） | P2 | 效期预警、自动触发损耗申报 |
+| 6 | 损耗分析报表（二期） | P2 | 按品类、供应商、时间维度损耗趋势分析 |
+| 7 | AI 智能补货推荐 | P3 | 基于采购频次和库存自动推荐补货清单 |
 
 ### 5 完成统计
 
@@ -112,7 +552,8 @@ AIGC:
 | 数据库表 | 77（已建 Migration） | 0 | 77 |
 | Blade 组件 | 34+ | - | 34+ |
 | Model | 8 | ~60 | ~68 |
-| 路由 | 8 | - | 8 |
+| Livewire 组件 | 8 | - | 8 |
+| 路由 | 10 | - | 10 |
 
 ### 6 版本发布记录
 

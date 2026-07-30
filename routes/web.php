@@ -1,12 +1,60 @@
 <?php
 
 use App\Livewire\Auth\Login;
+use App\Livewire\Delivery\DeliveryTaskList;
+use App\Livewire\Delivery\DiscrepancyList;
+use App\Livewire\Delivery\SignatureList;
+use App\Livewire\Delivery\TemperatureList;
+use App\Livewire\Finance\CorrectionAuthorizationList;
+use App\Livewire\Finance\InvoiceList;
+use App\Livewire\Finance\MerchantAccountList;
+use App\Livewire\Finance\PriceApportionmentList;
+use App\Livewire\Finance\PriceStrategyList;
+use App\Livewire\Finance\ReceivableList;
+use App\Livewire\Finance\RechargeList;
+use App\Livewire\Finance\SupplierSettlementList;
+use App\Livewire\Inventory\InventoryList;
+use App\Livewire\Inventory\InventoryLogList;
+use App\Livewire\Inventory\WarehouseList;
+use App\Livewire\Loss\LossOrderList;
+use App\Livewire\Merchant\MerchantAddressList;
+use App\Livewire\Merchant\MerchantFavoriteList;
+use App\Livewire\Org\DriverList;
+use App\Livewire\Org\MerchantList;
+use App\Livewire\Org\RouteList;
+use App\Livewire\Org\SupplierList;
+use App\Livewire\Org\VehicleList;
+use App\Livewire\Order\CartList;
+use App\Livewire\Order\FrequentlyBoughtList;
+use App\Livewire\Order\OrderList;
+use App\Livewire\Order\OrderReturnList;
+use App\Livewire\Order\RepurchaseTemplateList;
+use App\Livewire\Picking\PickingTaskList;
+use App\Livewire\Price\PriceChangeLogList;
+use App\Livewire\Product\CategoryList;
+use App\Livewire\Product\KeywordList;
+use App\Livewire\Product\ProductList;
+use App\Livewire\Product\SkuBarcodeList;
+use App\Livewire\Product\SkuList;
+use App\Livewire\Product\RestockReminderList;
+use App\Livewire\Product\SkuSupplierList;
+use App\Livewire\Product\TagList;
+use App\Livewire\Purchase\PurchaseItemList;
+use App\Livewire\Purchase\PurchaseOrderList;
+use App\Livewire\Purchase\PurchaseReturnList;
 use App\Livewire\System\ApprovalConfig;
 use App\Livewire\System\Approvals;
 use App\Livewire\System\AuditLogs;
+use App\Livewire\System\BannerList;
+use App\Livewire\System\LoginLogList;
 use App\Livewire\System\OperationLogs;
+use App\Livewire\System\PromotionList;
 use App\Livewire\System\Settings;
+use App\Livewire\System\WechatUserList;
+use App\Livewire\User\PermissionList;
 use App\Livewire\User\Profile;
+use App\Livewire\User\RoleList;
+use App\Livewire\User\UserList;
 use Illuminate\Support\Facades\Route;
 
 // 首页（公开，无需登录）
@@ -28,12 +76,80 @@ Route::middleware('auth')->group(function () {
     // 个人中心
     Route::get('/profile', Profile::class)->name('profile');
 
+    // ── 用户权限 ──
+    Route::get('/users', UserList::class)->name('users');
+    Route::get('/roles', RoleList::class)->name('roles');
+    Route::get('/permissions', PermissionList::class)->name('permissions');
+
+    // ── 组织主体 ──
+    Route::get('/suppliers', SupplierList::class)->name('suppliers');
+    Route::get('/merchants', MerchantList::class)->name('merchants');
+    Route::get('/delivery-routes', RouteList::class)->name('delivery-routes');
+    Route::get('/drivers', DriverList::class)->name('drivers');
+    Route::get('/vehicles', VehicleList::class)->name('vehicles');
+
+    // ── 商品管理 ──
+    Route::get('/categories', CategoryList::class)->name('categories');
+    Route::get('/products', ProductList::class)->name('products');
+    Route::get('/skus', SkuList::class)->name('skus');
+    Route::get('/tags', TagList::class)->name('tags');
+    Route::get('/keywords', KeywordList::class)->name('keywords');
+    Route::get('/sku-barcodes', SkuBarcodeList::class)->name('sku-barcodes');
+    Route::get('/sku-suppliers', SkuSupplierList::class)->name('sku-suppliers');
+    Route::get('/restock-reminders', RestockReminderList::class)->name('restock-reminders');
+
+    // ── 采购管理 ──
+    Route::get('/purchase-items', PurchaseItemList::class)->name('purchase-items');
+    Route::get('/purchase-orders', PurchaseOrderList::class)->name('purchase-orders');
+    Route::get('/purchase-returns', PurchaseReturnList::class)->name('purchase-returns');
+
+    // ── 订单配送 ──
+    Route::get('/orders', OrderList::class)->name('orders');
+    Route::get('/carts', CartList::class)->name('carts');
+    Route::get('/frequently-bought', FrequentlyBoughtList::class)->name('frequently-bought');
+    Route::get('/repurchase-templates', RepurchaseTemplateList::class)->name('repurchase-templates');
+    Route::get('/order-returns', OrderReturnList::class)->name('order-returns');
+
+    // ── 库存拣货 ──
+    Route::get('/warehouses', WarehouseList::class)->name('warehouses');
+    Route::get('/inventories', InventoryList::class)->name('inventories');
+    Route::get('/inventory-logs', InventoryLogList::class)->name('inventory-logs');
+    Route::get('/picking-tasks', PickingTaskList::class)->name('picking-tasks');
+
+    // ── 配送管理 ──
+    Route::get('/delivery-tasks', DeliveryTaskList::class)->name('delivery-tasks');
+    Route::get('/signatures', SignatureList::class)->name('signatures');
+    Route::get('/temperatures', TemperatureList::class)->name('temperatures');
+    Route::get('/discrepancies', DiscrepancyList::class)->name('discrepancies');
+
+    // ── 损耗管理 ──
+    Route::get('/loss-orders', LossOrderList::class)->name('loss-orders');
+
+    // ── 财务对账 ──
+    Route::get('/merchant-accounts', MerchantAccountList::class)->name('merchant-accounts');
+    Route::get('/recharges', RechargeList::class)->name('recharges');
+    Route::get('/supplier-settlements', SupplierSettlementList::class)->name('supplier-settlements');
+    Route::get('/receivables', ReceivableList::class)->name('receivables');
+    Route::get('/invoices', InvoiceList::class)->name('invoices');
+    Route::get('/correction-authorizations', CorrectionAuthorizationList::class)->name('correction-authorizations');
+    Route::get('/price-strategies', PriceStrategyList::class)->name('price-strategies');
+    Route::get('/price-apportionments', PriceApportionmentList::class)->name('price-apportionments');
+    Route::get('/price-change-logs', PriceChangeLogList::class)->name('price-change-logs');
+
+    // ── 商家扩展 ──
+    Route::get('/merchant-addresses', MerchantAddressList::class)->name('merchant-addresses');
+    Route::get('/merchant-favorites', MerchantFavoriteList::class)->name('merchant-favorites');
+
     // ── 系统管理 ──
     Route::get('/settings', Settings::class)->name('settings');
+    Route::get('/banners', BannerList::class)->name('banners');
+    Route::get('/promotions', PromotionList::class)->name('promotions');
     Route::get('/approval-config', ApprovalConfig::class)->name('approval-config');
     Route::get('/approvals', Approvals::class)->name('approvals');
     Route::get('/operation-logs', OperationLogs::class)->name('operation-logs');
     Route::get('/audit-logs', AuditLogs::class)->name('audit-logs');
+    Route::get('/login-logs', LoginLogList::class)->name('login-logs');
+    Route::get('/wechat-users', WechatUserList::class)->name('wechat-users');
 });
 
 // 开发演示页（无需登录，生产环境应移除）

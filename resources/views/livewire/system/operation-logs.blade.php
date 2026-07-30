@@ -45,13 +45,25 @@
         <button wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
             重置
         </button>
+
+        <div class="flex-1"></div>
+
+        @if($selectedCount > 0)
+        <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
+        <button wire:click="batchDelete" class="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
+        <button wire:click="clearSelection" class="text-xs text-muted-foreground hover:text-foreground">取消选择</button>
+        @endif
+        <button wire:click="openColumnModal" class="rounded-md border border-input px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors">列配置</button>
+        <button wire:click="openExportModal" class="rounded-md border border-input px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors">导出</button>
     </div>
 
     {{-- 日志列表 --}}
     <div class="rounded-lg border bg-card">
-        <div class="grid grid-cols-[1fr_80px_1fr_150px_150px_120px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            <div>操作内容</div>
+        <div class="grid grid-cols-[40px_60px_80px_1fr_1fr_150px_120px_120px] gap-2 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <div><input type="checkbox" wire:model.live="selectAllPage" class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500" /></div>
+            <div>ID</div>
             <div>方法</div>
+            <div>操作内容</div>
             <div>路径</div>
             <div>操作人</div>
             <div>IP</div>
@@ -59,10 +71,11 @@
         </div>
 
         @forelse($logs as $log)
-            <div class="grid grid-cols-[1fr_80px_1fr_150px_150px_120px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors"
+            <div class="grid grid-cols-[40px_60px_80px_1fr_1fr_150px_120px_120px] gap-2 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors"
                  wire:key="olog-{{ $log->id }}">
-                {{-- 操作内容 --}}
-                <div class="text-sm text-foreground truncate min-w-0">{{ $log->content }}</div>
+                <div><input type="checkbox" value="{{ $log->id }}" wire:model.live="selectedIds" class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500" /></div>
+
+                <div class="text-sm text-muted-foreground">{{ $log->id }}</div>
 
                 {{-- 请求方法 --}}
                 <div>
@@ -71,6 +84,9 @@
                         {{ $log->method }}
                     </span>
                 </div>
+
+                {{-- 操作内容 --}}
+                <div class="text-sm text-foreground truncate min-w-0">{{ $log->content }}</div>
 
                 {{-- 路径 --}}
                 <div class="text-sm text-muted-foreground truncate font-mono min-w-0">{{ $log->path }}</div>
@@ -95,4 +111,7 @@
     <div class="mt-4">
         {{ $logs->links() }}
     </div>
+
+    @include('partials.column-modal')
+    @include('partials.export-modal')
 </div>

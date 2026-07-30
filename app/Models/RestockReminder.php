@@ -22,6 +22,15 @@ class RestockReminder extends Model
 {
     protected $table = 'restock_reminders';
 
+    // 提醒周期常量
+    public const CYCLE_DAILY = 1;
+    public const CYCLE_WEEKLY = 2;
+    public const CYCLE_ONCE = 3;
+
+    // 状态常量
+    public const STATUS_DISABLED = 0;
+    public const STATUS_ENABLED = 1;
+
     protected $fillable = [
         'merchant_id',
         'sku_id',
@@ -41,5 +50,62 @@ class RestockReminder extends Model
             'last_reminded_at' => 'datetime',
             'status' => 'integer',
         ];
+    }
+
+    /**
+     * 提醒周期映射
+     */
+    public static function remindCycleMap(): array
+    {
+        return [
+            self::CYCLE_DAILY => '每日',
+            self::CYCLE_WEEKLY => '每周',
+            self::CYCLE_ONCE => '仅一次',
+        ];
+    }
+
+    /**
+     * 状态映射
+     */
+    public static function statusMap(): array
+    {
+        return [
+            self::STATUS_ENABLED => '启用',
+            self::STATUS_DISABLED => '禁用',
+        ];
+    }
+
+    public function getRemindCycleLabelAttribute(): string
+    {
+        return self::remindCycleMap()[$this->remind_cycle] ?? '未知';
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::statusMap()[$this->status] ?? '未知';
+    }
+
+    /**
+     * 关联商家
+     */
+    public function merchant()
+    {
+        return $this->belongsTo(Merchant::class);
+    }
+
+    /**
+     * 关联 SKU
+     */
+    public function sku()
+    {
+        return $this->belongsTo(Sku::class);
+    }
+
+    /**
+     * 作用域：启用
+     */
+    public function scopeEnabled($query)
+    {
+        return $query->where('status', self::STATUS_ENABLED);
     }
 }

@@ -1,0 +1,63 @@
+﻿<div class="p-6">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-foreground">客户订单</h1>
+            <p class="text-muted-foreground mt-1">管理客户订单及支付状态</p>
+        </div>
+    </div>
+    <div class="flex items-center gap-3 mb-4">
+        <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background px-3 text-sm" placeholder="搜索订单号/商家..." />
+        <select wire:model.live="filterStatus" class="flex h-9 rounded-md border border-input bg-background px-3 text-sm">
+            <option value="-1">全部状态</option>
+            <option value="1">待拣货</option><option value="2">拣货中</option><option value="3">配送中</option>
+            <option value="4">已签收</option><option value="5">已锁定</option><option value="9">已取消</option>
+        </select>
+        <select wire:model.live="filterPaymentStatus" class="flex h-9 rounded-md border border-input bg-background px-3 text-sm">
+            <option value="-1">全部支付</option>
+            <option value="1">未支付</option><option value="2">已支付</option><option value="3">账期</option>
+        </select>
+        <button wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
+    </div>
+    <div class="rounded-lg border bg-card">
+        <div class="grid grid-cols-[60px_120px_1fr_100px_80px_100px_80px_80px_100px] gap-2 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <div>ID</div><div>订单号</div><div>商家</div><div>总金额</div><div>批次</div><div>最终金额</div><div>状态</div><div>支付</div><div>操作</div>
+        </div>
+        @forelse($orders as $order)
+            <div class="grid grid-cols-[60px_120px_1fr_100px_80px_100px_80px_80px_100px] gap-2 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors" wire:key="order-{{ $order->id }}">
+                <div class="text-sm text-muted-foreground">{{ $order->id }}</div>
+                <div class="text-sm font-mono text-foreground">{{ $order->order_no }}</div>
+                <div class="text-sm text-foreground truncate">{{ $order->merchant?->name ?? '-' }}</div>
+                <div class="text-sm text-foreground">{{ $order->total_amount }}</div>
+                <div class="text-sm text-foreground">{{ $order->batch === 1 ? '上午' : '下午' }}</div>
+                <div class="text-sm text-foreground">{{ $order->final_amount }}</div>
+                <div>
+                    @php $sc = ['1'=>'yellow','2'=>'blue','3'=>'orange','4'=>'green','5'=>'gray','9'=>'red']; $c = $sc[$order->status] ?? 'gray'; @endphp
+                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $c }}-100 text-{{ $c }}-700">{{ $order->status_label }}</span>
+                </div>
+                <div>
+                    @php $pc = ['1'=>'yellow','2'=>'green','3'=>'blue']; $cp = $pc[$order->payment_status] ?? 'gray'; @endphp
+                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $cp }}-100 text-{{ $cp }}-700">{{ $order->payment_status_label }}</span>
+                </div>
+                <div>
+                    <button wire:click="confirmDelete({{ $order->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                </div>
+            </div>
+        @empty
+            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无订单数据</div>
+        @endforelse
+    </div>
+    <div class="mt-4">{{ $orders->links() }}</div>
+    @if($showDeleteConfirm)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" wire:click="closeDeleteConfirm"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
+            <h2 class="text-lg font-semibold text-foreground mb-2">确认删除</h2>
+            <p class="text-sm text-muted-foreground mb-6">确定要删除该订单吗？</p>
+            <div class="flex justify-end gap-3">
+                <button wire:click="closeDeleteConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button wire:click="delete" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>
+            </div>
+        </div>
+    </div>
+    @endif
+</div>

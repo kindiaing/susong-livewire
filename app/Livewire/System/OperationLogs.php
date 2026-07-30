@@ -2,6 +2,9 @@
 
 namespace App\Livewire\System;
 
+use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithRowSelection;
 use App\Models\OperationLog;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -9,6 +12,11 @@ use Livewire\WithPagination;
 class OperationLogs extends Component
 {
     use WithPagination;
+    use WithRowSelection;
+    use WithColumnVisibility;
+    use WithExcelExport;
+
+    protected string $modelClass = OperationLog::class;
 
     public string $filterMethod = '';
     public string $filterUsername = '';
@@ -18,7 +26,45 @@ class OperationLogs extends Component
 
     public function mount(): void
     {
-        // 默认显示今天的日志
+        $this->initColumnVisibility();
+    }
+
+    public function getAllColumns(): array
+    {
+        return [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'user_id', 'label' => '用户ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'module', 'label' => '模块', 'sortable' => false, 'exportable' => true],
+            ['key' => 'action', 'label' => '操作', 'sortable' => false, 'exportable' => true],
+            ['key' => 'description', 'label' => '描述', 'sortable' => false, 'exportable' => true],
+            ['key' => 'ip', 'label' => 'IP', 'sortable' => false, 'exportable' => true],
+            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
+        ];
+    }
+
+    public function getExportQuery()
+    {
+        return $this->buildQuery();
+    }
+
+    public function getExportFileName(): string
+    {
+        return '操作日志_' . now()->format('Ymd_His');
+    }
+
+    public function getPageIds(): array
+    {
+        return $this->buildQuery()->forPage($this->page, 20)->pluck('id')->toArray();
+    }
+
+    public function closeColumnModal(): void
+    {
+        $this->showColumnModal = false;
+    }
+
+    public function closeExportModal(): void
+    {
+        $this->showExportModal = false;
     }
 
     public function resetFilters(): void
@@ -29,9 +75,10 @@ class OperationLogs extends Component
         $this->filterDateStart = '';
         $this->filterDateEnd = '';
         $this->resetPage();
+        $this->clearSelection();
     }
 
-    public function render()
+    private function buildQuery()
     {
         $query = OperationLog::with('user')->orderBy('created_at', 'desc');
 
@@ -55,9 +102,18 @@ class OperationLogs extends Component
             $query->where('created_at', '<=', $this->filterDateEnd . ' 23:59:59');
         }
 
-        $logs = $query->paginate(20);
+        return $query;
+    }
 
-        return view('livewire.system.operation-logs', compact('logs'))
+    public function render()
+    {
+        $logs = $this->buildQuery()->paginate(20);
+
+        return view('livewire.system.operation-logs', [
+            'logs' => $logs,
+            'allColumns' => $this->getAllColumns(),
+            'selectedCount' => $this->getSelectedCount(),
+        ])
             ->layout('components.app-layout')
             ->title('操作日志');
     }
