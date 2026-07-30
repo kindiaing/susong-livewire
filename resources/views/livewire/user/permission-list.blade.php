@@ -9,8 +9,25 @@
         </button>
     </div>
 
-    <div class="flex items-center gap-3 mb-4">
+    <div class="flex items-center gap-3 mb-4 flex-wrap">
         <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background px-3 text-sm" placeholder="搜索权限名称..." />
+
+        {{-- 类型筛选 --}}
+        <select wire:model.live="filterType" class="flex h-9 rounded-md border border-input bg-background px-3 text-sm">
+            <option value="0">全部类型</option>
+            <option value="1">模块</option>
+            <option value="2">页面</option>
+            <option value="3">按钮</option>
+        </select>
+
+        {{-- 模块筛选 --}}
+        <select wire:model.live="filterModule" class="flex h-9 rounded-md border border-input bg-background px-3 pr-8 text-sm max-w-48">
+            <option value="0">全部模块</option>
+            @foreach($moduleOptions as $mod)
+                <option value="{{ $mod->id }}">{{ $mod->display_name }}</option>
+            @endforeach
+        </select>
+
         <button type="button" wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
     </div>
 

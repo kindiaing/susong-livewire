@@ -19,6 +19,8 @@ class PermissionList extends Component
     protected string $modelClass = Permission::class;
 
     public string $search = '';
+    public int $filterType = 0;       // 0=全部, 1=模块, 2=页面, 3=按钮
+    public int $filterModule = 0;    // 0=全部, >0=模块ID
     public bool $showModal = false;
     public bool $showDeleteConfirm = false;
     public bool $showRoleModal = false;
@@ -163,6 +165,18 @@ class PermissionList extends Component
     public function resetFilters(): void
     {
         $this->search = '';
+        $this->filterType = 0;
+        $this->filterModule = 0;
+        $this->resetPage();
+    }
+
+    public function updatedFilterType(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedFilterModule(): void
+    {
         $this->resetPage();
     }
 
@@ -255,12 +269,31 @@ class PermissionList extends Component
             });
         }
 
+        // 类型筛选
+        if ($this->filterType > 0) {
+            $query->where('type', $this->filterType);
+        }
+
+        // 模块筛选：选了模块后，显示该模块及其子级（页面+按钮）
+        if ($this->filterModule > 0) {
+            $query->where(function ($q) {
+                $q->where('id', $this->filterModule)
+                  ->orWhere('parent_id', $this->filterModule)
+                  ->orWhereIn('parent_id', function ($sub) {
+                      $sub->select('id')
+                          ->from('permissions')
+                          ->where('parent_id', $this->filterModule);
+                  });
+            });
+        }
+
         $permissions = $query->paginate(20);
         $parentOptions = Permission::roots()->get();
+        $moduleOptions = Permission::roots()->orderBy('sort')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
 
-        return view('livewire.user.permission-list', compact('permissions', 'parentOptions', 'allColumns', 'selectedCount'))
+        return view('livewire.user.permission-list', compact('permissions', 'parentOptions', 'moduleOptions', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('权限管理');
     }
