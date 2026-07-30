@@ -2,6 +2,10 @@
 
 namespace App\Livewire\Product;
 
+use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithRowSelection;
 use App\Models\Product;
 use App\Models\Category;
 use Livewire\Component;
@@ -10,6 +14,12 @@ use Livewire\WithPagination;
 class ProductList extends Component
 {
     use WithPagination;
+    use WithRowSelection;
+    use WithColumnVisibility;
+    use WithExcelExport;
+    use WithExcelImport;
+
+    protected string $modelClass = Product::class;
 
     public string $search = '';
     public int $filterCategoryId = 0;
@@ -26,6 +36,11 @@ class ProductList extends Component
     public int $formStockWarningValue = 0;
     public int $formStatus = 1;
     public string $formDescription = '';
+
+    public function mount(): void
+    {
+        $this->initColumnVisibility();
+    }
 
     public function openCreateModal(): void
     {
@@ -101,6 +116,20 @@ class ProductList extends Component
         $this->filterCategoryId = 0;
         $this->filterStatus = -1;
         $this->resetPage();
+        $this->clearSelection();
+    }
+
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->resetErrorBag();
+        $this->resetForm();
+    }
+
+    public function closeDeleteConfirm(): void
+    {
+        $this->showDeleteConfirm = false;
+        $this->resetErrorBag();
     }
 
     private function resetForm(): void
@@ -113,6 +142,58 @@ class ProductList extends Component
         $this->formStockWarningValue = 0;
         $this->formStatus = 1;
         $this->formDescription = '';
+    }
+
+    public function getAllColumns(): array
+    {
+        return [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'name', 'label' => '商品名', 'sortable' => true, 'exportable' => true],
+            ['key' => 'category_id', 'label' => '分类', 'sortable' => false, 'exportable' => true],
+            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
+            ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => true],
+            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
+        ];
+    }
+
+    public function getExportQuery()
+    {
+        return Product::with('category')
+            ->when($this->search, function ($q) {
+                $q->where('name', 'like', "%{$this->search}%");
+            })
+            ->when($this->filterCategoryId > 0, function ($q) {
+                $q->where('category_id', $this->filterCategoryId);
+            })
+            ->when($this->filterStatus >= 0, function ($q) {
+                $q->where('status', $this->filterStatus);
+            })
+            ->orderBy('id', 'desc');
+    }
+
+    public function getExportFileName(): string
+    {
+        return '商品_' . now()->format('Ymd_His');
+    }
+
+    public function getImportModelClass(): string
+    {
+        return Product::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            '商品名' => 'name',
+            '分类ID' => 'category_id',
+            '单位' => 'unit',
+            '状态' => 'status',
+        ];
+    }
+
+    public function getPageIds(): array
+    {
+        return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
     }
 
     public function render()
@@ -133,8 +214,10 @@ class ProductList extends Component
 
         $products = $query->paginate(20);
         $categories = Category::orderBy('sort')->orderBy('id')->get();
+        $allColumns = $this->getAllColumns();
+        $selectedCount = count($this->selectedIds);
 
-        return view('livewire.product.product-list', compact('products', 'categories'))
+        return view('livewire.product.product-list', compact('products', 'categories', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('商品管理');
     }

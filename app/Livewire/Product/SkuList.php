@@ -2,6 +2,10 @@
 
 namespace App\Livewire\Product;
 
+use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithRowSelection;
 use App\Models\Sku;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -9,6 +13,12 @@ use Livewire\WithPagination;
 class SkuList extends Component
 {
     use WithPagination;
+    use WithRowSelection;
+    use WithColumnVisibility;
+    use WithExcelExport;
+    use WithExcelImport;
+
+    protected string $modelClass = Sku::class;
 
     public string $search = '';
     public int $filterStatus = -1;
@@ -25,6 +35,11 @@ class SkuList extends Component
     public int $formWholesalePrice = 0;
     public int $formCostPrice = 0;
     public int $formStatus = 1;
+
+    public function mount(): void
+    {
+        $this->initColumnVisibility();
+    }
 
     public function openCreateModal(): void
     {
@@ -102,6 +117,20 @@ class SkuList extends Component
         $this->filterStatus = -1;
         $this->filterApprovalStatus = -1;
         $this->resetPage();
+        $this->clearSelection();
+    }
+
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->resetErrorBag();
+        $this->resetForm();
+    }
+
+    public function closeDeleteConfirm(): void
+    {
+        $this->showDeleteConfirm = false;
+        $this->resetErrorBag();
     }
 
     private function resetForm(): void
@@ -114,6 +143,65 @@ class SkuList extends Component
         $this->formWholesalePrice = 0;
         $this->formCostPrice = 0;
         $this->formStatus = 1;
+    }
+
+    public function getAllColumns(): array
+    {
+        return [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'product_id', 'label' => '商品', 'sortable' => false, 'exportable' => true],
+            ['key' => 'sku_code', 'label' => 'SKU编码', 'sortable' => true, 'exportable' => true],
+            ['key' => 'price', 'label' => '售价', 'sortable' => false, 'exportable' => true],
+            ['key' => 'cost_price', 'label' => '成本价', 'sortable' => false, 'exportable' => true],
+            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
+        ];
+    }
+
+    public function getExportQuery()
+    {
+        return Sku::with('product')
+            ->when($this->search, function ($q) {
+                $q->where(function ($q2) {
+                    $q2->where('sku_code', 'like', "%{$this->search}%")
+                        ->orWhereHas('product', function ($pq) {
+                            $pq->where('name', 'like', "%{$this->search}%");
+                        });
+                });
+            })
+            ->when($this->filterStatus >= 0, function ($q) {
+                $q->where('status', $this->filterStatus);
+            })
+            ->when($this->filterApprovalStatus > 0, function ($q) {
+                $q->where('approval_status', $this->filterApprovalStatus);
+            })
+            ->orderBy('id', 'desc');
+    }
+
+    public function getExportFileName(): string
+    {
+        return 'SKU_' . now()->format('Ymd_His');
+    }
+
+    public function getImportModelClass(): string
+    {
+        return Sku::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            '商品ID' => 'product_id',
+            'SKU编码' => 'sku_code',
+            '采购价(分)' => 'purchase_price',
+            '批发价(分)' => 'wholesale_price',
+            '成本价(分)' => 'cost_price',
+            '状态' => 'status',
+        ];
+    }
+
+    public function getPageIds(): array
+    {
+        return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
     }
 
     public function render()
@@ -138,8 +226,10 @@ class SkuList extends Component
         }
 
         $skus = $query->paginate(20);
+        $allColumns = $this->getAllColumns();
+        $selectedCount = count($this->selectedIds);
 
-        return view('livewire.product.sku-list', compact('skus'))
+        return view('livewire.product.sku-list', compact('skus', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('SKU管理');
     }

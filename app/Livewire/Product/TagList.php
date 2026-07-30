@@ -2,6 +2,10 @@
 
 namespace App\Livewire\Product;
 
+use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithRowSelection;
 use App\Models\Tag;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -9,6 +13,12 @@ use Livewire\WithPagination;
 class TagList extends Component
 {
     use WithPagination;
+    use WithRowSelection;
+    use WithColumnVisibility;
+    use WithExcelExport;
+    use WithExcelImport;
+
+    protected string $modelClass = Tag::class;
 
     public string $search = '';
     public bool $showModal = false;
@@ -19,6 +29,11 @@ class TagList extends Component
     public string $formName = '';
     public int $formSort = 0;
     public int $formStatus = 1;
+
+    public function mount(): void
+    {
+        $this->initColumnVisibility();
+    }
 
     public function openCreateModal(): void
     {
@@ -80,6 +95,20 @@ class TagList extends Component
     {
         $this->search = '';
         $this->resetPage();
+        $this->clearSelection();
+    }
+
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->resetErrorBag();
+        $this->resetForm();
+    }
+
+    public function closeDeleteConfirm(): void
+    {
+        $this->showDeleteConfirm = false;
+        $this->resetErrorBag();
     }
 
     private function resetForm(): void
@@ -88,6 +117,48 @@ class TagList extends Component
         $this->formName = '';
         $this->formSort = 0;
         $this->formStatus = 1;
+    }
+
+    public function getAllColumns(): array
+    {
+        return [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'name', 'label' => '名称', 'sortable' => true, 'exportable' => true],
+            ['key' => 'type', 'label' => '类型', 'sortable' => false, 'exportable' => true],
+            ['key' => 'sort', 'label' => '排序', 'sortable' => true, 'exportable' => true],
+        ];
+    }
+
+    public function getExportQuery()
+    {
+        return Tag::when($this->search, function ($q) {
+            $q->where('name', 'like', "%{$this->search}%");
+        })->orderBy('sort')->orderBy('id');
+    }
+
+    public function getExportFileName(): string
+    {
+        return '标签_' . now()->format('Ymd_His');
+    }
+
+    public function getImportModelClass(): string
+    {
+        return Tag::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            '名称' => 'name',
+            '类型' => 'type',
+            '排序' => 'sort',
+            '状态' => 'status',
+        ];
+    }
+
+    public function getPageIds(): array
+    {
+        return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
     }
 
     public function render()
@@ -99,8 +170,10 @@ class TagList extends Component
         }
 
         $tags = $query->paginate(20);
+        $allColumns = $this->getAllColumns();
+        $selectedCount = count($this->selectedIds);
 
-        return view('livewire.product.tag-list', compact('tags'))
+        return view('livewire.product.tag-list', compact('tags', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('标签管理');
     }

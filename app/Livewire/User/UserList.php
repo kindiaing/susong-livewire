@@ -4,12 +4,19 @@ namespace App\Livewire\User;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class UserList extends Component
 {
     use WithPagination;
+    use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
+
+    protected string $modelClass = User::class;
 
     public string $search = '';
     public bool $showModal = false;
@@ -32,6 +39,11 @@ class UserList extends Component
     // 角色分配
     public array $formRoleIds = [];
     public array $allRoles = [];
+
+    public function mount(): void
+    {
+        $this->initColumnVisibility();
+    }
 
     public function openCreateModal(): void
     {
@@ -171,6 +183,31 @@ class UserList extends Component
         $this->resetPage();
     }
 
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->resetErrorBag();
+        $this->resetForm();
+    }
+
+    public function closeDeleteConfirm(): void
+    {
+        $this->showDeleteConfirm = false;
+        $this->resetErrorBag();
+    }
+
+    public function closeResetConfirm(): void
+    {
+        $this->showResetConfirm = false;
+        $this->resetErrorBag();
+    }
+
+    public function closeRoleModal(): void
+    {
+        $this->showRoleModal = false;
+        $this->resetErrorBag();
+    }
+
     private function resetForm(): void
     {
         $this->editingId = null;
@@ -180,6 +217,49 @@ class UserList extends Component
         $this->formEmail = '';
         $this->formPassword = '';
         $this->formStatus = 1;
+    }
+
+    public function getAllColumns(): array
+    {
+        return [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'username', 'label' => '用户名', 'sortable' => true, 'exportable' => true],
+            ['key' => 'name', 'label' => '姓名', 'sortable' => true, 'exportable' => true],
+            ['key' => 'phone', 'label' => '手机号', 'sortable' => true, 'exportable' => true],
+            ['key' => 'email', 'label' => '邮箱', 'sortable' => true, 'exportable' => true],
+            ['key' => 'status', 'label' => '状态', 'sortable' => true, 'exportable' => true],
+            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
+        ];
+    }
+
+    public function getExportQuery()
+    {
+        return User::with('roles')->orderBy('id', 'desc');
+    }
+
+    public function getExportFileName(): string
+    {
+        return '用户管理_' . now()->format('Ymd_His');
+    }
+
+    public function getImportModelClass(): string
+    {
+        return User::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            '用户名' => 'username',
+            '姓名' => 'name',
+            '手机号' => 'phone',
+            '邮箱' => 'email',
+        ];
+    }
+
+    public function getPageIds(): array
+    {
+        return User::orderBy('id', 'desc')->limit(20)->pluck('id')->toArray();
     }
 
     public function render()
@@ -196,8 +276,10 @@ class UserList extends Component
         }
 
         $users = $query->paginate(20);
+        $allColumns = $this->getAllColumns();
+        $selectedCount = $this->getSelectedCount();
 
-        return view('livewire.user.user-list', compact('users'))
+        return view('livewire.user.user-list', compact('users', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('用户管理');
     }

@@ -5,12 +5,19 @@ namespace App\Livewire\Inventory;
 use App\Models\Inventory;
 use App\Models\Warehouse;
 use App\Models\Sku;
+use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class InventoryList extends Component
 {
     use WithPagination;
+    use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
+
+    protected string $modelClass = Inventory::class;
 
     public string $search = '';
     public int $filterWarehouseId = 0;
@@ -27,6 +34,11 @@ class InventoryList extends Component
     public string $formBatchNo = '';
     public string $formExpiryDate = '';
     public int $formWarningValue = 0;
+
+    public function mount(): void
+    {
+        $this->initColumnVisibility();
+    }
 
     public function openCreateModal(): void
     {
@@ -108,6 +120,19 @@ class InventoryList extends Component
         $this->resetPage();
     }
 
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->resetErrorBag();
+        $this->resetForm();
+    }
+
+    public function closeDeleteConfirm(): void
+    {
+        $this->showDeleteConfirm = false;
+        $this->resetErrorBag();
+    }
+
     private function resetForm(): void
     {
         $this->editingId = null;
@@ -119,6 +144,55 @@ class InventoryList extends Component
         $this->formBatchNo = '';
         $this->formExpiryDate = '';
         $this->formWarningValue = 0;
+    }
+
+    public function getAllColumns(): array
+    {
+        return [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'warehouse_id', 'label' => '仓库', 'sortable' => true, 'exportable' => true],
+            ['key' => 'sku_id', 'label' => 'SKU', 'sortable' => true, 'exportable' => true],
+            ['key' => 'total_stock', 'label' => '总库存', 'sortable' => true, 'exportable' => true],
+            ['key' => 'locked_stock', 'label' => '锁定库存', 'sortable' => true, 'exportable' => true],
+            ['key' => 'available_stock', 'label' => '可用库存', 'sortable' => true, 'exportable' => true],
+            ['key' => 'batch_no', 'label' => '批次号', 'sortable' => true, 'exportable' => true],
+            ['key' => 'expiry_date', 'label' => '有效期', 'sortable' => true, 'exportable' => true],
+            ['key' => 'warning_value', 'label' => '预警值', 'sortable' => true, 'exportable' => true],
+            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
+        ];
+    }
+
+    public function getExportQuery()
+    {
+        return Inventory::with(['warehouse', 'sku.product'])->orderBy('id', 'desc');
+    }
+
+    public function getExportFileName(): string
+    {
+        return '实时库存_' . now()->format('Ymd_His');
+    }
+
+    public function getImportModelClass(): string
+    {
+        return Inventory::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            '仓库ID' => 'warehouse_id',
+            'SKU ID' => 'sku_id',
+            '总库存' => 'total_stock',
+            '锁定库存' => 'locked_stock',
+            '可用库存' => 'available_stock',
+            '批次号' => 'batch_no',
+            '预警值' => 'warning_value',
+        ];
+    }
+
+    public function getPageIds(): array
+    {
+        return Inventory::orderBy('id', 'desc')->limit(20)->pluck('id')->toArray();
     }
 
     public function render()
@@ -139,8 +213,10 @@ class InventoryList extends Component
         $items = $query->paginate(20);
         $warehouses = Warehouse::enabled()->orderBy('name')->get();
         $skus = Sku::with('product')->orderBy('sku_code')->get();
+        $allColumns = $this->getAllColumns();
+        $selectedCount = $this->getSelectedCount();
 
-        return view('livewire.inventory.inventory-list', compact('items', 'warehouses', 'skus'))
+        return view('livewire.inventory.inventory-list', compact('items', 'warehouses', 'skus', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('实时库存');
     }

@@ -6,12 +6,19 @@ use App\Models\PurchaseReturn;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
 use App\Models\Warehouse;
+use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class PurchaseReturnList extends Component
 {
     use WithPagination;
+    use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
+
+    protected string $modelClass = PurchaseReturn::class;
 
     public string $search = '';
     public int $filterStatus = -1;
@@ -25,6 +32,11 @@ class PurchaseReturnList extends Component
     public int $formWarehouseId = 0;
     public string $formReason = '';
     public string $formRemark = '';
+
+    public function mount(): void
+    {
+        $this->initColumnVisibility();
+    }
 
     public function openCreateModal(): void
     {
@@ -102,6 +114,19 @@ class PurchaseReturnList extends Component
         $this->resetPage();
     }
 
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->resetErrorBag();
+        $this->resetForm();
+    }
+
+    public function closeDeleteConfirm(): void
+    {
+        $this->showDeleteConfirm = false;
+        $this->resetErrorBag();
+    }
+
     private function resetForm(): void
     {
         $this->editingId = null;
@@ -110,6 +135,51 @@ class PurchaseReturnList extends Component
         $this->formWarehouseId = 0;
         $this->formReason = '';
         $this->formRemark = '';
+    }
+
+    public function getAllColumns(): array
+    {
+        return [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'return_no', 'label' => '退货单号', 'sortable' => true, 'exportable' => true],
+            ['key' => 'purchase_order_id', 'label' => '采购单', 'sortable' => true, 'exportable' => true],
+            ['key' => 'supplier_id', 'label' => '供应商', 'sortable' => true, 'exportable' => true],
+            ['key' => 'warehouse_id', 'label' => '仓库', 'sortable' => true, 'exportable' => true],
+            ['key' => 'status', 'label' => '状态', 'sortable' => true, 'exportable' => true],
+            ['key' => 'total_amount', 'label' => '总金额', 'sortable' => true, 'exportable' => true],
+            ['key' => 'reason', 'label' => '退货原因', 'sortable' => false, 'exportable' => true],
+            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
+        ];
+    }
+
+    public function getExportQuery()
+    {
+        return PurchaseReturn::with(['supplier', 'warehouse'])->orderBy('id', 'desc');
+    }
+
+    public function getExportFileName(): string
+    {
+        return '采购退货_' . now()->format('Ymd_His');
+    }
+
+    public function getImportModelClass(): string
+    {
+        return PurchaseReturn::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            '采购单ID' => 'purchase_order_id',
+            '供应商ID' => 'supplier_id',
+            '仓库ID' => 'warehouse_id',
+            '退货原因' => 'reason',
+        ];
+    }
+
+    public function getPageIds(): array
+    {
+        return PurchaseReturn::orderBy('id', 'desc')->limit(20)->pluck('id')->toArray();
     }
 
     public function render()
@@ -128,8 +198,10 @@ class PurchaseReturnList extends Component
         $purchaseOrders = PurchaseOrder::orderBy('id', 'desc')->limit(50)->get();
         $suppliers = Supplier::enabled()->orderBy('name')->get();
         $warehouses = Warehouse::enabled()->orderBy('name')->get();
+        $allColumns = $this->getAllColumns();
+        $selectedCount = $this->getSelectedCount();
 
-        return view('livewire.purchase.purchase-return-list', compact('items', 'purchaseOrders', 'suppliers', 'warehouses'))
+        return view('livewire.purchase.purchase-return-list', compact('items', 'purchaseOrders', 'suppliers', 'warehouses', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('采购退货');
     }

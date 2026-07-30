@@ -2,6 +2,11 @@
 
 namespace App\Livewire\Order;
 
+use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithRowSelection;
+use App\Models\Merchant;
 use App\Models\Order;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -9,12 +14,202 @@ use Livewire\WithPagination;
 class OrderList extends Component
 {
     use WithPagination;
+    use WithRowSelection;
+    use WithColumnVisibility;
+    use WithExcelExport;
+    use WithExcelImport;
+
+    protected string $modelClass = Order::class;
 
     public string $search = '';
     public int $filterStatus = -1;
     public int $filterPaymentStatus = -1;
+    public bool $showModal = false;
     public bool $showDeleteConfirm = false;
+    public ?int $editingId = null;
     public ?int $deletingId = null;
+
+    public int $formMerchantId = 0;
+    public string $formNote = '';
+
+    public static array $statusMap = [
+        0 => '待确认', 1 => '已确认', 2 => '配送中',
+        3 => '已完成', 4 => '已取消', 5 => '已退款',
+    ];
+
+    public static array $statusColorMap = [
+        0 => 'yellow', 1 => 'blue', 2 => 'orange',
+        3 => 'green', 4 => 'gray', 5 => 'red',
+    ];
+
+    public static array $paymentStatusMap = [
+        0 => '待支付', 1 => '已支付', 2 => '支付失败',
+    ];
+
+    public static array $paymentStatusColorMap = [
+        0 => 'yellow', 1 => 'green', 2 => 'red',
+    ];
+
+    public static array $paymentMethodMap = [
+        'wechat' => '微信支付', 'alipay' => '支付宝',
+        'cash' => '现金', 'credit' => '账期',
+    ];
+
+    public static array $deliveryTypeMap = [
+        'standard' => '标准配送', 'express' => '加急配送', 'self_pickup' => '自提',
+    ];
+
+    public function mount(): void
+    {
+        $this->initColumnVisibility();
+    }
+
+    public function getAllColumns(): array
+    {
+        return [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'order_no', 'label' => '订单号', 'sortable' => true, 'exportable' => true],
+            ['key' => 'merchant_id', 'label' => '商家', 'sortable' => false, 'exportable' => true],
+            ['key' => 'total_amount', 'label' => '总金额', 'sortable' => true, 'exportable' => true],
+            ['key' => 'status', 'label' => '订单状态', 'sortable' => true, 'exportable' => true],
+            ['key' => 'payment_method', 'label' => '支付方式', 'sortable' => false, 'exportable' => true],
+            ['key' => 'payment_status', 'label' => '支付状态', 'sortable' => true, 'exportable' => true],
+            ['key' => 'delivery_type', 'label' => '配送类型', 'sortable' => false, 'exportable' => true],
+            ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => false],
+            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
+        ];
+    }
+
+    public function getExportQuery()
+    {
+        return $this->buildQuery();
+    }
+
+    public function getExportFileName(): string
+    {
+        return '客户订单_' . now()->format('Ymd_His');
+    }
+
+    public function getImportModelClass(): string
+    {
+        return Order::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            '订单号' => 'order_no',
+            '商家ID' => 'merchant_id',
+            '总金额(分)' => 'total_amount',
+            '支付方式' => 'payment_method',
+            '支付状态' => 'payment_status',
+            '配送类型' => 'delivery_type',
+            '备注' => 'note',
+        ];
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['order_no'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function (Order $row) {
+            return [
+                'id' => $row->id,
+                'order_no' => $row->order_no,
+                'merchant_id' => $row->merchant?->name ?? '',
+                'total_amount' => money_format($row->total_amount, false),
+                'status' => self::$statusMap[$row->status] ?? '',
+                'payment_method' => self::$paymentMethodMap[$row->payment_method] ?? $row->payment_method ?? '',
+                'payment_status' => self::$paymentStatusMap[$row->payment_status] ?? '',
+                'delivery_type' => self::$deliveryTypeMap[$row->delivery_type] ?? $row->delivery_type ?? '',
+                'note' => $row->note ?? '',
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getPageIds(): array
+    {
+        return $this->buildQuery()->forPage($this->page, 20)->pluck('id')->toArray();
+    }
+
+    public function openCreateModal(): void
+    {
+        $this->resetForm();
+        $this->showModal = true;
+    }
+
+    public function openEditModal(int $id): void
+    {
+        $order = Order::findOrFail($id);
+        $this->editingId = $id;
+        $this->formNote = $order->note ?? '';
+        $this->showModal = true;
+    }
+
+    public function save(): void
+    {
+        if ($this->editingId) {
+            $validated = $this->validate([
+                'formNote' => 'nullable|string|max:500',
+            ]);
+            Order::findOrFail($this->editingId)->update(['note' => $validated['formNote']]);
+            $this->dispatch('toast', message: '订单已更新', type: 'success');
+        } else {
+            $validated = $this->validate([
+                'formMerchantId' => 'required|integer|exists:merchants,id',
+                'formNote' => 'nullable|string|max:500',
+            ]);
+            Order::create([
+                'order_no' => 'ORD' . date('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT),
+                'merchant_id' => $validated['formMerchantId'],
+                'note' => $validated['formNote'],
+                'status' => 0,
+                'total_amount' => 0,
+                'payment_status' => 0,
+            ]);
+            $this->dispatch('toast', message: '订单已创建', type: 'success');
+        }
+
+        $this->showModal = false;
+        $this->resetForm();
+    }
+
+    public function confirmOrder(int $id): void
+    {
+        $order = Order::findOrFail($id);
+        if ($order->status != 0) {
+            $this->dispatch('toast', message: '只有待确认订单可确认', type: 'error');
+            return;
+        }
+        $order->update(['status' => 1]);
+        $this->dispatch('toast', message: '订单已确认', type: 'success');
+    }
+
+    public function cancelOrder(int $id): void
+    {
+        $order = Order::findOrFail($id);
+        if (in_array($order->status, [3, 4, 5])) {
+            $this->dispatch('toast', message: '当前状态不可取消', type: 'error');
+            return;
+        }
+        $order->update(['status' => 4]);
+        $this->dispatch('toast', message: '订单已取消', type: 'success');
+    }
+
+    public function completeOrder(int $id): void
+    {
+        $order = Order::findOrFail($id);
+        if ($order->status != 2) {
+            $this->dispatch('toast', message: '只有配送中订单可完成', type: 'error');
+            return;
+        }
+        $order->update(['status' => 3]);
+        $this->dispatch('toast', message: '订单已完成', type: 'success');
+    }
 
     public function confirmDelete(int $id): void
     {
@@ -38,9 +233,36 @@ class OrderList extends Component
         $this->resetPage();
     }
 
-    public function render()
+    public function getBatchActions(): array
     {
-        $query = Order::with(['merchant', 'deliveryRoute'])->orderBy('id', 'desc');
+        return [
+            ['label' => '批量删除', 'method' => 'batchDelete', 'color' => 'bg-red-600 hover:bg-red-700'],
+        ];
+    }
+
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->resetErrorBag();
+        $this->resetForm();
+    }
+
+    public function closeDeleteConfirm(): void
+    {
+        $this->showDeleteConfirm = false;
+        $this->resetErrorBag();
+    }
+
+    private function resetForm(): void
+    {
+        $this->editingId = null;
+        $this->formMerchantId = 0;
+        $this->formNote = '';
+    }
+
+    private function buildQuery()
+    {
+        $query = Order::with('merchant')->orderBy('id', 'desc');
 
         if ($this->search) {
             $query->where(function ($q) {
@@ -51,17 +273,29 @@ class OrderList extends Component
             });
         }
 
-        if ($this->filterStatus > 0) {
+        if ($this->filterStatus >= 0) {
             $query->where('status', $this->filterStatus);
         }
 
-        if ($this->filterPaymentStatus > 0) {
+        if ($this->filterPaymentStatus >= 0) {
             $query->where('payment_status', $this->filterPaymentStatus);
         }
 
-        $orders = $query->paginate(20);
+        return $query;
+    }
 
-        return view('livewire.order.order-list', compact('orders'))
+    public function render()
+    {
+        $orders = $this->buildQuery()->paginate(20);
+        $merchants = Merchant::orderBy('name')->get();
+
+        return view('livewire.order.order-list', [
+            'orders' => $orders,
+            'merchants' => $merchants,
+            'allColumns' => $this->getAllColumns(),
+            'selectedCount' => $this->getSelectedCount(),
+            'batchActions' => $this->getBatchActions(),
+        ])
             ->layout('components.app-layout')
             ->title('客户订单');
     }

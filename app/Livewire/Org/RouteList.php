@@ -2,6 +2,10 @@
 
 namespace App\Livewire\Org;
 
+use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithRowSelection;
 use App\Models\DeliveryRoute;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -9,6 +13,12 @@ use Livewire\WithPagination;
 class RouteList extends Component
 {
     use WithPagination;
+    use WithRowSelection;
+    use WithColumnVisibility;
+    use WithExcelExport;
+    use WithExcelImport;
+
+    protected string $modelClass = DeliveryRoute::class;
 
     public string $search = '';
     public bool $showModal = false;
@@ -23,7 +33,7 @@ class RouteList extends Component
 
     public function mount(): void
     {
-        //
+        $this->initColumnVisibility();
     }
 
     public function openCreateModal(): void
@@ -91,6 +101,20 @@ class RouteList extends Component
     {
         $this->search = '';
         $this->resetPage();
+        $this->clearSelection();
+    }
+
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->resetErrorBag();
+        $this->resetForm();
+    }
+
+    public function closeDeleteConfirm(): void
+    {
+        $this->showDeleteConfirm = false;
+        $this->resetErrorBag();
     }
 
     private function resetForm(): void
@@ -100,6 +124,54 @@ class RouteList extends Component
         $this->formDescription = '';
         $this->formSort = 0;
         $this->formStatus = 1;
+    }
+
+    public function getAllColumns(): array
+    {
+        return [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'name', 'label' => '线路名', 'sortable' => true, 'exportable' => true],
+            ['key' => 'code', 'label' => '编码', 'sortable' => false, 'exportable' => true],
+            ['key' => 'area', 'label' => '区域', 'sortable' => false, 'exportable' => true],
+            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
+            ['key' => 'sort', 'label' => '排序', 'sortable' => true, 'exportable' => true],
+            ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => true],
+        ];
+    }
+
+    public function getExportQuery()
+    {
+        return DeliveryRoute::when($this->search, function ($q) {
+            $q->where(function ($q2) {
+                $q2->where('name', 'like', "%{$this->search}%")
+                    ->orWhere('description', 'like', "%{$this->search}%");
+            });
+        })->ordered();
+    }
+
+    public function getExportFileName(): string
+    {
+        return '配送线路_' . now()->format('Ymd_His');
+    }
+
+    public function getImportModelClass(): string
+    {
+        return DeliveryRoute::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            '线路名' => 'name',
+            '描述' => 'description',
+            '排序' => 'sort',
+            '状态' => 'status',
+        ];
+    }
+
+    public function getPageIds(): array
+    {
+        return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
     }
 
     public function render()
@@ -114,8 +186,10 @@ class RouteList extends Component
         }
 
         $routes = $query->paginate(20);
+        $allColumns = $this->getAllColumns();
+        $selectedCount = count($this->selectedIds);
 
-        return view('livewire.org.route-list', compact('routes'))
+        return view('livewire.org.route-list', compact('routes', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('配送线路管理');
     }

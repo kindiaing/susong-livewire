@@ -2,6 +2,10 @@
 
 namespace App\Livewire\Product;
 
+use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithRowSelection;
 use App\Models\SkuBarcode;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -9,6 +13,12 @@ use Livewire\WithPagination;
 class SkuBarcodeList extends Component
 {
     use WithPagination;
+    use WithRowSelection;
+    use WithColumnVisibility;
+    use WithExcelExport;
+    use WithExcelImport;
+
+    protected string $modelClass = SkuBarcode::class;
 
     public string $search = '';
     public int $filterBarcodeType = -1;
@@ -24,6 +34,11 @@ class SkuBarcodeList extends Component
     public int $formIsDefault = 0;
     public int $formIsEnabled = 1;
     public string $formRemark = '';
+
+    public function mount(): void
+    {
+        $this->initColumnVisibility();
+    }
 
     public function openCreateModal(): void
     {
@@ -98,6 +113,20 @@ class SkuBarcodeList extends Component
         $this->search = '';
         $this->filterBarcodeType = -1;
         $this->resetPage();
+        $this->clearSelection();
+    }
+
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->resetErrorBag();
+        $this->resetForm();
+    }
+
+    public function closeDeleteConfirm(): void
+    {
+        $this->showDeleteConfirm = false;
+        $this->resetErrorBag();
     }
 
     private function resetForm(): void
@@ -110,6 +139,58 @@ class SkuBarcodeList extends Component
         $this->formIsDefault = 0;
         $this->formIsEnabled = 1;
         $this->formRemark = '';
+    }
+
+    public function getAllColumns(): array
+    {
+        return [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'sku_id', 'label' => 'SKU', 'sortable' => false, 'exportable' => true],
+            ['key' => 'barcode', 'label' => '条码', 'sortable' => false, 'exportable' => true],
+        ];
+    }
+
+    public function getExportQuery()
+    {
+        return SkuBarcode::with(['sku', 'supplier'])
+            ->when($this->search, function ($q) {
+                $q->where(function ($q2) {
+                    $q2->where('barcode_code', 'like', "%{$this->search}%")
+                        ->orWhereHas('sku', function ($sq) {
+                            $sq->where('sku_code', 'like', "%{$this->search}%");
+                        });
+                });
+            })
+            ->when($this->filterBarcodeType > 0, function ($q) {
+                $q->where('barcode_type', $this->filterBarcodeType);
+            })
+            ->orderBy('id', 'desc');
+    }
+
+    public function getExportFileName(): string
+    {
+        return '条码_' . now()->format('Ymd_His');
+    }
+
+    public function getImportModelClass(): string
+    {
+        return SkuBarcode::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            'SKU ID' => 'sku_id',
+            '条码类型' => 'barcode_type',
+            '条码值' => 'barcode_code',
+            '是否默认' => 'is_default',
+            '是否启用' => 'is_enabled',
+        ];
+    }
+
+    public function getPageIds(): array
+    {
+        return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
     }
 
     public function render()
@@ -130,8 +211,10 @@ class SkuBarcodeList extends Component
         }
 
         $barcodes = $query->paginate(20);
+        $allColumns = $this->getAllColumns();
+        $selectedCount = count($this->selectedIds);
 
-        return view('livewire.product.sku-barcode-list', compact('barcodes'))
+        return view('livewire.product.sku-barcode-list', compact('barcodes', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('条码管理');
     }

@@ -2,6 +2,10 @@
 
 namespace App\Livewire\Product;
 
+use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithRowSelection;
 use App\Models\SkuSupplier;
 use App\Models\Supplier;
 use App\Models\Sku;
@@ -11,6 +15,12 @@ use Livewire\WithPagination;
 class SkuSupplierList extends Component
 {
     use WithPagination;
+    use WithRowSelection;
+    use WithColumnVisibility;
+    use WithExcelExport;
+    use WithExcelImport;
+
+    protected string $modelClass = SkuSupplier::class;
 
     public string $search = '';
     public int $filterStatus = -1;
@@ -25,6 +35,11 @@ class SkuSupplierList extends Component
     public int $formPurchasePrice = 0;
     public int $formStatus = 1;
     public int $formSort = 0;
+
+    public function mount(): void
+    {
+        $this->initColumnVisibility();
+    }
 
     public function openCreateModal(): void
     {
@@ -96,6 +111,20 @@ class SkuSupplierList extends Component
         $this->search = '';
         $this->filterStatus = -1;
         $this->resetPage();
+        $this->clearSelection();
+    }
+
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->resetErrorBag();
+        $this->resetForm();
+    }
+
+    public function closeDeleteConfirm(): void
+    {
+        $this->showDeleteConfirm = false;
+        $this->resetErrorBag();
     }
 
     private function resetForm(): void
@@ -107,6 +136,62 @@ class SkuSupplierList extends Component
         $this->formPurchasePrice = 0;
         $this->formStatus = 1;
         $this->formSort = 0;
+    }
+
+    public function getAllColumns(): array
+    {
+        return [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'sku_id', 'label' => 'SKU', 'sortable' => false, 'exportable' => true],
+            ['key' => 'supplier_id', 'label' => '供应商', 'sortable' => false, 'exportable' => true],
+            ['key' => 'supply_price', 'label' => '供应价', 'sortable' => false, 'exportable' => true],
+            ['key' => 'is_primary', 'label' => '主要供应商', 'sortable' => false, 'exportable' => true],
+        ];
+    }
+
+    public function getExportQuery()
+    {
+        return SkuSupplier::with(['sku', 'supplier'])
+            ->when($this->search, function ($q) {
+                $q->where(function ($q2) {
+                    $q2->whereHas('sku', function ($sq) {
+                        $sq->where('sku_code', 'like', "%{$this->search}%");
+                    })->orWhereHas('supplier', function ($sq) {
+                        $sq->where('name', 'like', "%{$this->search}%");
+                    });
+                });
+            })
+            ->when($this->filterStatus >= 0, function ($q) {
+                $q->where('status', $this->filterStatus);
+            })
+            ->orderBy('id', 'desc');
+    }
+
+    public function getExportFileName(): string
+    {
+        return '一品多供_' . now()->format('Ymd_His');
+    }
+
+    public function getImportModelClass(): string
+    {
+        return SkuSupplier::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            'SKU ID' => 'sku_id',
+            '供应商ID' => 'supplier_id',
+            '采购价(分)' => 'purchase_price',
+            '是否默认' => 'is_default',
+            '排序' => 'sort',
+            '状态' => 'status',
+        ];
+    }
+
+    public function getPageIds(): array
+    {
+        return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
     }
 
     public function render()
@@ -129,8 +214,10 @@ class SkuSupplierList extends Component
 
         $skuSuppliers = $query->paginate(20);
         $suppliers = Supplier::orderBy('name')->get();
+        $allColumns = $this->getAllColumns();
+        $selectedCount = count($this->selectedIds);
 
-        return view('livewire.product.sku-supplier-list', compact('skuSuppliers', 'suppliers'))
+        return view('livewire.product.sku-supplier-list', compact('skuSuppliers', 'suppliers', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('一品多供');
     }

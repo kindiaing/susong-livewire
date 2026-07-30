@@ -2,6 +2,10 @@
 
 namespace App\Livewire\Product;
 
+use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithRowSelection;
 use App\Models\Category;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -9,6 +13,12 @@ use Livewire\WithPagination;
 class CategoryList extends Component
 {
     use WithPagination;
+    use WithRowSelection;
+    use WithColumnVisibility;
+    use WithExcelExport;
+    use WithExcelImport;
+
+    protected string $modelClass = Category::class;
 
     public string $search = '';
     public bool $showModal = false;
@@ -21,6 +31,11 @@ class CategoryList extends Component
     public string $formIcon = '';
     public int $formSort = 0;
     public int $formStatus = 1;
+
+    public function mount(): void
+    {
+        $this->initColumnVisibility();
+    }
 
     public function openCreateModal(): void
     {
@@ -88,6 +103,20 @@ class CategoryList extends Component
     {
         $this->search = '';
         $this->resetPage();
+        $this->clearSelection();
+    }
+
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->resetErrorBag();
+        $this->resetForm();
+    }
+
+    public function closeDeleteConfirm(): void
+    {
+        $this->showDeleteConfirm = false;
+        $this->resetErrorBag();
     }
 
     private function resetForm(): void
@@ -98,6 +127,51 @@ class CategoryList extends Component
         $this->formIcon = '';
         $this->formSort = 0;
         $this->formStatus = 1;
+    }
+
+    public function getAllColumns(): array
+    {
+        return [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'name', 'label' => '名称', 'sortable' => true, 'exportable' => true],
+            ['key' => 'parent_id', 'label' => '上级ID', 'sortable' => false, 'exportable' => true],
+            ['key' => 'sort', 'label' => '排序', 'sortable' => true, 'exportable' => true],
+            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
+            ['key' => 'icon', 'label' => '图标', 'sortable' => false, 'exportable' => true],
+        ];
+    }
+
+    public function getExportQuery()
+    {
+        return Category::when($this->search, function ($q) {
+            $q->where('name', 'like', "%{$this->search}%");
+        })->orderBy('sort')->orderBy('id');
+    }
+
+    public function getExportFileName(): string
+    {
+        return '分类_' . now()->format('Ymd_His');
+    }
+
+    public function getImportModelClass(): string
+    {
+        return Category::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            '名称' => 'name',
+            '上级ID' => 'parent_id',
+            '排序' => 'sort',
+            '状态' => 'status',
+            '图标' => 'icon',
+        ];
+    }
+
+    public function getPageIds(): array
+    {
+        return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
     }
 
     public function render()
@@ -111,8 +185,10 @@ class CategoryList extends Component
         $categories = $query->paginate(20);
 
         $parentOptions = Category::orderBy('sort')->orderBy('id')->get();
+        $allColumns = $this->getAllColumns();
+        $selectedCount = count($this->selectedIds);
 
-        return view('livewire.product.category-list', compact('categories', 'parentOptions'))
+        return view('livewire.product.category-list', compact('categories', 'parentOptions', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('分类管理');
     }

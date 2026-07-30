@@ -2,6 +2,10 @@
 
 namespace App\Livewire\Order;
 
+use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithRowSelection;
 use App\Models\RepurchaseTemplate;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -9,6 +13,12 @@ use Livewire\WithPagination;
 class RepurchaseTemplateList extends Component
 {
     use WithPagination;
+    use WithRowSelection;
+    use WithColumnVisibility;
+    use WithExcelExport;
+    use WithExcelImport;
+
+    protected string $modelClass = RepurchaseTemplate::class;
 
     public string $search = '';
     public bool $showModal = false;
@@ -19,6 +29,71 @@ class RepurchaseTemplateList extends Component
     public int $formMerchantId = 0;
     public string $formName = '';
     public int $formStatus = 1;
+
+    public function mount(): void
+    {
+        $this->initColumnVisibility();
+    }
+
+    public function getAllColumns(): array
+    {
+        return [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'name', 'label' => '模板名', 'sortable' => false, 'exportable' => true],
+            ['key' => 'merchant', 'label' => '商家', 'sortable' => false, 'exportable' => true],
+            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
+            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
+        ];
+    }
+
+    public function getExportQuery()
+    {
+        return RepurchaseTemplate::with('merchant')
+            ->when($this->search, function ($q) {
+                $q->where('name', 'like', "%{$this->search}%");
+            })->orderBy('id', 'desc');
+    }
+
+    public function getExportFileName(): string
+    {
+        return '复购模板_' . now()->format('Ymd_His');
+    }
+
+    public function getImportModelClass(): string
+    {
+        return RepurchaseTemplate::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            '商家ID' => 'merchant_id',
+            '模板名称' => 'name',
+            '状态' => 'status',
+        ];
+    }
+
+    public function getPageIds(): array
+    {
+        return $this->getExportQuery()->forPage($this->page, 20)->pluck('id')->toArray();
+    }
+
+    public function closeColumnModal(): void
+    {
+        $this->showColumnModal = false;
+    }
+
+    public function closeExportModal(): void
+    {
+        $this->showExportModal = false;
+    }
+
+    public function closeImportModal(): void
+    {
+        $this->showImportModal = false;
+        $this->importFile = null;
+        $this->importMessage = '';
+    }
 
     public function openCreateModal(): void
     {
@@ -80,6 +155,20 @@ class RepurchaseTemplateList extends Component
     {
         $this->search = '';
         $this->resetPage();
+        $this->clearSelection();
+    }
+
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->resetErrorBag();
+        $this->resetForm();
+    }
+
+    public function closeDeleteConfirm(): void
+    {
+        $this->showDeleteConfirm = false;
+        $this->resetErrorBag();
     }
 
     private function resetForm(): void
@@ -100,7 +189,11 @@ class RepurchaseTemplateList extends Component
 
         $templates = $query->paginate(20);
 
-        return view('livewire.order.repurchase-template-list', compact('templates'))
+        return view('livewire.order.repurchase-template-list', [
+            'templates' => $templates,
+            'allColumns' => $this->getAllColumns(),
+            'selectedCount' => $this->getSelectedCount(),
+        ])
             ->layout('components.app-layout')
             ->title('复购模板');
     }

@@ -1,4 +1,4 @@
-<div class="p-6">
+﻿<div class="p-6">
     {{-- 页面标题 --}}
     <div class="flex items-center justify-between mb-6">
         <div>
@@ -19,11 +19,21 @@
             placeholder="搜索供应商名称/联系人/电话..."
         />
         <button wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
+        <div class="flex-1"></div>
+        <button wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">列配置</button>
+        <button wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导入</button>
+        <button wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导出</button>
+        @if($selectedCount > 0)
+            <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
+            <button wire:click="batchDelete" class="inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
+            <button wire:click="clearSelection" class="text-sm text-muted-foreground hover:text-foreground transition-colors">取消选择</button>
+        @endif
     </div>
 
     {{-- 供应商列表 --}}
     <div class="rounded-lg border bg-card">
-        <div class="grid grid-cols-[60px_1fr_120px_120px_80px_80px_100px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+        <div class="grid grid-cols-[40px_60px_1fr_120px_120px_80px_80px_100px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <div><input type="checkbox" wire:model.live="selectAll" class="rounded" /></div>
             <div>ID</div>
             <div>供应商名称</div>
             <div>联系人</div>
@@ -34,8 +44,9 @@
         </div>
 
         @forelse($suppliers as $supplier)
-            <div class="grid grid-cols-[60px_1fr_120px_120px_80px_80px_100px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors"
+            <div class="grid grid-cols-[40px_60px_1fr_120px_120px_80px_80px_100px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors"
                  wire:key="supplier-{{ $supplier->id }}">
+                <div><input type="checkbox" value="{{ $supplier->id }}" wire:model.live="selectedIds" class="rounded" /></div>
                 <div class="text-sm text-muted-foreground">{{ $supplier->id }}</div>
                 <div class="text-sm font-medium text-foreground truncate">{{ $supplier->name }}</div>
                 <div class="text-sm text-foreground">{{ $supplier->contact_name ?? '-' }}</div>
@@ -63,7 +74,7 @@
     {{-- 新增/编辑弹窗 --}}
     @if($showModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="showModal = false"></div>
+        <div class="fixed inset-0 bg-black/50" wire:click="closeModal"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
             <h2 class="text-lg font-semibold text-foreground mb-4">{{ $editingId ? '编辑供应商' : '新增供应商' }}</h2>
             <div class="space-y-4">
@@ -126,7 +137,7 @@
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">
-                <button wire:click="showModal = false" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
                 <button wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
             </div>
         </div>
@@ -136,15 +147,20 @@
     {{-- 删除确认弹窗 --}}
     @if($showDeleteConfirm)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="showDeleteConfirm = false"></div>
+        <div class="fixed inset-0 bg-black/50" wire:click="closeDeleteConfirm"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
             <h2 class="text-lg font-semibold text-foreground mb-2">确认删除</h2>
             <p class="text-sm text-muted-foreground mb-6">确定要删除该供应商吗？此操作不可恢复。</p>
             <div class="flex justify-end gap-3">
-                <button wire:click="showDeleteConfirm = false" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button wire:click="closeDeleteConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
                 <button wire:click="delete" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>
             </div>
         </div>
     </div>
     @endif
+
+    @include('partials.column-modal')
+    @include('partials.export-modal')
+    @include('partials.import-modal')
+    @include('partials.delete-confirm')
 </div>

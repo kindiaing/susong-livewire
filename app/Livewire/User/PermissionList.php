@@ -4,12 +4,19 @@ namespace App\Livewire\User;
 
 use App\Models\Permission;
 use App\Models\Role;
+use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class PermissionList extends Component
 {
     use WithPagination;
+    use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
+
+    protected string $modelClass = Permission::class;
 
     public string $search = '';
     public bool $showModal = false;
@@ -31,6 +38,11 @@ class PermissionList extends Component
     public array $formRoleIds = [];
     public string $rolePermissionName = '';
     public array $allRoles = [];
+
+    public function mount(): void
+    {
+        $this->initColumnVisibility();
+    }
 
     public function openCreateModal(): void
     {
@@ -154,6 +166,25 @@ class PermissionList extends Component
         $this->resetPage();
     }
 
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->resetErrorBag();
+        $this->resetForm();
+    }
+
+    public function closeDeleteConfirm(): void
+    {
+        $this->showDeleteConfirm = false;
+        $this->resetErrorBag();
+    }
+
+    public function closeRoleModal(): void
+    {
+        $this->showRoleModal = false;
+        $this->resetErrorBag();
+    }
+
     private function resetForm(): void
     {
         $this->editingId = null;
@@ -164,6 +195,53 @@ class PermissionList extends Component
         $this->formRoute = '';
         $this->formSort = 0;
         $this->formIcon = '';
+    }
+
+    public function getAllColumns(): array
+    {
+        return [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'name', 'label' => '权限标识', 'sortable' => true, 'exportable' => true],
+            ['key' => 'display_name', 'label' => '权限名称', 'sortable' => true, 'exportable' => true],
+            ['key' => 'type', 'label' => '类型', 'sortable' => true, 'exportable' => true],
+            ['key' => 'parent_id', 'label' => '父级ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'route', 'label' => '路由', 'sortable' => false, 'exportable' => true],
+            ['key' => 'sort', 'label' => '排序', 'sortable' => true, 'exportable' => true],
+            ['key' => 'icon', 'label' => '图标', 'sortable' => false, 'exportable' => true],
+            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
+        ];
+    }
+
+    public function getExportQuery()
+    {
+        return Permission::withCount('roles')->ordered();
+    }
+
+    public function getExportFileName(): string
+    {
+        return '权限管理_' . now()->format('Ymd_His');
+    }
+
+    public function getImportModelClass(): string
+    {
+        return Permission::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            '权限标识' => 'name',
+            '权限名称' => 'display_name',
+            '类型' => 'type',
+            '父级ID' => 'parent_id',
+            '路由' => 'route',
+            '排序' => 'sort',
+        ];
+    }
+
+    public function getPageIds(): array
+    {
+        return Permission::ordered()->limit(20)->pluck('id')->toArray();
     }
 
     public function render()
@@ -179,8 +257,10 @@ class PermissionList extends Component
 
         $permissions = $query->paginate(20);
         $parentOptions = Permission::roots()->get();
+        $allColumns = $this->getAllColumns();
+        $selectedCount = $this->getSelectedCount();
 
-        return view('livewire.user.permission-list', compact('permissions', 'parentOptions'))
+        return view('livewire.user.permission-list', compact('permissions', 'parentOptions', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('权限管理');
     }

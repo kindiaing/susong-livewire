@@ -3,12 +3,19 @@
 namespace App\Livewire\Purchase;
 
 use App\Models\PurchaseItem;
+use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class PurchaseItemList extends Component
 {
     use WithPagination;
+    use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
+
+    protected string $modelClass = PurchaseItem::class;
 
     public string $search = '';
     public int $filterStatus = -1;
@@ -20,6 +27,11 @@ class PurchaseItemList extends Component
     public int $formSkuId = 0;
     public int $formQuantity = 0;
     public int $formSourceType = 1;
+
+    public function mount(): void
+    {
+        $this->initColumnVisibility();
+    }
 
     public function openCreateModal(): void
     {
@@ -85,12 +97,66 @@ class PurchaseItemList extends Component
         $this->resetPage();
     }
 
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->resetErrorBag();
+        $this->resetForm();
+    }
+
+    public function closeDeleteConfirm(): void
+    {
+        $this->showDeleteConfirm = false;
+        $this->resetErrorBag();
+    }
+
     private function resetForm(): void
     {
         $this->editingId = null;
         $this->formSkuId = 0;
         $this->formQuantity = 0;
         $this->formSourceType = 1;
+    }
+
+    public function getAllColumns(): array
+    {
+        return [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'sku_id', 'label' => 'SKU', 'sortable' => true, 'exportable' => true],
+            ['key' => 'quantity', 'label' => '数量', 'sortable' => true, 'exportable' => true],
+            ['key' => 'source_type', 'label' => '来源类型', 'sortable' => true, 'exportable' => true],
+            ['key' => 'status', 'label' => '状态', 'sortable' => true, 'exportable' => true],
+            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
+        ];
+    }
+
+    public function getExportQuery()
+    {
+        return PurchaseItem::with('sku.product')->orderBy('id', 'desc');
+    }
+
+    public function getExportFileName(): string
+    {
+        return '待采清单_' . now()->format('Ymd_His');
+    }
+
+    public function getImportModelClass(): string
+    {
+        return PurchaseItem::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            'SKU ID' => 'sku_id',
+            '数量' => 'quantity',
+            '来源类型' => 'source_type',
+        ];
+    }
+
+    public function getPageIds(): array
+    {
+        return PurchaseItem::orderBy('id', 'desc')->limit(20)->pluck('id')->toArray();
     }
 
     public function render()
@@ -108,8 +174,10 @@ class PurchaseItemList extends Component
         }
 
         $items = $query->paginate(20);
+        $allColumns = $this->getAllColumns();
+        $selectedCount = $this->getSelectedCount();
 
-        return view('livewire.purchase.purchase-item-list', compact('items'))
+        return view('livewire.purchase.purchase-item-list', compact('items', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('待采清单');
     }

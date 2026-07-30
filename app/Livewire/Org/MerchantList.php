@@ -2,6 +2,10 @@
 
 namespace App\Livewire\Org;
 
+use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithRowSelection;
 use App\Models\DeliveryRoute;
 use App\Models\Merchant;
 use Livewire\Component;
@@ -10,6 +14,12 @@ use Livewire\WithPagination;
 class MerchantList extends Component
 {
     use WithPagination;
+    use WithRowSelection;
+    use WithColumnVisibility;
+    use WithExcelExport;
+    use WithExcelImport;
+
+    protected string $modelClass = Merchant::class;
 
     public string $search = '';
     public bool $showModal = false;
@@ -31,7 +41,7 @@ class MerchantList extends Component
 
     public function mount(): void
     {
-        //
+        $this->initColumnVisibility();
     }
 
     public function openCreateModal(): void
@@ -120,6 +130,72 @@ class MerchantList extends Component
     {
         $this->search = '';
         $this->resetPage();
+        $this->clearSelection();
+    }
+
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->resetErrorBag();
+        $this->resetForm();
+    }
+
+    public function closeDeleteConfirm(): void
+    {
+        $this->showDeleteConfirm = false;
+        $this->resetErrorBag();
+    }
+
+    public function getAllColumns(): array
+    {
+        return [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'name', 'label' => '名称', 'sortable' => true, 'exportable' => true],
+            ['key' => 'contact_person', 'label' => '联系人', 'sortable' => false, 'exportable' => true],
+            ['key' => 'contact_phone', 'label' => '联系电话', 'sortable' => false, 'exportable' => true],
+            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
+            ['key' => 'address', 'label' => '地址', 'sortable' => false, 'exportable' => true],
+            ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => true],
+            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
+        ];
+    }
+
+    public function getExportQuery()
+    {
+        return Merchant::when($this->search, function ($q) {
+            $q->where(function ($q2) {
+                $q2->where('name', 'like', "%{$this->search}%")
+                    ->orWhere('contact_name', 'like', "%{$this->search}%")
+                    ->orWhere('contact_phone', 'like', "%{$this->search}%");
+            });
+        })->orderBy('id', 'desc');
+    }
+
+    public function getExportFileName(): string
+    {
+        return '商家_' . now()->format('Ymd_His');
+    }
+
+    public function getImportModelClass(): string
+    {
+        return Merchant::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            '名称' => 'name',
+            '联系人' => 'contact_name',
+            '联系电话' => 'contact_phone',
+            '地址' => 'address',
+            '状态' => 'status',
+            '备注' => 'remark',
+        ];
+    }
+
+    public function getPageIds(): array
+    {
+        return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
     }
 
     private function resetForm(): void
@@ -152,8 +228,10 @@ class MerchantList extends Component
 
         $merchants = $query->paginate(20);
         $routes = DeliveryRoute::enabled()->ordered()->get();
+        $allColumns = $this->getAllColumns();
+        $selectedCount = count($this->selectedIds);
 
-        return view('livewire.org.merchant-list', compact('merchants', 'routes'))
+        return view('livewire.org.merchant-list', compact('merchants', 'routes', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('商家管理');
     }

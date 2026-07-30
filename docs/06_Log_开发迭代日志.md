@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'f6559507-5703-4ded-ac0b-c0514634b738'
-  PropagateID: 'f6559507-5703-4ded-ac0b-c0514634b738'
-  ReservedCode1: '29c0c674-9a5d-49e9-942b-bd6cb799b931'
-  ReservedCode2: '29c0c674-9a5d-49e9-942b-bd6cb799b931'
+  ProduceID: '7c1e1d87-5b71-43d6-8805-90e3fc6dfdfe'
+  PropagateID: '7c1e1d87-5b71-43d6-8805-90e3fc6dfdfe'
+  ReservedCode1: 'aeb8c949-4167-4d1a-8122-808246f775a6'
+  ReservedCode2: 'aeb8c949-4167-4d1a-8122-808246f775a6'
 ---
 
 # 开发迭代日志
@@ -39,6 +39,13 @@ AIGC:
 | 9 | 角色管理 | RoleList 增加权限分配弹窗（模块→页面→按钮 树形复选框） | 后端 | 2026-07-29 | ✅ |
 | 10 | 权限管理 | PermissionList 增加角色分配弹窗（多选框，为权限勾选关联角色） | 后端 | 2026-07-29 | ✅ |
 | 11 | 路由 | 新增 /users 路由 + 导航修复 href="#" → route('users') | 后端 | 2026-07-29 | ✅ |
+| 12 | 全局基础设施 | 安装 maatwebsite/excel + 创建4个通用Trait(WithRowSelection/WithColumnVisibility/WithExcelExport/WithExcelImport) + GenericExport/GenericImport + money_format/status_badge 助手函数 | 后端 | 2026-07-30 | ✅ |
+| 13 | 全模块升级 | 49个列表组件全面升级：checkbox多选、批量操作、自定义显示列、Excel导入导出（自定义列）、金额格式化 | 后端 | 2026-07-30 | ✅ |
+| 14 | 订单模块 | OrderList/CartList/OrderReturnList 从桩升级为完整CRUD+状态流转+金额格式化 | 后端 | 2026-07-30 | ✅ |
+| 15 | 配送模块 | DeliveryTaskList/SignatureList/DiscrepancyList/TemperatureList 升级（修复温度记录搜索bug） | 后端 | 2026-07-30 | ✅ |
+| 16 | 财务模块 | 5个财务组件升级为完整CRUD+审核/付款/收款操作+金额格式化+搜索优化 | 后端 | 2026-07-30 | ✅ |
+| 17 | 价格策略 | 3个价格组件升级为完整CRUD+审核启停操作 | 后端 | 2026-07-30 | ✅ |
+| 18 | 采购库存 | 8个采购/库存组件升级为完整CRUD+状态流转+搜索优化 | 后端 | 2026-07-30 | ✅ |
 
 ### 2 本次优化/重构
 
@@ -62,6 +69,10 @@ AIGC:
 | 1 | Warehouse/LossOrder/PurchaseReturn 的 SoftDeletes trait 写在 class 外面导致软删除不生效 | 将 `use SoftDeletes` 移入 class 内部 | 后端 | 2026-07-29 |
 | 2 | InventoryList 搜索 sku_id 使用 like 查整型字段 | 改为通过 sku 关联搜索 sku_code / product.name | 后端 | 2026-07-29 |
 | 3 | InventoryLogList 允许删除日志记录 | 移除删除功能，改为只读日志查看器 | 后端 | 2026-07-29 |
+| 4 | 弹窗取消按钮不关闭 | wire:click="showModal=false" 被 Livewire 验证管道拦截，改用 closeXxxModal() 方法 | 后端 | 2026-07-30 |
+| 5 | Model 重复 SoftDeletes import | Banner/Discrepancy/MerchantAddress/OrderReturn/PriceStrategy 删除多余 use SoftDeletes 行 | 后端 | 2026-07-30 |
+| 6 | 财务搜索bug | MerchantAccountList 用 merchant_id like 搜索改为关联商家名搜索 | 后端 | 2026-07-30 |
+| 7 | 价格搜索bug | PriceApportionmentList 用 amount like 搜索改为按名称搜索 | 后端 | 2026-07-30 |
 
 ### 4 数据库变更
 

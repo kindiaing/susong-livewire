@@ -4,12 +4,19 @@ namespace App\Livewire\User;
 
 use App\Models\Permission;
 use App\Models\Role;
+use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class RoleList extends Component
 {
     use WithPagination;
+    use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
+
+    protected string $modelClass = Role::class;
 
     public string $search = '';
     public bool $showModal = false;
@@ -27,6 +34,11 @@ class RoleList extends Component
     // 权限分配
     public array $formPermissionIds = [];
     public string $permissionRoleName = '';
+
+    public function mount(): void
+    {
+        $this->initColumnVisibility();
+    }
 
     public function openCreateModal(): void
     {
@@ -118,6 +130,25 @@ class RoleList extends Component
         $this->resetPage();
     }
 
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->resetErrorBag();
+        $this->resetForm();
+    }
+
+    public function closeDeleteConfirm(): void
+    {
+        $this->showDeleteConfirm = false;
+        $this->resetErrorBag();
+    }
+
+    public function closePermissionModal(): void
+    {
+        $this->showPermissionModal = false;
+        $this->resetErrorBag();
+    }
+
     private function resetForm(): void
     {
         $this->editingId = null;
@@ -125,6 +156,48 @@ class RoleList extends Component
         $this->formDisplayName = '';
         $this->formGuardName = 'web';
         $this->formDescription = '';
+    }
+
+    public function getAllColumns(): array
+    {
+        return [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'name', 'label' => '角色标识', 'sortable' => true, 'exportable' => true],
+            ['key' => 'display_name', 'label' => '角色名称', 'sortable' => true, 'exportable' => true],
+            ['key' => 'guard_name', 'label' => '守卫', 'sortable' => true, 'exportable' => true],
+            ['key' => 'description', 'label' => '描述', 'sortable' => false, 'exportable' => true],
+            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
+        ];
+    }
+
+    public function getExportQuery()
+    {
+        return Role::withCount('users')->withCount('permissions')->orderBy('id');
+    }
+
+    public function getExportFileName(): string
+    {
+        return '角色管理_' . now()->format('Ymd_His');
+    }
+
+    public function getImportModelClass(): string
+    {
+        return Role::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            '角色标识' => 'name',
+            '角色名称' => 'display_name',
+            '守卫' => 'guard_name',
+            '描述' => 'description',
+        ];
+    }
+
+    public function getPageIds(): array
+    {
+        return Role::orderBy('id')->limit(20)->pluck('id')->toArray();
     }
 
     public function render()
@@ -145,8 +218,10 @@ class RoleList extends Component
             ->roots()
             ->orderBy('sort')
             ->get();
+        $allColumns = $this->getAllColumns();
+        $selectedCount = $this->getSelectedCount();
 
-        return view('livewire.user.role-list', compact('roles', 'permissionTree'))
+        return view('livewire.user.role-list', compact('roles', 'permissionTree', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('角色管理');
     }

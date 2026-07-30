@@ -2,6 +2,10 @@
 
 namespace App\Livewire\Product;
 
+use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithRowSelection;
 use App\Models\Keyword;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -9,6 +13,12 @@ use Livewire\WithPagination;
 class KeywordList extends Component
 {
     use WithPagination;
+    use WithRowSelection;
+    use WithColumnVisibility;
+    use WithExcelExport;
+    use WithExcelImport;
+
+    protected string $modelClass = Keyword::class;
 
     public string $search = '';
     public bool $showModal = false;
@@ -19,6 +29,11 @@ class KeywordList extends Component
     public string $formKeyword = '';
     public int $formProductId = 0;
     public int $formSearchCount = 0;
+
+    public function mount(): void
+    {
+        $this->initColumnVisibility();
+    }
 
     public function openCreateModal(): void
     {
@@ -80,6 +95,20 @@ class KeywordList extends Component
     {
         $this->search = '';
         $this->resetPage();
+        $this->clearSelection();
+    }
+
+    public function closeModal(): void
+    {
+        $this->showModal = false;
+        $this->resetErrorBag();
+        $this->resetForm();
+    }
+
+    public function closeDeleteConfirm(): void
+    {
+        $this->showDeleteConfirm = false;
+        $this->resetErrorBag();
     }
 
     private function resetForm(): void
@@ -88,6 +117,50 @@ class KeywordList extends Component
         $this->formKeyword = '';
         $this->formProductId = 0;
         $this->formSearchCount = 0;
+    }
+
+    public function getAllColumns(): array
+    {
+        return [
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'word', 'label' => '关键词', 'sortable' => true, 'exportable' => true],
+            ['key' => 'search_count', 'label' => '搜索次数', 'sortable' => true, 'exportable' => true],
+            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
+        ];
+    }
+
+    public function getExportQuery()
+    {
+        return Keyword::with('product')
+            ->when($this->search, function ($q) {
+                $q->where('keyword', 'like', "%{$this->search}%");
+            })
+            ->orderBy('search_count', 'desc')
+            ->orderBy('id', 'desc');
+    }
+
+    public function getExportFileName(): string
+    {
+        return '关键词_' . now()->format('Ymd_His');
+    }
+
+    public function getImportModelClass(): string
+    {
+        return Keyword::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            '关键词' => 'keyword',
+            '商品ID' => 'product_id',
+            '搜索次数' => 'search_count',
+        ];
+    }
+
+    public function getPageIds(): array
+    {
+        return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
     }
 
     public function render()
@@ -99,8 +172,10 @@ class KeywordList extends Component
         }
 
         $keywords = $query->paginate(20);
+        $allColumns = $this->getAllColumns();
+        $selectedCount = count($this->selectedIds);
 
-        return view('livewire.product.keyword-list', compact('keywords'))
+        return view('livewire.product.keyword-list', compact('keywords', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('关键词管理');
     }
