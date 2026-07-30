@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\Merchant;
 use App\Models\Recharge;
 use Livewire\Component;
@@ -18,6 +19,7 @@ class RechargeList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = Recharge::class;
 
@@ -125,7 +127,7 @@ class RechargeList extends Component
             'note' => $this->formNote ?: null,
         ]);
 
-        $this->dispatch('toast', message: '充值记录已创建', type: 'success');
+        $this->toastSuccess('充值记录已创建');
         $this->showModal = false;
         $this->resetForm();
     }
@@ -134,33 +136,33 @@ class RechargeList extends Component
     {
         $item = Recharge::findOrFail($id);
         if ($item->status !== 0) {
-            $this->dispatch('toast', message: '当前状态不可审核', type: 'error');
+            $this->toastError('当前状态不可审核');
             return;
         }
         $item->update(['status' => 1]);
-        $this->dispatch('toast', message: '充值已审核通过', type: 'success');
+        $this->toastSuccess('充值已审核通过');
     }
 
     public function reject(int $id): void
     {
         $item = Recharge::findOrFail($id);
         if ($item->status !== 0) {
-            $this->dispatch('toast', message: '当前状态不可拒绝', type: 'error');
+            $this->toastError('当前状态不可拒绝');
             return;
         }
         $item->update(['status' => 2]);
-        $this->dispatch('toast', message: '充值已拒绝', type: 'success');
+        $this->toastSuccess('充值已拒绝');
     }
 
     public function confirmArrival(int $id): void
     {
         $item = Recharge::findOrFail($id);
         if ($item->status !== 1) {
-            $this->dispatch('toast', message: '仅已通过状态可确认到账', type: 'error');
+            $this->toastError('仅已通过状态可确认到账');
             return;
         }
         $item->update(['status' => 3]);
-        $this->dispatch('toast', message: '充值已确认到账', type: 'success');
+        $this->toastSuccess('充值已确认到账');
     }
 
     public function confirmDelete(int $id): void
@@ -172,7 +174,7 @@ class RechargeList extends Component
     public function delete(): void
     {
         Recharge::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '充值记录已删除', type: 'success');
+        $this->toastSuccess('充值记录已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

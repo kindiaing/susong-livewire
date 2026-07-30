@@ -9,6 +9,7 @@ use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithToast;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -16,6 +17,7 @@ class InventoryList extends Component
 {
     use WithPagination;
     use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = Inventory::class;
 
@@ -88,10 +90,10 @@ class InventoryList extends Component
         if ($this->editingId) {
             $item = Inventory::findOrFail($this->editingId);
             $item->update($data);
-            $this->dispatch('toast', message: '库存已更新', type: 'success');
+            $this->toastSuccess('库存已更新');
         } else {
             Inventory::create($data);
-            $this->dispatch('toast', message: '库存已创建', type: 'success');
+            $this->toastSuccess('库存已创建');
         }
 
         $this->showModal = false;
@@ -108,7 +110,7 @@ class InventoryList extends Component
     {
         $item = Inventory::findOrFail($this->deletingId);
         $item->delete();
-        $this->dispatch('toast', message: '库存记录已删除', type: 'success');
+        $this->toastSuccess('库存记录已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

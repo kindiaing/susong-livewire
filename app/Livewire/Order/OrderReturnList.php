@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\Merchant;
 use App\Models\OrderReturn;
 use Livewire\Component;
@@ -18,6 +19,7 @@ class OrderReturnList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = OrderReturn::class;
 
@@ -140,7 +142,7 @@ class OrderReturnList extends Component
                 'reason' => $validated['formReason'],
                 'note' => $validated['formNote'],
             ]);
-            $this->dispatch('toast', message: '退货单已更新', type: 'success');
+            $this->toastSuccess('退货单已更新');
         } else {
             $validated = $this->validate([
                 'formOrderId' => 'required|integer|exists:orders,id',
@@ -155,7 +157,7 @@ class OrderReturnList extends Component
                 'status' => 0,
                 'refund_amount' => 0,
             ]);
-            $this->dispatch('toast', message: '退货单已创建', type: 'success');
+            $this->toastSuccess('退货单已创建');
         }
 
         $this->showModal = false;
@@ -166,44 +168,44 @@ class OrderReturnList extends Component
     {
         $item = OrderReturn::findOrFail($id);
         if ($item->status != 0) {
-            $this->dispatch('toast', message: '只有待审核退货单可审核通过', type: 'error');
+            $this->toastError('只有待审核退货单可审核通过');
             return;
         }
         $item->update(['status' => 1]);
-        $this->dispatch('toast', message: '退货单已审核通过', type: 'success');
+        $this->toastSuccess('退货单已审核通过');
     }
 
     public function rejectReturn(int $id): void
     {
         $item = OrderReturn::findOrFail($id);
         if ($item->status != 0) {
-            $this->dispatch('toast', message: '只有待审核退货单可拒绝', type: 'error');
+            $this->toastError('只有待审核退货单可拒绝');
             return;
         }
         $item->update(['status' => 2]);
-        $this->dispatch('toast', message: '退货单已拒绝', type: 'success');
+        $this->toastSuccess('退货单已拒绝');
     }
 
     public function startReturn(int $id): void
     {
         $item = OrderReturn::findOrFail($id);
         if ($item->status != 1) {
-            $this->dispatch('toast', message: '只有已通过的退货单可开始退货', type: 'error');
+            $this->toastError('只有已通过的退货单可开始退货');
             return;
         }
         $item->update(['status' => 3]);
-        $this->dispatch('toast', message: '退货单已开始退货', type: 'success');
+        $this->toastSuccess('退货单已开始退货');
     }
 
     public function completeReturn(int $id): void
     {
         $item = OrderReturn::findOrFail($id);
         if ($item->status != 3) {
-            $this->dispatch('toast', message: '只有退货中的单据可完成', type: 'error');
+            $this->toastError('只有退货中的单据可完成');
             return;
         }
         $item->update(['status' => 4]);
-        $this->dispatch('toast', message: '退货单已完成', type: 'success');
+        $this->toastSuccess('退货单已完成');
     }
 
     public function confirmDelete(int $id): void
@@ -215,7 +217,7 @@ class OrderReturnList extends Component
     public function delete(): void
     {
         OrderReturn::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '退货单已删除', type: 'success');
+        $this->toastSuccess('退货单已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

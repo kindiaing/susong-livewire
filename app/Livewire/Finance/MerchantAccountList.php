@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\Merchant;
 use App\Models\MerchantAccount;
 use Livewire\Component;
@@ -18,6 +19,7 @@ class MerchantAccountList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = MerchantAccount::class;
 
@@ -103,7 +105,7 @@ class MerchantAccountList extends Component
             MerchantAccount::findOrFail($this->editingId)->update([
                 'credit_limit' => $this->formCreditLimit,
             ]);
-            $this->dispatch('toast', message: '客户账户已更新', type: 'success');
+            $this->toastSuccess('客户账户已更新');
         } else {
             $this->validate([
                 'formMerchantId' => 'required|integer|exists:merchants,id',
@@ -115,7 +117,7 @@ class MerchantAccountList extends Component
                 'balance' => 0,
                 'frozen_amount' => 0,
             ]);
-            $this->dispatch('toast', message: '客户账户已创建', type: 'success');
+            $this->toastSuccess('客户账户已创建');
         }
 
         $this->showModal = false;
@@ -131,7 +133,7 @@ class MerchantAccountList extends Component
     public function delete(): void
     {
         MerchantAccount::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '客户账户已删除', type: 'success');
+        $this->toastSuccess('客户账户已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

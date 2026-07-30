@@ -7,6 +7,7 @@ use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithToast;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -14,6 +15,7 @@ class PurchaseItemList extends Component
 {
     use WithPagination;
     use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = PurchaseItem::class;
 
@@ -65,11 +67,11 @@ class PurchaseItemList extends Component
 
         if ($this->editingId) {
             PurchaseItem::findOrFail($this->editingId)->update($data);
-            $this->dispatch('toast', message: '待采项已更新', type: 'success');
+            $this->toastSuccess('待采项已更新');
         } else {
             $data['status'] = PurchaseItem::STATUS_PENDING;
             PurchaseItem::create($data);
-            $this->dispatch('toast', message: '待采项已创建', type: 'success');
+            $this->toastSuccess('待采项已创建');
         }
 
         $this->showModal = false;
@@ -85,7 +87,7 @@ class PurchaseItemList extends Component
     public function delete(): void
     {
         PurchaseItem::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '待采项已删除', type: 'success');
+        $this->toastSuccess('待采项已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

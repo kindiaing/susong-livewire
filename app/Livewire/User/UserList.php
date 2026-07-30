@@ -8,6 +8,7 @@ use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithToast;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -15,6 +16,7 @@ class UserList extends Component
 {
     use WithPagination;
     use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = User::class;
 
@@ -96,10 +98,10 @@ class UserList extends Component
 
         if ($this->editingId) {
             User::findOrFail($this->editingId)->update($data);
-            $this->dispatch('toast', message: '用户已更新', type: 'success');
+            $this->toastSuccess('用户已更新');
         } else {
             User::create($data);
-            $this->dispatch('toast', message: '用户已创建', type: 'success');
+            $this->toastSuccess('用户已创建');
         }
 
         $this->showModal = false;
@@ -116,17 +118,17 @@ class UserList extends Component
     {
         $user = User::findOrFail($this->deletingId);
         if ($user->hasRole('super_admin')) {
-            $this->dispatch('toast', message: '超级管理员不可删除', type: 'error');
+            $this->toastError('超级管理员不可删除');
             $this->showDeleteConfirm = false;
             return;
         }
         if ($user->id === auth()->id()) {
-            $this->dispatch('toast', message: '不能删除当前登录用户', type: 'error');
+            $this->toastError('不能删除当前登录用户');
             $this->showDeleteConfirm = false;
             return;
         }
         $user->delete();
-        $this->dispatch('toast', message: '用户已删除', type: 'success');
+        $this->toastSuccess('用户已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }
@@ -135,17 +137,17 @@ class UserList extends Component
     {
         $user = User::findOrFail($id);
         if ($user->hasRole('super_admin')) {
-            $this->dispatch('toast', message: '超级管理员不可禁用', type: 'error');
+            $this->toastError('超级管理员不可禁用');
             return;
         }
         if ($user->id === auth()->id()) {
-            $this->dispatch('toast', message: '不能禁用当前登录用户', type: 'error');
+            $this->toastError('不能禁用当前登录用户');
             return;
         }
         $user->status = $user->status === 1 ? 0 : 1;
         $user->save();
         $label = $user->status === 1 ? '启用' : '禁用';
-        $this->dispatch('toast', message: "用户已{$label}", type: 'success');
+        $this->toastSuccess("用户已{$label}");
     }
 
     public function confirmResetPassword(int $id): void
@@ -159,7 +161,7 @@ class UserList extends Component
         $user = User::findOrFail($this->resettingId);
         $user->password = 'Password';
         $user->save();
-        $this->dispatch('toast', message: '密码已重置为 Password', type: 'success');
+        $this->toastSuccess('密码已重置为 Password');
         $this->showResetConfirm = false;
         $this->resettingId = null;
     }
@@ -182,7 +184,7 @@ class UserList extends Component
         $user = User::findOrFail($this->roleUserId);
         $roles = Role::whereIn('id', $this->formRoleIds)->get();
         $user->syncRoles($roles);
-        $this->dispatch('toast', message: '角色分配已更新', type: 'success');
+        $this->toastSuccess('角色分配已更新');
         $this->showRoleModal = false;
     }
 

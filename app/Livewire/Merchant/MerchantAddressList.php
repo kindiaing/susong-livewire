@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\MerchantAddress;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -17,6 +18,7 @@ class MerchantAddressList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = MerchantAddress::class;
 
@@ -102,7 +104,7 @@ class MerchantAddressList extends Component
     public function delete(): void
     {
         MerchantAddress::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '已删除', type: 'success');
+        $this->toastSuccess('已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

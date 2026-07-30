@@ -8,6 +8,7 @@ use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithToast;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -15,6 +16,7 @@ class RoleList extends Component
 {
     use WithPagination;
     use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = Role::class;
 
@@ -50,7 +52,7 @@ class RoleList extends Component
     {
         $role = Role::findOrFail($id);
         if ($role->name === 'super_admin') {
-            $this->dispatch('toast', message: '超级管理员角色不可编辑', type: 'error');
+            $this->toastError('超级管理员角色不可编辑');
             return;
         }
         $this->editingId = $id;
@@ -80,10 +82,10 @@ class RoleList extends Component
         if ($this->editingId) {
             $role = Role::findOrFail($this->editingId);
             $role->update($data);
-            $this->dispatch('toast', message: '角色已更新', type: 'success');
+            $this->toastSuccess('角色已更新');
         } else {
             Role::create($data);
-            $this->dispatch('toast', message: '角色已创建', type: 'success');
+            $this->toastSuccess('角色已创建');
         }
 
         $this->showModal = false;
@@ -100,17 +102,17 @@ class RoleList extends Component
     {
         $role = Role::findOrFail($this->deletingId);
         if ($role->name === 'super_admin') {
-            $this->dispatch('toast', message: '超级管理员角色不可删除', type: 'error');
+            $this->toastError('超级管理员角色不可删除');
             $this->showDeleteConfirm = false;
             return;
         }
         if ($role->users()->count() > 0) {
-            $this->dispatch('toast', message: '该角色下有用户，不可删除', type: 'error');
+            $this->toastError('该角色下有用户，不可删除');
             $this->showDeleteConfirm = false;
             return;
         }
         $role->delete();
-        $this->dispatch('toast', message: '角色已删除', type: 'success');
+        $this->toastSuccess('角色已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }
@@ -124,12 +126,54 @@ class RoleList extends Component
         $this->showPermissionModal = true;
     }
 
+    public function toggleModulePermissions(int $moduleId): void
+    {
+        $module = Permission::with('children.children')->find($moduleId);
+        if (!$module) return;
+
+        // 收集该模块下所有子权限ID
+        $childIds = [];
+        foreach ($module->children as $page) {
+            $childIds[] = $page->id;
+            foreach ($page->children as $btn) {
+                $childIds[] = $btn->id;
+            }
+        }
+
+        $allIds = array_merge([$moduleId], $childIds);
+        $allSelected = !array_diff($allIds, $this->formPermissionIds);
+
+        if ($allSelected) {
+            // 取消全选：移除模块及所有子权限
+            $this->formPermissionIds = array_values(array_diff($this->formPermissionIds, $allIds));
+        } else {
+            // 全选：添加模块及所有子权限
+            $this->formPermissionIds = array_values(array_unique(array_merge($this->formPermissionIds, $allIds)));
+        }
+    }
+
+    public function togglePagePermissions(int $pageId): void
+    {
+        $page = Permission::with('children')->find($pageId);
+        if (!$page) return;
+
+        $childIds = $page->children->pluck('id')->map(fn($v) => (int) $v)->toArray();
+        $allIds = array_merge([$pageId], $childIds);
+        $allSelected = !array_diff($allIds, $this->formPermissionIds);
+
+        if ($allSelected) {
+            $this->formPermissionIds = array_values(array_diff($this->formPermissionIds, $allIds));
+        } else {
+            $this->formPermissionIds = array_values(array_unique(array_merge($this->formPermissionIds, $allIds)));
+        }
+    }
+
     public function savePermissions(): void
     {
         $role = Role::findOrFail($this->permissionRoleId);
         $permissions = Permission::whereIn('id', $this->formPermissionIds)->get();
         $role->syncPermissions($permissions);
-        $this->dispatch('toast', message: '权限分配已更新', type: 'success');
+        $this->toastSuccess('权限分配已更新');
         $this->showPermissionModal = false;
     }
 

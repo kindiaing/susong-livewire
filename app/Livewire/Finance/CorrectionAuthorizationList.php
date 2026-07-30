@@ -7,6 +7,7 @@ use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithToast;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -14,6 +15,7 @@ class CorrectionAuthorizationList extends Component
 {
     use WithPagination;
     use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = CorrectionAuthorization::class;
 
@@ -35,7 +37,7 @@ class CorrectionAuthorizationList extends Component
     public function delete(): void
     {
         CorrectionAuthorization::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '已删除', type: 'success');
+        $this->toastSuccess('已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

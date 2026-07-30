@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\DeliveryRoute;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -17,6 +18,7 @@ class RouteList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = DeliveryRoute::class;
 
@@ -72,10 +74,10 @@ class RouteList extends Component
         if ($this->editingId) {
             $route = DeliveryRoute::findOrFail($this->editingId);
             $route->update($data);
-            $this->dispatch('toast', message: '配送线路已更新', type: 'success');
+            $this->toastSuccess('配送线路已更新');
         } else {
             DeliveryRoute::create($data);
-            $this->dispatch('toast', message: '配送线路已创建', type: 'success');
+            $this->toastSuccess('配送线路已创建');
         }
 
         $this->showModal = false;
@@ -92,7 +94,7 @@ class RouteList extends Component
     {
         $route = DeliveryRoute::findOrFail($this->deletingId);
         $route->delete();
-        $this->dispatch('toast', message: '配送线路已删除', type: 'success');
+        $this->toastSuccess('配送线路已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

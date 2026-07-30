@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\Merchant;
 use App\Models\RestockReminder;
 use App\Models\Sku;
@@ -19,6 +20,7 @@ class RestockReminderList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = RestockReminder::class;
 
@@ -79,10 +81,10 @@ class RestockReminderList extends Component
         if ($this->editingId) {
             $item = RestockReminder::findOrFail($this->editingId);
             $item->update($data);
-            $this->dispatch('toast', message: '补货提醒已更新', type: 'success');
+            $this->toastSuccess('补货提醒已更新');
         } else {
             RestockReminder::create($data);
-            $this->dispatch('toast', message: '补货提醒已创建', type: 'success');
+            $this->toastSuccess('补货提醒已创建');
         }
 
         $this->showModal = false;
@@ -99,7 +101,7 @@ class RestockReminderList extends Component
     {
         $item = RestockReminder::findOrFail($this->deletingId);
         $item->delete();
-        $this->dispatch('toast', message: '补货提醒已删除', type: 'success');
+        $this->toastSuccess('补货提醒已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

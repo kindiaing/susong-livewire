@@ -6,6 +6,7 @@ use App\Models\Temperature;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithToast;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -13,6 +14,7 @@ class TemperatureList extends Component
 {
     use WithPagination;
     use WithRowSelection, WithColumnVisibility, WithExcelExport;
+    use WithToast;
 
     protected string $modelClass = Temperature::class;
 
@@ -34,7 +36,7 @@ class TemperatureList extends Component
     public function delete(): void
     {
         Temperature::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '已删除', type: 'success');
+        $this->toastSuccess('已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

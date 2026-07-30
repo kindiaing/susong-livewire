@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\Promotion;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -17,6 +18,7 @@ class PromotionList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = Promotion::class;
 
@@ -100,7 +102,7 @@ class PromotionList extends Component
     public function delete(): void
     {
         Promotion::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '已删除', type: 'success');
+        $this->toastSuccess('已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

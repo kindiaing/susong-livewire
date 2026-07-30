@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\DeliveryRoute;
 use App\Models\Merchant;
 use Livewire\Component;
@@ -18,6 +19,7 @@ class MerchantList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = Merchant::class;
 
@@ -101,10 +103,10 @@ class MerchantList extends Component
         if ($this->editingId) {
             $merchant = Merchant::findOrFail($this->editingId);
             $merchant->update($data);
-            $this->dispatch('toast', message: '商家已更新', type: 'success');
+            $this->toastSuccess('商家已更新');
         } else {
             Merchant::create($data);
-            $this->dispatch('toast', message: '商家已创建', type: 'success');
+            $this->toastSuccess('商家已创建');
         }
 
         $this->showModal = false;
@@ -121,7 +123,7 @@ class MerchantList extends Component
     {
         $merchant = Merchant::findOrFail($this->deletingId);
         $merchant->delete();
-        $this->dispatch('toast', message: '商家已删除', type: 'success');
+        $this->toastSuccess('商家已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

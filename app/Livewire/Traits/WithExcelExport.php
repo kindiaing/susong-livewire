@@ -4,6 +4,7 @@ namespace App\Livewire\Traits;
 
 use App\Exports\GenericExport;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Livewire\Traits\WithToast;
 
 /**
  * 列表页：Excel 导出 Trait
@@ -12,6 +13,7 @@ use Maatwebsite\Excel\Facades\Excel;
  */
 trait WithExcelExport
 {
+    use WithToast;
     public bool $showExportModal = false;
     public array $exportColumns = [];
     public string $exportFormat = 'xlsx';
@@ -53,7 +55,7 @@ trait WithExcelExport
     public function doExport()
     {
         if (empty($this->exportColumns)) {
-            $this->dispatch('toast', message: '请至少选择一列导出', type: 'error');
+            $this->toastError('请至少选择一列导出');
             return;
         }
 

@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\Merchant;
 use App\Models\Order;
 use Livewire\Component;
@@ -18,6 +19,7 @@ class OrderList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = Order::class;
 
@@ -157,7 +159,7 @@ class OrderList extends Component
                 'formNote' => 'nullable|string|max:500',
             ]);
             Order::findOrFail($this->editingId)->update(['note' => $validated['formNote']]);
-            $this->dispatch('toast', message: '订单已更新', type: 'success');
+            $this->toastSuccess('订单已更新');
         } else {
             $validated = $this->validate([
                 'formMerchantId' => 'required|integer|exists:merchants,id',
@@ -171,7 +173,7 @@ class OrderList extends Component
                 'total_amount' => 0,
                 'payment_status' => 0,
             ]);
-            $this->dispatch('toast', message: '订单已创建', type: 'success');
+            $this->toastSuccess('订单已创建');
         }
 
         $this->showModal = false;
@@ -182,33 +184,33 @@ class OrderList extends Component
     {
         $order = Order::findOrFail($id);
         if ($order->status != 0) {
-            $this->dispatch('toast', message: '只有待确认订单可确认', type: 'error');
+            $this->toastError('只有待确认订单可确认');
             return;
         }
         $order->update(['status' => 1]);
-        $this->dispatch('toast', message: '订单已确认', type: 'success');
+        $this->toastSuccess('订单已确认');
     }
 
     public function cancelOrder(int $id): void
     {
         $order = Order::findOrFail($id);
         if (in_array($order->status, [3, 4, 5])) {
-            $this->dispatch('toast', message: '当前状态不可取消', type: 'error');
+            $this->toastError('当前状态不可取消');
             return;
         }
         $order->update(['status' => 4]);
-        $this->dispatch('toast', message: '订单已取消', type: 'success');
+        $this->toastSuccess('订单已取消');
     }
 
     public function completeOrder(int $id): void
     {
         $order = Order::findOrFail($id);
         if ($order->status != 2) {
-            $this->dispatch('toast', message: '只有配送中订单可完成', type: 'error');
+            $this->toastError('只有配送中订单可完成');
             return;
         }
         $order->update(['status' => 3]);
-        $this->dispatch('toast', message: '订单已完成', type: 'success');
+        $this->toastSuccess('订单已完成');
     }
 
     public function confirmDelete(int $id): void
@@ -220,7 +222,7 @@ class OrderList extends Component
     public function delete(): void
     {
         Order::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '订单已删除', type: 'success');
+        $this->toastSuccess('订单已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

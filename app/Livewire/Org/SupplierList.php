@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\Supplier;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -17,6 +18,7 @@ class SupplierList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = Supplier::class;
 
@@ -92,10 +94,10 @@ class SupplierList extends Component
         if ($this->editingId) {
             $supplier = Supplier::findOrFail($this->editingId);
             $supplier->update($data);
-            $this->dispatch('toast', message: '供应商已更新', type: 'success');
+            $this->toastSuccess('供应商已更新');
         } else {
             Supplier::create($data);
-            $this->dispatch('toast', message: '供应商已创建', type: 'success');
+            $this->toastSuccess('供应商已创建');
         }
 
         $this->showModal = false;
@@ -112,7 +114,7 @@ class SupplierList extends Component
     {
         $supplier = Supplier::findOrFail($this->deletingId);
         $supplier->delete();
-        $this->dispatch('toast', message: '供应商已删除', type: 'success');
+        $this->toastSuccess('供应商已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

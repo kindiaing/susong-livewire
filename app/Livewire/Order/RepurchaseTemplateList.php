@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\RepurchaseTemplate;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -17,6 +18,7 @@ class RepurchaseTemplateList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = RepurchaseTemplate::class;
 
@@ -127,10 +129,10 @@ class RepurchaseTemplateList extends Component
 
         if ($this->editingId) {
             RepurchaseTemplate::findOrFail($this->editingId)->update($data);
-            $this->dispatch('toast', message: '复购模板已更新', type: 'success');
+            $this->toastSuccess('复购模板已更新');
         } else {
             RepurchaseTemplate::create($data);
-            $this->dispatch('toast', message: '复购模板已创建', type: 'success');
+            $this->toastSuccess('复购模板已创建');
         }
 
         $this->showModal = false;
@@ -146,7 +148,7 @@ class RepurchaseTemplateList extends Component
     public function delete(): void
     {
         RepurchaseTemplate::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '复购模板已删除', type: 'success');
+        $this->toastSuccess('复购模板已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

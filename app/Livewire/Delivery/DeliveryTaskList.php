@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\DeliveryTask;
 use App\Models\Driver;
 use App\Models\Order;
@@ -20,6 +21,7 @@ class DeliveryTaskList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = DeliveryTask::class;
 
@@ -98,7 +100,7 @@ class DeliveryTaskList extends Component
                 'note' => $validated['formNote'],
             ]);
 
-            $this->dispatch('toast', message: '配送任务已更新', type: 'success');
+            $this->toastSuccess('配送任务已更新');
         } else {
             $validated = $this->validate([
                 'formOrderId' => 'required|integer|min:1',
@@ -115,7 +117,7 @@ class DeliveryTaskList extends Component
                 'status' => 0,
             ]);
 
-            $this->dispatch('toast', message: '配送任务已创建', type: 'success');
+            $this->toastSuccess('配送任务已创建');
         }
 
         $this->showModal = false;
@@ -126,33 +128,33 @@ class DeliveryTaskList extends Component
     {
         $task = DeliveryTask::findOrFail($id);
         if ($task->status !== 0) {
-            $this->dispatch('toast', message: '仅待配送任务可开始', type: 'error');
+            $this->toastError('仅待配送任务可开始');
             return;
         }
         $task->update(['status' => 1, 'started_at' => now()]);
-        $this->dispatch('toast', message: '已开始配送', type: 'success');
+        $this->toastSuccess('已开始配送');
     }
 
     public function completeDelivery(int $id): void
     {
         $task = DeliveryTask::findOrFail($id);
         if ($task->status !== 1) {
-            $this->dispatch('toast', message: '仅配送中任务可完成', type: 'error');
+            $this->toastError('仅配送中任务可完成');
             return;
         }
         $task->update(['status' => 2, 'completed_at' => now()]);
-        $this->dispatch('toast', message: '配送已完成', type: 'success');
+        $this->toastSuccess('配送已完成');
     }
 
     public function markAbnormal(int $id): void
     {
         $task = DeliveryTask::findOrFail($id);
         if ($task->status !== 1) {
-            $this->dispatch('toast', message: '仅配送中任务可标记异常', type: 'error');
+            $this->toastError('仅配送中任务可标记异常');
             return;
         }
         $task->update(['status' => 3]);
-        $this->dispatch('toast', message: '已标记异常', type: 'success');
+        $this->toastSuccess('已标记异常');
     }
 
     public function confirmDelete(int $id): void
@@ -164,7 +166,7 @@ class DeliveryTaskList extends Component
     public function delete(): void
     {
         DeliveryTask::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '配送任务已删除', type: 'success');
+        $this->toastSuccess('配送任务已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

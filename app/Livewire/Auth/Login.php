@@ -14,6 +14,13 @@ class Login extends Component
     public string $password = '';
     public bool $remember = false;
 
+    public function mount(): void
+    {
+        if (auth()->check()) {
+            $this->redirectIntended(default: route('dashboard'));
+        }
+    }
+
     public function login(): void
     {
         $this->validate([

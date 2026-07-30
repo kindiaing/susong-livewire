@@ -122,71 +122,108 @@
     </div>
     @endif
 
-    {{-- 权限分配弹窗（树形） --}}
+    {{-- 权限分配弹窗（表格形式） --}}
     @if($showPermissionModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" wire:click="closePermissionModal"></div>
-        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6">
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-4xl mx-4 p-6">
             <h2 class="text-lg font-semibold text-foreground mb-1">分配权限</h2>
             <p class="text-sm text-muted-foreground mb-4">角色：{{ $permissionRoleName }}</p>
 
-            <div class="space-y-1 max-h-[400px] overflow-y-auto border rounded-md p-3">
-                @foreach($permissionTree as $module)
-                    {{-- 模块级 --}}
-                    <div class="mb-2">
-                        <label class="flex items-center gap-2 px-2 py-1.5 rounded bg-muted/30 cursor-pointer font-medium">
-                            <input
-                                type="checkbox"
-                                value="{{ $module->id }}"
-                                wire:model.live="formPermissionIds"
-                                class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500"
-                            />
-                            <span class="text-sm text-foreground">{{ $module->display_name }}</span>
-                            <span class="text-xs text-muted-foreground font-mono ml-1">{{ $module->name }}</span>
-                        </label>
+            <div class="max-h-[480px] overflow-y-auto border rounded-lg">
+                <table class="w-full text-sm">
+                    <thead class="sticky top-0 z-10 bg-muted/80 backdrop-blur">
+                        <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                            <th class="px-3 py-2 text-left w-12"></th>
+                            <th class="px-3 py-2 text-left">模块</th>
+                            <th class="px-3 py-2 text-left">页面</th>
+                            <th class="px-3 py-2 text-left">按钮</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach($permissionTree as $module)
+                        @php
+                            $moduleChildIds = [];
+                            foreach ($module->children as $page) {
+                                $moduleChildIds[] = $page->id;
+                                foreach ($page->children as $btn) {
+                                    $moduleChildIds[] = $btn->id;
+                                }
+                            }
+                            $allModuleIds = array_merge([$module->id], $moduleChildIds);
+                            $moduleChecked = !array_diff($allModuleIds, $formPermissionIds);
+                            $modulePartial = !$moduleChecked && count(array_intersect($allModuleIds, $formPermissionIds)) > 0;
+                        @endphp
+                        <tr class="border-b last:border-b-0 hover:bg-muted/20 transition-colors">
+                            {{-- 模块复选框 --}}
+                            <td class="px-3 py-2">
+                                <input
+                                    type="checkbox"
+                                    value="{{ $module->id }}"
+                                    wire:click="toggleModulePermissions({{ $module->id }})"
+                                    @checked(in_array($module->id, $formPermissionIds))
+                                    class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500"
+                                    @if($modulePartial) x-ref="module{{ $module->id }}" x-init="$refs.module{{ $module->id }}.indeterminate = true" @endif
+                                />
+                            </td>
+                            <td class="px-3 py-2">
+                                <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-blue-50 text-blue-700">模块</span>
+                                <span class="ml-1 font-medium text-foreground">{{ $module->display_name }}</span>
+                                <span class="ml-1 text-xs text-muted-foreground font-mono">{{ $module->name }}</span>
+                            </td>
+                            <td colspan="2" class="px-3 py-2">
+                                {{-- 第一行的页面和按钮放在这里为空，具体在子行 --}}
+                            </td>
+                        </tr>
+                        @foreach($module->children as $pageIdx => $page)
+                            @php
+                                $pageChildIds = $page->children->pluck('id')->map(fn($v) => (int) $v)->toArray();
+                                $allPageIds = array_merge([$page->id], $pageChildIds);
+                                $pageChecked = !array_diff($allPageIds, $formPermissionIds);
+                                $pagePartial = !$pageChecked && count(array_intersect($allPageIds, $formPermissionIds)) > 0;
+                            @endphp
+                            <tr class="border-b last:border-b-0 bg-muted/10 hover:bg-muted/30 transition-colors">
+                                <td class="px-3 py-1.5"></td>
+                                <td class="px-3 py-1.5"></td>
+                                <td class="px-3 py-1.5">
+                                    <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            value="{{ $page->id }}"
+                                            wire:click="togglePagePermissions({{ $page->id }})"
+                                            @checked(in_array($page->id, $formPermissionIds))
+                                            class="h-3.5 w-3.5 rounded border-input text-green-600 focus:ring-green-500"
+                                        />
+                                        <span class="inline-flex items-center rounded px-1 py-0.5 text-[10px] font-medium bg-green-50 text-green-700">页面</span>
+                                        <span class="text-foreground">{{ $page->display_name }}</span>
+                                    </label>
+                                </td>
+                                <td class="px-3 py-1.5">
+                                    @if($page->children->isNotEmpty())
+                                        <div class="flex flex-wrap gap-x-4 gap-y-1">
+                                            @foreach($page->children as $btn)
+                                                <label class="inline-flex items-center gap-1 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        value="{{ $btn->id }}"
+                                                        wire:model.live="formPermissionIds"
+                                                        class="h-3.5 w-3.5 rounded border-input text-orange-600 focus:ring-orange-500"
+                                                    />
+                                                    <span class="text-foreground">{{ $btn->display_name }}</span>
+                                                </label>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    @endforeach
 
-                        @if($module->children->isNotEmpty())
-                            <div class="ml-6 mt-1 space-y-1">
-                                @foreach($module->children as $page)
-                                    {{-- 页面级 --}}
-                                    <div>
-                                        <label class="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/30 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                value="{{ $page->id }}"
-                                                wire:model.live="formPermissionIds"
-                                                class="h-4 w-4 rounded border-input text-green-600 focus:ring-green-500"
-                                            />
-                                            <span class="inline-flex items-center rounded px-1 py-0.5 text-[10px] font-medium bg-green-50 text-green-700">页面</span>
-                                            <span class="text-sm text-foreground">{{ $page->display_name }}</span>
-                                        </label>
-
-                                        @if($page->children->isNotEmpty())
-                                            <div class="ml-6 mt-1 space-y-0.5">
-                                                @foreach($page->children as $btn)
-                                                    <label class="flex items-center gap-2 px-2 py-0.5 rounded hover:bg-muted/30 cursor-pointer">
-                                                        <input
-                                                            type="checkbox"
-                                                            value="{{ $btn->id }}"
-                                                            wire:model.live="formPermissionIds"
-                                                            class="h-3.5 w-3.5 rounded border-input text-orange-600 focus:ring-orange-500"
-                                                        />
-                                                        <span class="inline-flex items-center rounded px-1 py-0.5 text-[10px] font-medium bg-orange-50 text-orange-700">按钮</span>
-                                                        <span class="text-sm text-foreground">{{ $btn->display_name }}</span>
-                                                    </label>
-                                                @endforeach
-                                            </div>
-                                        @endif
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
-                @endforeach
-
-                @if($permissionTree->isEmpty())
-                    <div class="text-center text-sm text-muted-foreground py-4">暂无权限数据，请先在权限管理中创建</div>
-                @endif
+                    @if($permissionTree->isEmpty())
+                        <tr><td colspan="4" class="px-4 py-8 text-center text-muted-foreground">暂无权限数据，请先在权限管理中创建</td></tr>
+                    @endif
+                    </tbody>
+                </table>
             </div>
 
             <div class="flex justify-between items-center mt-4">

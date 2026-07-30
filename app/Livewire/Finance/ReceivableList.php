@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\Merchant;
 use App\Models\Order;
 use App\Models\Receivable;
@@ -19,6 +20,7 @@ class ReceivableList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = Receivable::class;
 
@@ -115,7 +117,7 @@ class ReceivableList extends Component
             'status' => 0,
         ]);
 
-        $this->dispatch('toast', message: '应收账款已创建', type: 'success');
+        $this->toastSuccess('应收账款已创建');
         $this->showModal = false;
         $this->resetForm();
     }
@@ -124,14 +126,14 @@ class ReceivableList extends Component
     {
         $item = Receivable::findOrFail($id);
         if ($item->status === 1) {
-            $this->dispatch('toast', message: '该账款已全额收款', type: 'error');
+            $this->toastError('该账款已全额收款');
             return;
         }
         $item->update([
             'received_amount' => $item->amount,
             'status' => 1,
         ]);
-        $this->dispatch('toast', message: '已确认收款', type: 'success');
+        $this->toastSuccess('已确认收款');
     }
 
     public function confirmDelete(int $id): void
@@ -143,7 +145,7 @@ class ReceivableList extends Component
     public function delete(): void
     {
         Receivable::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '应收账款已删除', type: 'success');
+        $this->toastSuccess('应收账款已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

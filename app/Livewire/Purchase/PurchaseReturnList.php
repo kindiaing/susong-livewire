@@ -10,6 +10,7 @@ use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithToast;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -17,6 +18,7 @@ class PurchaseReturnList extends Component
 {
     use WithPagination;
     use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = PurchaseReturn::class;
 
@@ -81,11 +83,11 @@ class PurchaseReturnList extends Component
             $item = PurchaseReturn::findOrFail($this->editingId);
             unset($data['status'], $data['total_amount'], $data['actual_amount']);
             $item->update($data);
-            $this->dispatch('toast', message: '退货单已更新', type: 'success');
+            $this->toastSuccess('退货单已更新');
         } else {
             $data['return_no'] = 'PR' . date('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
             PurchaseReturn::create($data);
-            $this->dispatch('toast', message: '退货单已创建', type: 'success');
+            $this->toastSuccess('退货单已创建');
         }
 
         $this->showModal = false;
@@ -102,7 +104,7 @@ class PurchaseReturnList extends Component
     {
         $item = PurchaseReturn::findOrFail($this->deletingId);
         $item->delete();
-        $this->dispatch('toast', message: '退货单已删除', type: 'success');
+        $this->toastSuccess('退货单已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\Keyword;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -17,6 +18,7 @@ class KeywordList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = Keyword::class;
 
@@ -67,10 +69,10 @@ class KeywordList extends Component
 
         if ($this->editingId) {
             Keyword::findOrFail($this->editingId)->update($data);
-            $this->dispatch('toast', message: '关键词已更新', type: 'success');
+            $this->toastSuccess('关键词已更新');
         } else {
             Keyword::create($data);
-            $this->dispatch('toast', message: '关键词已创建', type: 'success');
+            $this->toastSuccess('关键词已创建');
         }
 
         $this->showModal = false;
@@ -86,7 +88,7 @@ class KeywordList extends Component
     public function delete(): void
     {
         Keyword::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '关键词已删除', type: 'success');
+        $this->toastSuccess('关键词已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

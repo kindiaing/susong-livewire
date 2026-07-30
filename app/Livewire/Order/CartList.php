@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\Cart;
 use App\Models\Merchant;
 use App\Models\Sku;
@@ -19,6 +20,7 @@ class CartList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = Cart::class;
 
@@ -122,7 +124,7 @@ class CartList extends Component
             Cart::findOrFail($this->editingId)->update([
                 'quantity' => $validated['formQuantity'],
             ]);
-            $this->dispatch('toast', message: '购物车已更新', type: 'success');
+            $this->toastSuccess('购物车已更新');
         } else {
             $validated = $this->validate([
                 'formMerchantId' => 'required|integer|exists:merchants,id',
@@ -136,7 +138,7 @@ class CartList extends Component
                 'quantity' => $validated['formQuantity'],
                 'unit_price' => $validated['formUnitPrice'],
             ]);
-            $this->dispatch('toast', message: '购物车已创建', type: 'success');
+            $this->toastSuccess('购物车已创建');
         }
 
         $this->showModal = false;
@@ -152,7 +154,7 @@ class CartList extends Component
     public function delete(): void
     {
         Cart::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '购物车项已删除', type: 'success');
+        $this->toastSuccess('购物车项已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

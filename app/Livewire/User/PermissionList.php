@@ -8,6 +8,7 @@ use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithToast;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -15,6 +16,7 @@ class PermissionList extends Component
 {
     use WithPagination;
     use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = Permission::class;
 
@@ -88,10 +90,10 @@ class PermissionList extends Component
 
         if ($this->editingId) {
             Permission::findOrFail($this->editingId)->update($data);
-            $this->dispatch('toast', message: '权限已更新', type: 'success');
+            $this->toastSuccess('权限已更新');
         } else {
             Permission::create($data);
-            $this->dispatch('toast', message: '权限已创建', type: 'success');
+            $this->toastSuccess('权限已创建');
         }
 
         $this->showModal = false;
@@ -108,12 +110,12 @@ class PermissionList extends Component
     {
         $perm = Permission::findOrFail($this->deletingId);
         if ($perm->roles()->count() > 0) {
-            $this->dispatch('toast', message: '该权限已被角色引用，不可删除', type: 'error');
+            $this->toastError('该权限已被角色引用，不可删除');
             $this->showDeleteConfirm = false;
             return;
         }
         $perm->delete();
-        $this->dispatch('toast', message: '权限已删除', type: 'success');
+        $this->toastSuccess('权限已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }
@@ -158,7 +160,7 @@ class PermissionList extends Component
             }
         }
 
-        $this->dispatch('toast', message: '角色分配已更新', type: 'success');
+        $this->toastSuccess('角色分配已更新');
         $this->showRoleModal = false;
     }
 

@@ -5,6 +5,7 @@ namespace App\Livewire\Price;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\PriceChangeLog;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -15,6 +16,7 @@ class PriceChangeLogList extends Component
     use WithRowSelection;
     use WithColumnVisibility;
     use WithExcelExport;
+    use WithToast;
 
     protected string $modelClass = PriceChangeLog::class;
 
@@ -77,7 +79,7 @@ class PriceChangeLogList extends Component
     public function delete(): void
     {
         PriceChangeLog::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '已删除', type: 'success');
+        $this->toastSuccess('已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

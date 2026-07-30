@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\Sku;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -17,6 +18,7 @@ class SkuList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = Sku::class;
 
@@ -87,10 +89,10 @@ class SkuList extends Component
 
         if ($this->editingId) {
             Sku::findOrFail($this->editingId)->update($data);
-            $this->dispatch('toast', message: 'SKU已更新', type: 'success');
+            $this->toastSuccess('SKU已更新');
         } else {
             Sku::create($data);
-            $this->dispatch('toast', message: 'SKU已创建', type: 'success');
+            $this->toastSuccess('SKU已创建');
         }
 
         $this->showModal = false;
@@ -106,7 +108,7 @@ class SkuList extends Component
     public function delete(): void
     {
         Sku::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: 'SKU已删除', type: 'success');
+        $this->toastSuccess('SKU已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

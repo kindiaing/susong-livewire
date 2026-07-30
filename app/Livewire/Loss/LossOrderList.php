@@ -9,6 +9,7 @@ use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithToast;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -17,6 +18,7 @@ class LossOrderList extends Component
 {
     use WithPagination;
     use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = LossOrder::class;
 
@@ -51,7 +53,7 @@ class LossOrderList extends Component
     {
         $item = LossOrder::findOrFail($id);
         if ($item->status !== LossOrder::STATUS_PENDING && $item->status !== LossOrder::STATUS_APPROVED) {
-            $this->dispatch('toast', message: '当前状态不可编辑', type: 'error');
+            $this->toastError('当前状态不可编辑');
             return;
         }
         $this->editingId = $id;
@@ -82,7 +84,7 @@ class LossOrderList extends Component
             $item = LossOrder::findOrFail($this->editingId);
             unset($data['warehouse_id']);
             $item->update($data);
-            $this->dispatch('toast', message: '损耗单已更新', type: 'success');
+            $this->toastSuccess('损耗单已更新');
         } else {
             $data['loss_no'] = 'LO' . date('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
             $data['total_amount'] = 0;
@@ -90,7 +92,7 @@ class LossOrderList extends Component
             $data['approval_status'] = LossOrder::APPROVAL_PENDING;
             $data['applicant_id'] = Auth::id();
             LossOrder::create($data);
-            $this->dispatch('toast', message: '损耗单已创建', type: 'success');
+            $this->toastSuccess('损耗单已创建');
         }
 
         $this->showModal = false;
@@ -107,7 +109,7 @@ class LossOrderList extends Component
     {
         $item = LossOrder::findOrFail($this->deletingId);
         $item->delete();
-        $this->dispatch('toast', message: '损耗单已删除', type: 'success');
+        $this->toastSuccess('损耗单已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }
@@ -124,7 +126,7 @@ class LossOrderList extends Component
         $item = LossOrder::findOrFail($this->approvingId);
 
         if ($item->approval_status !== LossOrder::APPROVAL_PENDING) {
-            $this->dispatch('toast', message: '该单不在待审核状态', type: 'error');
+            $this->toastError('该单不在待审核状态');
             $this->showApproveConfirm = false;
             return;
         }
@@ -136,7 +138,7 @@ class LossOrderList extends Component
             'reviewed_at' => now(),
         ]);
 
-        $this->dispatch('toast', message: '损耗单已审核通过', type: 'success');
+        $this->toastSuccess('损耗单已审核通过');
         $this->showApproveConfirm = false;
         $this->approvingId = null;
     }
@@ -146,7 +148,7 @@ class LossOrderList extends Component
         $item = LossOrder::findOrFail($this->approvingId);
 
         if ($item->approval_status !== LossOrder::APPROVAL_PENDING) {
-            $this->dispatch('toast', message: '该单不在待审核状态', type: 'error');
+            $this->toastError('该单不在待审核状态');
             $this->showApproveConfirm = false;
             return;
         }
@@ -158,7 +160,7 @@ class LossOrderList extends Component
             'reviewed_at' => now(),
         ]);
 
-        $this->dispatch('toast', message: '损耗单已拒绝', type: 'success');
+        $this->toastSuccess('损耗单已拒绝');
         $this->showApproveConfirm = false;
         $this->approvingId = null;
     }
@@ -168,7 +170,7 @@ class LossOrderList extends Component
         $item = LossOrder::findOrFail($id);
 
         if ($item->status !== LossOrder::STATUS_APPROVED) {
-            $this->dispatch('toast', message: '只有已通过的单据可执行', type: 'error');
+            $this->toastError('只有已通过的单据可执行');
             return;
         }
 
@@ -177,7 +179,7 @@ class LossOrderList extends Component
             'executed_at' => now(),
         ]);
 
-        $this->dispatch('toast', message: '损耗单已执行', type: 'success');
+        $this->toastSuccess('损耗单已执行');
     }
 
     public function close(int $id): void
@@ -185,7 +187,7 @@ class LossOrderList extends Component
         $item = LossOrder::findOrFail($id);
 
         if ($item->status !== LossOrder::STATUS_EXECUTED) {
-            $this->dispatch('toast', message: '只有已执行的单据可关闭', type: 'error');
+            $this->toastError('只有已执行的单据可关闭');
             return;
         }
 
@@ -194,7 +196,7 @@ class LossOrderList extends Component
             'closed_at' => now(),
         ]);
 
-        $this->dispatch('toast', message: '损耗单已关闭', type: 'success');
+        $this->toastSuccess('损耗单已关闭');
     }
 
     public function resetFilters(): void

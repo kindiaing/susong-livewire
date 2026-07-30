@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
 use App\Models\SupplierSettlement;
@@ -19,6 +20,7 @@ class SupplierSettlementList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = SupplierSettlement::class;
 
@@ -122,7 +124,7 @@ class SupplierSettlementList extends Component
             'note' => $this->formNote ?: null,
         ]);
 
-        $this->dispatch('toast', message: '结算记录已创建', type: 'success');
+        $this->toastSuccess('结算记录已创建');
         $this->showModal = false;
         $this->resetForm();
     }
@@ -131,11 +133,11 @@ class SupplierSettlementList extends Component
     {
         $item = SupplierSettlement::findOrFail($id);
         if ($item->status !== 0) {
-            $this->dispatch('toast', message: '仅待结算状态可确认付款', type: 'error');
+            $this->toastError('仅待结算状态可确认付款');
             return;
         }
         $item->update(['status' => 1]);
-        $this->dispatch('toast', message: '结算已确认付款', type: 'success');
+        $this->toastSuccess('结算已确认付款');
     }
 
     public function confirmDelete(int $id): void
@@ -147,7 +149,7 @@ class SupplierSettlementList extends Component
     public function delete(): void
     {
         SupplierSettlement::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '结算记录已删除', type: 'success');
+        $this->toastSuccess('结算记录已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

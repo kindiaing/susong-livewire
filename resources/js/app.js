@@ -61,7 +61,12 @@ document.addEventListener('alpine:initialized', () => {
 
     // Livewire v4 dispatch 事件监听
     window.addEventListener('toast', (e) => {
-        window.$toast.show(e.detail || {});
+        const detail = e.detail || {};
+        window.$toast.show({
+            title: detail.title || detail.message || '',
+            description: detail.description || '',
+            type: detail.type || 'default',
+        });
     });
 });
 

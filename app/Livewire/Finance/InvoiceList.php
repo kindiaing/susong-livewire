@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\Invoice;
 use App\Models\Merchant;
 use Livewire\Component;
@@ -18,6 +19,7 @@ class InvoiceList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = Invoice::class;
 
@@ -130,7 +132,7 @@ class InvoiceList extends Component
             'status' => 0,
         ]);
 
-        $this->dispatch('toast', message: '发票已创建', type: 'success');
+        $this->toastSuccess('发票已创建');
         $this->showModal = false;
         $this->resetForm();
     }
@@ -139,25 +141,25 @@ class InvoiceList extends Component
     {
         $item = Invoice::findOrFail($id);
         if ($item->status !== 0) {
-            $this->dispatch('toast', message: '仅待开具状态可操作', type: 'error');
+            $this->toastError('仅待开具状态可操作');
             return;
         }
         $item->update([
             'status' => 1,
             'issued_at' => now()->toDateString(),
         ]);
-        $this->dispatch('toast', message: '发票已开具', type: 'success');
+        $this->toastSuccess('发票已开具');
     }
 
     public function send(int $id): void
     {
         $item = Invoice::findOrFail($id);
         if ($item->status !== 1) {
-            $this->dispatch('toast', message: '仅已开具状态可寄出', type: 'error');
+            $this->toastError('仅已开具状态可寄出');
             return;
         }
         $item->update(['status' => 2]);
-        $this->dispatch('toast', message: '发票已寄出', type: 'success');
+        $this->toastSuccess('发票已寄出');
     }
 
     public function confirmDelete(int $id): void
@@ -169,7 +171,7 @@ class InvoiceList extends Component
     public function delete(): void
     {
         Invoice::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '发票已删除', type: 'success');
+        $this->toastSuccess('发票已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\SkuBarcode;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -17,6 +18,7 @@ class SkuBarcodeList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = SkuBarcode::class;
 
@@ -84,10 +86,10 @@ class SkuBarcodeList extends Component
 
         if ($this->editingId) {
             SkuBarcode::findOrFail($this->editingId)->update($data);
-            $this->dispatch('toast', message: '条码已更新', type: 'success');
+            $this->toastSuccess('条码已更新');
         } else {
             SkuBarcode::create($data);
-            $this->dispatch('toast', message: '条码已创建', type: 'success');
+            $this->toastSuccess('条码已创建');
         }
 
         $this->showModal = false;
@@ -103,7 +105,7 @@ class SkuBarcodeList extends Component
     public function delete(): void
     {
         SkuBarcode::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '条码已删除', type: 'success');
+        $this->toastSuccess('条码已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

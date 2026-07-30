@@ -8,6 +8,7 @@ use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithToast;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -15,6 +16,7 @@ class PurchaseOrderList extends Component
 {
     use WithPagination;
     use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = PurchaseOrder::class;
 
@@ -62,12 +64,12 @@ class PurchaseOrderList extends Component
 
         if ($this->editingId) {
             PurchaseOrder::findOrFail($this->editingId)->update($data);
-            $this->dispatch('toast', message: '采购单已更新', type: 'success');
+            $this->toastSuccess('采购单已更新');
         } else {
             $data['order_no'] = 'PO' . date('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
             $data['status'] = PurchaseOrder::STATUS_PENDING;
             PurchaseOrder::create($data);
-            $this->dispatch('toast', message: '采购单已创建', type: 'success');
+            $this->toastSuccess('采购单已创建');
         }
 
         $this->showModal = false;
@@ -83,7 +85,7 @@ class PurchaseOrderList extends Component
     public function delete(): void
     {
         PurchaseOrder::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '采购单已删除', type: 'success');
+        $this->toastSuccess('采购单已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

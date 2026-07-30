@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\SkuSupplier;
 use App\Models\Supplier;
 use App\Models\Sku;
@@ -19,6 +20,7 @@ class SkuSupplierList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = SkuSupplier::class;
 
@@ -82,10 +84,10 @@ class SkuSupplierList extends Component
 
         if ($this->editingId) {
             SkuSupplier::findOrFail($this->editingId)->update($data);
-            $this->dispatch('toast', message: '供应商关联已更新', type: 'success');
+            $this->toastSuccess('供应商关联已更新');
         } else {
             SkuSupplier::create($data);
-            $this->dispatch('toast', message: '供应商关联已创建', type: 'success');
+            $this->toastSuccess('供应商关联已创建');
         }
 
         $this->showModal = false;
@@ -101,7 +103,7 @@ class SkuSupplierList extends Component
     public function delete(): void
     {
         SkuSupplier::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '供应商关联已删除', type: 'success');
+        $this->toastSuccess('供应商关联已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

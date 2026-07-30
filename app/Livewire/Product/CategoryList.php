@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\Category;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -17,6 +18,7 @@ class CategoryList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = Category::class;
 
@@ -75,10 +77,10 @@ class CategoryList extends Component
 
         if ($this->editingId) {
             Category::findOrFail($this->editingId)->update($data);
-            $this->dispatch('toast', message: '分类已更新', type: 'success');
+            $this->toastSuccess('分类已更新');
         } else {
             Category::create($data);
-            $this->dispatch('toast', message: '分类已创建', type: 'success');
+            $this->toastSuccess('分类已创建');
         }
 
         $this->showModal = false;
@@ -94,7 +96,7 @@ class CategoryList extends Component
     public function delete(): void
     {
         Category::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '分类已删除', type: 'success');
+        $this->toastSuccess('分类已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

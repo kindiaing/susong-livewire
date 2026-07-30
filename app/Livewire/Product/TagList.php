@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\Tag;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -17,6 +18,7 @@ class TagList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = Tag::class;
 
@@ -67,10 +69,10 @@ class TagList extends Component
 
         if ($this->editingId) {
             Tag::findOrFail($this->editingId)->update($data);
-            $this->dispatch('toast', message: '标签已更新', type: 'success');
+            $this->toastSuccess('标签已更新');
         } else {
             Tag::create($data);
-            $this->dispatch('toast', message: '标签已创建', type: 'success');
+            $this->toastSuccess('标签已创建');
         }
 
         $this->showModal = false;
@@ -86,7 +88,7 @@ class TagList extends Component
     public function delete(): void
     {
         Tag::findOrFail($this->deletingId)->delete();
-        $this->dispatch('toast', message: '标签已删除', type: 'success');
+        $this->toastSuccess('标签已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\Vehicle;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -17,6 +18,7 @@ class VehicleList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = Vehicle::class;
 
@@ -78,10 +80,10 @@ class VehicleList extends Component
         if ($this->editingId) {
             $vehicle = Vehicle::findOrFail($this->editingId);
             $vehicle->update($data);
-            $this->dispatch('toast', message: '车辆已更新', type: 'success');
+            $this->toastSuccess('车辆已更新');
         } else {
             Vehicle::create($data);
-            $this->dispatch('toast', message: '车辆已创建', type: 'success');
+            $this->toastSuccess('车辆已创建');
         }
 
         $this->showModal = false;
@@ -98,7 +100,7 @@ class VehicleList extends Component
     {
         $vehicle = Vehicle::findOrFail($this->deletingId);
         $vehicle->delete();
-        $this->dispatch('toast', message: '车辆已删除', type: 'success');
+        $this->toastSuccess('车辆已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

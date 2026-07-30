@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
 use App\Models\Driver;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -17,6 +18,7 @@ class DriverList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = Driver::class;
 
@@ -82,10 +84,10 @@ class DriverList extends Component
         if ($this->editingId) {
             $driver = Driver::findOrFail($this->editingId);
             $driver->update($data);
-            $this->dispatch('toast', message: '司机已更新', type: 'success');
+            $this->toastSuccess('司机已更新');
         } else {
             Driver::create($data);
-            $this->dispatch('toast', message: '司机已创建', type: 'success');
+            $this->toastSuccess('司机已创建');
         }
 
         $this->showModal = false;
@@ -102,7 +104,7 @@ class DriverList extends Component
     {
         $driver = Driver::findOrFail($this->deletingId);
         $driver->delete();
-        $this->dispatch('toast', message: '司机已删除', type: 'success');
+        $this->toastSuccess('司机已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '6185b3a7-508f-470e-a2b0-1a18b759476a'
-  PropagateID: '6185b3a7-508f-470e-a2b0-1a18b759476a'
-  ReservedCode1: '540f6fe8-c8f5-4486-b037-aa8defc7d6eb'
-  ReservedCode2: '540f6fe8-c8f5-4486-b037-aa8defc7d6eb'
+  ProduceID: '4451cafc-da5d-4183-85d6-75df75590708'
+  PropagateID: '4451cafc-da5d-4183-85d6-75df75590708'
+  ReservedCode1: '35b488b1-306f-4474-ada6-441c72b1bb98'
+  ReservedCode2: '35b488b1-306f-4474-ada6-441c72b1bb98'
 ---
 
 # 开发迭代日志
@@ -16,6 +16,98 @@ AIGC:
 技术栈：Laravel 13 + Livewire 4.x + Tailwind CSS 4.2+ + Alpine.js + PHP 8.4+ + MySQL 8.0 + Redis 7.x
 
 记录规则：每次迭代新增一节，按版本号倒序排列。每条变更需标注开发人、完成时间和关联模块。
+
+---
+
+## V1.6.4 | 迭代周期：2026-07-30
+
+负责人：项目负责人
+参与开发人员：后端开发、前端开发
+
+### 1 本次新增功能清单
+
+| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 全局 | 新增 `WithToast` Trait，统一 Toast 消息分发接口 | 后端 | 2026-07-30 | ✅ |
+| 2 | 全局 | 新增 `docs/09_开发前指导手册.md`，汇总所有开发规范 | 后端 | 2026-07-30 | ✅ |
+
+### 2 本次优化/重构
+
+| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 全局（49个组件+3个Trait） | 所有 `dispatch('toast', message: '...')` 替换为 `WithToast` 方法（`toastSuccess`/`toastError`/`toastWarning`/`toastInfo`） | 后端 | 2026-07-30 |
+
+### 3 本次修复 Bug
+
+| 序号 | Bug描述 | 修复内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 权限分配弹窗点击始终全选，无法取消勾选 | 模块/页面 checkbox 去掉 `wire:model.live`，只保留 `wire:click` + `@checked()`，避免两者冲突 | 前端 | 2026-07-30 |
+| 2 | 全部模块 Toast 提示无文字 | 创建 `WithToast` Trait 统一使用 `title` 字段，批量替换 49 个组件文件 | 后端 | 2026-07-30 |
+
+### 4 数据库变更
+
+无。
+
+### 5 影响范围
+
+| 影响文件 | 变更类型 |
+| :--- | :--- |
+| app/Livewire/Traits/WithToast.php | 新增（Toast 统一 Trait） |
+| app/Livewire/Traits/WithRowSelection.php | 修改（use WithToast; + dispatch 替换） |
+| app/Livewire/Traits/WithExcelExport.php | 修改（use WithToast; + dispatch 替换） |
+| app/Livewire/Traits/WithExcelImport.php | 修改（use WithToast; + dispatch 替换） |
+| 46 个 Livewire 组件文件 | 修改（添加 use WithToast + dispatch 替换为 toastSuccess/Error/Warning/Info） |
+| resources/views/livewire/user/role-list.blade.php | 修改（权限 checkbox 修复） |
+| docs/09_开发前指导手册.md | 新增（开发规范汇总） |
+
+### 6 关键技术记录
+
+**checkbox 的 wire:model.live 与 wire:click 冲突：**
+- 根因：checkbox 同时绑定 `wire:model.live="formArray"` 和 `wire:click="toggleMethod()"` 时，Livewire 先执行 model 绑定自动切换值，再执行 click 方法，导致自定义逻辑基于已修改的数组判断
+- 修复：联动 checkbox 只用 `wire:click` + `@checked()` 手动控制选中状态
+
+**Toast 事件字段不匹配：**
+- 根因：后端 `dispatch('toast', message: '...')` 发出的 detail 字段为 `message`，前端 `$toast.show()` 期望 `title` 字段
+- 修复：创建 `WithToast` Trait 统一使用 `title` + `description` + `type` 字段
+
+---
+
+## V1.6.3 | 迭代周期：2026-07-30
+
+负责人：项目负责人
+参与开发人员：后端开发、前端开发
+
+### 1 本次新增功能清单
+
+无新增功能模块。
+
+### 2 本次优化/重构
+
+| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 角色管理 | 权限分配弹窗改为表格形式（4列：复选框、模块、页面、按钮），弹窗加宽到 max-w-4xl | 前端 | 2026-07-30 |
+| 2 | 角色管理 | 模块勾选自动全选子权限（toggleModulePermissions），页面勾选自动全选子按钮（togglePagePermissions） | 后端 | 2026-07-30 |
+
+### 3 本次修复 Bug
+
+| 序号 | Bug描述 | 修复内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 已登录用户访问 /login 不自动跳转 | Login 组件 mount() 增加 auth()->check() 跳转到 dashboard | 后端 | 2026-07-30 |
+| 2 | Toast 提示不显示文字 | app.js 事件监听增加 message→title 映射 | 前端 | 2026-07-30 |
+
+### 4 数据库变更
+
+无。
+
+### 5 影响范围
+
+| 影响文件 | 变更类型 |
+| :--- | :--- |
+| app/Livewire/Auth/Login.php | 修改（mount 增加已登录跳转） |
+| resources/js/app.js | 修改（toast 事件监听 message→title 映射） |
+| app/Livewire/User/RoleList.php | 修改（新增 toggleModulePermissions/togglePagePermissions） |
+| resources/views/livewire/user/role-list.blade.php | 修改（权限弹窗改表格形式） |
+| public/build/ | 重建（Vite 构建更新） |
 
 ---
 

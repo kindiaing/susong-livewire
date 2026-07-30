@@ -4,6 +4,7 @@ namespace App\Livewire\Traits;
 
 use App\Imports\GenericImport;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Livewire\Traits\WithToast;
 
 /**
  * 列表页：Excel 导入 Trait
@@ -13,6 +14,7 @@ use Maatwebsite\Excel\Facades\Excel;
  */
 trait WithExcelImport
 {
+    use WithToast;
     public bool $showImportModal = false;
     public $importFile = null;
     public string $importMessage = '';
@@ -58,10 +60,14 @@ trait WithExcelImport
             }
 
             $this->importMessage = $msg;
-            $this->dispatch('toast', message: $msg, type: $skipped > 0 || !empty($errors) ? 'warning' : 'success');
+            if ($skipped > 0 || !empty($errors)) {
+                $this->toastWarning($msg);
+            } else {
+                $this->toastSuccess($msg);
+            }
         } catch (\Exception $e) {
             $this->importMessage = '导入失败：' . $e->getMessage();
-            $this->dispatch('toast', message: $this->importMessage, type: 'error');
+            $this->toastError($this->importMessage);
         }
 
         $this->importFile = null;

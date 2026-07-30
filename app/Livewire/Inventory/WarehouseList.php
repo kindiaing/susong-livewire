@@ -7,6 +7,7 @@ use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithToast;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -14,6 +15,7 @@ class WarehouseList extends Component
 {
     use WithPagination;
     use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
+    use WithToast;
 
     protected string $modelClass = Warehouse::class;
 
@@ -75,10 +77,10 @@ class WarehouseList extends Component
         if ($this->editingId) {
             $item = Warehouse::findOrFail($this->editingId);
             $item->update($data);
-            $this->dispatch('toast', message: '仓库已更新', type: 'success');
+            $this->toastSuccess('仓库已更新');
         } else {
             Warehouse::create($data);
-            $this->dispatch('toast', message: '仓库已创建', type: 'success');
+            $this->toastSuccess('仓库已创建');
         }
 
         $this->showModal = false;
@@ -95,7 +97,7 @@ class WarehouseList extends Component
     {
         $item = Warehouse::findOrFail($this->deletingId);
         $item->delete();
-        $this->dispatch('toast', message: '仓库已删除', type: 'success');
+        $this->toastSuccess('仓库已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }

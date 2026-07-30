@@ -9,6 +9,8 @@ namespace App\Livewire\Traits;
  */
 trait WithRowSelection
 {
+    use WithToast;
+
     public array $selectedIds = [];
     public bool $selectAllPage = false;
 
@@ -50,7 +52,7 @@ trait WithRowSelection
     public function batchDelete(): void
     {
         if (empty($this->selectedIds)) {
-            $this->dispatch('toast', message: '请先选择数据', type: 'error');
+            $this->toastError('请先选择数据');
             return;
         }
         $modelClass = property_exists($this, 'modelClass') ? $this->modelClass : null;
@@ -58,7 +60,7 @@ trait WithRowSelection
             $modelClass::destroy($this->selectedIds);
             $count = count($this->selectedIds);
             $this->clearSelection();
-            $this->dispatch('toast', message: "已删除 {$count} 条数据", type: 'success');
+            $this->toastSuccess("已删除 {$count} 条数据");
         }
     }
 
@@ -68,7 +70,7 @@ trait WithRowSelection
     public function batchUpdateStatus(int $status): void
     {
         if (empty($this->selectedIds)) {
-            $this->dispatch('toast', message: '请先选择数据', type: 'error');
+            $this->toastError('请先选择数据');
             return;
         }
         $modelClass = property_exists($this, 'modelClass') ? $this->modelClass : null;
@@ -76,7 +78,7 @@ trait WithRowSelection
             $modelClass::whereIn('id', $this->selectedIds)->update(['status' => $status]);
             $this->clearSelection();
             $label = $status === 1 ? '启用' : '禁用';
-            $this->dispatch('toast', message: "已{$label}所选数据", type: 'success');
+            $this->toastSuccess("已{$label}所选数据");
         }
     }
 }
