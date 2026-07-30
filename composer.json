@@ -84,7 +84,6 @@
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php -r \"foreach(['bootstrap/cache','storage/framework/cache','storage/framework/cache/data','storage/framework/sessions','storage/framework/views','storage/logs'] as $d) { if(!is_dir($d)) { mkdir($d,0755,true); echo 'Created: '.$d.PHP_EOL; } }\"",
             "@php artisan package:discover --ansi"
         ],
         "post-update-cmd": [
