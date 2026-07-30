@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '7c1e1d87-5b71-43d6-8805-90e3fc6dfdfe'
-  PropagateID: '7c1e1d87-5b71-43d6-8805-90e3fc6dfdfe'
-  ReservedCode1: 'aeb8c949-4167-4d1a-8122-808246f775a6'
-  ReservedCode2: 'aeb8c949-4167-4d1a-8122-808246f775a6'
+  ProduceID: 'afd1b8e2-bcbc-47f3-991c-3b1ee33fe15a'
+  PropagateID: 'afd1b8e2-bcbc-47f3-991c-3b1ee33fe15a'
+  ReservedCode1: 'a5014fa9-46df-439f-98af-a4c4f4a9ca5d'
+  ReservedCode2: 'a5014fa9-46df-439f-98af-a4c4f4a9ca5d'
 ---
 
 # 开发迭代日志
@@ -16,6 +16,49 @@ AIGC:
 技术栈：Laravel 13 + Livewire 4.x + Tailwind CSS 4.2+ + Alpine.js + PHP 8.4+ + MySQL 8.0 + Redis 7.x
 
 记录规则：每次迭代新增一节，按版本号倒序排列。每条变更需标注开发人、完成时间和关联模块。
+
+---
+
+## V1.6.1 | 迭代周期：2026-07-30
+
+负责人：项目负责人
+参与开发人员：后端开发、前端开发
+
+### 1 本次新增功能清单
+
+无新增功能模块。
+
+### 2 本次优化/重构
+
+| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 用户管理 | 状态列改为 toggle switch 开关，行内直接点击切换启用/禁用 | 前端 | 2026-07-30 |
+| 2 | 用户管理 | 操作按钮从文字改为 SVG 图标（编辑/角色分配/重置密码/删除） | 前端 | 2026-07-30 |
+| 3 | 角色管理 | 操作按钮从文字改为 SVG 图标（编辑/权限分配/删除） | 前端 | 2026-07-30 |
+| 4 | 权限管理 | 操作按钮从文字改为 SVG 图标（编辑/角色分配/删除） | 前端 | 2026-07-30 |
+| 5 | 用户管理 | 超级管理员（super-admin 角色）禁止删除和禁用，列表不显示删除按钮和 toggle 开关 | 后端 | 2026-07-30 |
+| 6 | 角色管理 | super-admin 角色禁止删除和编辑，列表不显示编辑/删除按钮 | 后端 | 2026-07-30 |
+
+### 3 本次修复 Bug
+
+| 序号 | Bug描述 | 修复内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 超级管理员可被删除/禁用 | delete() 和 toggleStatus() 增加 hasRole('super-admin') 检查 | 后端 | 2026-07-30 |
+| 2 | super-admin 角色可被删除/编辑 | RoleList delete() 和 openEditModal() 增加 name==='super-admin' 保护 | 后端 | 2026-07-30 |
+
+### 4 数据库变更
+
+无。
+
+### 5 影响范围
+
+| 影响文件 | 变更类型 |
+| :--- | :--- |
+| app/Livewire/User/UserList.php | 修改（增加超级管理员保护逻辑） |
+| app/Livewire/User/RoleList.php | 修改（增加超级管理员角色保护逻辑） |
+| resources/views/livewire/user/user-list.blade.php | 修改（toggle switch + 图标按钮 + 超级管理员行 UI 保护） |
+| resources/views/livewire/user/role-list.blade.php | 修改（图标按钮 + 超级管理员角色行 UI 保护） |
+| resources/views/livewire/user/permission-list.blade.php | 修改（图标按钮） |
 
 ---
 

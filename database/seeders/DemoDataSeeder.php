@@ -10,11 +10,8 @@ class DemoDataSeeder extends Seeder
 {
     public function run(): void
     {
-        // 先确保内置数据已就位
+        // 先确保内置数据已就位（含角色、权限树、测试用户）
         $this->call(SystemDataSeeder::class);
-
-        // 创建各角色测试用户
-        $this->seedTestUsers();
 
         // 创建基础业务数据
         $this->seedSuppliers();
@@ -64,51 +61,6 @@ class DemoDataSeeder extends Seeder
     }
 
     // ========== 原有基础数据 ==========
-
-    protected function seedTestUsers(): void
-    {
-        $now = now();
-        $users = [
-            ['username' => 'operator1', 'password' => Hash::make('Password'), 'name' => '张运营', 'phone' => '13800000001', 'email' => 'operator@susong.test', 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['username' => 'ops_manager', 'password' => Hash::make('Password'), 'name' => '李运营经理', 'phone' => '13800000002', 'email' => 'ops_manager@susong.test', 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['username' => 'finance1', 'password' => Hash::make('Password'), 'name' => '王财务', 'phone' => '13800000003', 'email' => 'finance@susong.test', 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['username' => 'cashier1', 'password' => Hash::make('Password'), 'name' => '赵出纳', 'phone' => '13800000004', 'email' => 'cashier@susong.test', 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['username' => 'fin_manager', 'password' => Hash::make('Password'), 'name' => '钱财务经理', 'phone' => '13800000005', 'email' => 'finance_manager@susong.test', 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['username' => 'picker1', 'password' => Hash::make('Password'), 'name' => '孙拣货员', 'phone' => '13800000006', 'email' => 'picker@susong.test', 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['username' => 'driver1', 'password' => Hash::make('Password'), 'name' => '周司机', 'phone' => '13800000007', 'email' => 'driver@susong.test', 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['username' => 'merchant1', 'password' => Hash::make('Password'), 'name' => '吴商家', 'phone' => '13800000008', 'email' => 'merchant@susong.test', 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-        ];
-
-        foreach ($users as $userData) {
-            if (DB::table('users')->where('username', $userData['username'])->exists()) {
-                continue;
-            }
-            DB::table('users')->insert($userData);
-        }
-
-        // 分配角色
-        $roleMappings = [
-            'operator1' => 'operator',
-            'ops_manager' => 'operator_manager',
-            'finance1' => 'finance',
-            'cashier1' => 'cashier',
-            'fin_manager' => 'finance_manager',
-            'picker1' => 'picker',
-            'driver1' => 'driver',
-            'merchant1' => 'merchant',
-        ];
-
-        foreach ($roleMappings as $username => $roleName) {
-            $user = DB::table('users')->where('username', $username)->first();
-            $role = DB::table('roles')->where('name', $roleName)->first();
-            if ($user && $role) {
-                DB::table('model_has_roles')->updateOrInsert(
-                    ['role_id' => $role->id, 'model_type' => 'App\\Models\\User', 'model_id' => $user->id],
-                    ['role_id' => $role->id, 'model_type' => 'App\\Models\\User', 'model_id' => $user->id]
-                );
-            }
-        }
-    }
 
     protected function seedSuppliers(): void
     {

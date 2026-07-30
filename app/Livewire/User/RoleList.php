@@ -49,6 +49,10 @@ class RoleList extends Component
     public function openEditModal(int $id): void
     {
         $role = Role::findOrFail($id);
+        if ($role->name === 'super_admin') {
+            $this->dispatch('toast', message: '超级管理员角色不可编辑', type: 'error');
+            return;
+        }
         $this->editingId = $id;
         $this->formName = $role->name;
         $this->formDisplayName = $role->getRawOriginal('display_name') ?? '';
@@ -95,6 +99,11 @@ class RoleList extends Component
     public function delete(): void
     {
         $role = Role::findOrFail($this->deletingId);
+        if ($role->name === 'super_admin') {
+            $this->dispatch('toast', message: '超级管理员角色不可删除', type: 'error');
+            $this->showDeleteConfirm = false;
+            return;
+        }
         if ($role->users()->count() > 0) {
             $this->dispatch('toast', message: '该角色下有用户，不可删除', type: 'error');
             $this->showDeleteConfirm = false;

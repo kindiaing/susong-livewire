@@ -22,55 +22,95 @@
     </div>
 
     {{-- 用户列表 --}}
-    <div class="rounded-lg border bg-card">
-        <div class="grid grid-cols-[60px_1fr_1fr_1fr_100px_1fr_180px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            <div>ID</div>
-            <div>用户名</div>
-            <div>姓名</div>
-            <div>联系方式</div>
-            <div>状态</div>
-            <div>角色</div>
-            <div>操作</div>
-        </div>
-
-        @forelse($users as $user)
-            <div class="grid grid-cols-[60px_1fr_1fr_1fr_100px_1fr_180px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors"
-                 wire:key="user-{{ $user->id }}">
-                <div class="text-sm text-muted-foreground">{{ $user->id }}</div>
-                <div class="text-sm font-medium text-foreground font-mono">{{ $user->username }}</div>
-                <div class="text-sm text-foreground">{{ $user->name }}</div>
-                <div class="text-sm text-muted-foreground">
-                    @if($user->phone)<span>{{ $user->phone }}</span>@endif
-                    @if($user->email)<span class="ml-1 text-xs">{{ $user->email }}</span>@endif
-                    @if(!$user->phone && !$user->email)<span class="text-muted-foreground">-</span>@endif
-                </div>
-                <div>
-                    @if($user->status === 1)
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
-                    @else
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
-                    @endif
-                </div>
-                <div class="flex flex-wrap gap-1">
-                    @forelse($user->roles as $role)
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-blue-50 text-blue-700">{{ $role->display_name }}</span>
-                    @empty
-                        <span class="text-xs text-muted-foreground">未分配</span>
-                    @endforelse
-                </div>
-                <div class="flex items-center gap-1.5 flex-wrap">
-                    <button wire:click="openEditModal({{ $user->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
-                    <button wire:click="openRoleModal({{ $user->id }})" class="text-indigo-600 hover:text-indigo-700 text-sm">角色</button>
-                    <button wire:click="toggleStatus({{ $user->id }})" class="text-orange-600 hover:text-orange-700 text-sm">
-                        {{ $user->status === 1 ? '禁用' : '启用' }}
-                    </button>
-                    <button wire:click="confirmResetPassword({{ $user->id }})" class="text-amber-600 hover:text-amber-700 text-sm">重置密码</button>
-                    <button wire:click="confirmDelete({{ $user->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
-                </div>
-            </div>
-        @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无用户数据</div>
-        @endforelse
+    <div class="rounded-lg border bg-card overflow-hidden">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th class="px-4 py-2.5 text-left w-12">ID</th>
+                    <th class="px-4 py-2.5 text-left">用户名</th>
+                    <th class="px-4 py-2.5 text-left">姓名</th>
+                    <th class="px-4 py-2.5 text-left">联系方式</th>
+                    <th class="px-4 py-2.5 text-left w-16">状态</th>
+                    <th class="px-4 py-2.5 text-left">角色</th>
+                    <th class="px-4 py-2.5 text-right w-28">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+            @forelse($users as $user)
+                @php $isSuperAdmin = $user->roles->contains('name', 'super_admin') @endphp
+                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="user-{{ $user->id }}">
+                    <td class="px-4 py-2 text-muted-foreground">{{ $user->id }}</td>
+                    <td class="px-4 py-2 font-medium font-mono">{{ $user->username }}</td>
+                    <td class="px-4 py-2">{{ $user->name }}</td>
+                    <td class="px-4 py-2 text-muted-foreground">
+                        @if($user->phone){{ $user->phone }}@endif
+                        @if($user->email)<span class="ml-1 text-xs">{{ $user->email }}</span>@endif
+                        @if(!$user->phone && !$user->email)—@endif
+                    </td>
+                    <td class="px-4 py-2">
+                        @if($isSuperAdmin)
+                            <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-500" title="已启用">
+                                <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 13.5-13.5"/></svg>
+                            </span>
+                        @else
+                            <button wire:click="toggleStatus({{ $user->id }})" type="button" title="{{ $user->status === 1 ? '点击禁用' : '点击启用' }}" class="inline-flex items-center justify-center">
+                                @if($user->status === 1)
+                                    <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-500 hover:bg-green-600 transition-colors">
+                                        <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 13.5-13.5"/></svg>
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-300 hover:bg-gray-400 transition-colors">
+                                        <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </span>
+                                @endif
+                            </button>
+                        @endif
+                    </td>
+                    <td class="px-4 py-2">
+                        <div class="flex flex-wrap gap-1">
+                        @forelse($user->roles as $role)
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-blue-50 text-blue-700">{{ $role->display_name }}</span>
+                        @empty
+                            <span class="text-xs text-muted-foreground">未分配</span>
+                        @endforelse
+                        </div>
+                    </td>
+                    <td class="px-4 py-2 text-right">
+                        <div class="inline-flex items-center gap-0.5">
+                            {{-- 编辑 --}}
+                            <button wire:click="openEditModal({{ $user->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                </svg>
+                            </button>
+                            {{-- 角色分配 --}}
+                            <button wire:click="openRoleModal({{ $user->id }})" class="p-1 rounded text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors" title="角色分配">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A9.75 9.75 0 016.75 5.087 9.75 9.75 0 0112 4.5c2.048 0 3.94.583 5.468 1.587A9.75 9.75 0 0120.25 9v.75c0 5.385-3.597 10.02-8.25 11.642a1.5 1.5 0 01-1 0C6.02 19.772 2.25 15.135 2.25 9.75V9A9.75 9.75 0 014.686 6.087z" />
+                                </svg>
+                            </button>
+                            {{-- 重置密码 --}}
+                            <button wire:click="confirmResetPassword({{ $user->id }})" class="p-1 rounded text-amber-600 hover:bg-amber-50 hover:text-amber-700 transition-colors" title="重置密码">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+                                </svg>
+                            </button>
+                            {{-- 删除（超级管理员不显示） --}}
+                            @if(!$isSuperAdmin)
+                                <button wire:click="confirmDelete({{ $user->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                    </svg>
+                                </button>
+                            @endif
+                        </div>
+                    </td>
+                </tr>
+            @empty
+                <tr><td colspan="7" class="px-4 py-10 text-center text-muted-foreground">暂无用户数据</td></tr>
+            @endforelse
+            </tbody>
+        </table>
     </div>
 
     <div class="mt-4">{{ $users->links() }}</div>

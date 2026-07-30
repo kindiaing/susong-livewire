@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 use Spatie\Permission\Models\Permission as SpatiePermission;
 
 /**
  * 权限模型
+ *
+ * 继承 Spatie Permission，扩展 display_name / type / parent_id / route / sort / icon 字段。
+ * roles() 由 Spatie 父类提供，不要重写。
  *
  * @property int $id
  * @property string $name 权限标识
@@ -18,8 +19,6 @@ use Spatie\Permission\Models\Permission as SpatiePermission;
  * @property string|null $route 路由
  * @property int $sort 排序
  * @property string|null $icon 图标
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
  */
 class Permission extends SpatiePermission
 {
@@ -61,11 +60,11 @@ class Permission extends SpatiePermission
     }
 
     /**
-     * 获取显示名称（优先 display_name）
+     * 获取显示名称（优先 display_name，回退到 name）
      */
     public function getDisplayNameAttribute($value): string
     {
-        return $value ?? $this->name;
+        return $value ?: $this->name;
     }
 
     /**
@@ -85,14 +84,6 @@ class Permission extends SpatiePermission
     }
 
     /**
-     * 关联角色
-     */
-    public function roles()
-    {
-        return $this->belongsToMany(Role::class, 'role_has_permissions');
-    }
-
-    /**
      * 作用域：按类型筛选
      */
     public function scopeByType($query, int $type)
@@ -106,5 +97,13 @@ class Permission extends SpatiePermission
     public function scopeRoots($query)
     {
         return $query->where('parent_id', 0)->orderBy('sort');
+    }
+
+    /**
+     * 作用域：按排序字段升序
+     */
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('sort')->orderBy('id');
     }
 }
