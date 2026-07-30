@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '4451cafc-da5d-4183-85d6-75df75590708'
-  PropagateID: '4451cafc-da5d-4183-85d6-75df75590708'
-  ReservedCode1: '35b488b1-306f-4474-ada6-441c72b1bb98'
-  ReservedCode2: '35b488b1-306f-4474-ada6-441c72b1bb98'
+  ProduceID: '077dfd0e-ae34-48f3-98b9-42fbd2358c7f'
+  PropagateID: '077dfd0e-ae34-48f3-98b9-42fbd2358c7f'
+  ReservedCode1: '94411cc9-035d-40dc-af06-4e02ba400746'
+  ReservedCode2: '94411cc9-035d-40dc-af06-4e02ba400746'
 ---
 
 # 开发迭代日志
@@ -16,6 +16,64 @@ AIGC:
 技术栈：Laravel 13 + Livewire 4.x + Tailwind CSS 4.2+ + Alpine.js + PHP 8.4+ + MySQL 8.0 + Redis 7.x
 
 记录规则：每次迭代新增一节，按版本号倒序排列。每条变更需标注开发人、完成时间和关联模块。
+
+---
+
+## V1.6.5 | 迭代周期：2026-07-30
+
+负责人：项目负责人
+参与开发人员：后端开发、前端开发
+
+### 1 本次新增功能清单
+
+| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | Artisan 命令 | 新增 `admin:seed` 命令，支持 `--fresh`/`--demo`/`--system`/`--force` 选项，可单独运行种子数据 | 后端 | 2026-07-30 | ✅ |
+
+### 2 本次优化/重构
+
+| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 权限分配弹窗 | 三态 checkbox 彻底重构：权限树数据缓存到 `$permissionTreeData` 组件属性，避免每次 toggle 查数据库 | 后端 | 2026-07-30 |
+| 2 | 权限分配弹窗 | 模块/页面 checkbox 改为 `wire:click` + `@checked` + Alpine `x-effect` 驱动 indeterminate 三态 | 前端 | 2026-07-30 |
+| 3 | 权限分配弹窗 | 按钮级 checkbox 改为 `wire:click="togglePermission(id)"` + `@checked`，去掉 `wire:model.live` | 前端 | 2026-07-30 |
+| 4 | Git 管理 | `database/database.sqlite` 加入版本控制 | 后端 | 2026-07-30 |
+| 5 | Composer | 清理 `composer.json` 冗余脚本 | 后端 | 2026-07-30 |
+
+### 3 本次修复 Bug
+
+| 序号 | Bug描述 | 修复内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 权限分配弹窗模块/页面 checkbox 不反映子权限选中状态 | `@checked` 改为调用 `getModuleState()`/`getPageState()`，用 `array_intersect` 计算交集比例判断 | 后端 | 2026-07-30 |
+| 2 | 原生 checkbox indeterminate 在 Livewire morphing 后不重新设置 | 改用 Alpine `x-effect` 监听 checked 状态自动设置 indeterminate | 前端 | 2026-07-30 |
+| 3 | 按钮级 `wire:model.live` 写入字符串类型 ID 与 PHP 端 int 类型比较不一致 | 改为 `wire:click="togglePermission(id)"` + `@checked`，PHP 端统一用 int 比较 | 后端 | 2026-07-30 |
+
+### 4 数据库变更
+
+无。
+
+### 5 影响范围
+
+| 影响文件 | 变更类型 |
+| :--- | :--- |
+| app/Console/Commands/AdminSeedCommand.php | 新增（独立 seed 命令） |
+| app/Livewire/User/RoleList.php | 修改（permissionTreeData 缓存 + toggleModulePermissions/togglePagePermissions/togglePermission + getModuleState/getPageState） |
+| resources/views/livewire/user/role-list.blade.php | 修改（checkbox + `@checked` + Alpine `x-effect` indeterminate） |
+| database/database.sqlite | 新增（加入 git 版本控制） |
+| composer.json | 修改（清理冗余脚本） |
+| docs/05_Setup_安装部署配置手册.md | 修改（补充 admin:seed 命令） |
+| docs/06_Log_开发迭代日志.md | 修改（补充 V1.6.5） |
+| docs/08_用户使用手册.md | 修改（更新版本号 + 权限弹窗三态说明） |
+
+### 6 关键技术记录
+
+**权限树三态 checkbox 重构：**
+- 根因：原实现存在三个问题：(1) `@checked` 只检查模块/页面自身 ID 不反映子权限状态；(2) 原生 checkbox indeterminate 用 `x-init` 设置，Livewire morphing 后不重新执行；(3) `wire:model.live` 写入字符串类型 ID 与 PHP 端 int 比较不一致
+- 修复方案：
+  1. 权限树数据缓存到 `$permissionTreeData`，避免每次 toggle 查数据库
+  2. 模块/页面 checkbox 用 `wire:click` + `@checked(getModuleState($module_id))` / `@checked(getPageState($page_id))`，通过 `array_intersect` 计算交集比例判断选中/半选/未选
+  3. Alpine `x-effect` 监听 checked 变化自动设置 `el.indeterminate`
+  4. 按钮级 checkbox 改为 `wire:click="togglePermission($id)"` + `@checked(in_array($id, $selectedPermissions))`
 
 ---
 

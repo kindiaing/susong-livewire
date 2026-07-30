@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'dab986e2-57b6-4c5a-a0d0-843c5ca619e0'
-  PropagateID: 'dab986e2-57b6-4c5a-a0d0-843c5ca619e0'
-  ReservedCode1: '3a56c957-407b-4809-87aa-75df48d28f04'
-  ReservedCode2: '3a56c957-407b-4809-87aa-75df48d28f04'
+  ProduceID: 'af383f00-4876-427f-bcaa-49d26bda5af6'
+  PropagateID: 'af383f00-4876-427f-bcaa-49d26bda5af6'
+  ReservedCode1: '0a316a5d-443d-4a1a-bbb6-2263b825e946'
+  ReservedCode2: '0a316a5d-443d-4a1a-bbb6-2263b825e946'
 ---
 
 # Setup 系统安装部署配置手册
@@ -524,6 +524,7 @@ sudo certbot renew --dry-run
 
 | 命令 | 说明 | 核心选项 |
 |:---|:---|:---|
+| `admin:seed` | 单独运行种子数据 | `--fresh` `--demo` `--system` `--force` |
 | `admin:install` | 安装/初始化数据库 | `--seed` `--reset` `--force` |
 | `admin:fresh` | 清空并重建数据库 | `--seed` `--force` |
 | `admin:make-user` | 创建管理员账户 | `--name=` `--email=` `--password=` `--role=super-admin` `--force` |
@@ -546,6 +547,12 @@ php artisan view:cache
 
 # ── 开发环境重置 ─────────────────────────
 php artisan admin:fresh --seed --force    # 清空 + 重建 + 测试数据
+
+# ── 单独导入种子数据 ──────────────────────
+php artisan admin:seed                     # 运行所有 Seeder
+php artisan admin:seed --fresh             # 清空后重新运行 Seeder
+php artisan admin:seed --system            # 仅导入系统数据（角色/权限/用户/配置）
+php artisan admin:seed --demo              # 仅导入业务测试数据
 
 # ── 生产环境更新 ─────────────────────────
 php artisan down                            # 维护模式
