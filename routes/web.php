@@ -69,8 +69,8 @@ Route::post('/logout', function () {
     return redirect()->route('home');
 })->name('logout');
 
-// 需要登录的路由
-Route::middleware('auth')->group(function () {
+// 需要登录 + 权限校验的路由
+Route::middleware(['auth', 'permission'])->group(function () {
     Route::view('/dashboard', 'pages.dashboard')->name('dashboard');
 
     // 个人中心
