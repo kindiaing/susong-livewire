@@ -1,3 +1,14 @@
+---
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: 'a9a3d293-c1b0-4489-9408-e133af2af75e'
+  PropagateID: 'a9a3d293-c1b0-4489-9408-e133af2af75e'
+  ReservedCode1: '061ef62e-c10b-4e9b-9062-2804dbcbed74'
+  ReservedCode2: '061ef62e-c10b-4e9b-9062-2804dbcbed74'
+---
+
 # 速送 — 生鲜配送平台
 
 面向 B 端商家（酒店、餐厅等）的生鲜 / 农产品配送平台，支持冷链与非冷链区分、一日两配、称重改价等核心业务特性。
