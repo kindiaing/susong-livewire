@@ -1,13 +1,3 @@
----
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: 'c7094c79-135b-4df1-8014-40b9162c7b2b'
-  PropagateID: 'c7094c79-135b-4df1-8014-40b9162c7b2b'
-  ReservedCode1: 'cb62bf3f-3daf-472c-b118-2d21f77c1f30'
-  ReservedCode2: 'cb62bf3f-3daf-472c-b118-2d21f77c1f30'
----
 
 # PRD 业务需求说明书
 
@@ -562,4 +552,3 @@ flowchart TD
 | `18_审核管理流程.drawio` | 19个审核节点统一流转 | 审核管理模块开发 |
 | `19_用户与权限管理流程.drawio` | 角色 → 权限 → 用户 → 登录 → 数据隔离 | 用户与权限管理模块开发 |
 
-> AI生成

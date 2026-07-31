@@ -1,13 +1,3 @@
----
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: '77c50ae4-adc8-4e9a-ae6d-9cee68ee4567'
-  PropagateID: '77c50ae4-adc8-4e9a-ae6d-9cee68ee4567'
-  ReservedCode1: '10d3c990-1a01-4fce-967c-8bc61be1759d'
-  ReservedCode2: '10d3c990-1a01-4fce-967c-8bc61be1759d'
----
 
 # 功能验收用例
 
@@ -393,4 +383,3 @@ AIGC:
 | 性能与安全 | 4 | 2 | 0 | 0 | 6 |
 | **合计** | **56** | **41** | **11** | **0** | **108** |
 
-> AI生成

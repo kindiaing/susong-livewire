@@ -1,13 +1,3 @@
-﻿---
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: '4e81412d-9052-47b1-a112-4740fb9afdc7'
-  PropagateID: '4e81412d-9052-47b1-a112-4740fb9afdc7'
-  ReservedCode1: '21f4e6e9-be21-434a-9e99-958f274ca84e'
-  ReservedCode2: '21f4e6e9-be21-434a-9e99-958f274ca84e'
----
 
 # FSD 功能详细说明书
 
@@ -1496,7 +1486,7 @@ flowchart TD
 | `18_审核管理流程.drawio` | 2.15 审核管理模块 | 19个审核节点统一流转/开关/审计开发 |
 | `19_用户与权限管理流程.drawio` | 2.1 用户与权限管理模块 | 角色/权限/用户/登录/数据隔离全流程开发 |
 
-> AI生成
+
 
 ---
 
@@ -2288,4 +2278,3 @@ docs/
 | 审核管理 | ApprovalConfig ✅, ApprovalPendingList, ApprovalReviewedList | ApprovalService | approval/ ✅ | - | web ✅ |
 | 系统支撑 | SystemConfig ✅, BannerList ✅, PromotionList ✅, OperationLogList ✅, AuditLogList ✅, LoginLogList ✅, WechatUserList ✅ | - | system/ ✅ | - | web ✅ |
 
-> AI生成

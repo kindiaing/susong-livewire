@@ -1,13 +1,3 @@
----
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: 'c28540db-db15-4332-b209-08e822fd2224'
-  PropagateID: 'c28540db-db15-4332-b209-08e822fd2224'
-  ReservedCode1: 'bd37321d-2795-41c7-9337-8d46703dd200'
-  ReservedCode2: 'bd37321d-2795-41c7-9337-8d46703dd200'
----
 
 # Setup 系统安装部署配置手册
 
@@ -657,4 +647,3 @@ php artisan schedule:list          # 查看定时任务
 - [ ] 审核节点开关生效
 - [ ] 操作日志、审计日志、登录日志正常记录
 
-> AI生成

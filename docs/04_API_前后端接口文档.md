@@ -1,13 +1,3 @@
----
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: 'e7065aeb-7feb-4dbf-9e59-26aa66736a44'
-  PropagateID: 'e7065aeb-7feb-4dbf-9e59-26aa66736a44'
-  ReservedCode1: 'bf273b40-5be9-454b-9082-9987330a839e'
-  ReservedCode2: 'bf273b40-5be9-454b-9082-9987330a839e'
----
 
 # API 前后端接口文档
 
@@ -1891,4 +1881,3 @@ AIGC:
 | 微信商家端 | wechat_users, merchant_favorites, notifications, restock_reminders |
 | 微信司机端 | wechat_users, delivery_tracks, signatures, temperatures |
 
-> AI生成
