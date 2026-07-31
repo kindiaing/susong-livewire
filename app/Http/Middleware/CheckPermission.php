@@ -53,6 +53,7 @@ class CheckPermission
         // ── 采购管理 ──
         'purchase-items'      => 'purchase-order.index',
         'purchase-orders'     => 'purchase-order.index',
+        'purchase-orders.detail' => 'purchase-order.index',
         'purchase-returns'    => 'purchase-return.index',
 
         // ── 订单管理 ──

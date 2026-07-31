@@ -9,6 +9,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithToast;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -66,8 +67,10 @@ class PurchaseOrderList extends Component
             PurchaseOrder::findOrFail($this->editingId)->update($data);
             $this->toastSuccess('采购单已更新');
         } else {
-            $data['order_no'] = 'PO' . date('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+            $data['order_no'] = PurchaseOrder::generateOrderNo();
             $data['status'] = PurchaseOrder::STATUS_PENDING;
+            $data['operator_id'] = Auth::id();
+            $data['ordered_at'] = now();
             PurchaseOrder::create($data);
             $this->toastSuccess('采购单已创建');
         }

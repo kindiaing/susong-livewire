@@ -40,6 +40,7 @@ use App\Livewire\Product\RestockReminderList;
 use App\Livewire\Product\SkuSupplierList;
 use App\Livewire\Product\TagList;
 use App\Livewire\Purchase\PurchaseItemList;
+use App\Livewire\Purchase\PurchaseOrderDetail;
 use App\Livewire\Purchase\PurchaseOrderList;
 use App\Livewire\Purchase\PurchaseReturnList;
 use App\Livewire\System\ApprovalConfig;
@@ -101,6 +102,7 @@ Route::middleware(['auth', 'permission'])->group(function () {
     // ── 采购管理 ──
     Route::get('/purchase-items', PurchaseItemList::class)->name('purchase-items');
     Route::get('/purchase-orders', PurchaseOrderList::class)->name('purchase-orders');
+    Route::get('/purchase-orders/{id}', PurchaseOrderDetail::class)->name('purchase-orders.detail');
     Route::get('/purchase-returns', PurchaseReturnList::class)->name('purchase-returns');
 
     // ── 订单配送 ──

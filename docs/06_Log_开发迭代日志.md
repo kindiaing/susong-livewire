@@ -1,3 +1,13 @@
+---
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: '20cfcce6-16e7-4b87-8198-ebc7fc303e27'
+  PropagateID: '20cfcce6-16e7-4b87-8198-ebc7fc303e27'
+  ReservedCode1: 'a85a8130-e77e-4700-a6a2-8458abe0d81e'
+  ReservedCode2: 'a85a8130-e77e-4700-a6a2-8458abe0d81e'
+---
 
 # 开发迭代日志
 
@@ -6,6 +16,87 @@
 技术栈：Laravel 13 + Livewire 4.x + Tailwind CSS 4.2+ + Alpine.js + PHP 8.4+ + MySQL 8.0 + Redis 7.x
 
 记录规则：每次迭代新增一节，按版本号倒序排列。每条变更需标注开发人、完成时间和关联模块。
+
+---
+
+## V1.8.0 | 迭代周期：2026-07-31
+
+负责人：项目负责人
+参与开发人员：后端开发
+
+### 1 本次新增功能清单
+
+| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 权限中间件 | CheckPermission 路由级中间件：路由名→权限名自动映射，super_admin 自动放行 | 后端 | 2026-07-31 | ✅ |
+| 2 | 权限中间件 | 403 自定义错误页面 + Livewire JSON 响应处理 | 后端 | 2026-07-31 | ✅ |
+| 3 | 权限中间件 | 超管专属路由保护：roles/permissions/approval-config/settings 仅 super_admin | 后端 | 2026-07-31 | ✅ |
+| 4 | 权限中间件 | 全部业务路由应用 auth + permission 中间件 | 后端 | 2026-07-31 | ✅ |
+| 5 | 权限中间件 | 9 个测试角色分配基础页面权限 | 后端 | 2026-07-31 | ✅ |
+| 6 | 库存服务 | InventoryService 统一库存服务：stockIn / stockOut / adjust，DB::transaction + lockForUpdate | 后端 | 2026-07-31 | ✅ |
+| 7 | 采购服务 | PurchaseService 采购单全生命周期：createFromItems / submit / ship / stockIn / complete / cancel | 后端 | 2026-07-31 | ✅ |
+| 8 | 采购服务 | 入库操作联动 InventoryService.stockIn()，差异行记录 discrepancy_reason | 后端 | 2026-07-31 | ✅ |
+| 9 | 采购单详情页 | PurchaseOrderDetail 组件：基本信息卡片 + 明细列表 + 状态流转按钮 | 后端 | 2026-07-31 | ✅ |
+| 10 | 采购单详情页 | 添加/删除明细弹窗 | 后端 | 2026-07-31 | ✅ |
+| 11 | 采购单详情页 | 入库操作弹窗：选择仓库 + 批次号 + 逐行填写实际数量/金额/差异原因 | 后端 | 2026-07-31 | ✅ |
+| 12 | 采购单详情页 | 状态确认弹窗（提交/发货/完成/取消） | 后端 | 2026-07-31 | ✅ |
+| 13 | 采购单列表 | 单号可点击跳转详情页，金额使用 money_format | 后端 | 2026-07-31 | ✅ |
+| 14 | 待采清单 | 新增"批量生成采购单"按钮 + 确认弹窗，调用 PurchaseService::createFromItems() | 后端 | 2026-07-31 | ✅ |
+| 15 | 数据库 | purchase_orders 新增字段：warehouse_id / operator_id / ordered_at / shipped_at / stocked_at | 后端 | 2026-07-31 | ✅ |
+
+### 2 本次优化/重构
+
+| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | PurchaseOrder Model | 新增关联：warehouse() / operator()，新增方法：generateOrderNo() / canTransitionTo() / recalculateAmounts() | 后端 | 2026-07-31 |
+| 2 | PurchaseOrderList | 创建时自动填入 operator_id / ordered_at，使用 Model 的 generateOrderNo() | 后端 | 2026-07-31 |
+
+### 3 本次修复 Bug
+
+无。
+
+### 4 数据库变更
+
+| Migration 文件名 | 操作类型 | 涉及表 | 说明 |
+| :--- | :--- | :--- | :--- |
+| 2026_07_31_000001_add_fields_to_purchase_orders | ALTER | purchase_orders | 新增 warehouse_id / operator_id / ordered_at / shipped_at / stocked_at 字段 + 外键 |
+
+### 5 影响范围
+
+| 影响文件 | 变更类型 |
+| :--- | :--- |
+| app/Http/Middleware/CheckPermission.php | 新增（路由权限中间件） |
+| app/Services/InventoryService.php | 新增（统一库存服务） |
+| app/Services/PurchaseService.php | 新增（采购单服务） |
+| app/Livewire/Purchase/PurchaseOrderDetail.php | 新增（采购单详情页组件） |
+| resources/views/livewire/purchase/purchase-order-detail.blade.php | 新增（详情页视图） |
+| resources/views/errors/403.blade.php | 新增（403 页面） |
+| database/migrations/2026_07_31_000001_add_fields_to_purchase_orders.php | 新增（Migration） |
+| bootstrap/app.php | 修改（中间件注册 + AuthorizationException 渲染） |
+| routes/web.php | 修改（新增 detail 路由 + auth+permission 中间件） |
+| app/Models/PurchaseOrder.php | 修改（新增字段/关联/方法） |
+| app/Livewire/Purchase/PurchaseOrderList.php | 修改（Auth::id / generateOrderNo） |
+| resources/views/livewire/purchase/purchase-order-list.blade.php | 修改（详情链接 / money_format） |
+| app/Livewire/Purchase/PurchaseItemList.php | 修改（批量生成采购单） |
+| resources/views/livewire/purchase/purchase-item-list.blade.php | 修改（批量生成按钮/弹窗） |
+
+### 6 关键技术记录
+
+**采购单状态流转设计：**
+- 状态机：1待接单→2备货中→3已发货→4已入库→5完成，9取消
+- canTransitionTo() 方法控制合法流转路径，不允许跨状态跳转
+- 取消操作仅限待接单/备货中/已发货状态
+
+**入库操作核心流程：**
+- 采购单详情页 → 入库弹窗 → 选择仓库+批次号 → 逐行填写实际数量/金额 → 提交
+- PurchaseService.stockIn() 在 DB::transaction 内：更新明细实际值 → InventoryService.stockIn() × N → 重算金额
+- 差异行自动高亮（橙色），差异原因可选填写
+
+**库存服务设计原则：**
+- 所有库存变动必须通过 InventoryService 执行，禁止直接操作 Inventory 模型
+- 入库：查找或创建（warehouse_id + sku_id + batch_no 唯一），increment + 写日志
+- 出库：FIFO 效期优先，库存不足抛异常
+- 调整：差额调整，正数=报溢，负数=调整
 
 ---
 
@@ -847,3 +938,4 @@
 | SESSION_DRIVER | redis | file | Redis 扩展未安装 |
 | CACHE_STORE | redis | file | Redis 扩展未安装 |
 
+> AI生成

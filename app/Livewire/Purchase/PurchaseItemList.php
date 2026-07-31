@@ -3,6 +3,7 @@
 namespace App\Livewire\Purchase;
 
 use App\Models\PurchaseItem;
+use App\Services\PurchaseService;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
@@ -29,6 +30,7 @@ class PurchaseItemList extends Component
     public int $formSkuId = 0;
     public int $formQuantity = 0;
     public int $formSourceType = 1;
+    public bool $showGenerateConfirm = false;
 
     public function mount(): void
     {
@@ -110,6 +112,47 @@ class PurchaseItemList extends Component
     {
         $this->showDeleteConfirm = false;
         $this->resetErrorBag();
+    }
+
+    /**
+     * 批量生成采购单
+     */
+    public function confirmGenerateOrders(): void
+    {
+        $selectedIds = $this->getSelectedIds();
+        if (empty($selectedIds)) {
+            $this->toastError('请先勾选待采项');
+            return;
+        }
+        $this->showGenerateConfirm = true;
+    }
+
+    public function generateOrders(): void
+    {
+        $selectedIds = $this->getSelectedIds();
+        try {
+            $service = app(PurchaseService::class);
+            $orderIds = $service->createFromItems($selectedIds);
+            $this->showGenerateConfirm = false;
+            $this->clearSelection();
+            $this->toastSuccess('已生成 ' . count($orderIds) . ' 个采购单');
+        } catch (\Exception $e) {
+            $this->toastError($e->getMessage());
+        }
+    }
+
+    public function closeGenerateConfirm(): void
+    {
+        $this->showGenerateConfirm = false;
+        $this->resetErrorBag();
+    }
+
+    /**
+     * 获取选中ID
+     */
+    private function getSelectedIds(): array
+    {
+        return array_keys(array_filter($this->selectedRows ?? []));
     }
 
     private function resetForm(): void

@@ -1,3 +1,13 @@
+---
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: '922f2a81-290f-4970-9957-451c4ab6ac5f'
+  PropagateID: '922f2a81-290f-4970-9957-451c4ab6ac5f'
+  ReservedCode1: '667f2b61-96ae-4f52-be39-de49b690772e'
+  ReservedCode2: '667f2b61-96ae-4f52-be39-de49b690772e'
+---
 
 # Setup 系统安装部署配置手册
 
@@ -600,7 +610,76 @@ php artisan schedule:list          # 查看定时任务
 
 ---
 
-## 11 常见故障排查
+## 11 路由权限中间件
+
+### 11.1 设计原则
+
+系统采用**渐进式权限接入**策略：
+
+- **路由级中间件**（已接入）：`CheckPermission` 中间件，路由名→权限名自动映射
+- **Policy 细粒度权限**（随业务模块同步开发）：如 `PurchaseOrderPolicy@stockIn` 等
+- **数据隔离**（随业务模块同步开发）：如商家只能看到自己的订单
+
+### 11.2 CheckPermission 中间件
+
+| 项目 | 说明 |
+| :--- | :--- |
+| 文件位置 | `app/Http/Middleware/CheckPermission.php` |
+| 注册方式 | `bootstrap/app.php` 中间件别名 `permission` |
+| 应用方式 | 路由组 `middleware(['auth', 'permission'])` |
+| 放行规则 | `super_admin` 角色自动放行所有权限 |
+| 专属路由 | `roles` / `permissions` / `approval-config` / `settings` 仅 `super_admin` 可访问 |
+| 未映射路由 | 默认放行（渐进式收敛，随业务补充映射） |
+| 403 页面 | `resources/views/errors/403.blade.php` |
+| JSON 响应 | Livewire AJAX 请求返回 403 JSON（`bootstrap/app.php` AuthorizationException 渲染） |
+
+### 11.3 权限映射表（ROUTE_PERMISSION_MAP）
+
+| 路由名模式 | 映射权限名 | 说明 |
+| :--- | :--- | :--- |
+| `suppliers` | `organization.manage` | 供应商管理 |
+| `merchants` | `organization.manage` | 商家管理 |
+| `delivery-routes` | `organization.manage` | 配送线路 |
+| `drivers` | `organization.manage` | 司机管理 |
+| `vehicles` | `organization.manage` | 车辆管理 |
+| `categories` | `product.manage` | 分类管理 |
+| `products` | `product.manage` | 商品管理 |
+| `skus` | `product.manage` | SKU管理 |
+| `tags` | `product.manage` | 标签管理 |
+| `keywords` | `product.manage` | 关键词 |
+| `sku-barcodes` | `product.manage` | 条码管理 |
+| `sku-suppliers` | `product.manage` | 一品多供 |
+| `restock-reminders` | `product.manage` | 补货提醒 |
+| `purchase-items` | `purchase.manage` | 待采清单 |
+| `purchase-orders` | `purchase.manage` | 采购单列表 |
+| `purchase-orders.detail` | `purchase.manage` | 采购单详情 |
+| `carts` | `order.manage` | 购物车 |
+| `orders` | `order.manage` | 订单管理 |
+| `frequently-bought` | `order.manage` | 常购清单 |
+| `repurchase-templates` | `order.manage` | 复购模板 |
+| `warehouses` | `inventory.manage` | 仓库管理 |
+| `inventory` | `inventory.manage` | 库存管理 |
+| `inventory-logs` | `inventory.manage` | 库存日志 |
+| `picking-tasks` | `delivery.manage` | 拣货管理 |
+| `delivery-tasks` | `delivery.manage` | 配送任务 |
+| `signatures` | `delivery.manage` | 签收存证 |
+| `temperatures` | `delivery.manage` | 温度记录 |
+| `discrepancies` | `delivery.manage` | 差异处理 |
+| `loss-orders` | `loss.manage` | 损耗管理 |
+| `merchant-accounts` | `finance.manage` | 客户账户 |
+| `recharges` | `finance.manage` | 充值管理 |
+| `supplier-settlements` | `finance.manage` | 供应商结算 |
+| `receivables` | `finance.manage` | 应收管理 |
+| `invoices` | `finance.manage` | 发票管理 |
+| `purchase-returns` | `purchase.manage` | 采购退货 |
+| `order-returns` | `order.manage` | 售后退货 |
+| `price-strategies` | `price.manage` | 价格策略 |
+| `price-apportionments` | `price.manage` | 费用均摊 |
+| `correction-authorizations` | `finance.manage` | 授权更正 |
+
+---
+
+## 12 常见故障排查
 
 | 序号 | 问题 | 排查步骤 | 解决方案 |
 | :--- | :--- | :--- | :--- |
@@ -617,9 +696,9 @@ php artisan schedule:list          # 查看定时任务
 
 ---
 
-## 12 部署检查清单
+## 13 部署检查清单
 
-### 12.1 上线前必检项
+### 13.1 上线前必检项
 
 - [ ] `.env` 中 `APP_ENV=production`，`APP_DEBUG=false`
 - [ ] `APP_KEY` 已生成且唯一
@@ -634,7 +713,7 @@ php artisan schedule:list          # 查看定时任务
 - [ ] 文件存储路径可写（本地或 OSS 配置正确）
 - [ ] 跨域配置匹配前端域名
 
-### 12.2 上线后验证项
+### 13.2 上线后验证项
 
 - [ ] 管理后台登录正常
 - [ ] 商家端小程序登录正常
@@ -647,3 +726,4 @@ php artisan schedule:list          # 查看定时任务
 - [ ] 审核节点开关生效
 - [ ] 操作日志、审计日志、登录日志正常记录
 
+> AI生成
