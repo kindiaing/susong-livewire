@@ -12,13 +12,9 @@ export default defineConfig({
             refresh: true,
             fonts: [
                 {
-                    optimizedFallbacks: false
-                }
-            // fonts: [
-            //     bunny('Instrument Sans', {
-            //         weights: [400, 500, 600],
-            //     }),
-            // ],
+                    optimizedFallbacks: false,
+                },
+            ],
         }),
         tailwindcss(),
     ],
