@@ -151,14 +151,17 @@ class MerchantList extends Component
     public function getAllColumns(): array
     {
         return [
-            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
-            ['key' => 'name', 'label' => '名称', 'sortable' => true, 'exportable' => true],
-            ['key' => 'contact_person', 'label' => '联系人', 'sortable' => false, 'exportable' => true],
-            ['key' => 'contact_phone', 'label' => '联系电话', 'sortable' => false, 'exportable' => true],
-            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
-            ['key' => 'address', 'label' => '地址', 'sortable' => false, 'exportable' => true],
-            ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => true],
-            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true, 'width' => '60px'],
+            ['key' => 'name', 'label' => '名称', 'sortable' => true, 'exportable' => true, 'width' => '1fr'],
+            ['key' => 'contact_person', 'label' => '联系人', 'sortable' => false, 'exportable' => true, 'width' => '100px'],
+            ['key' => 'contact_phone', 'label' => '联系电话', 'sortable' => false, 'exportable' => true, 'width' => '120px'],
+            ['key' => 'settlement_type', 'label' => '结算方式', 'sortable' => false, 'exportable' => true, 'width' => '80px'],
+            ['key' => 'min_order_amount', 'label' => '起送额', 'sortable' => false, 'exportable' => true, 'type' => 'money', 'width' => '80px'],
+            ['key' => 'credit_limit', 'label' => '信用额度', 'sortable' => false, 'exportable' => true, 'type' => 'money', 'width' => '100px'],
+            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true, 'width' => '80px'],
+            ['key' => 'address', 'label' => '地址', 'sortable' => false, 'exportable' => true, 'width' => '180px'],
+            ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => true, 'width' => '180px'],
+            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true, 'width' => '150px'],
         ];
     }
 

@@ -31,32 +31,62 @@
     </div>
 
     {{-- 线路列表 --}}
+    @php
+        $allCols = collect($this->getAllColumns())
+            ->filter(fn($col) => $col['key'] !== 'name')
+            ->values();
+        $visibleCols = $allCols->filter(fn($col) => $this->isColumnVisible($col['key']));
+        $gridCols = '40px 1fr';
+        foreach ($visibleCols as $col) {
+            $width = $col['width'] ?? '120px';
+            $gridCols .= ' ' . $width;
+        }
+        $gridCols .= ' 100px';
+    @endphp
+
     <div class="rounded-lg border bg-card">
-        <div class="grid grid-cols-[40px_60px_1fr_1fr_80px_80px_100px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+        <div class="grid gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider" style="grid-template-columns: {{ $gridCols }}">
             <div><input type="checkbox" wire:model.live="selectAll" class="rounded" /></div>
-            <div>ID</div>
             <div>线路名称</div>
-            <div>描述</div>
-            <div>排序</div>
-            <div>状态</div>
+            @foreach($visibleCols as $col)
+                <div>{{ $col['label'] }}</div>
+            @endforeach
             <div>操作</div>
         </div>
 
         @forelse($routes as $route)
-            <div class="grid grid-cols-[40px_60px_1fr_1fr_80px_80px_100px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors"
+            <div class="grid gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors"
+                 style="grid-template-columns: {{ $gridCols }}"
                  wire:key="route-{{ $route->id }}">
                 <div><input type="checkbox" value="{{ $route->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm text-muted-foreground">{{ $route->id }}</div>
                 <div class="text-sm font-medium text-foreground">{{ $route->name }}</div>
-                <div class="text-sm text-muted-foreground truncate">{{ $route->description ?? '-' }}</div>
-                <div class="text-sm text-foreground">{{ $route->sort }}</div>
-                <div>
-                    @if($route->status === 1)
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
-                    @else
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
-                    @endif
-                </div>
+                @foreach($visibleCols as $col)
+                    @switch($col['key'])
+                        @case('id')
+                            <div class="text-sm text-muted-foreground">{{ $route->id }}</div>
+                            @break
+                        @case('code')
+                            <div class="text-sm text-foreground">{{ $route->code ?? '-' }}</div>
+                            @break
+                        @case('area')
+                            <div class="text-sm text-muted-foreground truncate">{{ $route->description ?? '-' }}</div>
+                            @break
+                        @case('sort')
+                            <div class="text-sm text-foreground">{{ $route->sort }}</div>
+                            @break
+                        @case('status')
+                            <div>
+                                @if($route->status === 1)
+                                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
+                                @else
+                                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
+                                @endif
+                            </div>
+                            @break
+                        @default
+                            <div class="text-sm text-foreground truncate">{{ $route->{$col['key']} ?? '-' }}</div>
+                    @endswitch
+                @endforeach
                 <div class="flex items-center gap-2">
                     <button wire:click="openEditModal({{ $route->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
                     <button wire:click="confirmDelete({{ $route->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>

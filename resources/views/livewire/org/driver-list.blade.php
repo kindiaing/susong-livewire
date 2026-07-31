@@ -31,40 +31,71 @@
     </div>
 
     {{-- 司机列表 --}}
+    @php
+        $allCols = collect($this->getAllColumns())
+            ->filter(fn($col) => $col['key'] !== 'name')
+            ->values();
+        $visibleCols = $allCols->filter(fn($col) => $this->isColumnVisible($col['key']));
+        $gridCols = '40px 1fr';
+        foreach ($visibleCols as $col) {
+            $width = $col['width'] ?? '120px';
+            $gridCols .= ' ' . $width;
+        }
+        $gridCols .= ' 100px';
+    @endphp
+
     <div class="rounded-lg border bg-card">
-        <div class="grid grid-cols-[40px_60px_1fr_120px_160px_80px_80px_100px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+        <div class="grid gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider" style="grid-template-columns: {{ $gridCols }}">
             <div><input type="checkbox" wire:model.live="selectAll" class="rounded" /></div>
-            <div>ID</div>
             <div>姓名</div>
-            <div>手机号</div>
-            <div>身份证</div>
-            <div>在线状态</div>
-            <div>状态</div>
+            @foreach($visibleCols as $col)
+                <div>{{ $col['label'] }}</div>
+            @endforeach
             <div>操作</div>
         </div>
 
         @forelse($drivers as $driver)
-            <div class="grid grid-cols-[40px_60px_1fr_120px_160px_80px_80px_100px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors"
+            <div class="grid gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors"
+                 style="grid-template-columns: {{ $gridCols }}"
                  wire:key="driver-{{ $driver->id }}">
                 <div><input type="checkbox" value="{{ $driver->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm text-muted-foreground">{{ $driver->id }}</div>
                 <div class="text-sm font-medium text-foreground">{{ $driver->name }}</div>
-                <div class="text-sm text-foreground">{{ $driver->phone }}</div>
-                <div class="text-sm text-muted-foreground font-mono">{{ $driver->id_card ?? '-' }}</div>
-                <div>
-                    @if($driver->online_status === 1)
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-blue-100 text-blue-700">在线</span>
-                    @else
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">离线</span>
-                    @endif
-                </div>
-                <div>
-                    @if($driver->status === 1)
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
-                    @else
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
-                    @endif
-                </div>
+                @foreach($visibleCols as $col)
+                    @switch($col['key'])
+                        @case('id')
+                            <div class="text-sm text-muted-foreground">{{ $driver->id }}</div>
+                            @break
+                        @case('phone')
+                            <div class="text-sm text-foreground">{{ $driver->phone }}</div>
+                            @break
+                        @case('id_number')
+                            <div class="text-sm text-muted-foreground font-mono">{{ $driver->id_card ?? '-' }}</div>
+                            @break
+                        @case('online_status')
+                            <div>
+                                @if($driver->online_status === 1)
+                                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-blue-100 text-blue-700">在线</span>
+                                @else
+                                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">离线</span>
+                                @endif
+                            </div>
+                            @break
+                        @case('status')
+                            <div>
+                                @if($driver->status === 1)
+                                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
+                                @else
+                                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
+                                @endif
+                            </div>
+                            @break
+                        @case('created_at')
+                            <div class="text-sm text-foreground">{{ $driver->created_at?->format('Y-m-d H:i') }}</div>
+                            @break
+                        @default
+                            <div class="text-sm text-foreground truncate">{{ $driver->{$col['key']} ?? '-' }}</div>
+                    @endswitch
+                @endforeach
                 <div class="flex items-center gap-2">
                     <button wire:click="openEditModal({{ $driver->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
                     <button wire:click="confirmDelete({{ $driver->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>

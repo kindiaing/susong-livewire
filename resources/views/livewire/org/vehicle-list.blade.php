@@ -31,38 +31,68 @@
     </div>
 
     {{-- 车辆列表 --}}
+    @php
+        $allCols = collect($this->getAllColumns())
+            ->filter(fn($col) => $col['key'] !== 'plate_number')
+            ->values();
+        $visibleCols = $allCols->filter(fn($col) => $this->isColumnVisible($col['key']));
+        $gridCols = '40px 120px';
+        foreach ($visibleCols as $col) {
+            $width = $col['width'] ?? '120px';
+            $gridCols .= ' ' . $width;
+        }
+        $gridCols .= ' 100px';
+    @endphp
+
     <div class="rounded-lg border bg-card">
-        <div class="grid grid-cols-[40px_60px_120px_1fr_80px_80px_100px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+        <div class="grid gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider" style="grid-template-columns: {{ $gridCols }}">
             <div><input type="checkbox" wire:model.live="selectAll" class="rounded" /></div>
-            <div>ID</div>
             <div>车牌号</div>
-            <div>车辆类型</div>
-            <div>冷链</div>
-            <div>状态</div>
+            @foreach($visibleCols as $col)
+                <div>{{ $col['label'] }}</div>
+            @endforeach
             <div>操作</div>
         </div>
 
         @forelse($vehicles as $vehicle)
-            <div class="grid grid-cols-[40px_60px_120px_1fr_80px_80px_100px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors"
+            <div class="grid gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors"
+                 style="grid-template-columns: {{ $gridCols }}"
                  wire:key="vehicle-{{ $vehicle->id }}">
                 <div><input type="checkbox" value="{{ $vehicle->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm text-muted-foreground">{{ $vehicle->id }}</div>
                 <div class="text-sm font-medium text-foreground font-mono">{{ $vehicle->plate_number }}</div>
-                <div class="text-sm text-foreground">{{ $vehicle->vehicle_type ?? '-' }}</div>
-                <div>
-                    @if($vehicle->is_cold_chain === 1)
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-blue-100 text-blue-700">冷链</span>
-                    @else
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">非冷链</span>
-                    @endif
-                </div>
-                <div>
-                    @if($vehicle->status === 1)
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
-                    @else
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
-                    @endif
-                </div>
+                @foreach($visibleCols as $col)
+                    @switch($col['key'])
+                        @case('id')
+                            <div class="text-sm text-muted-foreground">{{ $vehicle->id }}</div>
+                            @break
+                        @case('type')
+                            <div class="text-sm text-foreground">{{ $vehicle->vehicle_type ?? '-' }}</div>
+                            @break
+                        @case('is_cold_chain')
+                            <div>
+                                @if($vehicle->is_cold_chain === 1)
+                                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-blue-100 text-blue-700">冷链</span>
+                                @else
+                                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">非冷链</span>
+                                @endif
+                            </div>
+                            @break
+                        @case('status')
+                            <div>
+                                @if($vehicle->status === 1)
+                                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
+                                @else
+                                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
+                                @endif
+                            </div>
+                            @break
+                        @case('created_at')
+                            <div class="text-sm text-foreground">{{ $vehicle->created_at?->format('Y-m-d H:i') }}</div>
+                            @break
+                        @default
+                            <div class="text-sm text-foreground truncate">{{ $vehicle->{$col['key']} ?? '-' }}</div>
+                    @endswitch
+                @endforeach
                 <div class="flex items-center gap-2">
                     <button wire:click="openEditModal({{ $vehicle->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
                     <button wire:click="confirmDelete({{ $vehicle->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>

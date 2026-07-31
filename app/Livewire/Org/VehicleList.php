@@ -137,13 +137,12 @@ class VehicleList extends Component
     public function getAllColumns(): array
     {
         return [
-            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
-            ['key' => 'plate_number', 'label' => '车牌号', 'sortable' => true, 'exportable' => true],
-            ['key' => 'type', 'label' => '类型', 'sortable' => false, 'exportable' => true],
-            ['key' => 'load_capacity', 'label' => '载重量', 'sortable' => false, 'exportable' => true],
-            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
-            ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => true],
-            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true, 'width' => '60px'],
+            ['key' => 'plate_number', 'label' => '车牌号', 'sortable' => true, 'exportable' => true, 'width' => '120px'],
+            ['key' => 'type', 'label' => '类型', 'sortable' => false, 'exportable' => true, 'width' => '1fr'],
+            ['key' => 'is_cold_chain', 'label' => '冷链', 'sortable' => false, 'exportable' => true, 'width' => '80px'],
+            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true, 'width' => '80px'],
+            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true, 'width' => '150px'],
         ];
     }
 

@@ -142,13 +142,14 @@ class DriverList extends Component
     public function getAllColumns(): array
     {
         return [
-            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
-            ['key' => 'name', 'label' => '姓名', 'sortable' => true, 'exportable' => true],
-            ['key' => 'phone', 'label' => '手机号', 'sortable' => false, 'exportable' => true],
-            ['key' => 'id_number', 'label' => '身份证号', 'sortable' => false, 'exportable' => true],
-            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
-            ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => true],
-            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true, 'width' => '60px'],
+            ['key' => 'name', 'label' => '姓名', 'sortable' => true, 'exportable' => true, 'width' => '1fr'],
+            ['key' => 'phone', 'label' => '手机号', 'sortable' => false, 'exportable' => true, 'width' => '120px'],
+            ['key' => 'id_number', 'label' => '身份证号', 'sortable' => false, 'exportable' => true, 'width' => '160px'],
+            ['key' => 'online_status', 'label' => '在线状态', 'sortable' => false, 'exportable' => true, 'width' => '80px'],
+            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true, 'width' => '80px'],
+            ['key' => 'remark', 'label' => '备注', 'sortable' => false, 'exportable' => true, 'width' => '180px'],
+            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true, 'width' => '150px'],
         ];
     }
 

@@ -31,38 +31,71 @@
     </div>
 
     {{-- 商家列表 --}}
+    @php
+        $allCols = collect($this->getAllColumns())
+            ->filter(fn($col) => $col['key'] !== 'name')
+            ->values();
+        $visibleCols = $allCols->filter(fn($col) => $this->isColumnVisible($col['key']));
+        $gridCols = '40px 1fr';
+        foreach ($visibleCols as $col) {
+            $width = $col['width'] ?? '120px';
+            $gridCols .= ' ' . $width;
+        }
+        $gridCols .= ' 100px';
+    @endphp
+
     <div class="rounded-lg border bg-card overflow-x-auto">
-        <div class="grid grid-cols-[40px_60px_1fr_100px_120px_80px_100px_100px_80px_100px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider min-w-[900px]">
+        <div class="grid gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider min-w-[900px]" style="grid-template-columns: {{ $gridCols }}">
             <div><input type="checkbox" wire:model.live="selectAll" class="rounded" /></div>
-            <div>ID</div>
             <div>商家名称</div>
-            <div>联系人</div>
-            <div>联系电话</div>
-            <div>结算方式</div>
-            <div>起送额</div>
-            <div>信用额度</div>
-            <div>状态</div>
+            @foreach($visibleCols as $col)
+                <div>{{ $col['label'] }}</div>
+            @endforeach
             <div>操作</div>
         </div>
 
         @forelse($merchants as $merchant)
-            <div class="grid grid-cols-[40px_60px_1fr_100px_120px_80px_100px_100px_80px_100px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors min-w-[900px]"
+            <div class="grid gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors min-w-[900px]"
+                 style="grid-template-columns: {{ $gridCols }}"
                  wire:key="merchant-{{ $merchant->id }}">
                 <div><input type="checkbox" value="{{ $merchant->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm text-muted-foreground">{{ $merchant->id }}</div>
                 <div class="text-sm font-medium text-foreground truncate">{{ $merchant->name }}</div>
-                <div class="text-sm text-foreground">{{ $merchant->contact_name ?? '-' }}</div>
-                <div class="text-sm text-foreground">{{ $merchant->contact_phone ?? '-' }}</div>
-                <div class="text-sm text-foreground">{{ \App\Models\Merchant::settlementTypeMap()[$merchant->settlement_type] ?? '-' }}</div>
-                <div class="text-sm text-foreground">{{ money_format($merchant->min_order_amount) }}</div>
-                <div class="text-sm text-foreground">{{ money_format($merchant->credit_limit) }}</div>
-                <div>
-                    @if($merchant->status === 1)
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
-                    @else
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
-                    @endif
-                </div>
+                @foreach($visibleCols as $col)
+                    @switch($col['key'])
+                        @case('id')
+                            <div class="text-sm text-muted-foreground">{{ $merchant->id }}</div>
+                            @break
+                        @case('contact_name')
+                            <div class="text-sm text-foreground">{{ $merchant->contact_name ?? '-' }}</div>
+                            @break
+                        @case('contact_phone')
+                            <div class="text-sm text-foreground">{{ $merchant->contact_phone ?? '-' }}</div>
+                            @break
+                        @case('settlement_type')
+                            <div class="text-sm text-foreground">{{ \App\Models\Merchant::settlementTypeMap()[$merchant->settlement_type] ?? '-' }}</div>
+                            @break
+                        @case('min_order_amount')
+                            <div class="text-sm text-foreground">{{ money_format($merchant->min_order_amount) }}</div>
+                            @break
+                        @case('credit_limit')
+                            <div class="text-sm text-foreground">{{ money_format($merchant->credit_limit) }}</div>
+                            @break
+                        @case('status')
+                            <div>
+                                @if($merchant->status === 1)
+                                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
+                                @else
+                                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
+                                @endif
+                            </div>
+                            @break
+                        @case('created_at')
+                            <div class="text-sm text-foreground">{{ $merchant->created_at?->format('Y-m-d H:i') }}</div>
+                            @break
+                        @default
+                            <div class="text-sm text-foreground truncate">{{ $merchant->{$col['key']} ?? '-' }}</div>
+                    @endswitch
+                @endforeach
                 <div class="flex items-center gap-2">
                     <button wire:click="openEditModal({{ $merchant->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
                     <button wire:click="confirmDelete({{ $merchant->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
