@@ -22,13 +22,15 @@
                 </label>
             @endforeach
         </div>
-        <div class="flex justify-between items-center mt-4">
+        <div class="flex justify-between items-center mt-6">
             <div class="flex gap-2">
-                <button wire:click="selectAllColumns" class="text-xs text-blue-600 hover:text-blue-700">全选</button>
-                <button wire:click="resetColumns" class="text-xs text-muted-foreground hover:text-foreground">恢复默认</button>
+                <button type="button" wire:click="selectAllColumns" class="text-xs text-blue-600 hover:text-blue-700">全选</button>
+                <button type="button" wire:click="resetColumns" class="text-xs text-muted-foreground hover:text-foreground">恢复默认</button>
             </div>
-            <button type="button" wire:click="closeColumnModal" class="rounded-md border px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">关闭</button>
-            <button type="button" wire:click="closeColumnModal" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">确定</button>
+            <div class="flex justify-end gap-3">
+                <button type="button" wire:click="closeColumnModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">关闭</button>
+                <button type="button" wire:click="closeColumnModal" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">确定</button>
+            </div>
         </div>
     </div>
 </div>
