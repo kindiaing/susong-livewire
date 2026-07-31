@@ -13,23 +13,29 @@ use Livewire\WithPagination;
 
 class TagList extends Component
 {
-    use WithPagination;
-    use WithRowSelection;
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithPagination;
+    use WithRowSelection;
     use WithToast;
 
     protected string $modelClass = Tag::class;
 
     public string $search = '';
+
     public bool $showModal = false;
+
     public bool $showDeleteConfirm = false;
+
     public ?int $editingId = null;
+
     public ?int $deletingId = null;
 
     public string $formName = '';
+
     public int $formSort = 0;
+
     public int $formStatus = 1;
 
     public function mount(): void
@@ -126,8 +132,8 @@ class TagList extends Component
         return [
             ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
             ['key' => 'name', 'label' => '名称', 'sortable' => true, 'exportable' => true],
-            ['key' => 'type', 'label' => '类型', 'sortable' => false, 'exportable' => true],
             ['key' => 'sort', 'label' => '排序', 'sortable' => true, 'exportable' => true],
+            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
         ];
     }
 
@@ -140,7 +146,7 @@ class TagList extends Component
 
     public function getExportFileName(): string
     {
-        return '标签_' . now()->format('Ymd_His');
+        return '标签_'.now()->format('Ymd_His');
     }
 
     public function getImportModelClass(): string
@@ -152,7 +158,6 @@ class TagList extends Component
     {
         return [
             '名称' => 'name',
-            '类型' => 'type',
             '排序' => 'sort',
             '状态' => 'status',
         ];

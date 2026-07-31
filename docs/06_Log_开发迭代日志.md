@@ -1,15 +1,4 @@
----
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: '20cfcce6-16e7-4b87-8198-ebc7fc303e27'
-  PropagateID: '20cfcce6-16e7-4b87-8198-ebc7fc303e27'
-  ReservedCode1: 'a85a8130-e77e-4700-a6a2-8458abe0d81e'
-  ReservedCode2: 'a85a8130-e77e-4700-a6a2-8458abe0d81e'
----
-
-# 开发迭代日志
+﻿# 开发迭代日志
 
 对应 PRD 版本：V1.2
 对应 FSD 版本：V1.2
@@ -43,6 +32,18 @@ AIGC:
 | 13 | 采购单列表 | 单号可点击跳转详情页，金额使用 money_format | 后端 | 2026-07-31 | ✅ |
 | 14 | 待采清单 | 新增"批量生成采购单"按钮 + 确认弹窗，调用 PurchaseService::createFromItems() | 后端 | 2026-07-31 | ✅ |
 | 15 | 数据库 | purchase_orders 新增字段：warehouse_id / operator_id / ordered_at / shipped_at / stocked_at | 后端 | 2026-07-31 | ✅ |
+| 16 | 导入导出 | WithExcelExport 命名参数 bug 修复：query: → queryOrData:，与 GenericExport 构造函数对齐 | 后端 | 2026-07-31 | ✅ |
+| 17 | 导入导出 | downloadImportTemplate 改用 getImportColumnMap() 标签生成模板，不再用 getExportableColumns() | 后端 | 2026-07-31 | ✅ |
+| 18 | 导入导出 | GenericExport 金额 ÷100 bug 修复：废弃正则猜测，改用列定义 type=money 显式声明，÷1000 | 后端 | 2026-07-31 | ✅ |
+| 19 | 导入导出 | 3 个幽灵/错名字段修复：KeywordList word→keyword，SkuList price→purchase_price+wholesale_price，SkuBarcodeList barcode→barcode_code | 后端 | 2026-07-31 | ✅ |
+| 20 | 导入导出 | 金额列补 type=money 标记：SkuList / SkuSupplierList / PurchaseOrderList | 后端 | 2026-07-31 | ✅ |
+| 21 | 列配置 | WithColumnVisibility 补 openColumnModal() 方法 | 后端 | 2026-07-31 | ✅ |
+| 22 | 列配置 | Blade 模板列渲染从硬编码改为 getAllColumns() 动态获取 | 后端 | 2026-07-31 | ✅ |
+| 23 | 列配置 | 列配置弹窗放大 max-w-lg + 右上角 X 关闭按钮；导出弹窗放大 max-w-lg | 后端 | 2026-07-31 | ✅ |
+| 24 | 用户偏好 | 新增 user_preferences 表 + UserPreference Model，列配置从 session 迁移到 DB 持久化（用户隔离） | 后端 | 2026-07-31 | ✅ |
+| 25 | 组织主体 | drivers 表新增 remark 字段 + Driver Model fillable 补充 | 后端 | 2026-07-31 | ✅ |
+| 26 | 组织主体 | OrganizationDemoSeeder 补全测试数据（suppliers 补 bank/settlement_cycle/remark；merchants 补 delivery_route_id/credit_limit/remark；drivers 补 id_card/remark） | 后端 | 2026-07-31 | ✅ |
+| 27 | 导入导出 | SupplierList 补充 bank_name/bank_account 到列定义、默认列、导出回调 | 后端 | 2026-07-31 | ✅ |
 
 ### 2 本次优化/重构
 
@@ -50,6 +51,8 @@ AIGC:
 | :--- | :--- | :--- | :--- | :--- |
 | 1 | PurchaseOrder Model | 新增关联：warehouse() / operator()，新增方法：generateOrderNo() / canTransitionTo() / recalculateAmounts() | 后端 | 2026-07-31 |
 | 2 | PurchaseOrderList | 创建时自动填入 operator_id / ordered_at，使用 Model 的 generateOrderNo() | 后端 | 2026-07-31 |
+| 3 | WithColumnVisibility | 列配置存储从 session 迁移到 DB（user_preferences 表），未登录用户降级 session | 后端 | 2026-07-31 |
+| 4 | GenericExport | 金额转换废弃正则猜测，改用列定义 type=money 显式声明 | 后端 | 2026-07-31 |
 
 ### 3 本次修复 Bug
 
@@ -60,6 +63,7 @@ AIGC:
 | Migration 文件名 | 操作类型 | 涉及表 | 说明 |
 | :--- | :--- | :--- | :--- |
 | 2026_07_31_000001_add_fields_to_purchase_orders | ALTER | purchase_orders | 新增 warehouse_id / operator_id / ordered_at / shipped_at / stocked_at 字段 + 外键 |
+| 2026_07_31_085412_create_user_preferences_table | CREATE | user_preferences | 用户偏好表（user_id + pref_key 唯一索引，pref_value JSON） |
 
 ### 5 影响范围
 
@@ -72,13 +76,26 @@ AIGC:
 | resources/views/livewire/purchase/purchase-order-detail.blade.php | 新增（详情页视图） |
 | resources/views/errors/403.blade.php | 新增（403 页面） |
 | database/migrations/2026_07_31_000001_add_fields_to_purchase_orders.php | 新增（Migration） |
+| database/migrations/2026_07_31_085412_create_user_preferences_table.php | 新增（用户偏好表 Migration） |
+| app/Models/UserPreference.php | 新增（用户偏好 Model） |
 | bootstrap/app.php | 修改（中间件注册 + AuthorizationException 渲染） |
 | routes/web.php | 修改（新增 detail 路由 + auth+permission 中间件） |
 | app/Models/PurchaseOrder.php | 修改（新增字段/关联/方法） |
+| app/Models/Driver.php | 修改（fillable 补 remark） |
 | app/Livewire/Purchase/PurchaseOrderList.php | 修改（Auth::id / generateOrderNo） |
+| app/Livewire/Org/SupplierList.php | 修改（列定义补充 bank_name/bank_account） |
+| app/Livewire/Product/KeywordList.php | 修改（word → keyword） |
+| app/Livewire/Product/SkuList.php | 修改（price → purchase_price+wholesale_price，type=money） |
+| app/Livewire/Product/SkuSupplierList.php | 修改（purchase_price 加 type=money） |
+| app/Livewire/Product/SkuBarcodeList.php | 修改（barcode → barcode_code） |
+| app/Livewire/Traits/WithColumnVisibility.php | 修改（session → DB 持久化 + openColumnModal） |
+| app/Livewire/Traits/WithExcelExport.php | 修改（queryOrData 命名参数 + moneyColumns + 模板修复） |
+| app/Exports/GenericExport.php | 修改（type=money 显式声明，金额 ÷1000） |
 | resources/views/livewire/purchase/purchase-order-list.blade.php | 修改（详情链接 / money_format） |
-| app/Livewire/Purchase/PurchaseItemList.php | 修改（批量生成采购单） |
 | resources/views/livewire/purchase/purchase-item-list.blade.php | 修改（批量生成按钮/弹窗） |
+| resources/views/partials/column-modal.blade.php | 修改（max-w-lg + X 关闭按钮） |
+| resources/views/partials/export-modal.blade.php | 修改（max-w-lg） |
+| database/seeders/Demo/OrganizationDemoSeeder.php | 修改（补全 suppliers/merchants/drivers 测试数据） |
 
 ### 6 关键技术记录
 
@@ -97,6 +114,16 @@ AIGC:
 - 入库：查找或创建（warehouse_id + sku_id + batch_no 唯一），increment + 写日志
 - 出库：FIFO 效期优先，库存不足抛异常
 - 调整：差额调整，正数=报溢，负数=调整
+
+**导入导出架构修复：**
+- 金额列统一用 `'type' => 'money'` 显式声明，GenericExport 通过 `$moneyColumns` 参数收集，统一 ÷1000
+- 导入模板表头统一从 `getImportColumnMap()` 标签生成，与导入映射保持一致
+- WithExcelExport 命名参数修正为 `queryOrData:`，与 GenericExport 构造函数对齐
+
+**用户偏好持久化：**
+- user_preferences 表（user_id + pref_key 唯一索引），pref_value 存 JSON
+- WithColumnVisibility 优先从 DB 读取（Auth::user 隔离），未登录降级 session
+- UserPreference Model 提供 getPreference()/setPreference() 静态方法
 
 ---
 

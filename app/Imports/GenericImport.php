@@ -5,7 +5,6 @@ namespace App\Imports;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithValidation;
 
 /**
  * 通用导入类
@@ -14,17 +13,25 @@ use Maatwebsite\Excel\Concerns\WithValidation;
 class GenericImport implements ToCollection, WithHeadingRow
 {
     protected string $modelClass;
+
     protected array $columnMap;
+
     protected array $uniqueBy;
+
+    protected array $valueMap;
+
     protected int $importedCount = 0;
+
     protected int $skippedCount = 0;
+
     protected array $errorRows = [];
 
-    public function __construct(string $modelClass, array $columnMap = [], array $uniqueBy = [])
+    public function __construct(string $modelClass, array $columnMap = [], array $uniqueBy = [], array $valueMap = [])
     {
         $this->modelClass = $modelClass;
         $this->columnMap = $columnMap;
         $this->uniqueBy = $uniqueBy;
+        $this->valueMap = $valueMap;
     }
 
     public function collection(Collection $rows)
@@ -39,18 +46,24 @@ class GenericImport implements ToCollection, WithHeadingRow
                     } else {
                         $value = $row[$excelKey] ?? null;
                     }
-                    if ($value !== null) {
+
+                    if ($value !== null && $value !== '') {
+                        // 应用字段值转换映射
+                        if (isset($this->valueMap[$modelField])) {
+                            $value = $this->valueMap[$modelField][(string) $value] ?? $value;
+                        }
                         $data[$modelField] = $value;
                     }
                 }
 
                 if (empty($data)) {
                     $this->skippedCount++;
+
                     continue;
                 }
 
                 // 检查唯一性
-                if (!empty($this->uniqueBy)) {
+                if (! empty($this->uniqueBy)) {
                     $exists = false;
                     $query = ($this->modelClass)::query();
                     foreach ($this->uniqueBy as $field) {
@@ -60,6 +73,7 @@ class GenericImport implements ToCollection, WithHeadingRow
                     }
                     if ($query->exists()) {
                         $this->skippedCount++;
+
                         continue;
                     }
                 }

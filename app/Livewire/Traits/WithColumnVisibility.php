@@ -2,14 +2,18 @@
 
 namespace App\Livewire\Traits;
 
+use App\Models\UserPreference;
+
 /**
  * 列表页：自定义列显示 Trait
  * - 支持显示/隐藏列
- * - 偏好存入 session
+ * - 偏好持久化到数据库（user_preferences 表），按用户隔离
+ * - 未登录时降级到 session
  */
 trait WithColumnVisibility
 {
     public bool $showColumnModal = false;
+
     public array $visibleColumns = [];
 
     /**
@@ -18,8 +22,20 @@ trait WithColumnVisibility
     public function initColumnVisibility(): void
     {
         $key = $this->getColumnVisibilityKey();
-        $saved = session()->get("col_vis.{$key}");
+        $userId = $this->getPreferenceUserId();
+
+        if ($userId) {
+            $saved = UserPreference::getPreference($userId, "col_vis.{$key}");
+        } else {
+            $saved = session()->get("col_vis.{$key}");
+        }
+
         $this->visibleColumns = $saved ?? $this->getDefaultColumns();
+    }
+
+    public function openColumnModal(): void
+    {
+        $this->showColumnModal = true;
     }
 
     public function toggleColumn(string $column): void
@@ -46,6 +62,11 @@ trait WithColumnVisibility
         $this->saveColumnVisibility();
     }
 
+    public function closeColumnModal(): void
+    {
+        $this->showColumnModal = false;
+    }
+
     public function isColumnVisible(string $column): bool
     {
         return in_array($column, $this->visibleColumns);
@@ -54,7 +75,21 @@ trait WithColumnVisibility
     private function saveColumnVisibility(): void
     {
         $key = $this->getColumnVisibilityKey();
-        session()->put("col_vis.{$key}", $this->visibleColumns);
+        $userId = $this->getPreferenceUserId();
+
+        if ($userId) {
+            UserPreference::setPreference($userId, "col_vis.{$key}", $this->visibleColumns);
+        } else {
+            session()->put("col_vis.{$key}", $this->visibleColumns);
+        }
+    }
+
+    /**
+     * 获取当前用户 ID（未登录时返回 null，降级到 session）
+     */
+    protected function getPreferenceUserId(): ?int
+    {
+        return auth()->id();
     }
 
     /**
@@ -75,7 +110,7 @@ trait WithColumnVisibility
 
     /**
      * 组件覆盖：所有列定义
-     * 格式：[['key'=>'id','label'=>'ID','sortable'=>true,'exportable'=>true], ...]
+     * 格式：[['key'=>'id','label'=>'ID','sortable'=>true,'exportable'=>true,'width'=>'60px'], ...]
      */
     public function getAllColumns(): array
     {

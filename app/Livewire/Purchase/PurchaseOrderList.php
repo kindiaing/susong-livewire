@@ -127,7 +127,7 @@ class PurchaseOrderList extends Component
             ['key' => 'order_no', 'label' => '采购单号', 'sortable' => true, 'exportable' => true],
             ['key' => 'supplier_id', 'label' => '供应商', 'sortable' => true, 'exportable' => true],
             ['key' => 'status', 'label' => '状态', 'sortable' => true, 'exportable' => true],
-            ['key' => 'total_amount', 'label' => '总金额', 'sortable' => true, 'exportable' => true],
+            ['key' => 'total_amount', 'label' => '总金额', 'sortable' => true, 'exportable' => true, 'type' => 'money'],
             ['key' => 'remark', 'label' => '备注', 'sortable' => false, 'exportable' => true],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
         ];

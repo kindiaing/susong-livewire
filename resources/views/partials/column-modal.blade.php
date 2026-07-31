@@ -2,9 +2,14 @@
 @if($showColumnModal)
 <div class="fixed inset-0 z-50 flex items-center justify-center">
     <div class="fixed inset-0 bg-black/50" wire:click="closeColumnModal"></div>
-    <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
-        <h2 class="text-lg font-semibold text-foreground mb-4">自定义显示列</h2>
-        <div class="space-y-1 max-h-64 overflow-y-auto border rounded-md p-3">
+    <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-foreground">自定义显示列</h2>
+            <button type="button" wire:click="closeColumnModal" class="rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="space-y-1 max-h-96 overflow-y-auto border rounded-md p-3">
             @foreach($allColumns ?? [] as $col)
                 <label class="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/30 cursor-pointer transition-colors">
                     <input
@@ -22,7 +27,8 @@
                 <button wire:click="selectAllColumns" class="text-xs text-blue-600 hover:text-blue-700">全选</button>
                 <button wire:click="resetColumns" class="text-xs text-muted-foreground hover:text-foreground">恢复默认</button>
             </div>
-            <button wire:click="closeColumnModal" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">确定</button>
+            <button type="button" wire:click="closeColumnModal" class="rounded-md border px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">关闭</button>
+            <button type="button" wire:click="closeColumnModal" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">确定</button>
         </div>
     </div>
 </div>

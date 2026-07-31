@@ -7,36 +7,48 @@ use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
-use App\Models\Product;
 use App\Models\Category;
+use App\Models\Product;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class ProductList extends Component
 {
-    use WithPagination;
-    use WithRowSelection;
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithPagination;
+    use WithRowSelection;
     use WithToast;
 
     protected string $modelClass = Product::class;
 
     public string $search = '';
+
     public int $filterCategoryId = 0;
+
     public int $filterStatus = -1;
+
     public bool $showModal = false;
+
     public bool $showDeleteConfirm = false;
+
     public ?int $editingId = null;
+
     public ?int $deletingId = null;
 
     public int $formCategoryId = 0;
+
     public string $formName = '';
+
     public string $formUnit = '';
+
     public int $formIsWeightPriced = 0;
+
     public int $formStockWarningValue = 0;
+
     public int $formStatus = 1;
+
     public string $formDescription = '';
 
     public function mount(): void
@@ -153,7 +165,7 @@ class ProductList extends Component
             ['key' => 'name', 'label' => '商品名', 'sortable' => true, 'exportable' => true],
             ['key' => 'category_id', 'label' => '分类', 'sortable' => false, 'exportable' => true],
             ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
-            ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => true],
+            ['key' => 'description', 'label' => '描述', 'sortable' => false, 'exportable' => true],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
         ];
     }
@@ -175,7 +187,7 @@ class ProductList extends Component
 
     public function getExportFileName(): string
     {
-        return '商品_' . now()->format('Ymd_His');
+        return '商品_'.now()->format('Ymd_His');
     }
 
     public function getImportModelClass(): string

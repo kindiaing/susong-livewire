@@ -15,26 +15,35 @@ use Livewire\WithPagination;
 
 class RestockReminderList extends Component
 {
-    use WithPagination;
-    use WithRowSelection;
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithPagination;
+    use WithRowSelection;
     use WithToast;
 
     protected string $modelClass = RestockReminder::class;
 
     public string $search = '';
+
     public int $filterStatus = -1;
+
     public bool $showModal = false;
+
     public bool $showDeleteConfirm = false;
+
     public ?int $editingId = null;
+
     public ?int $deletingId = null;
 
     public int $formMerchantId = 0;
+
     public int $formSkuId = 0;
+
     public int $formThresholdQuantity = 0;
+
     public int $formRemindCycle = 1;
+
     public int $formStatus = 1;
 
     public function mount(): void
@@ -152,8 +161,8 @@ class RestockReminderList extends Component
     {
         return RestockReminder::with(['merchant', 'sku'])
             ->when($this->search, function ($q) {
-                $q->whereHas('merchant', fn($q2) => $q2->where('name', 'like', "%{$this->search}%"))
-                    ->orWhereHas('sku', fn($q2) => $q2->where('sku_code', 'like', "%{$this->search}%"));
+                $q->whereHas('merchant', fn ($q2) => $q2->where('name', 'like', "%{$this->search}%"))
+                    ->orWhereHas('sku', fn ($q2) => $q2->where('sku_code', 'like', "%{$this->search}%"));
             })
             ->when($this->filterStatus >= 0, function ($q) {
                 $q->where('status', $this->filterStatus);
@@ -163,7 +172,7 @@ class RestockReminderList extends Component
 
     public function getExportFileName(): string
     {
-        return '补货提醒_' . now()->format('Ymd_His');
+        return '补货提醒_'.now()->format('Ymd_His');
     }
 
     public function getImportModelClass(): string
@@ -192,8 +201,10 @@ class RestockReminderList extends Component
         $query = RestockReminder::with(['merchant', 'sku'])->orderBy('id', 'desc');
 
         if ($this->search) {
-            $query->whereHas('merchant', fn($q) => $q->where('name', 'like', "%{$this->search}%"))
-                ->orWhereHas('sku', fn($q) => $q->where('sku_code', 'like', "%{$this->search}%"));
+            $query->where(function ($q) {
+                $q->whereHas('merchant', fn ($q2) => $q2->where('name', 'like', "%{$this->search}%"))
+                    ->orWhereHas('sku', fn ($q2) => $q2->where('sku_code', 'like', "%{$this->search}%"));
+            });
         }
 
         if ($this->filterStatus >= 0) {

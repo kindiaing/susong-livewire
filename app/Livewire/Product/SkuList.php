@@ -13,29 +13,41 @@ use Livewire\WithPagination;
 
 class SkuList extends Component
 {
-    use WithPagination;
-    use WithRowSelection;
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithPagination;
+    use WithRowSelection;
     use WithToast;
 
     protected string $modelClass = Sku::class;
 
     public string $search = '';
+
     public int $filterStatus = -1;
+
     public int $filterApprovalStatus = -1;
+
     public bool $showModal = false;
+
     public bool $showDeleteConfirm = false;
+
     public ?int $editingId = null;
+
     public ?int $deletingId = null;
 
     public int $formProductId = 0;
+
     public string $formSkuCode = '';
+
     public string $formSpecs = '';
+
     public int $formPurchasePrice = 0;
+
     public int $formWholesalePrice = 0;
+
     public int $formCostPrice = 0;
+
     public int $formStatus = 1;
 
     public function mount(): void
@@ -153,8 +165,9 @@ class SkuList extends Component
             ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
             ['key' => 'product_id', 'label' => '商品', 'sortable' => false, 'exportable' => true],
             ['key' => 'sku_code', 'label' => 'SKU编码', 'sortable' => true, 'exportable' => true],
-            ['key' => 'price', 'label' => '售价', 'sortable' => false, 'exportable' => true],
-            ['key' => 'cost_price', 'label' => '成本价', 'sortable' => false, 'exportable' => true],
+            ['key' => 'purchase_price', 'label' => '采购价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
+            ['key' => 'wholesale_price', 'label' => '批发价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
+            ['key' => 'cost_price', 'label' => '成本价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
             ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
         ];
     }
@@ -181,7 +194,7 @@ class SkuList extends Component
 
     public function getExportFileName(): string
     {
-        return 'SKU_' . now()->format('Ymd_His');
+        return 'SKU_'.now()->format('Ymd_His');
     }
 
     public function getImportModelClass(): string
@@ -194,9 +207,9 @@ class SkuList extends Component
         return [
             '商品ID' => 'product_id',
             'SKU编码' => 'sku_code',
-            '采购价(分)' => 'purchase_price',
-            '批发价(分)' => 'wholesale_price',
-            '成本价(分)' => 'cost_price',
+            '采购价(厘)' => 'purchase_price',
+            '批发价(厘)' => 'wholesale_price',
+            '成本价(厘)' => 'cost_price',
             '状态' => 'status',
         ];
     }

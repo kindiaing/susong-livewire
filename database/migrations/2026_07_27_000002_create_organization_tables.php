@@ -67,6 +67,7 @@ return new class extends Migration
             $table->string('id_card', 18)->nullable()->comment('身份证号');
             $table->tinyInteger('online_status')->unsigned()->default(0)->comment('在线状态：0离线，1在线');
             $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：0禁用，1启用');
+            $table->text('remark')->nullable()->comment('备注');
             $table->timestamps();
             $table->softDeletes();
             $table->index('user_id');

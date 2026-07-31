@@ -29,10 +29,14 @@ class Supplier extends Model
 
     // 结算周期常量
     public const CYCLE_WEEKLY = 1;
+
     public const CYCLE_MONTHLY = 2;
 
-    // 状态常量
+    public const CYCLE_IRREGULAR = 3;
+
+    // 状态常量（与迁移一致：1启用，2禁用）
     public const STATUS_ENABLED = 1;
+
     public const STATUS_DISABLED = 2;
 
     protected $fillable = [
@@ -63,6 +67,7 @@ class Supplier extends Model
         return [
             self::CYCLE_WEEKLY => '周结',
             self::CYCLE_MONTHLY => '月结',
+            self::CYCLE_IRREGULAR => '不定期',
         ];
     }
 

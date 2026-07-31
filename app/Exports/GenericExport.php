@@ -4,31 +4,45 @@ namespace App\Exports;
 
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\WithChunkReading;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 
 /**
  * 通用导出类
  * 接受查询构建器、列定义、列标签，生成 Excel 文件
+ *
+ * 金额列处理：通过 $moneyColumns 显式声明（厘→元 ÷1000），
+ * 不再用正则猜测列名，避免误命中和除数错误。
  */
-class GenericExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize
+class GenericExport implements FromCollection, ShouldAutoSize, WithChunkReading, WithHeadings, WithMapping
 {
     protected ?Builder $query;
+
     protected array $columns;
+
     protected array $columnLabels;
+
     protected $rowCallback;
+
     protected ?array $staticData;
+
     protected ?array $staticHeadings;
+
+    /**
+     * 金额列 key 列表（存储单位厘，导出时 ÷1000 转为元）
+     */
+    protected array $moneyColumns;
 
     public function __construct(
         $queryOrData = null,
         array $columns = [],
         array $columnLabels = [],
         ?callable $rowCallback = null,
+        array $moneyColumns = [],
     ) {
-        // 支持纯数组数据（用于非模型导出）
+        // 支持纯数组数据（用于非模型导出 / 导入模板）
         if (is_array($queryOrData)) {
             $this->staticData = $queryOrData;
             $this->staticHeadings = $columns;
@@ -36,6 +50,7 @@ class GenericExport implements FromCollection, WithHeadings, WithMapping, Should
             $this->columns = [];
             $this->columnLabels = [];
             $this->rowCallback = null;
+            $this->moneyColumns = [];
         } else {
             $this->query = $queryOrData;
             $this->columns = $columns;
@@ -43,6 +58,7 @@ class GenericExport implements FromCollection, WithHeadings, WithMapping, Should
             $this->rowCallback = $rowCallback;
             $this->staticData = null;
             $this->staticHeadings = null;
+            $this->moneyColumns = $moneyColumns;
         }
     }
 
@@ -51,10 +67,16 @@ class GenericExport implements FromCollection, WithHeadings, WithMapping, Should
         if ($this->staticData !== null) {
             return collect($this->staticData);
         }
-        if (!$this->query) {
+        if (! $this->query) {
             return collect([]);
         }
+
         return $this->query->get();
+    }
+
+    public function chunkSize(): int
+    {
+        return 500;
     }
 
     public function headings(): array
@@ -62,7 +84,8 @@ class GenericExport implements FromCollection, WithHeadings, WithMapping, Should
         if ($this->staticHeadings !== null) {
             return $this->staticHeadings;
         }
-        return array_map(fn($key) => $this->columnLabels[$key] ?? $key, $this->columns);
+
+        return array_map(fn ($key) => $this->columnLabels[$key] ?? $key, $this->columns);
     }
 
     public function map($row): array
@@ -73,7 +96,17 @@ class GenericExport implements FromCollection, WithHeadings, WithMapping, Should
         }
 
         if ($this->rowCallback) {
-            return call_user_func($this->rowCallback, $row, $this->columns);
+            $result = call_user_func($this->rowCallback, $row, $this->columns);
+
+            // 如果回调返回关联数组，按导出列顺序过滤取值
+            if (is_array($result) && array_keys($result) !== range(0, count($result) - 1)) {
+                return array_values(array_intersect_key(
+                    array_merge(array_fill_keys($this->columns, ''), $result),
+                    array_flip($this->columns)
+                ));
+            }
+
+            return $result;
         }
 
         $result = [];
@@ -85,13 +118,14 @@ class GenericExport implements FromCollection, WithHeadings, WithMapping, Should
                 $value = data_get($row, $col);
             }
 
-            // 金额字段自动格式化（字段名含 amount / price / fee / money / cost）
-            if (is_numeric($value) && preg_match('/(amount|price|fee|money|cost|total|balance|payment)/i', $col)) {
-                $value = $value / 100;
+            // 金额列格式化：厘 → 元（÷1000），仅对显式声明的列处理
+            if (is_numeric($value) && in_array($col, $this->moneyColumns)) {
+                $value = round($value / 1000, 2);
             }
 
-            $result[] = $value;
+            $result[] = $value ?? '';
         }
+
         return $result;
     }
 }

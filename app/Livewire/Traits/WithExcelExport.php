@@ -4,7 +4,6 @@ namespace App\Livewire\Traits;
 
 use App\Exports\GenericExport;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Livewire\Traits\WithToast;
 
 /**
  * 列表页：Excel 导出 Trait
@@ -13,9 +12,10 @@ use App\Livewire\Traits\WithToast;
  */
 trait WithExcelExport
 {
-    use WithToast;
     public bool $showExportModal = false;
+
     public array $exportColumns = [];
+
     public string $exportFormat = 'xlsx';
 
     /**
@@ -42,11 +42,32 @@ trait WithExcelExport
     }
 
     /**
+     * 关闭导出弹窗
+     */
+    public function closeExportModal(): void
+    {
+        $this->showExportModal = false;
+    }
+
+    /**
      * 导出全选
      */
     public function exportSelectAllColumns(): void
     {
         $this->exportColumns = collect($this->getExportableColumns())->pluck('key')->toArray();
+    }
+
+    /**
+     * 从 getAllColumns() 中提取 type=money 的列 key 列表
+     * 用于 GenericExport 金额列自动格式化（厘→元）
+     */
+    public function getMoneyColumns(): array
+    {
+        return collect($this->getAllColumns())
+            ->filter(fn ($c) => ($c['type'] ?? '') === 'money')
+            ->pluck('key')
+            ->values()
+            ->toArray();
     }
 
     /**
@@ -56,39 +77,58 @@ trait WithExcelExport
     {
         if (empty($this->exportColumns)) {
             $this->toastError('请至少选择一列导出');
+
             return;
         }
 
+        $moneyColumns = collect($this->getMoneyColumns())
+            ->filter(fn ($key) => in_array($key, $this->exportColumns))
+            ->values()
+            ->toArray();
+
         $export = new GenericExport(
-            query: $this->getExportQuery(),
+            queryOrData: $this->getExportQuery(),
             columns: $this->exportColumns,
             columnLabels: collect($this->getExportableColumns())
-                ->filter(fn($c) => in_array($c['key'], $this->exportColumns))
+                ->filter(fn ($c) => in_array($c['key'], $this->exportColumns))
                 ->pluck('label', 'key')
                 ->toArray(),
             rowCallback: method_exists($this, 'getExportRowCallback') ? $this->getExportRowCallback() : null,
+            moneyColumns: $moneyColumns,
         );
 
         $this->showExportModal = false;
 
         return Excel::download(
             $export,
-            $this->getExportFileName() . '.' . $this->exportFormat,
+            $this->getExportFileName().'.'.$this->exportFormat,
             $this->exportFormat === 'csv' ? \Maatwebsite\Excel\Excel::CSV : \Maatwebsite\Excel\Excel::XLSX,
         );
     }
 
     /**
      * 下载导入模板
+     * 使用 getImportColumnMap() 的中文标签作为表头，确保与导入映射一致
      */
     public function downloadImportTemplate()
     {
-        $columns = collect($this->getExportableColumns())->pluck('label', 'key')->toArray();
-        $export = new GenericExport(query: null, columns: array_keys($columns), columnLabels: $columns);
+        $columnMap = $this->getImportColumnMap();
+        if (empty($columnMap)) {
+            $this->toastError('未配置导入列映射');
+            return;
+        }
+
+        // columnMap 格式：['中文标签' => 'db_field', ...]
+        // 传空数据数组 + 中文标签作为 headings，走 staticHeadings 分支
+        $export = new GenericExport(
+            queryOrData: [],
+            columns: array_keys($columnMap),
+            columnLabels: [],
+        );
 
         return Excel::download(
             $export,
-            $this->getExportFileName() . '_template.xlsx',
+            $this->getExportFileName().'_template.xlsx',
         );
     }
 
@@ -98,7 +138,7 @@ trait WithExcelExport
      */
     public function getExportableColumns(): array
     {
-        return collect($this->getAllColumns())->filter(fn($c) => ($c['exportable'] ?? true))->values()->toArray();
+        return collect($this->getAllColumns())->filter(fn ($c) => ($c['exportable'] ?? true))->values()->toArray();
     }
 
     /**
@@ -114,6 +154,6 @@ trait WithExcelExport
      */
     public function getExportFileName(): string
     {
-        return 'export_' . now()->format('Ymd_His');
+        return 'export_'.now()->format('Ymd_His');
     }
 }

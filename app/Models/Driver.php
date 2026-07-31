@@ -39,6 +39,7 @@ class Driver extends Model
         'id_card',
         'online_status',
         'status',
+        'remark',
     ];
 
     protected function casts(): array

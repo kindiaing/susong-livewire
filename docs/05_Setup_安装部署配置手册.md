@@ -1,15 +1,4 @@
----
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: '922f2a81-290f-4970-9957-451c4ab6ac5f'
-  PropagateID: '922f2a81-290f-4970-9957-451c4ab6ac5f'
-  ReservedCode1: '667f2b61-96ae-4f52-be39-de49b690772e'
-  ReservedCode2: '667f2b61-96ae-4f52-be39-de49b690772e'
----
-
-# Setup 系统安装部署配置手册
+﻿# Setup 系统安装部署配置手册
 
 对应 PRD 版本：V1.2
 对应 FSD 版本：V1.2

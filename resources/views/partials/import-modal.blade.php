@@ -30,6 +30,14 @@
             @if($importMessage)
                 <div class="rounded-md bg-muted/50 px-3 py-2 text-sm text-foreground">{{ $importMessage }}</div>
             @endif
+            @if(!empty($importErrors))
+                <div class="max-h-40 overflow-y-auto border rounded-md p-2 bg-red-50">
+                    <p class="text-xs font-medium text-red-700 mb-1">失败详情：</p>
+                    @foreach($importErrors as $error)
+                        <p class="text-xs text-red-600">第 {{ $error['row'] }} 行：{{ $error['error'] }}</p>
+                    @endforeach
+                </div>
+            @endif
         </div>
         <div class="flex justify-end gap-3 mt-6">
             <button wire:click="closeImportModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">关闭</button>

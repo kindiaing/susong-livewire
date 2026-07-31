@@ -9,33 +9,42 @@ use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
 use App\Models\SkuSupplier;
 use App\Models\Supplier;
-use App\Models\Sku;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class SkuSupplierList extends Component
 {
-    use WithPagination;
-    use WithRowSelection;
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithPagination;
+    use WithRowSelection;
     use WithToast;
 
     protected string $modelClass = SkuSupplier::class;
 
     public string $search = '';
+
     public int $filterStatus = -1;
+
     public bool $showModal = false;
+
     public bool $showDeleteConfirm = false;
+
     public ?int $editingId = null;
+
     public ?int $deletingId = null;
 
     public int $formSkuId = 0;
+
     public int $formSupplierId = 0;
+
     public int $formIsDefault = 0;
+
     public int $formPurchasePrice = 0;
+
     public int $formStatus = 1;
+
     public int $formSort = 0;
 
     public function mount(): void
@@ -90,13 +99,7 @@ class SkuSupplierList extends Component
             $this->toastSuccess('供应商关联已创建');
         }
 
-        // 默认供应商互斥：同一 SKU 只能有一个 is_default=1
-        if ($data['is_default'] == 1) {
-            SkuSupplier::where('sku_id', $data['sku_id'])
-                ->where('is_default', 1)
-                ->when($this->editingId, fn($q) => $q->where('id', '!=', $this->editingId))
-                ->update(['is_default' => 0]);
-        }
+        // 注意：默认供应商互斥已由 SkuSupplier Model booted() 事件自动处理，此处无需重复
 
         $this->showModal = false;
         $this->resetForm();
@@ -154,8 +157,8 @@ class SkuSupplierList extends Component
             ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
             ['key' => 'sku_id', 'label' => 'SKU', 'sortable' => false, 'exportable' => true],
             ['key' => 'supplier_id', 'label' => '供应商', 'sortable' => false, 'exportable' => true],
-            ['key' => 'supply_price', 'label' => '供应价', 'sortable' => false, 'exportable' => true],
-            ['key' => 'is_primary', 'label' => '主要供应商', 'sortable' => false, 'exportable' => true],
+            ['key' => 'purchase_price', 'label' => '采购价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
+            ['key' => 'is_default', 'label' => '默认供应商', 'sortable' => false, 'exportable' => true],
         ];
     }
 
@@ -179,7 +182,7 @@ class SkuSupplierList extends Component
 
     public function getExportFileName(): string
     {
-        return '一品多供_' . now()->format('Ymd_His');
+        return '一品多供_'.now()->format('Ymd_His');
     }
 
     public function getImportModelClass(): string
@@ -192,7 +195,7 @@ class SkuSupplierList extends Component
         return [
             'SKU ID' => 'sku_id',
             '供应商ID' => 'supplier_id',
-            '采购价(分)' => 'purchase_price',
+            '采购价(厘)' => 'purchase_price',
             '是否默认' => 'is_default',
             '排序' => 'sort',
             '状态' => 'status',
