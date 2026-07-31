@@ -75,7 +75,7 @@ class PurchaseService
                         ->first();
 
                     $price = $skuSupplier?->pivot?->purchase_price ?? $item->sku->purchase_price ?? 0;
-                    $amount = $item->quantity * $price;
+                    $amount = intdiv($item->quantity * $price, 1000);
 
                     PurchaseOrderItem::create([
                         'purchase_order_id' => $order->id,
@@ -162,7 +162,7 @@ class PurchaseService
                 $orderItem = PurchaseOrderItem::findOrFail($item['id']);
                 $actualQuantity = (int) $item['actual_quantity'];
                 $actualPrice = (int) ($item['actual_price'] ?? $orderItem->price);
-                $actualAmount = $actualQuantity * $actualPrice;
+                $actualAmount = intdiv($actualQuantity * $actualPrice, 1000);
 
                 // 更新明细的实际数量和金额
                 $orderItem->update([
@@ -239,7 +239,7 @@ class PurchaseService
             'sku_id' => $skuId,
             'quantity' => $quantity,
             'price' => $price,
-            'amount' => $quantity * $price,
+            'amount' => intdiv($quantity * $price, 1000),
             'actual_quantity' => 0,
             'actual_price' => 0,
             'actual_amount' => 0,
