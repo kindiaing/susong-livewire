@@ -12,6 +12,9 @@ use function Laravel\Prompts\password;
 use function Laravel\Prompts\text;
 use function Laravel\Prompts\confirm;
 
+/**
+ * @deprecated 请使用 admin:create-admin 替代。此命令将在未来版本中移除。
+ */
 class AdminMakeCommand extends Command
 {
     protected $signature = 'admin:make-user
@@ -21,10 +24,14 @@ class AdminMakeCommand extends Command
                             {--role=super-admin : 角色（super-admin / admin）}
                             {--force : 强制创建，不询问}';
 
-    protected $description = '创建管理员账户';
+    protected $description = '[已废弃] 请使用 admin:create-admin 替代';
 
     public function handle(): int
     {
+        $this->warn('⚠ admin:make-user 已废弃，请使用 admin:create-admin 替代。');
+        $this->line('  示例: <info>php artisan admin:create-admin --name=Admin --email=admin@example.com --password=Secret123</info>');
+        $this->newLine();
+
         $name = $this->option('name') ?: ($this->option('force') ? 'Admin' : text(
             label: '请输入管理员用户名',
             placeholder: 'admin',

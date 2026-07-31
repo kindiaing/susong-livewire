@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Database\Seeders\DemoDataSeeder;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 
@@ -11,30 +12,44 @@ class AdminSeedCommand extends Command
 {
     protected $signature = 'admin:seed
                             {--fresh : 先清空再导入（migrate:fresh + seed）}
-                            {--demo : 仅导入测试数据（DemoDataSeeder）}
-                            {--system : 仅导入系统内置数据（SystemDataSeeder）}
+                            {--system : 仅导入核心数据（SystemDataSeeder）}
+                            {--demo= : 导入测试数据（不传值=全部模块，传值=指定模块，如 --demo=organization）}
+                            {--list : 列出所有可用的 Seeder 模块}
                             {--force : 强制执行，不确认}';
 
-    protected $description = '导入种子数据（默认导入全部：系统数据 + 测试数据）';
+    protected $description = '导入种子数据（默认导入全部：核心数据 + 测试数据）';
 
     public function handle(): int
     {
-        $fresh = $this->option('fresh');
-        $demo = $this->option('demo');
-        $system = $this->option('system');
-        $force = $this->option('force');
-
-        // 确定模式
-        if ($demo && $system) {
-            $this->warn('--demo 和 --system 同时指定，等同于默认（导入全部）');
-            $demo = false;
-            $system = false;
+        // --list 模式：列出可用模块后退出
+        if ($this->option('list')) {
+            return $this->listModules();
         }
 
+        $fresh = $this->option('fresh');
+        $system = $this->option('system');
+        $demo = $this->option('demo');
+        $force = $this->option('force');
+
+        // 确定 demo 模式：null=未传, false(字符串)=无值, 字符串=指定模块
+        $demoSpecified = $demo !== null;   // --demo 选项是否被指定
+        $demoModule = is_string($demo) && $demo !== '' ? $demo : null;  // 指定的模块名
+
+        // 验证模块名
+        if ($demoModule && ! isset(DemoDataSeeder::$modules[$demoModule])) {
+            $this->error("模块 [{$demoModule}] 不存在！");
+            $this->line('可用模块：' . implode(', ', array_keys(DemoDataSeeder::$modules)));
+            $this->line('使用 <info>php artisan admin:seed --list</info> 查看详情');
+            return self::FAILURE;
+        }
+
+        // 确定模式标签
         $modeLabel = match (true) {
-            $demo => '仅测试数据（DemoDataSeeder）',
-            $system => '仅系统内置数据（SystemDataSeeder）',
-            default => '全部（SystemDataSeeder + DemoDataSeeder）',
+            $system && ! $demoSpecified => '仅核心数据（SystemDataSeeder）',
+            $demoSpecified && ! $system => $demoModule
+                ? "仅测试数据 [{$demoModule}]（" . DemoDataSeeder::$modules[$demoModule]['label'] . '）'
+                : '全部测试数据（DemoDataSeeder 10 个模块）',
+            default => '全部（核心数据 + 测试数据）',
         };
 
         $this->info('╔══════════════════════════════════════╗');
@@ -61,19 +76,31 @@ class AdminSeedCommand extends Command
             $this->info('  ✓ 数据库已重建');
         }
 
-        // 2. 系统内置数据
-        if (! $demo) {
+        // 2. 核心数据（SystemDataSeeder）
+        if (! $demoSpecified) {
             $this->newLine();
-            $this->info('导入系统内置数据（角色/权限/管理员/系统配置）...');
+            $this->info('导入核心数据（角色/权限/seeding 角色分配）...');
             Artisan::call('db:seed', ['--class' => 'SystemDataSeeder', '--force' => true], $this->output);
-            $this->info('  ✓ 系统内置数据导入完成');
+            $this->info('  ✓ 核心数据导入完成');
         }
 
         // 3. 测试数据
         if (! $system) {
             $this->newLine();
-            $this->info('导入测试数据（商品/订单/示例业务数据）...');
-            Artisan::call('db:seed', ['--class' => 'DemoDataSeeder', '--force' => true], $this->output);
+
+            if ($demoModule) {
+                // 指定模块
+                $this->info("导入测试数据 [{$demoModule}]（" . DemoDataSeeder::$modules[$demoModule]['label'] . '）...');
+                $seeder = new DemoDataSeeder;
+                $seeder->setContainer(app());
+                $seeder->setCommand($this);
+                $seeder->runModule($demoModule);
+            } else {
+                // 全部测试数据
+                $this->info('导入全部测试数据（10 个模块）...');
+                Artisan::call('db:seed', ['--class' => 'DemoDataSeeder', '--force' => true], $this->output);
+            }
+
             $this->info('  ✓ 测试数据导入完成');
         }
 
@@ -82,12 +109,42 @@ class AdminSeedCommand extends Command
         $this->info('║         导入完成！                    ║');
         $this->info('╚══════════════════════════════════════╝');
 
-        if (! $demo) {
-            $this->line('  超级管理员: <info>superadmin</info>  密码: <info>Password</info>');
+        if (! $demoSpecified) {
+            $this->line('  超级管理员: <info>seeding</info>  密码: <info>Password</info>');
         }
         if (! $system) {
             $this->line('  测试用户密码均为: <info>Password</info>');
         }
+        $this->newLine();
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * 列出所有可用的 Seeder 模块
+     */
+    protected function listModules(): int
+    {
+        $this->info('╔══════════════════════════════════════╗');
+        $this->info('║      可用 Seeder 模块列表            ║');
+        $this->info('╚══════════════════════════════════════╝');
+        $this->newLine();
+
+        $this->line('  <info>核心数据</info>');
+        $this->line('    system       SystemDataSeeder（9角色+140权限+seeding角色分配）');
+        $this->newLine();
+
+        $this->line('  <info>测试数据（10 个模块）</info>');
+        foreach (DemoDataSeeder::$modules as $key => $module) {
+            $this->line("    <comment>" . str_pad($key, 14) . "</comment>  {$module['label']}");
+        }
+
+        $this->newLine();
+        $this->line('  <info>用法示例</info>');
+        $this->line('    php artisan admin:seed --demo                    # 全部测试数据');
+        $this->line('    php artisan admin:seed --demo=organization       # 仅组织主体');
+        $this->line('    php artisan admin:seed --system                   # 仅核心数据');
+        $this->line('    php artisan admin:seed                           # 全部（核心+测试）');
         $this->newLine();
 
         return self::SUCCESS;

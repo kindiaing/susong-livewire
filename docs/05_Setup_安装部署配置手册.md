@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'af383f00-4876-427f-bcaa-49d26bda5af6'
-  PropagateID: 'af383f00-4876-427f-bcaa-49d26bda5af6'
-  ReservedCode1: '0a316a5d-443d-4a1a-bbb6-2263b825e946'
-  ReservedCode2: '0a316a5d-443d-4a1a-bbb6-2263b825e946'
+  ProduceID: 'c28540db-db15-4332-b209-08e822fd2224'
+  PropagateID: 'c28540db-db15-4332-b209-08e822fd2224'
+  ReservedCode1: 'bd37321d-2795-41c7-9337-8d46703dd200'
+  ReservedCode2: 'bd37321d-2795-41c7-9337-8d46703dd200'
 ---
 
 # Setup 系统安装部署配置手册
@@ -482,14 +482,42 @@ sudo certbot renew --dry-run
 
 ### 9.2 初始化数据
 
-`docs/attach/init.sql` 包含以下初始数据：
+数据来源分为两层：**Migration 内置**（`php artisan migrate` 时自动创建）和 **Seeder 种子**（需显式运行）。
+
+#### 9.2.1 Migration 内置数据
 
 | 数据类别 | 说明 |
 | :--- | :--- |
-| 超级管理员账号 | seeding / Password（Migration 自动创建） |
-| 9 个系统角色 | 超级管理员、运营管理员、运营经理、财务人员、出纳、财务经理、拣货员、司机、商家（Migration 自动创建） |
+| 超级管理员账号 | seeding / Password（Migration 8.1 自动创建，首次 `php artisan migrate` 即可用） |
+| 9 个系统角色 | 超级管理员、运营管理员、运营经理、财务人员、出纳、财务经理、拣货员、司机、商家（Migration 8.1 自动创建） |
 | 19 个审核节点配置 | approval_type_configs 默认记录（前 10 个 P0 节点 + 第 19 条损耗审核默认开启） |
 | 6 条系统默认配置 | system_configs 默认键值（Migration 自动创建，增强后共 24 条，分 7 组：基础 8/订单 3/配送 3/财务 3/库存 3/审核 2/界面 2） |
+
+#### 9.2.2 Seeder 种子数据
+
+Seeder 分为**核心数据**和**测试数据**两层，详见 `03_DB` 文档第 9 章「Seeder 体系设计」。
+
+| 数据类别 | Seeder | 说明 |
+| :--- | :--- | :--- |
+| 核心数据 | SystemDataSeeder | 为 Migration 创建的 seeding 账户分配 super_admin 角色 + 全部 140 权限 |
+| 测试数据 | DemoDataSeeder（总入口） | 调用 Demo/ 下 10 个分模块 Seeder，按依赖顺序填充业务示例数据 |
+| 分模块测试 | Demo/*.php | 可独立运行指定模块（如 `--demo=organization` 仅填充组织主体测试数据） |
+
+**双入口调用方式：**
+
+```bash
+# 方式 1：Laravel 原生入口
+php artisan db:seed                          # 运行全部
+php artisan db:seed --class=SystemDataSeeder  # 仅核心数据
+php artisan db:seed --class=DemoDataSeeder    # 仅测试数据
+
+# 方式 2：项目自定义入口（推荐）
+php artisan admin:seed                      # 运行全部种子
+php artisan admin:seed --system             # 仅核心数据
+php artisan admin:seed --demo                # 全部测试数据
+php artisan admin:seed --demo=organization   # 仅 organization 模块测试数据
+php artisan admin:seed --list                # 列出所有可用 Seeder 模块
+```
 
 ---
 
@@ -524,15 +552,17 @@ sudo certbot renew --dry-run
 
 | 命令 | 说明 | 核心选项 |
 |:---|:---|:---|
-| `admin:seed` | 单独运行种子数据 | `--fresh` `--demo` `--system` `--force` |
 | `admin:install` | 安装/初始化数据库 | `--seed` `--reset` `--force` |
 | `admin:fresh` | 清空并重建数据库 | `--seed` `--force` |
-| `admin:make-user` | 创建管理员账户 | `--name=` `--email=` `--password=` `--role=super-admin` `--force` |
-| `admin:create-user` | 创建普通用户 | `--name=` `--email=` `--password=` `--role=user` |
+| `admin:seed` | 运行种子数据 | `--fresh` `--system` `--demo[=MODULE]` `--list` `--force` |
+| `admin:create-admin` | 创建管理员账户 | `--name=` `--email=` `--password=` `--role=super_admin` `--guard=web` |
+| `admin:create-user` | 创建普通用户 | `--name=` `--email=` `--password=` `--role=` `--guard=web` `--active=1` |
 | `admin:reset-password` | 重置用户密码 | `--email=` `--password=` |
 | `admin:backup` | 备份 MySQL 数据库 | `--path=` `--compress` `--only-data` `--only-structure` |
 | `admin:roles` | 列出角色与权限 | `--with-users` |
 | `admin:status` | 系统状态检查 | 无 |
+
+> **废弃命令**：`admin:make-user`（统一用 `admin:create-admin` 替代）
 
 ### 10.3 快速操作速查
 
@@ -549,10 +579,16 @@ php artisan view:cache
 php artisan admin:fresh --seed --force    # 清空 + 重建 + 测试数据
 
 # ── 单独导入种子数据 ──────────────────────
-php artisan admin:seed                     # 运行所有 Seeder
-php artisan admin:seed --fresh             # 清空后重新运行 Seeder
-php artisan admin:seed --system            # 仅导入系统数据（角色/权限/用户/配置）
-php artisan admin:seed --demo              # 仅导入业务测试数据
+php artisan admin:seed                     # 运行全部种子
+php artisan admin:seed --fresh             # 清空后重新运行种子
+php artisan admin:seed --system            # 仅核心数据（角色/权限分配/配置）
+php artisan admin:seed --demo              # 全部测试数据（10 个模块）
+php artisan admin:seed --demo=organization # 仅 organization 模块测试数据
+php artisan admin:seed --list              # 列出所有可用 Seeder 模块
+
+# ── 创建用户 ─────────────────────────────
+php artisan admin:create-admin --name=Admin --email=admin@example.com --password=Secret123
+php artisan admin:create-user --name=User1 --email=user1@example.com --password=Secret123 --role=operation_admin
 
 # ── 生产环境更新 ─────────────────────────
 php artisan down                            # 维护模式
@@ -604,7 +640,7 @@ php artisan schedule:list          # 查看定时任务
 - [ ] `storage` 和 `bootstrap/cache` 目录权限 775
 - [ ] Nginx 配置正确，前端静态资源可访问
 - [ ] HTTPS 证书已配置
-- [ ] 超级管理员密码已修改（非默认 admin123）
+- [ ] 超级管理员密码已修改（非默认 Password）
 - [ ] 文件存储路径可写（本地或 OSS 配置正确）
 - [ ] 跨域配置匹配前端域名
 

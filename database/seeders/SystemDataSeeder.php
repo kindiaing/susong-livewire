@@ -7,14 +7,13 @@ use App\Models\Role;
 use Illuminate\Database\Seeder;
 
 /**
- * 内置数据 Seeder
+ * 核心数据 Seeder
  *
  * 包含生产环境必需的基础数据：
- * - 9 个系统角色（已在 Migration 中初始化，此处确保存在）
- * - 模块级菜单权限
- * - 各模块对应的页面级和按钮级权限
- * - 超级管理员获得所有权限
- * - 每个角色创建一个测试用户
+ * - 确保 9 个系统角色存在（已在 Migration 中初始化，此处确保存在）
+ * - 创建 140 条权限树（模块 → 页面 → 按钮）
+ * - 为 Migration 创建的 seeding 账户分配 super_admin 角色 + 全部 140 权限
+ * - 不再创建 superadmin 测试用户（测试用户由 DemoDataSeeder 负责）
  *
  * 此 Seeder 由 DatabaseSeeder 自动调用，适用于生产环境。
  */
@@ -158,13 +157,10 @@ class SystemDataSeeder extends Seeder
         // 2. 创建权限树
         $this->createPermissionTree();
 
-        // 3. 超级管理员获得所有权限
-        $this->assignAllPermissionsToSuperAdmin();
+        // 3. 为 seeding 账户分配 super_admin 角色 + 全部权限
+        $this->assignSeedingSuperAdmin();
 
-        // 4. 为每个角色创建测试用户
-        $this->createTestUsers();
-
-        // 5. 清除权限缓存
+        // 4. 清除权限缓存
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
     }
 
@@ -263,40 +259,22 @@ class SystemDataSeeder extends Seeder
         return $map[$name] ?? $name;
     }
 
-    protected function assignAllPermissionsToSuperAdmin(): void
+    /**
+     * 为 Migration 创建的 seeding 账户分配 super_admin 角色 + 全部 140 权限
+     */
+    protected function assignSeedingSuperAdmin(): void
     {
-        $superAdmin = Role::where('name', 'super_admin')->first();
-        if ($superAdmin) {
-            $superAdmin->syncPermissions(Permission::all());
+        // 确保 super_admin 角色拥有所有权限
+        $superAdminRole = Role::where('name', 'super_admin')->first();
+        if ($superAdminRole) {
+            $superAdminRole->syncPermissions(Permission::all());
         }
-    }
 
-    protected function createTestUsers(): void
-    {
-        $testUsers = [
-            ['role' => 'super_admin', 'username' => 'superadmin', 'name' => '超级管理员', 'phone' => '13800000000', 'email' => 'superadmin@susong.test'],
-            ['role' => 'operator', 'username' => 'operator1', 'name' => '张运营', 'phone' => '13800000001', 'email' => 'operator@susong.test'],
-            ['role' => 'operator_manager', 'username' => 'ops_manager', 'name' => '李运营经理', 'phone' => '13800000002', 'email' => 'ops_manager@susong.test'],
-            ['role' => 'finance', 'username' => 'finance1', 'name' => '王财务', 'phone' => '13800000003', 'email' => 'finance@susong.test'],
-            ['role' => 'cashier', 'username' => 'cashier1', 'name' => '赵出纳', 'phone' => '13800000004', 'email' => 'cashier@susong.test'],
-            ['role' => 'finance_manager', 'username' => 'fin_manager', 'name' => '钱财务经理', 'phone' => '13800000005', 'email' => 'finance_manager@susong.test'],
-            ['role' => 'picker', 'username' => 'picker1', 'name' => '孙拣货员', 'phone' => '13800000006', 'email' => 'picker@susong.test'],
-            ['role' => 'driver', 'username' => 'driver1', 'name' => '周司机', 'phone' => '13800000007', 'email' => 'driver@susong.test'],
-            ['role' => 'merchant', 'username' => 'merchant1', 'name' => '吴商家', 'phone' => '13800000008', 'email' => 'merchant@susong.test'],
-        ];
-
-        foreach ($testUsers as $item) {
-            $user = \App\Models\User::firstOrCreate(
-                ['username' => $item['username']],
-                [
-                    'name' => $item['name'],
-                    'phone' => $item['phone'],
-                    'email' => $item['email'],
-                    'password' => bcrypt('Password'),
-                    'status' => 1,
-                ]
-            );
-            $user->assignRole($item['role']);
+        // 为 seeding 账户分配 super_admin 角色
+        $seeding = \App\Models\User::where('username', 'seeding')->first();
+        if ($seeding) {
+            $seeding->assignRole('super_admin');
+            $seeding->syncPermissions(Permission::all());
         }
     }
 }

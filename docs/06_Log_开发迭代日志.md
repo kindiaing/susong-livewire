@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '077dfd0e-ae34-48f3-98b9-42fbd2358c7f'
-  PropagateID: '077dfd0e-ae34-48f3-98b9-42fbd2358c7f'
-  ReservedCode1: '94411cc9-035d-40dc-af06-4e02ba400746'
-  ReservedCode2: '94411cc9-035d-40dc-af06-4e02ba400746'
+  ProduceID: '35ddfafd-44ba-4abf-bf10-eb62d8325a23'
+  PropagateID: '35ddfafd-44ba-4abf-bf10-eb62d8325a23'
+  ReservedCode1: 'b0d138ba-55ef-4740-8a7e-3eea8fb5cee8'
+  ReservedCode2: 'b0d138ba-55ef-4740-8a7e-3eea8fb5cee8'
 ---
 
 # 开发迭代日志
@@ -16,6 +16,84 @@ AIGC:
 技术栈：Laravel 13 + Livewire 4.x + Tailwind CSS 4.2+ + Alpine.js + PHP 8.4+ + MySQL 8.0 + Redis 7.x
 
 记录规则：每次迭代新增一节，按版本号倒序排列。每条变更需标注开发人、完成时间和关联模块。
+
+---
+
+## V1.7.0 | 迭代周期：2026-07-31
+
+负责人：项目负责人
+参与开发人员：后端开发
+
+### 1 本次新增功能清单
+
+| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | Artisan 命令 | 新增 `admin:create-admin` 命令（替代废弃的 `admin:make-user`），支持 `--name=` `--email=` `--password=` `--role=super_admin` `--guard=web` | 后端 | 2026-07-31 | ✅ |
+| 2 | Artisan 命令 | 新增 `admin:create-user` 命令，支持 `--name=` `--email=` `--password=` `--role=` `--guard=web` `--active=1` | 后端 | 2026-07-31 | ✅ |
+| 3 | Artisan 命令 | `admin:seed` 增强：`--demo=MODULE` 支持可选模块参数（不传=全部测试数据，传值=指定模块）；新增 `--list` 选项列出可用 Seeder 模块 | 后端 | 2026-07-31 | ✅ |
+| 4 | Seeder 体系 | 按模块拆分测试数据：DemoDataSeeder 改为总入口，新增 Demo/ 子目录 11 个分模块 Seeder（含 TestUsersDemoSeeder） | 后端 | 2026-07-31 | ✅ |
+| 5 | Seeder 体系 | SystemDataSeeder 不再创建 `superadmin` 测试用户，改为给 Migration 创建的 `seeding` 账户分配 super_admin 角色 + 全部 140 权限 | 后端 | 2026-07-31 | ✅ |
+| 6 | Seeder 体系 | 双入口兼容：Seeder 同时支持 `php artisan db:seed` 和 `php artisan admin:seed` 调用 | 后端 | 2026-07-31 | ✅ |
+| 7 | 文档 | 03_DB 新增第 9 章「Seeder 体系设计」（设计原则/目录结构/核心vs测试对照/模块依赖/双入口/模块清单速查） | 后端 | 2026-07-31 | ✅ |
+| 8 | 文档 | 05_Setup 更新第 9/10/12 章（初始化数据分层说明/命令速查表更新/部署检查清单密码修正） | 后端 | 2026-07-31 | ✅ |
+| 9 | 文档 | 06_Log 新增 V1.7.0 迭代记录 | 后端 | 2026-07-31 | ✅ |
+
+### 2 本次优化/重构
+
+| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | Artisan 命令 | 废弃 `admin:make-user`，统一用 `admin:create-admin` + `admin:create-user` 替代 | 后端 | 2026-07-31 |
+| 2 | Seeder 体系 | DemoDataSeeder 解耦：移除对 SystemDataSeeder 的硬调用，测试数据可独立运行 | 后端 | 2026-07-31 |
+| 3 | Seeder 体系 | 测试数据按模块拆分到 Demo/ 子目录，支持 `--demo=organization` 等分模块单独运行 | 后端 | 2026-07-31 |
+
+### 3 本次修复 Bug
+
+无。
+
+### 4 数据库变更
+
+无（本次未新增 Migration，仅调整 Seeder 和命令层）。
+
+### 5 影响范围
+
+| 影响文件 | 变更类型 |
+| :--- | :--- |
+| app/Console/Commands/AdminSeedCommand.php | 修改（新增 --demo=MODULE / --list 选项） |
+| app/Console/Commands/AdminCreateAdminCommand.php | 新增（替代 AdminMakeUserCommand） |
+| app/Console/Commands/AdminCreateUserCommand.php | 修改（增强选项：--role / --guard / --active） |
+| app/Console/Commands/AdminMakeUserCommand.php | 废弃（标记 @deprecated，指引到 admin:create-admin） |
+| database/seeders/SystemDataSeeder.php | 重写（去掉 superadmin 创建，改为给 seeding 分配角色权限） |
+| database/seeders/DemoDataSeeder.php | 重写（改为总入口，调用 Demo/ 下各分模块） |
+| database/seeders/Demo/OrganizationDemoSeeder.php | 新增（组织主体测试数据） |
+| database/seeders/Demo/ProductDemoSeeder.php | 新增（商品管理测试数据） |
+| database/seeders/Demo/PurchaseDemoSeeder.php | 新增（采购管理测试数据） |
+| database/seeders/Demo/OrderDemoSeeder.php | 新增（订单管理测试数据） |
+| database/seeders/Demo/InventoryDemoSeeder.php | 新增（库存管理测试数据） |
+| database/seeders/Demo/DeliveryDemoSeeder.php | 新增（配送管理测试数据） |
+| database/seeders/Demo/FinanceDemoSeeder.php | 新增（财务对账测试数据） |
+| database/seeders/Demo/PriceDemoSeeder.php | 新增（价格策略测试数据） |
+| database/seeders/Demo/LossDemoSeeder.php | 新增（损耗管理测试数据） |
+| database/seeders/Demo/SystemDemoSeeder.php | 新增（系统支撑测试数据） |
+| database/seeders/DatabaseSeeder.php | 修改（确保双入口兼容） |
+| docs/03_DB_数据库设计&数据字典.md | 修改（新增第 9 章 Seeder 体系设计） |
+| docs/05_Setup_安装部署配置手册.md | 修改（第 9/10/12 章更新） |
+| docs/06_Log_开发迭代日志.md | 修改（新增 V1.7.0 迭代记录） |
+
+### 6 关键技术记录
+
+**Seeder 分模块设计：**
+- 设计原则：核心数据（SystemDataSeeder）与测试数据（DemoDataSeeder + Demo/*.php）严格分离
+- 核心数据包含：9 角色 + 140 权限树 + seeding 账户角色分配 + 19 审核节点配置 + 24 条系统配置
+- 测试数据按业务模块拆分为 10 个独立 Seeder，放在 `database/seeders/Demo/` 子目录
+- 模块依赖顺序：organization → product → purchase → order → inventory → delivery → finance → price → loss → system-demo
+- 双入口兼容：`php artisan db:seed --class=DemoDataSeeder` 等价于 `php artisan admin:seed --demo`
+- `admin:seed --demo=organization` 可单独运行指定模块测试数据
+- `admin:seed --list` 列出所有可用 Seeder 模块及其说明
+
+**Migration vs Seeder 职责划分：**
+- Migration 8.1：创建默认管理员 `seeding` 账户 + 9 个系统角色 + model_has_roles 关联
+- SystemDataSeeder：为 `seeding` 账户分配 super_admin 角色 + 全部 140 权限（syncPermissions）
+- 生产环境只需运行 `migrate` + `admin:seed --system`，即可获得完整可用系统
 
 ---
 
