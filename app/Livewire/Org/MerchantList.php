@@ -82,7 +82,7 @@ class MerchantList extends Component
             'formMinOrderAmount' => 'required|integer|min:0',
             'formSettlementType' => 'required|in:1,2,3',
             'formCreditLimit' => 'required|integer|min:0',
-            'formStatus' => 'required|in:1,2',
+            'formStatus' => 'required|in:0,1',
             'formRemark' => 'nullable|string|max:500',
         ]);
 
@@ -160,6 +160,11 @@ class MerchantList extends Component
             ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => true],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
         ];
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['name', 'contact_person', 'contact_phone', 'status', 'created_at'];
     }
 
     public function getExportQuery()

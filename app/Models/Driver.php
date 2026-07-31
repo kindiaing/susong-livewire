@@ -15,7 +15,7 @@ use Illuminate\Support\Carbon;
  * @property string $phone 手机号
  * @property string|null $id_card 身份证号
  * @property int $online_status 在线状态：0离线，1在线
- * @property int $status 状态：1启用，2禁用
+ * @property int $status 状态：0禁用，1启用
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
@@ -28,9 +28,9 @@ class Driver extends Model
     public const ONLINE_OFFLINE = 0;
     public const ONLINE_ONLINE = 1;
 
-    // 状态常量
+    // 状态常量（统一：0禁用，1启用）
     public const STATUS_ENABLED = 1;
-    public const STATUS_DISABLED = 2;
+    public const STATUS_DISABLED = 0;
 
     protected $fillable = [
         'user_id',

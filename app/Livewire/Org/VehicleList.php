@@ -61,7 +61,7 @@ class VehicleList extends Component
             'formPlateNumber' => 'required|string|max:20|unique:vehicles,plate_number',
             'formVehicleType' => 'nullable|string|max:50',
             'formIsColdChain' => 'required|in:0,1',
-            'formStatus' => 'required|in:1,2',
+            'formStatus' => 'required|in:0,1',
         ];
 
         if ($this->editingId) {
@@ -145,6 +145,11 @@ class VehicleList extends Component
             ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => true],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
         ];
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['plate_number', 'type', 'status', 'created_at'];
     }
 
     public function getExportQuery()

@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '201df710-8f9c-461c-ac1e-56c5f442f5cc'
-  PropagateID: '201df710-8f9c-461c-ac1e-56c5f442f5cc'
-  ReservedCode1: '55a739d4-393d-4877-bd3e-882dc4b851a5'
-  ReservedCode2: '55a739d4-393d-4877-bd3e-882dc4b851a5'
+  ProduceID: 'ec1603bb-ff2c-47b3-bcd8-82862c6eafeb'
+  PropagateID: 'ec1603bb-ff2c-47b3-bcd8-82862c6eafeb'
+  ReservedCode1: 'ec9a89b6-c64c-4fca-8341-ccf21cbd0ce3'
+  ReservedCode2: 'ec9a89b6-c64c-4fca-8341-ccf21cbd0ce3'
 ---
 
 # 速送 — 生鲜配送平台

@@ -61,7 +61,7 @@ class RouteList extends Component
             'formName' => 'required|string|max:100',
             'formDescription' => 'nullable|string|max:255',
             'formSort' => 'nullable|integer|min:0',
-            'formStatus' => 'required|in:1,2',
+            'formStatus' => 'required|in:0,1',
         ]);
 
         $data = [
@@ -139,6 +139,11 @@ class RouteList extends Component
             ['key' => 'sort', 'label' => '排序', 'sortable' => true, 'exportable' => true],
             ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => true],
         ];
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['name', 'code', 'status', 'sort'];
     }
 
     public function getExportQuery()

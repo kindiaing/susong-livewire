@@ -96,7 +96,7 @@
                         <label class="block text-sm font-medium text-foreground mb-1">状态 <span class="text-red-500">*</span></label>
                         <select wire:model="formStatus" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
                             <option value="1">启用</option>
-                            <option value="2">禁用</option>
+                            <option value="0">禁用</option>
                         </select>
                         @error('formStatus') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>

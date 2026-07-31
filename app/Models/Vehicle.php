@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
  * @property string $plate_number 车牌号
  * @property string|null $vehicle_type 车辆类型
  * @property int $is_cold_chain 是否冷链：0否，1是
- * @property int $status 状态：1启用，2禁用
+ * @property int $status 状态：0禁用，1启用
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
@@ -22,9 +22,9 @@ class Vehicle extends Model
 {
     use SoftDeletes;
 
-    // 状态常量
+    // 状态常量（统一：0禁用，1启用）
     public const STATUS_ENABLED = 1;
-    public const STATUS_DISABLED = 2;
+    public const STATUS_DISABLED = 0;
 
     protected $fillable = [
         'plate_number',

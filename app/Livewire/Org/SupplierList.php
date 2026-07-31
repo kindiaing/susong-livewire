@@ -91,7 +91,7 @@ class SupplierList extends Component
             'formBankName' => 'nullable|string|max:100',
             'formBankAccount' => 'nullable|string|max:50',
             'formSettlementCycle' => 'required|in:1,2,3',
-            'formStatus' => 'required|in:1,2',
+            'formStatus' => 'required|in:0,1',
             'formRemark' => 'nullable|string|max:500',
         ]);
 
@@ -189,7 +189,7 @@ class SupplierList extends Component
 
     public function getDefaultColumns(): array
     {
-        return ['id', 'name', 'contact_name', 'contact_phone', 'settlement_cycle', 'status', 'bank_name', 'bank_account', 'created_at'];
+        return ['name', 'contact_name', 'contact_phone', 'settlement_cycle', 'status', 'bank_name', 'bank_account', 'created_at'];
     }
 
     public function getExportRowCallback(): callable
@@ -221,9 +221,9 @@ class SupplierList extends Component
         return [
             'status' => [
                 '启用' => 1,
-                '禁用' => 2,
+                '禁用' => 0,
                 '1' => 1,
-                '2' => 2,
+                '0' => 0,
             ],
             'settlement_cycle' => [
                 '周结' => 1,

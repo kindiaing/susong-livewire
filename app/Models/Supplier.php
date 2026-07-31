@@ -17,7 +17,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $bank_name 开户银行
  * @property string|null $bank_account 银行账号
  * @property int $settlement_cycle 结算周期：1周结，2月结
- * @property int $status 状态：1启用，2禁用
+ * @property int $status 状态：0禁用，1启用
  * @property string|null $remark 备注
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -34,10 +34,10 @@ class Supplier extends Model
 
     public const CYCLE_IRREGULAR = 3;
 
-    // 状态常量（与迁移一致：1启用，2禁用）
+    // 状态常量（统一：0禁用，1启用）
     public const STATUS_ENABLED = 1;
 
-    public const STATUS_DISABLED = 2;
+    public const STATUS_DISABLED = 0;
 
     protected $fillable = [
         'name',

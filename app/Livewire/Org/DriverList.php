@@ -64,7 +64,7 @@ class DriverList extends Component
             'formPhone' => 'required|string|max:20|unique:drivers,phone',
             'formIdCard' => 'nullable|string|max:20',
             'formOnlineStatus' => 'required|in:0,1',
-            'formStatus' => 'required|in:1,2',
+            'formStatus' => 'required|in:0,1',
         ];
 
         if ($this->editingId) {
@@ -150,6 +150,11 @@ class DriverList extends Component
             ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => true],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
         ];
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['name', 'phone', 'status', 'created_at'];
     }
 
     public function getExportQuery()
