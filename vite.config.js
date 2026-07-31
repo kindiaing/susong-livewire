@@ -14,6 +14,7 @@ export default defineConfig({
                 }),
                 {
                     family: "system-ui",
+                    alias: "system-ui",
                     optimizedFallbacks: false,
                 },
             ],
