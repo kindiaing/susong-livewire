@@ -90,6 +90,14 @@ class SkuSupplierList extends Component
             $this->toastSuccess('供应商关联已创建');
         }
 
+        // 默认供应商互斥：同一 SKU 只能有一个 is_default=1
+        if ($data['is_default'] == 1) {
+            SkuSupplier::where('sku_id', $data['sku_id'])
+                ->where('is_default', 1)
+                ->when($this->editingId, fn($q) => $q->where('id', '!=', $this->editingId))
+                ->update(['is_default' => 0]);
+        }
+
         $this->showModal = false;
         $this->resetForm();
     }

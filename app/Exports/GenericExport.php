@@ -19,21 +19,38 @@ class GenericExport implements FromCollection, WithHeadings, WithMapping, Should
     protected array $columns;
     protected array $columnLabels;
     protected $rowCallback;
+    protected ?array $staticData;
+    protected ?array $staticHeadings;
 
     public function __construct(
-        ?Builder $query,
-        array $columns,        // 列 key 数组 ['id','name','status',...]
-        array $columnLabels,   // 列标签 ['id'=>'ID','name'=>'名称',...]
+        $queryOrData = null,
+        array $columns = [],
+        array $columnLabels = [],
         ?callable $rowCallback = null,
     ) {
-        $this->query = $query;
-        $this->columns = $columns;
-        $this->columnLabels = $columnLabels;
-        $this->rowCallback = $rowCallback;
+        // 支持纯数组数据（用于非模型导出）
+        if (is_array($queryOrData)) {
+            $this->staticData = $queryOrData;
+            $this->staticHeadings = $columns;
+            $this->query = null;
+            $this->columns = [];
+            $this->columnLabels = [];
+            $this->rowCallback = null;
+        } else {
+            $this->query = $queryOrData;
+            $this->columns = $columns;
+            $this->columnLabels = $columnLabels;
+            $this->rowCallback = $rowCallback;
+            $this->staticData = null;
+            $this->staticHeadings = null;
+        }
     }
 
     public function collection()
     {
+        if ($this->staticData !== null) {
+            return collect($this->staticData);
+        }
         if (!$this->query) {
             return collect([]);
         }
@@ -42,11 +59,19 @@ class GenericExport implements FromCollection, WithHeadings, WithMapping, Should
 
     public function headings(): array
     {
+        if ($this->staticHeadings !== null) {
+            return $this->staticHeadings;
+        }
         return array_map(fn($key) => $this->columnLabels[$key] ?? $key, $this->columns);
     }
 
     public function map($row): array
     {
+        // 纯数组模式：直接返回行数据
+        if ($this->staticData !== null) {
+            return is_array($row) ? array_values($row) : [];
+        }
+
         if ($this->rowCallback) {
             return call_user_func($this->rowCallback, $row, $this->columns);
         }

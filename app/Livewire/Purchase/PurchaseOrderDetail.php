@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Purchase;
 
+use App\Exports\GenericExport;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\Supplier;
@@ -10,10 +11,13 @@ use App\Models\Sku;
 use App\Services\PurchaseService;
 use App\Livewire\Traits\WithToast;
 use Livewire\Component;
+use Livewire\WithFileUploads;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PurchaseOrderDetail extends Component
 {
     use WithToast;
+    use WithFileUploads;
 
     public PurchaseOrder $order;
     public $items;
@@ -28,12 +32,21 @@ class PurchaseOrderDetail extends Component
     public bool $showStockInModal = false;
     public int $stockInWarehouseId = 0;
     public string $stockInBatchNo = '';
-    public array $stockInItems = []; // [{id, actual_quantity, actual_price, discrepancy_reason}]
+    public array $stockInItems = [];
 
     // 状态操作确认
     public bool $showConfirmModal = false;
     public string $confirmAction = '';
     public string $confirmTitle = '';
+
+    // 导出
+    public bool $showExportModal = false;
+    public bool $exportActual = false;
+    public bool $exportDiscrepancy = false;
+
+    // 导入
+    public bool $showImportModal = false;
+    public $importFile = null;
 
     public function mount(int $id): void
     {
@@ -195,6 +208,112 @@ class PurchaseOrderDetail extends Component
     {
         $this->showStockInModal = false;
         $this->resetErrorBag();
+    }
+
+    // ── 导出 ──
+
+    public function openExportModal(): void
+    {
+        $this->showExportModal = true;
+    }
+
+    public function closeExportModal(): void
+    {
+        $this->showExportModal = false;
+    }
+
+    public function executeExport(): void
+    {
+        $columns = ['SKU编码', '商品名称', '采购数量', '采购单价', '采购金额'];
+
+        if ($this->exportActual) {
+            $columns[] = '实际数量';
+            $columns[] = '实际金额';
+        }
+        if ($this->exportDiscrepancy) {
+            $columns[] = '差异原因';
+        }
+
+        $items = $this->order->items()->with('sku.product')->get();
+
+        $data = $items->map(function ($item) {
+            $row = [
+                $item->sku?->sku_code ?? '',
+                $item->sku?->product?->name ?? '',
+                $item->quantity,
+                $item->price,
+                $item->amount,
+            ];
+
+            if ($this->exportActual) {
+                $row[] = $item->actual_quantity ?: '';
+                $row[] = $item->actual_amount ?: '';
+            }
+            if ($this->exportDiscrepancy) {
+                $row[] = $item->discrepancy_reason ?? '';
+            }
+
+            return $row;
+        })->toArray();
+
+        $fileName = '采购明细_' . $this->order->order_no . '_' . now()->format('Ymd_His') . '.xlsx';
+
+        $this->showExportModal = false;
+
+        Excel::download(new GenericExport($data, $columns), $fileName);
+    }
+
+    // ── 导入 ──
+
+    public function openImportModal(): void
+    {
+        $this->importFile = null;
+        $this->showImportModal = true;
+    }
+
+    public function closeImportModal(): void
+    {
+        $this->showImportModal = false;
+        $this->resetErrorBag();
+    }
+
+    public function executeImport(): void
+    {
+        $this->validate([
+            'importFile' => 'required|file|mimes:xlsx,xls,csv|max:10240',
+        ]);
+
+        try {
+            $rows = Excel::toCollection(null, $this->importFile)->first();
+            $imported = 0;
+
+            foreach ($rows as $index => $row) {
+                if ($index === 0) continue; // 跳过标题行
+
+                $skuCode = trim($row[0] ?? '');
+                $quantity = (int) ($row[1] ?? 0);
+                $price = (int) ($row[2] ?? 0);
+
+                if (! $skuCode || $quantity <= 0) continue;
+
+                $sku = Sku::where('sku_code', $skuCode)->first();
+                if (! $sku) continue;
+
+                try {
+                    $service = app(PurchaseService::class);
+                    $service->addItem($this->order, $sku->id, $quantity, $price);
+                    $imported++;
+                } catch (\Exception $e) {
+                    continue;
+                }
+            }
+
+            $this->loadOrder($this->order->id);
+            $this->showImportModal = false;
+            $this->toastSuccess("成功导入 {$imported} 条明细");
+        } catch (\Exception $e) {
+            $this->toastError('导入失败：' . $e->getMessage());
+        }
     }
 
     private function resetAddItemForm(): void

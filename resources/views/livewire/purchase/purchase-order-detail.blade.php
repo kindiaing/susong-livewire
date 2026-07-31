@@ -1,107 +1,164 @@
 <div class="p-6">
-    {{-- 返回 + 标题 + 操作按钮 --}}
-    <div class="flex items-center justify-between mb-6">
-        <div class="flex items-center gap-4">
-            <a href="{{ route('purchase-orders') }}" class="text-muted-foreground hover:text-foreground transition-colors">
+    {{-- 顶部：返回 + 单号 + 状态 + 操作按钮 --}}
+    <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+            <a href="{{ route('purchase-orders') }}" class="text-muted-foreground hover:text-foreground transition-colors" title="返回列表">
                 <x-ui.icon name="arrow-left" class="w-5 h-5" />
             </a>
-            <div>
-                <h1 class="text-2xl font-bold text-foreground">采购单 {{ $order->order_no }}</h1>
-                <p class="text-muted-foreground mt-1">
-                    供应商：{{ $order->supplier?->name ?? '-' }}
-                    @if($order->warehouse) ｜ 入库仓库：{{ $order->warehouse->name }} @endif
-                    @if($order->operator) ｜ 经办人：{{ $order->operator->name }} @endif
-                </p>
-            </div>
+            <h1 class="text-xl font-bold text-foreground">{{ $order->order_no }}</h1>
+            @php $sc = ['1'=>'yellow','2'=>'blue','3'=>'orange','4'=>'green','5'=>'green','9'=>'gray']; $c = $sc[$order->status] ?? 'gray'; @endphp
+            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $c }}-100 text-{{ $c }}-700">{{ $order->status_label }}</span>
         </div>
         <div class="flex items-center gap-2">
-            @php $sc = ['1'=>'yellow','2'=>'blue','3'=>'orange','4'=>'green','5'=>'green','9'=>'gray']; $c = $sc[$order->status] ?? 'gray'; @endphp
-            <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium bg-{{ $c }}-100 text-{{ $c }}-700">
-                {{ $order->status_label }}
-            </span>
-
             @if($order->status === 1)
-                <button wire:click="confirmSubmit" type="button" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">提交</button>
+                <button wire:click="confirmSubmit" type="button" class="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">提交</button>
             @elseif($order->status === 2)
-                <button wire:click="confirmShip" type="button" class="rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700 transition-colors">发货</button>
+                <button wire:click="confirmShip" type="button" class="rounded-md bg-orange-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-orange-700 transition-colors">发货</button>
             @elseif($order->status === 3)
-                <button wire:click="openStockInModal" type="button" class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors">入库</button>
+                <button wire:click="openStockInModal" type="button" class="rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 transition-colors">入库</button>
             @elseif($order->status === 4)
-                <button wire:click="confirmComplete" type="button" class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors">完成</button>
+                <button wire:click="confirmComplete" type="button" class="rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 transition-colors">完成</button>
             @endif
 
             @if(in_array($order->status, [1, 2, 3]))
-                <button wire:click="confirmCancel" type="button" class="rounded-md border border-red-300 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">取消</button>
+                <button wire:click="confirmCancel" type="button" class="rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">取消</button>
             @endif
         </div>
     </div>
 
-    {{-- 基本信息 --}}
-    <div class="grid grid-cols-4 gap-4 mb-6">
-        <div class="rounded-lg border bg-card p-4">
-            <p class="text-xs text-muted-foreground">总金额</p>
-            <p class="text-xl font-bold text-foreground mt-1">{{ money_format($order->total_amount) }}</p>
-        </div>
-        <div class="rounded-lg border bg-card p-4">
-            <p class="text-xs text-muted-foreground">实际入库金额</p>
-            <p class="text-xl font-bold text-foreground mt-1">{{ money_format($order->actual_amount) }}</p>
-        </div>
-        <div class="rounded-lg border bg-card p-4">
-            <p class="text-xs text-muted-foreground">下单时间</p>
-            <p class="text-sm text-foreground mt-1">{{ $order->ordered_at?->format('Y-m-d H:i') ?? '-' }}</p>
-        </div>
-        <div class="rounded-lg border bg-card p-4">
-            <p class="text-xs text-muted-foreground">入库时间</p>
-            <p class="text-sm text-foreground mt-1">{{ $order->stocked_at?->format('Y-m-d H:i') ?? '-' }}</p>
-        </div>
+    {{-- 单据摘要信息：一行横排 --}}
+    <div class="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-muted-foreground mb-4">
+        <span>供应商：<b class="text-foreground">{{ $order->supplier?->name ?? '-' }}</b></span>
+        @if($order->warehouse)<span>仓库：<b class="text-foreground">{{ $order->warehouse->name }}</b></span>@endif
+        @if($order->operator)<span>经办人：<b class="text-foreground">{{ $order->operator->name }}</b></span>@endif
+        <span>总金额：<b class="text-foreground">{{ money_format($order->total_amount) }}</b></span>
+        <span>实际金额：<b class="text-foreground">{{ money_format($order->actual_amount) }}</b></span>
+        <span>下单：<b class="text-foreground">{{ $order->ordered_at?->format('Y-m-d H:i') ?? '-' }}</b></span>
+        <span>入库：<b class="text-foreground">{{ $order->stocked_at?->format('Y-m-d H:i') ?? '-' }}</b></span>
+        @if($order->remark)<span>备注：<b class="text-foreground">{{ $order->remark }}</b></span>@endif
     </div>
 
-    {{-- 明细列表 --}}
+    {{-- 明细区：工具栏 + 表格 --}}
     <div class="rounded-lg border bg-card">
-        <div class="flex items-center justify-between px-6 py-4 border-b">
-            <h2 class="text-lg font-semibold text-foreground">采购明细</h2>
-            @if(in_array($order->status, [1, 2]))
-                <button wire:click="openAddItemModal" type="button" class="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">添加明细</button>
-            @endif
+        <div class="flex items-center justify-between px-4 py-2 border-b">
+            <h2 class="text-sm font-semibold text-foreground">采购明细</h2>
+            <div class="flex items-center gap-2">
+                @if(in_array($order->status, [1, 2]))
+                    <button wire:click="openImportModal" type="button" class="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1 text-xs hover:bg-accent transition-colors">
+                        <x-ui.icon name="arrow-up-tray" class="w-3.5 h-3.5" /> 导入
+                    </button>
+                @endif
+                <button wire:click="openExportModal" type="button" class="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1 text-xs hover:bg-accent transition-colors">
+                    <x-ui.icon name="arrow-down-tray" class="w-3.5 h-3.5" /> 导出
+                </button>
+                @if(in_array($order->status, [1, 2]))
+                    <button wire:click="openAddItemModal" type="button" class="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-blue-700 transition-colors">
+                        <x-ui.icon name="plus" class="w-3.5 h-3.5" /> 添加
+                    </button>
+                @endif
+            </div>
         </div>
-        <div class="grid grid-cols-[1fr_100px_100px_100px_100px_100px_40px] gap-3 px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b">
-            <div>SKU</div><div>采购数量</div><div>采购单价</div><div>采购金额</div><div>实际数量</div><div>实际金额</div><div></div>
+
+        {{-- 表头 --}}
+        <div class="grid grid-cols-[1fr_70px_80px_80px_70px_80px_30px] gap-1 px-3 py-1.5 text-[11px] font-medium text-muted-foreground border-b bg-muted/30">
+            <div>SKU</div><div class="text-right">数量</div><div class="text-right">单价</div><div class="text-right">金额</div><div class="text-right">实际数量</div><div class="text-right">实际金额</div><div></div>
         </div>
+
+        {{-- 表体 --}}
         @forelse($order->items as $item)
-            <div class="grid grid-cols-[1fr_100px_100px_100px_100px_100px_40px] gap-3 px-6 py-3 items-center border-b last:border-b-0 hover:bg-muted/30 transition-colors">
-                <div class="text-sm">
+            <div class="grid grid-cols-[1fr_70px_80px_80px_70px_80px_30px] gap-1 px-3 py-1.5 items-center border-b last:border-b-0 hover:bg-muted/30 transition-colors text-sm" wire:key="item-{{ $item->id }}">
+                <div class="truncate">
                     <span class="font-mono text-foreground">{{ $item->sku?->sku_code }}</span>
-                    <span class="text-muted-foreground ml-2">{{ $item->sku?->product?->name }}</span>
+                    <span class="text-muted-foreground ml-1">{{ $item->sku?->product?->name }}</span>
                 </div>
-                <div class="text-sm">{{ $item->quantity }}</div>
-                <div class="text-sm">{{ money_format($item->price) }}</div>
-                <div class="text-sm font-medium">{{ money_format($item->amount) }}</div>
-                <div class="text-sm {{ $item->actual_quantity && $item->actual_quantity != $item->quantity ? 'text-orange-600 font-medium' : '' }}">{{ $item->actual_quantity ?: '-' }}</div>
-                <div class="text-sm">{{ $item->actual_amount ? money_format($item->actual_amount) : '-' }}</div>
+                <div class="text-right tabular-nums">{{ $item->quantity }}</div>
+                <div class="text-right tabular-nums">{{ money_format($item->price) }}</div>
+                <div class="text-right tabular-nums font-medium">{{ money_format($item->amount) }}</div>
+                <div class="text-right tabular-nums {{ $item->actual_quantity && $item->actual_quantity != $item->quantity ? 'text-orange-600 font-medium' : '' }}">{{ $item->actual_quantity ?: '-' }}</div>
+                <div class="text-right tabular-nums">{{ $item->actual_amount ? money_format($item->actual_amount) : '-' }}</div>
                 <div>
                     @if(in_array($order->status, [1, 2]))
                         <button wire:click="removeItem({{ $item->id }})" type="button" class="text-red-500 hover:text-red-700">
-                            <x-ui.icon name="trash" class="w-4 h-4" />
+                            <x-ui.icon name="trash" class="w-3.5 h-3.5" />
                         </button>
                     @endif
                 </div>
             </div>
             @if($item->discrepancy_reason)
-                <div class="px-6 py-2 bg-orange-50 text-xs text-orange-700 border-b">
-                    差异原因：{{ $item->discrepancy_reason }}
+                <div class="px-3 py-0.5 bg-orange-50 text-[11px] text-orange-700 border-b">
+                    差异：{{ $item->discrepancy_reason }}
                 </div>
             @endif
         @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无明细</div>
+            <div class="px-3 py-6 text-center text-sm text-muted-foreground">暂无明细</div>
         @endforelse
     </div>
 
-    {{-- 备注 --}}
-    @if($order->remark)
-        <div class="mt-4 rounded-lg border bg-card p-4">
-            <p class="text-xs text-muted-foreground mb-1">备注</p>
-            <p class="text-sm text-foreground">{{ $order->remark }}</p>
+    {{-- 导出弹窗 --}}
+    @if($showExportModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" wire:click="closeExportModal"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
+            <h2 class="text-lg font-semibold text-foreground mb-4">导出采购明细</h2>
+            <div class="space-y-3">
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="exp-sku" checked disabled class="rounded border-input" />
+                    <label for="exp-sku" class="text-sm">SKU</label>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="exp-qty" checked disabled class="rounded border-input" />
+                    <label for="exp-qty" class="text-sm">采购数量</label>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="exp-price" checked disabled class="rounded border-input" />
+                    <label for="exp-price" class="text-sm">采购单价</label>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="exp-amount" checked disabled class="rounded border-input" />
+                    <label for="exp-amount" class="text-sm">采购金额</label>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="exp-actual" wire:model="exportActual" class="rounded border-input" />
+                    <label for="exp-actual" class="text-sm">实际入库数量/金额</label>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="exp-discrepancy" wire:model="exportDiscrepancy" class="rounded border-input" />
+                    <label for="exp-discrepancy" class="text-sm">差异原因</label>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button wire:click="closeExportModal" type="button" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button wire:click="executeExport" type="button" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">导出 Excel</button>
+            </div>
         </div>
+    </div>
+    @endif
+
+    {{-- 导入弹窗 --}}
+    @if($showImportModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" wire:click="closeImportModal"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
+            <h2 class="text-lg font-semibold text-foreground mb-4">导入采购明细</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">选择 Excel 文件</label>
+                    <input type="file" wire:model="importFile" accept=".xlsx,.xls,.csv" class="block w-full text-sm text-muted-foreground
+                        file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium
+                        file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                    @error('importFile') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div class="rounded-md bg-muted p-3 text-xs text-muted-foreground">
+                    <p class="font-medium mb-1">导入模板列：</p>
+                    <p>SKU编码 | 数量 | 采购单价(厘)</p>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button wire:click="closeImportModal" type="button" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button wire:click="executeImport" type="button" class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors">导入</button>
+            </div>
+        </div>
+    </div>
     @endif
 
     {{-- 添加明细弹窗 --}}
@@ -168,12 +225,12 @@
                 {{-- 逐行入库明细 --}}
                 <div class="rounded-lg border">
                     <div class="grid grid-cols-[1fr_80px_80px_80px_80px_1fr] gap-2 px-4 py-2 text-xs font-medium text-muted-foreground border-b">
-                        <div>SKU</div><div>采购数</div><div>实际数量</div><div>实际单价(厘)</div><div>差异</div><div>差异原因</div>
+                        <div>SKU</div><div class="text-right">采购数</div><div>实际数量</div><div>实际单价(厘)</div><div class="text-right">差异</div><div>差异原因</div>
                     </div>
                     @foreach($stockInItems as $i => $item)
                         <div class="grid grid-cols-[1fr_80px_80px_80px_80px_1fr] gap-2 px-4 py-2 items-center border-b last:border-b-0 text-sm">
                             <div class="text-foreground truncate">{{ $item['sku_name'] }}</div>
-                            <div class="text-muted-foreground">{{ $item['quantity'] }}</div>
+                            <div class="text-muted-foreground text-right">{{ $item['quantity'] }}</div>
                             <div>
                                 <input type="number" wire:model="stockInItems.{{ $i }}.actual_quantity" min="0" class="w-full h-7 rounded border border-input bg-background px-2 text-sm" />
                             </div>

@@ -50,6 +50,23 @@ class SkuSupplier extends Model
     }
 
     /**
+     * 模型启动方法
+     *
+     * 默认供应商互斥：同一 SKU 只能有一个 is_default=1
+     */
+    protected static function booted(): void
+    {
+        static::saved(function (SkuSupplier $model) {
+            if ($model->is_default == 1) {
+                static::where('sku_id', $model->sku_id)
+                    ->where('is_default', 1)
+                    ->where('id', '!=', $model->id)
+                    ->update(['is_default' => 0]);
+            }
+        });
+    }
+
+    /**
      * 状态映射
      */
     public static function statusMap(): array
