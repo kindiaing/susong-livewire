@@ -20,7 +20,7 @@ use Illuminate\Support\Carbon;
  * @property int $min_order_amount 起送金额（厘）
  * @property int $settlement_type 结算方式：1现结，2账期，3预付款
  * @property int $credit_limit 信用额度（厘）
- * @property int $status 状态：1启用，2禁用
+ * @property int $status 状态：0禁用，1启用
  * @property string|null $remark 备注
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -35,9 +35,9 @@ class Merchant extends Model
     public const SETTLEMENT_CREDIT = 2;
     public const SETTLEMENT_PREPAID = 3;
 
-    // 状态常量
+    // 状态常量（统一：0禁用，1启用）
     public const STATUS_ENABLED = 1;
-    public const STATUS_DISABLED = 2;
+    public const STATUS_DISABLED = 0;
 
     protected $fillable = [
         'user_id',

@@ -29,6 +29,10 @@ class MerchantList extends Component
     public ?int $editingId = null;
     public ?int $deletingId = null;
 
+    public ?int $filterStatus = null;
+    public ?int $filterSettlementType = null;
+    public ?int $filterRouteId = null;
+
     public string $formName = '';
     public string $formContactName = '';
     public string $formContactPhone = '';
@@ -131,6 +135,9 @@ class MerchantList extends Component
     public function resetFilters(): void
     {
         $this->search = '';
+        $this->filterStatus = null;
+        $this->filterSettlementType = null;
+        $this->filterRouteId = null;
         $this->resetPage();
         $this->clearSelection();
     }
@@ -153,7 +160,7 @@ class MerchantList extends Component
         return [
             ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true, 'width' => '60px'],
             ['key' => 'name', 'label' => '名称', 'sortable' => true, 'exportable' => true, 'width' => '1fr'],
-            ['key' => 'contact_person', 'label' => '联系人', 'sortable' => false, 'exportable' => true, 'width' => '100px'],
+            ['key' => 'contact_name', 'label' => '联系人', 'sortable' => false, 'exportable' => true, 'width' => '100px'],
             ['key' => 'contact_phone', 'label' => '联系电话', 'sortable' => false, 'exportable' => true, 'width' => '120px'],
             ['key' => 'settlement_type', 'label' => '结算方式', 'sortable' => false, 'exportable' => true, 'width' => '80px'],
             ['key' => 'min_order_amount', 'label' => '起送额', 'sortable' => false, 'exportable' => true, 'type' => 'money', 'width' => '80px'],
@@ -167,23 +174,17 @@ class MerchantList extends Component
 
     public function getDefaultColumns(): array
     {
-        return ['name', 'contact_person', 'contact_phone', 'status', 'created_at'];
+        return ['name', 'contact_name', 'contact_phone', 'status', 'created_at'];
     }
 
     public function getExportQuery()
     {
-        return Merchant::when($this->search, function ($q) {
-            $q->where(function ($q2) {
-                $q2->where('name', 'like', "%{$this->search}%")
-                    ->orWhere('contact_name', 'like', "%{$this->search}%")
-                    ->orWhere('contact_phone', 'like', "%{$this->search}%");
-            });
-        })->orderBy('id', 'desc');
+        return $this->applyFilters(Merchant::query())->orderBy('id', 'desc');
     }
 
     public function getExportFileName(): string
     {
-        return '商家_' . now()->format('Ymd_His');
+        return '商家_'.now()->format('Ymd_His');
     }
 
     public function getImportModelClass(): string
@@ -203,9 +204,31 @@ class MerchantList extends Component
         ];
     }
 
+    public function getImportUniqueBy(): array
+    {
+        return ['name'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['名称', '联系人', '联系电话', '地址', '状态'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [
+            'status' => [
+                '启用' => 1,
+                '禁用' => 0,
+                '1' => 1,
+                '0' => 0,
+            ],
+        ];
+    }
+
     public function getPageIds(): array
     {
-        return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
+        return $this->getExportQuery()->forPage($this->getPage(), 10)->pluck('id')->toArray();
     }
 
     private function resetForm(): void
@@ -224,19 +247,28 @@ class MerchantList extends Component
         $this->formRemark = '';
     }
 
-    public function render()
+    private function applyFilters($query)
     {
-        $query = Merchant::with('deliveryRoute')->orderBy('id', 'desc');
-
-        if ($this->search) {
-            $query->where(function ($q) {
-                $q->where('name', 'like', "%{$this->search}%")
+        return $query->when($this->search, function ($q) {
+            $q->where(function ($q2) {
+                $q2->where('name', 'like', "%{$this->search}%")
                     ->orWhere('contact_name', 'like', "%{$this->search}%")
                     ->orWhere('contact_phone', 'like', "%{$this->search}%");
             });
-        }
+        })->when($this->filterStatus !== null, function ($q) {
+            $q->where('status', $this->filterStatus);
+        })->when($this->filterSettlementType !== null, function ($q) {
+            $q->where('settlement_type', $this->filterSettlementType);
+        })->when($this->filterRouteId !== null, function ($q) {
+            $q->where('delivery_route_id', $this->filterRouteId);
+        });
+    }
 
-        $merchants = $query->paginate(20);
+    public function render()
+    {
+        $query = $this->applyFilters(Merchant::with('deliveryRoute'))->orderBy('id', 'desc');
+
+        $merchants = $query->paginate(10);
         $routes = DeliveryRoute::enabled()->ordered()->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);

@@ -18,7 +18,33 @@
             class="flex h-9 w-64 rounded-md border border-input bg-background px-3 text-sm"
             placeholder="搜索商家名称/联系人/电话..."
         />
-        <button wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
+        <select
+            wire:model.live="filterStatus"
+            class="flex h-9 w-32 rounded-md border border-input bg-background px-3 text-sm"
+        >
+            <option value="">全部状态</option>
+            <option value="1">启用</option>
+            <option value="0">禁用</option>
+        </select>
+        <select
+            wire:model.live="filterSettlementType"
+            class="flex h-9 w-32 rounded-md border border-input bg-background px-3 text-sm"
+        >
+            <option value="">全部结算</option>
+            <option value="1">现结</option>
+            <option value="2">账期</option>
+            <option value="3">预付款</option>
+        </select>
+        <select
+            wire:model.live="filterRouteId"
+            class="flex h-9 w-36 rounded-md border border-input bg-background px-3 text-sm"
+        >
+            <option value="">全部线路</option>
+            @foreach($routes as $route)
+                <option value="{{ $route->id }}">{{ $route->name }}</option>
+            @endforeach
+        </select>
+        <button type="button" wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
         <div class="flex-1"></div>
         <button wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">列配置</button>
         <button wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导入</button>

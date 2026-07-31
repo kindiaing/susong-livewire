@@ -18,7 +18,23 @@
             class="flex h-9 w-64 rounded-md border border-input bg-background px-3 text-sm"
             placeholder="搜索姓名/手机号/身份证..."
         />
-        <button wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
+        <select
+            wire:model.live="filterStatus"
+            class="flex h-9 w-32 rounded-md border border-input bg-background px-3 text-sm"
+        >
+            <option value="">全部状态</option>
+            <option value="1">启用</option>
+            <option value="0">禁用</option>
+        </select>
+        <select
+            wire:model.live="filterOnlineStatus"
+            class="flex h-9 w-32 rounded-md border border-input bg-background px-3 text-sm"
+        >
+            <option value="">全部在线</option>
+            <option value="1">在线</option>
+            <option value="0">离线</option>
+        </select>
+        <button type="button" wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
         <div class="flex-1"></div>
         <button wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">列配置</button>
         <button wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导入</button>

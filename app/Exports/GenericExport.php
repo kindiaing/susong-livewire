@@ -8,6 +8,10 @@ use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Style\Color;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 /**
  * 通用导出类
@@ -16,7 +20,7 @@ use Maatwebsite\Excel\Concerns\WithMapping;
  * 金额列处理：通过 $moneyColumns 显式声明（厘→元 ÷1000），
  * 不再用正则猜测列名，避免误命中和除数错误。
  */
-class GenericExport implements FromCollection, ShouldAutoSize, WithChunkReading, WithHeadings, WithMapping
+class GenericExport implements FromCollection, ShouldAutoSize, WithChunkReading, WithHeadings, WithMapping, WithStyles
 {
     protected ?Builder $query;
 
@@ -35,12 +39,18 @@ class GenericExport implements FromCollection, ShouldAutoSize, WithChunkReading,
      */
     protected array $moneyColumns;
 
+    /**
+     * 必填列表头（中文标签），模板导出时表头标红
+     */
+    protected array $requiredHeadings;
+
     public function __construct(
         $queryOrData = null,
         array $columns = [],
         array $columnLabels = [],
         ?callable $rowCallback = null,
         array $moneyColumns = [],
+        array $requiredHeadings = [],
     ) {
         // 支持纯数组数据（用于非模型导出 / 导入模板）
         if (is_array($queryOrData)) {
@@ -51,6 +61,7 @@ class GenericExport implements FromCollection, ShouldAutoSize, WithChunkReading,
             $this->columnLabels = [];
             $this->rowCallback = null;
             $this->moneyColumns = [];
+            $this->requiredHeadings = $requiredHeadings;
         } else {
             $this->query = $queryOrData;
             $this->columns = $columns;
@@ -59,6 +70,7 @@ class GenericExport implements FromCollection, ShouldAutoSize, WithChunkReading,
             $this->staticData = null;
             $this->staticHeadings = null;
             $this->moneyColumns = $moneyColumns;
+            $this->requiredHeadings = $requiredHeadings;
         }
     }
 
@@ -127,5 +139,40 @@ class GenericExport implements FromCollection, ShouldAutoSize, WithChunkReading,
         }
 
         return $result;
+    }
+
+    /**
+     * 表头样式：必填列红色加粗 + 淡红背景
+     */
+    public function styles(Worksheet $sheet): array
+    {
+        if (empty($this->requiredHeadings)) {
+            return [];
+        }
+
+        $headings = $this->headings();
+        $styles = [];
+
+        // 默认表头行样式
+        $styles[1] = ['font' => ['bold' => true]];
+
+        foreach ($headings as $colIndex => $heading) {
+            if (in_array($heading, $this->requiredHeadings)) {
+                $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex + 1);
+                $cellRef = $colLetter . '1';
+                $styles[$cellRef] = [
+                    'font' => [
+                        'bold' => true,
+                        'color' => ['rgb' => 'DC2626'],
+                    ],
+                    'fill' => [
+                        'fillType' => Fill::FILL_SOLID,
+                        'startColor' => ['rgb' => 'FEE2E2'],
+                    ],
+                ];
+            }
+        }
+
+        return $styles;
     }
 }

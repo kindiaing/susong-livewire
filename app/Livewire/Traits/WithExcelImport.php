@@ -131,4 +131,13 @@ trait WithExcelImport
     {
         return [];
     }
+
+    /**
+     * 组件覆盖：必填列中文名列表（用于导入弹窗提示 + 模板表头红色标记）
+     * 返回中文列名数组，如 ['名称', '联系人', '状态']
+     */
+    public function getImportRequiredFields(): array
+    {
+        return [];
+    }
 }

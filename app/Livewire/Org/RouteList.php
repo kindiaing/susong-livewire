@@ -176,9 +176,31 @@ class RouteList extends Component
         ];
     }
 
+    public function getImportUniqueBy(): array
+    {
+        return ['name'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['线路名', '状态'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [
+            'status' => [
+                '启用' => 1,
+                '禁用' => 0,
+                '1' => 1,
+                '0' => 0,
+            ],
+        ];
+    }
+
     public function getPageIds(): array
     {
-        return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
+        return $this->getExportQuery()->forPage($this->getPage(), 10)->pluck('id')->toArray();
     }
 
     public function render()
@@ -192,7 +214,7 @@ class RouteList extends Component
             });
         }
 
-        $routes = $query->paginate(20);
+        $routes = $query->paginate(10);
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 

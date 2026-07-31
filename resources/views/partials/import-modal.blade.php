@@ -2,14 +2,40 @@
 @if($showImportModal)
 <div class="fixed inset-0 z-50 flex items-center justify-center">
     <div class="fixed inset-0 bg-black/50" wire:click="closeImportModal"></div>
-    <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
+    <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6">
         <h2 class="text-lg font-semibold text-foreground mb-4">批量导入</h2>
         <div class="space-y-4">
+            {{-- 说明区域 --}}
+            <div class="rounded-md bg-muted/40 px-3 py-2.5 space-y-1">
+                @php
+                    $requiredFields = method_exists($this, 'getImportRequiredFields') ? $this->getImportRequiredFields() : [];
+                    $uniqueFields = method_exists($this, 'getImportUniqueBy') ? $this->getImportUniqueBy() : [];
+                @endphp
+                @if(!empty($requiredFields))
+                    <div class="text-xs text-foreground">
+                        <span class="font-medium">必填列：</span>
+                        @foreach($requiredFields as $i => $field)
+                            @if($i > 0)、@endif
+                            <span class="text-red-600 font-medium">{{ $field }}</span>
+                        @endforeach
+                    </div>
+                @endif
+                @if(!empty($uniqueFields))
+                    <div class="text-xs text-foreground">
+                        <span class="font-medium">唯一验证：</span>
+                        @foreach($uniqueFields as $i => $field)
+                            @if($i > 0)、@endif
+                            <span class="text-blue-600 font-medium">{{ $field }}</span>
+                        @endforeach
+                        <span class="text-muted-foreground ml-1">（重复数据将跳过）</span>
+                    </div>
+                @endif
+            </div>
             <div class="flex items-center gap-3">
                 <button wire:click="downloadImportTemplate" class="rounded-md border border-input px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors">
                     下载模板
                 </button>
-                <span class="text-xs text-muted-foreground">请先下载模板填写数据</span>
+                <span class="text-xs text-muted-foreground">请先下载模板填写数据，<span class="text-red-600">红色列头</span>为必填</span>
             </div>
             <div>
                 <label class="block text-sm font-medium text-foreground mb-2">选择文件</label>
