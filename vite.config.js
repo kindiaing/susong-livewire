@@ -10,9 +10,10 @@ export default defineConfig({
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.js'],
             refresh: true,
-            fonts: {
-                optimizedFallbacks: false
-            }
+            fonts: [
+                {
+                    optimizedFallbacks: false
+                }
             // fonts: [
             //     bunny('Instrument Sans', {
             //         weights: [400, 500, 600],
