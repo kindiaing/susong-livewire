@@ -16,7 +16,7 @@
             <option value="-1">全部支付</option>
             <option value="1">未支付</option><option value="2">已支付</option><option value="3">账期</option>
         </select>
-        <button type="button" wire:click="s" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
+        <button type="button" wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
     </div>
     <div class="rounded-lg border bg-card">
         <div class="grid grid-cols-[60px_120px_1fr_100px_80px_100px_80px_80px_100px] gap-2 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -40,7 +40,7 @@
                 </div>
                 <div>
                     @can('order.order.delete')
-                    <button type="button" wire:click=")" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                    <button type="button" wire:click="confirmDelete({{ $order->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
                     @endcan
                 </div>
             </div>
@@ -57,7 +57,7 @@
             <p class="text-sm text-muted-foreground mb-6">确定要删除该订单吗？</p>
             <div class="flex justify-end gap-3">
                 <button type="button" wire:click="closeDeleteConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button type="button" wire:click="e" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>
+                <button type="button" wire:click="delete" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>
             </div>
         </div>
     </div>

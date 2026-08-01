@@ -55,7 +55,7 @@
                                 <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 13.5-13.5"/></svg>
                             </span>
                         @else
-                            <button wire:click="toggleStatus({{ $user->id }})" type="button" title="{{ $user->status === 1 ? '点击禁用' : '点击启用' }}" class="inline-flex items-center justify-center">
+                            <button type="button" wire:click="toggleStatus({{ $user->id }})" type="button" title="{{ $user->status === 1 ? '点击禁用' : '点击启用' }}" class="inline-flex items-center justify-center">
                                 @if($user->status === 1)
                                     <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-500 hover:bg-green-600 transition-colors">
                                         <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 13.5-13.5"/></svg>
@@ -175,7 +175,7 @@
             </div>
             <div class="flex justify-end gap-3 mt-6">
                 <button type="button" wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button type="button" wire:click="e" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
+                <button type="button" wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
             </div>
         </div>
     </div>
@@ -235,7 +235,7 @@
             </div>
             <div class="flex justify-end gap-3 mt-6">
                     <button type="button" wire:click="closeRoleModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button type="button" wire:click="s" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
+                <button type="button" wire:click="saveRoles" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
             </div>
         </div>
     </div>

@@ -42,7 +42,7 @@
             class="flex h-9 rounded-md border border-input bg-background px-3 text-sm"
         />
 
-        <button type="button" wire:click="s" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <button type="button" wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
             重置
         </button>
 
@@ -50,11 +50,11 @@
 
         @if($selectedCount > 0)
         <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
-        <button type="button" wire:click="e" class="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
-        <button type="button" wire:click="n" class="text-xs text-muted-foreground hover:text-foreground">取消选择</button>
+        <button type="button" wire:click="batchDelete" class="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
+        <button type="button" wire:click="clearSelection" class="text-xs text-muted-foreground hover:text-foreground">取消选择</button>
         @endif
-        <button type="button" wire:click="l" class="rounded-md border border-input px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors">列配置</button>
-        <button type="button" wire:click="l" class="rounded-md border border-input px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors">导出</button>
+        <button type="button" wire:click="openColumnModal" class="rounded-md border border-input px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors">列配置</button>
+        <button type="button" wire:click="openExportModal" class="rounded-md border border-input px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors">导出</button>
     </div>
 
     {{-- 日志列表 --}}

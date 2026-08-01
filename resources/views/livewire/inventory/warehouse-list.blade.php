@@ -6,7 +6,7 @@
             <p class="text-muted-foreground mt-1">管理仓库信息及冷链配置</p>
         </div>
         @can('inventory.warehouse.create')
-        <button type="button" wire:click="l" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+        <button type="button" wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
             新增仓库
         </button>
         @endcan
@@ -25,7 +25,7 @@
             <option value="1">启用</option>
             <option value="0">禁用</option>
         </select>
-        <button type="button" wire:click="s" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
+        <button type="button" wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
     </div>
 
     {{-- 列表 --}}
@@ -57,10 +57,10 @@
                 </div>
                 <div class="flex items-center gap-2">
                     @can('inventory.warehouse.edit')
-                    <button type="button" wire:click=")" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                    <button type="button" wire:click="openEditModal({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
                     @endcan
                     @can('inventory.warehouse.delete')
-                    <button type="button" wire:click=")" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                    <button type="button" wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
                     @endcan
                 </div>
             </div>
@@ -117,7 +117,7 @@
             </div>
             <div class="flex justify-end gap-3 mt-6">
                 <button type="button" wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button type="button" wire:click="e" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
+                <button type="button" wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
             </div>
         </div>
     </div>
@@ -132,7 +132,7 @@
             <p class="text-sm text-muted-foreground mb-6">确定要删除该仓库吗？此操作不可恢复。</p>
             <div class="flex justify-end gap-3">
                 <button type="button" wire:click="closeDeleteConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button type="button" wire:click="e" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>
+                <button type="button" wire:click="delete" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>
             </div>
         </div>
     </div>

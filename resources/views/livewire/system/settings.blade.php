@@ -24,7 +24,7 @@
         <div class="w-48 shrink-0">
             <nav class="sticky top-6 space-y-1">
                 @foreach($groups as $groupKey => $groupLabel)
-                    <button type="button" wire:click=")"
+                    <button type="button" wire:click="setActiveGroup('{{ $groupKey }}')"
                         class="w-full text-left px-3 py-2 text-sm rounded-md transition-colors {{ $activeGroup === $groupKey ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground' }}"
                     >
                         {{ $groupLabel }}
@@ -120,26 +120,26 @@
                         {{-- 操作按钮 --}}
                         <div class="flex justify-end gap-1">
                             @if($editingId === $config->id)
-                                <button type="button" wire:click="t"
+                                <button type="button" wire:click="saveEdit"
                                     class="inline-flex items-center justify-center rounded px-2 py-1 text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
                                 >
                                     保存
                                 </button>
-                                <button type="button" wire:click="t"
+                                <button type="button" wire:click="cancelEdit"
                                     class="inline-flex items-center justify-center rounded px-2 py-1 text-xs font-medium bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
                                 >
                                     取消
                                 </button>
                             @else
                                 @if(!$config->is_readonly)
-                                    <button type="button" wire:click=")"
+                                    <button type="button" wire:click="startEdit({{ $config->id }})"
                                         class="inline-flex items-center justify-center rounded px-2 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors"
                                     >
                                         编辑
                                     </button>
                                 @endif
                                 @if($config->default_value && $config->config_value !== $config->default_value && !$config->is_readonly)
-                                    <button type="button" wire:click=")"
+                                    <button type="button" wire:click="resetToDefault({{ $config->id }})"
                                         class="inline-flex items-center justify-center rounded px-2 py-1 text-xs font-medium text-orange-600 hover:bg-orange-50 transition-colors"
                                         onclick="return confirm('确认重置为默认值？')"
                                     >

@@ -28,7 +28,7 @@
             ];
         @endphp
         @foreach($tabs as $key => $tab)
-            <button type="button" wire:click=")"
+            <button type="button" wire:click="setActiveTab('{{ $key }}')"
                 class="px-4 py-2 text-sm font-medium border-b-2 transition-colors {{ $activeTab === $key ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground' }}"
             >
                 {{ $tab['label'] }}
@@ -121,7 +121,7 @@
                 {{-- 弹窗头 --}}
                 <div class="flex items-center justify-between border-b px-6 py-4">
                     <h2 class="text-lg font-semibold text-foreground">审批详情</h2>
-                    <button type="button" wire:click="l" class="p-1 rounded-md hover:bg-muted text-muted-foreground">
+                    <button type="button" wire:click="closeDetail" class="p-1 rounded-md hover:bg-muted text-muted-foreground">
                         <x-ui.icon name="x" class="w-5 h-5" />
                     </button>
                 </div>
@@ -230,8 +230,7 @@
                                     variant="info"
                                     :confirmAction="'$wire.withdraw(' . $detailApproval->id . ')'"
                                 >
-                                    <button
-                                        class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
+                                    <button type="button" class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
                                     >
                                         撤回
                                     </button>
@@ -244,8 +243,7 @@
                                     variant="destructive"
                                     :confirmAction="'$wire.reject(' . $detailApproval->id . ')'"
                                 >
-                                    <button
-                                        class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-colors"
+                                    <button type="button" class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-colors"
                                     >
                                         拒绝
                                     </button>
@@ -258,8 +256,7 @@
                                     variant="warning"
                                     :confirmAction="'$wire.approve(' . $detailApproval->id . ')'"
                                 >
-                                    <button
-                                        class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
+                                    <button type="button" class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
                                     >
                                         通过
                                     </button>

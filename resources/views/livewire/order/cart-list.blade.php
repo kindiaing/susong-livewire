@@ -7,7 +7,7 @@
     </div>
     <div class="flex items-center gap-3 mb-4">
         <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background px-3 text-sm" placeholder="搜索商家名称..." />
-        <button type="button" wire:click="s" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
+        <button type="button" wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
     </div>
     <div class="rounded-lg border bg-card">
         <div class="grid grid-cols-[60px_1fr_1fr_80px_80px_100px_80px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -21,7 +21,7 @@
                 <div class="text-sm font-mono text-foreground">{{ $item->sku?->sku_code ?? '-' }}</div>
                 <div class="text-sm text-foreground">{{ $item->quantity }}</div>
                 <div class="text-sm text-foreground">{{ $item->price }}</div>
-                <div>@can('order.cart.delete')<button type="button" wire:click=")" class="text-red-600 hover:text-red-700 text-sm">删除</button>@endcan</div>
+                <div>@can('order.cart.delete')<button type="button" wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>@endcan</div>
             </div>
         @empty
             <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无购物车数据</div>
@@ -36,7 +36,7 @@
             <p class="text-sm text-muted-foreground mb-6">确定要删除该购物车项吗？</p>
             <div class="flex justify-end gap-3">
                 <button type="button" wire:click="closeDeleteConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button type="button" wire:click="e" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>
+                <button type="button" wire:click="delete" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>
             </div>
         </div>
     </div>

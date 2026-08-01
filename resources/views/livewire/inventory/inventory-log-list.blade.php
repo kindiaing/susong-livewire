@@ -25,7 +25,7 @@
                 <option value="{{ $w->id }}">{{ $w->name }}</option>
             @endforeach
         </select>
-        <button type="button" wire:click="s" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
+        <button type="button" wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
     </div>
 
     {{-- 列表 --}}

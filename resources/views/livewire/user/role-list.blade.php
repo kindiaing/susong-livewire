@@ -109,7 +109,7 @@
             </div>
             <div class="flex justify-end gap-3 mt-6">
                 <button type="button" wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button type="button" wire:click="e" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
+                <button type="button" wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
             </div>
         </div>
     </div>
@@ -234,7 +234,7 @@
                 <div class="text-xs text-muted-foreground">已选 {{ count($formPermissionIds) }} 项权限</div>
                 <div class="flex gap-3">
                     <button type="button" wire:click="closePermissionModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                    <button type="button" wire:click="s" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
+                    <button type="button" wire:click="savePermissions" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
                 </div>
             </div>
         </div>

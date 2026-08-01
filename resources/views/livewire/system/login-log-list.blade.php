@@ -6,17 +6,17 @@
     </div>
     <div class="flex items-center gap-3 mb-4">
         <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background px-3 text-sm" placeholder="搜索用户名..." />
-        <button type="button" wire:click="s" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
+        <button type="button" wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
         <div class="flex-1"></div>
         @if($selectedCount > 0)
         <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
         @can('system.login-log.delete')
-        <button type="button" wire:click="e" class="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
+        <button type="button" wire:click="batchDelete" class="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
         @endcan
-        <button type="button" wire:click="n" class="text-xs text-muted-foreground hover:text-foreground">取消选择</button>
+        <button type="button" wire:click="clearSelection" class="text-xs text-muted-foreground hover:text-foreground">取消选择</button>
         @endif
-        <button type="button" wire:click="l" class="rounded-md border border-input px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors">列配置</button>
-        <button type="button" wire:click="l" class="rounded-md border border-input px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors">导出</button>
+        <button type="button" wire:click="openColumnModal" class="rounded-md border border-input px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors">列配置</button>
+        <button type="button" wire:click="openExportModal" class="rounded-md border border-input px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors">导出</button>
     </div>
     <div class="rounded-lg border bg-card">
         <div class="grid grid-cols-[40px_60px_100px_1fr_1fr_120px] gap-2 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">

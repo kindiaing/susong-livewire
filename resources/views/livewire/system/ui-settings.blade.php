@@ -51,8 +51,7 @@
                                 <p class="text-sm font-medium text-foreground">点击旁边关闭通知</p>
                                 <p class="text-xs text-muted-foreground mt-0.5">开启后，点击通知面板外的区域将自动关闭通知菜单</p>
                             </div>
-                            <button type="button"
-                                wire:click="toggleCloseOnOutside"
+                            <button type="button" wire:click="toggleCloseOnOutside"
                                 role="switch"
                                 :aria-checked="$wire.closeOnOutside"
                                 class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {{ $closeOnOutside ? 'bg-primary' : 'bg-muted' }}"

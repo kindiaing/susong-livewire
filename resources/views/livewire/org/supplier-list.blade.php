@@ -107,15 +107,15 @@
                 @endforeach
                 <div class="flex items-center gap-2">
                     @can('org.supplier.edit')
-                    <button type="button" wire:click=")" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                    <button type="button" wire:click="openEditModal({{ $supplier->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
                     @endcan
                     @can('org.supplier.edit')
-                    <button type="button" wire:click=")" class="text-sm {{ $supplier->status === 1 ? 'text-orange-600 hover:text-orange-700' : 'text-green-600 hover:text-green-700' }}">
+                    <button type="button" wire:click="toggleStatus({{ $supplier->id }})" class="text-sm {{ $supplier->status === 1 ? 'text-orange-600 hover:text-orange-700' : 'text-green-600 hover:text-green-700' }}">
                         {{ $supplier->status === 1 ? '禁用' : '启用' }}
                     </button>
                     @endcan
                     @can('org.supplier.delete')
-                    <button type="button" wire:click=")" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                    <button type="button" wire:click="confirmDelete({{ $supplier->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
                     @endcan
                 </div>
             </div>

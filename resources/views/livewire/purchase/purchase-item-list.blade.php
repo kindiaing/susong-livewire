@@ -5,9 +5,9 @@
             <p class="text-muted-foreground mt-1">自动汇总待采商品，一键生成采购单</p>
         </div>
         @can('purchase.restock-reminder.create')
-        <button wire:click="openCreateModal" type="button" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">新增待采项</button>
+        <button type="button" wire:click="openCreateModal" type="button" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">新增待采项</button>
         @endcan
-        <button wire:click="confirmGenerateOrders" type="button" class="inline-flex items-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors">批量生成采购单</button>
+        <button type="button" wire:click="confirmGenerateOrders" type="button" class="inline-flex items-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors">批量生成采购单</button>
     </div>
     <div class="flex items-center gap-3 mb-4">
         <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background px-3 text-sm" placeholder="搜索SKU编码..." />
@@ -16,7 +16,7 @@
             <option value="1">待生成</option>
             <option value="2">已生成</option>
         </select>
-        <button type="button" wire:click="s" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
+        <button type="button" wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
     </div>
     <div class="rounded-lg border bg-card">
         <div class="grid grid-cols-[60px_1fr_100px_100px_80px_80px_100px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -35,10 +35,10 @@
                 </div>
                 <div class="flex items-center gap-2">
                     @can('purchase.restock-reminder.edit')
-                    <button type="button" wire:click=")" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                    <button type="button" wire:click="openEditModal({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
                     @endcan
                     @can('purchase.restock-reminder.delete')
-                    <button type="button" wire:click=")" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                    <button type="button" wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
                     @endcan
                 </div>
             </div>
@@ -74,8 +74,8 @@
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">
-                <button wire:click="closeModal" type="button" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button wire:click="save" type="button" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
+                <button type="button" wire:click="closeModal" type="button" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="save" type="button" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
             </div>
         </div>
     </div>
@@ -87,8 +87,8 @@
             <h2 class="text-lg font-semibold text-foreground mb-2">确认生成采购单</h2>
             <p class="text-sm text-muted-foreground mb-6">将按供应商自动分组，每个供应商生成一个采购单。已勾选的待采项将标记为已生成。</p>
             <div class="flex justify-end gap-3">
-                <button wire:click="closeGenerateConfirm" type="button" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button wire:click="generateOrders" type="button" class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors">确认生成</button>
+                <button type="button" wire:click="closeGenerateConfirm" type="button" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="generateOrders" type="button" class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors">确认生成</button>
             </div>
         </div>
     </div>
@@ -100,8 +100,8 @@
             <h2 class="text-lg font-semibold text-foreground mb-2">确认删除</h2>
             <p class="text-sm text-muted-foreground mb-6">确定要删除该待采项吗？</p>
             <div class="flex justify-end gap-3">
-                <button wire:click="closeDeleteConfirm" type="button" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button wire:click="delete" type="button" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>
+                <button type="button" wire:click="closeDeleteConfirm" type="button" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="delete" type="button" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>
             </div>
         </div>
     </div>
