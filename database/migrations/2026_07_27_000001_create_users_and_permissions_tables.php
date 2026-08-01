@@ -103,9 +103,9 @@ return new class extends Migration
         $now = now();
         DB::table('roles')->insert([
             ['name' => 'super_admin', 'guard_name' => 'web', 'display_name' => '超级管理员', 'description' => '全部功能、系统配置、账号管理', 'created_at' => $now, 'updated_at' => $now],
-            ['name' => 'operator', 'guard_name' => 'web', 'display_name' => '运营管理员', 'description' => '商品、订单、商家、供应商管理', 'created_at' => $now, 'updated_at' => $now],
+            ['name' => 'operator', 'guard_name' => 'web', 'display_name' => '运营专员', 'description' => '商品、订单、商家、供应商管理', 'created_at' => $now, 'updated_at' => $now],
             ['name' => 'operator_manager', 'guard_name' => 'web', 'display_name' => '运营经理', 'description' => '运营审核、商品/订单/价格策略审核确认', 'created_at' => $now, 'updated_at' => $now],
-            ['name' => 'finance', 'guard_name' => 'web', 'display_name' => '财务人员', 'description' => '应收、结算、发票、审计', 'created_at' => $now, 'updated_at' => $now],
+            ['name' => 'finance', 'guard_name' => 'web', 'display_name' => '财务专员', 'description' => '应收、结算、发票、审计', 'created_at' => $now, 'updated_at' => $now],
             ['name' => 'cashier', 'guard_name' => 'web', 'display_name' => '出纳', 'description' => '付款录入、收款录入、资金操作执行', 'created_at' => $now, 'updated_at' => $now],
             ['name' => 'finance_manager', 'guard_name' => 'web', 'display_name' => '财务经理', 'description' => '财务审核、付款/收款/结算单据复核确认', 'created_at' => $now, 'updated_at' => $now],
             ['name' => 'picker', 'guard_name' => 'web', 'display_name' => '拣货员', 'description' => '拣货任务、称重改价', 'created_at' => $now, 'updated_at' => $now],

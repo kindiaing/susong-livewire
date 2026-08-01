@@ -1,4 +1,4 @@
----
+﻿---
 AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
@@ -50,13 +50,13 @@ AIGC:
 | 序号 | Bug 描述 | 修复方案 | 完成时间 |
 | :--- | :--- | :--- | :--- |
 | 1 | admin:fresh --seed 报 PermissionAlreadyExists | migrate:fresh 后 Spatie 缓存残留，添加 forgetCachedPermissions() | 2026-08-01 |
-| 2 | 运营管理员登录 403 | dashboard 权限映射改为 null（仅需登录），移除 SUPER_ADMIN_ONLY 硬编码 | 2026-08-01 |
+| 2 | 运营专员登录 403 | dashboard 权限映射改为 null（仅需登录），移除 SUPER_ADMIN_ONLY 硬编码 | 2026-08-01 |
 
 ### 4 验证结果
 
 - admin:fresh --seed --force 全流程通过（migrate + SystemDataSeeder + DemoDataSeeder）
 - 超管登录：所有菜单可见，所有按钮可见
-- 运营管理员（operator 角色 + org/product 权限）：仅可见商品管理和组织主体菜单，无权限路由 403 拦截
+- 运营专员（operator 角色 + org/product 权限）：仅可见商品管理和组织主体菜单，无权限路由 403 拦截
 
 ---
 

@@ -20,9 +20,9 @@ class SystemDataSeeder extends Seeder
 {
     protected array $systemRoles = [
         ['name' => 'super_admin', 'display_name' => '超级管理员', 'description' => '全部功能、系统配置、账号管理'],
-        ['name' => 'operator', 'display_name' => '运营管理员', 'description' => '商品、订单、商家、供应商管理'],
+        ['name' => 'operator', 'display_name' => '运营专员', 'description' => '商品、订单、商家、供应商管理'],
         ['name' => 'operator_manager', 'display_name' => '运营经理', 'description' => '运营审核、商品/订单/价格策略审核确认'],
-        ['name' => 'finance', 'display_name' => '财务人员', 'description' => '应收、结算、发票、审计'],
+        ['name' => 'finance', 'display_name' => '财务专员', 'description' => '应收、结算、发票、审计'],
         ['name' => 'cashier', 'display_name' => '出纳', 'description' => '付款录入、收款录入、资金操作执行'],
         ['name' => 'finance_manager', 'display_name' => '财务经理', 'description' => '财务审核、付款/收款/结算单据复核确认'],
         ['name' => 'picker', 'display_name' => '拣货员', 'description' => '拣货任务、称重改价'],
