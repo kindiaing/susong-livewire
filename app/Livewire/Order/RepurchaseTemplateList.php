@@ -7,6 +7,7 @@ use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Models\Merchant;
 use App\Models\RepurchaseTemplate;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -116,7 +117,7 @@ class RepurchaseTemplateList extends Component
     public function save(): void
     {
         $validated = $this->validate([
-            'formMerchantId' => 'required|integer|min:1',
+            'formMerchantId' => 'required|integer|min:1|exists:merchants,id',
             'formName' => 'required|string|max:50',
             'formStatus' => 'required|in:0,1',
         ]);
@@ -191,10 +192,13 @@ class RepurchaseTemplateList extends Component
 
         $templates = $query->paginate(setting('per_page', 10));
 
+        $merchantOptions = Merchant::orderBy('name')->get()->map(fn($m) => ['value' => $m->id, 'label' => $m->name])->toArray();
+
         return view('livewire.order.repurchase-template-list', [
             'templates' => $templates,
             'allColumns' => $this->getAllColumns(),
             'selectedCount' => $this->getSelectedCount(),
+            'merchantOptions' => $merchantOptions,
         ])
             ->layout('components.app-layout')
             ->title('复购模板');

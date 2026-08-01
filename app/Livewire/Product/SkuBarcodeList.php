@@ -7,7 +7,9 @@ use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Models\Sku;
 use App\Models\SkuBarcode;
+use App\Models\Supplier;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -65,8 +67,8 @@ class SkuBarcodeList extends Component
     public function save(): void
     {
         $validated = $this->validate([
-            'formSkuId' => 'required|integer|min:1',
-            'formSupplierId' => 'nullable|integer',
+            'formSkuId' => 'required|integer|min:1|exists:skus,id',
+            'formSupplierId' => 'nullable|integer|exists:suppliers,id',
             'formBarcodeType' => 'required|in:1,2,3,4',
             'formBarcodeCode' => 'required|string|max:50',
             'formIsDefault' => 'required|in:0,1',
@@ -216,7 +218,10 @@ class SkuBarcodeList extends Component
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 
-        return view('livewire.product.sku-barcode-list', compact('barcodes', 'allColumns', 'selectedCount'))
+        $skuOptions = Sku::with('product')->orderBy('sku_code')->get()->map(fn($s) => ['value' => $s->id, 'label' => $s->sku_code . ' - ' . ($s->product?->name ?? '')])->toArray();
+        $supplierOptions = Supplier::orderBy('name')->get()->map(fn($s) => ['value' => $s->id, 'label' => $s->name])->toArray();
+
+        return view('livewire.product.sku-barcode-list', compact('barcodes', 'allColumns', 'selectedCount', 'skuOptions', 'supplierOptions'))
             ->layout('components.app-layout')
             ->title('条码管理');
     }

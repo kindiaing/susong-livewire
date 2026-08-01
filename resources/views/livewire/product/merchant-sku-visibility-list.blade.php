@@ -102,8 +102,7 @@
                     @error('formMerchantId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">SKU <span class="text-red-500">*</span></label>
-                    <input type="number" wire:model="formSkuId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="输入SKU ID" />
+                    <x-ui.searchable-select label="SKU *" wire-model="formSkuId" :options="$skuOptions" placeholder="搜索SKU..." wireModel="formSkuId" />
                     @error('formSkuId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>

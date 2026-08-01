@@ -8,6 +8,7 @@ use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithToast;
+use App\Models\Product;
 use App\Models\Sku;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -80,7 +81,7 @@ class SkuList extends Component
     public function save(): void
     {
         $validated = $this->validate([
-            'formProductId' => 'required|integer|min:1',
+            'formProductId' => 'required|integer|min:1|exists:products,id',
             'formSkuCode' => 'required|string|max:50',
             'formSpecs' => 'nullable|string',
             'formPurchasePrice' => 'required|numeric|min:0',
@@ -251,7 +252,9 @@ class SkuList extends Component
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 
-        return view('livewire.product.sku-list', compact('skus', 'allColumns', 'selectedCount'))
+        $productOptions = Product::orderBy('name')->get()->map(fn($p) => ['value' => $p->id, 'label' => $p->name])->toArray();
+
+        return view('livewire.product.sku-list', compact('skus', 'allColumns', 'selectedCount', 'productOptions'))
             ->layout('components.app-layout')
             ->title('SKU管理');
     }

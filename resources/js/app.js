@@ -15,6 +15,79 @@ window.Echo = new Echo({
     enabledTransports: ['ws', 'wss'],
 });
 
+// searchable-select 组件 Alpine.js 逻辑
+window.__searchableSelect = (data) => ({
+    ...data,
+    toggle() {
+        if (this.$el.closest('[disabled]')) return;
+        this.open = !this.open;
+        if (this.open) {
+            this.search = '';
+            this.activeIndex = -1;
+            this.$nextTick(() => this.$refs.searchInput?.focus());
+        }
+    },
+    hasSelection() {
+        return this.selectedValue !== '' && this.selectedValue !== '0';
+    },
+    filteredOptions() {
+        if (!this.search) return this.options;
+        const q = this.search.toLowerCase();
+        return this.options.filter(o => o.label.toLowerCase().includes(q));
+    },
+    selectOption(opt) {
+        this.selectedValue = opt.value;
+        this.selectedLabel = opt.label;
+        this.search = '';
+        this.open = false;
+        this.activeIndex = -1;
+        // Sync to Livewire via $wire
+        if (this.wireModelProperty && this.$wire) {
+            this.$wire.set(this.wireModelProperty, opt.value === '' ? 0 : parseInt(opt.value));
+        }
+    },
+    clearValue() {
+        this.selectedValue = '';
+        this.selectedLabel = '';
+        this.search = '';
+        this.open = false;
+        this.activeIndex = -1;
+        if (this.wireModelProperty && this.$wire) {
+            this.$wire.set(this.wireModelProperty, 0);
+        }
+    },
+    navigateUp() {
+        const items = this.filteredOptions();
+        if (items.length === 0) return;
+        if (this.activeIndex > 0) this.activeIndex--;
+        else this.activeIndex = items.length - 1;
+        this.scrollActive();
+    },
+    navigateDown() {
+        const items = this.filteredOptions();
+        if (items.length === 0) return;
+        if (this.activeIndex < items.length - 1) this.activeIndex++;
+        else this.activeIndex = 0;
+        this.scrollActive();
+    },
+    selectActive() {
+        const items = this.filteredOptions();
+        if (this.activeIndex >= 0 && this.activeIndex < items.length) {
+            this.selectOption(items[this.activeIndex]);
+        }
+    },
+    scrollActive() {
+        this.$nextTick(() => {
+            const list = this.$refs.optionList;
+            if (!list) return;
+            const items = list.querySelectorAll('[data-option-idx]');
+            if (items[this.activeIndex]) {
+                items[this.activeIndex].scrollIntoView({ block: 'nearest' });
+            }
+        });
+    }
+});
+
 // Toast 全局注册 — 在 Alpine 初始化前注册 store
 document.addEventListener('alpine:init', () => {
     Alpine.store('toasts', {

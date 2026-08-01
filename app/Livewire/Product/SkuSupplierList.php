@@ -10,6 +10,7 @@ use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithToast;
 use App\Models\SkuSupplier;
 use App\Models\Supplier;
+use App\Models\Sku;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -76,7 +77,7 @@ class SkuSupplierList extends Component
     public function save(): void
     {
         $validated = $this->validate([
-            'formSkuId' => 'required|integer|min:1',
+            'formSkuId' => 'required|integer|min:1|exists:skus,id',
             'formSupplierId' => 'required|integer|min:1',
             'formIsDefault' => 'required|in:0,1',
             'formPurchasePrice' => 'required|numeric|min:0',
@@ -237,7 +238,9 @@ class SkuSupplierList extends Component
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 
-        return view('livewire.product.sku-supplier-list', compact('skuSuppliers', 'suppliers', 'allColumns', 'selectedCount'))
+        $skuOptions = Sku::with('product')->orderBy('sku_code')->get()->map(fn($s) => ['value' => $s->id, 'label' => $s->sku_code . ' - ' . ($s->product?->name ?? '')])->toArray();
+
+        return view('livewire.product.sku-supplier-list', compact('skuSuppliers', 'suppliers', 'allColumns', 'selectedCount', 'skuOptions'))
             ->layout('components.app-layout')
             ->title('一品多供');
     }

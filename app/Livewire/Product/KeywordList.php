@@ -8,6 +8,7 @@ use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
 use App\Models\Keyword;
+use App\Models\Product;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -57,7 +58,7 @@ class KeywordList extends Component
     {
         $validated = $this->validate([
             'formKeyword' => 'required|string|max:50',
-            'formProductId' => 'nullable|integer',
+            'formProductId' => 'nullable|integer|exists:products,id',
             'formSearchCount' => 'required|integer|min:0',
         ]);
 
@@ -177,7 +178,9 @@ class KeywordList extends Component
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 
-        return view('livewire.product.keyword-list', compact('keywords', 'allColumns', 'selectedCount'))
+        $productOptions = Product::orderBy('name')->get()->map(fn($p) => ['value' => $p->id, 'label' => $p->name])->toArray();
+
+        return view('livewire.product.keyword-list', compact('keywords', 'allColumns', 'selectedCount', 'productOptions'))
             ->layout('components.app-layout')
             ->title('关键词管理');
     }

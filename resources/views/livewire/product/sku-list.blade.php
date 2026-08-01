@@ -110,8 +110,7 @@
             <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-foreground mb-1">商品ID <span class="text-red-500">*</span></label>
-                        <input type="number" wire:model="formProductId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="1" />
+                        <x-ui.searchable-select label="商品 *" wire-model="formProductId" :options="$productOptions" placeholder="搜索商品..." wireModel="formProductId" />
                         @error('formProductId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>

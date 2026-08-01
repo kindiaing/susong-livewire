@@ -96,8 +96,7 @@
             <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-foreground mb-1">SKU ID <span class="text-red-500">*</span></label>
-                        <input type="number" wire:model="formSkuId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="1" />
+                        <x-ui.searchable-select label="SKU *" wire-model="formSkuId" :options="$skuOptions" placeholder="搜索SKU..." wireModel="formSkuId" />
                         @error('formSkuId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
@@ -117,8 +116,7 @@
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-foreground mb-1">供应商ID</label>
-                        <input type="number" wire:model="formSupplierId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" />
+                        <x-ui.searchable-select label="供应商" wire-model="formSupplierId" :options="$supplierOptions" placeholder="搜索供应商..." wireModel="formSupplierId" clearable />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-foreground mb-1">备注</label>

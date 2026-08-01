@@ -80,8 +80,7 @@
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-foreground mb-1">关联商品ID</label>
-                        <input type="number" wire:model="formProductId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" />
+                        <x-ui.searchable-select label="关联商品" wire-model="formProductId" :options="$productOptions" placeholder="搜索商品..." wireModel="formProductId" clearable />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-foreground mb-1">搜索次数</label>

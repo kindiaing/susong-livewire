@@ -71,8 +71,7 @@
             <h2 class="text-lg font-semibold text-foreground mb-4">{{ $editingId ? '编辑模板' : '新增模板' }}</h2>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">商家ID <span class="text-red-500">*</span></label>
-                    <input type="number" wire:model="formMerchantId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="1" />
+                    <x-ui.searchable-select label="商家 *" wire-model="formMerchantId" :options="$merchantOptions" placeholder="搜索商家..." wireModel="formMerchantId" />
                     @error('formMerchantId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>

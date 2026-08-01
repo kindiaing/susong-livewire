@@ -181,7 +181,9 @@ class MerchantSkuVisibilityList extends Component
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 
-        return view('livewire.product.merchant-sku-visibility-list', compact('records', 'merchants', 'allColumns', 'selectedCount'))
+        $skuOptions = Sku::with('product')->orderBy('sku_code')->get()->map(fn($s) => ['value' => $s->id, 'label' => $s->sku_code . ' - ' . ($s->product?->name ?? '')])->toArray();
+
+        return view('livewire.product.merchant-sku-visibility-list', compact('records', 'merchants', 'allColumns', 'selectedCount', 'skuOptions'))
             ->layout('components.app-layout')
             ->title('可见性配置');
     }

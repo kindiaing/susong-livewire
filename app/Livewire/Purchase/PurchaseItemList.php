@@ -56,7 +56,7 @@ class PurchaseItemList extends Component
     public function save(): void
     {
         $validated = $this->validate([
-            'formSkuId' => 'required|integer|min:1',
+            'formSkuId' => 'required|integer|min:1|exists:skus,id',
             'formQuantity' => 'required|integer|min:1',
             'formSourceType' => 'required|in:1,2',
         ]);
@@ -222,7 +222,9 @@ class PurchaseItemList extends Component
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
 
-        return view('livewire.purchase.purchase-item-list', compact('items', 'allColumns', 'selectedCount'))
+        $skuOptions = Sku::with('product')->orderBy('sku_code')->get()->map(fn($s) => ['value' => $s->id, 'label' => $s->sku_code . ' - ' . ($s->product?->name ?? '')])->toArray();
+
+        return view('livewire.purchase.purchase-item-list', compact('items', 'allColumns', 'selectedCount', 'skuOptions'))
             ->layout('components.app-layout')
             ->title('待采清单');
     }
