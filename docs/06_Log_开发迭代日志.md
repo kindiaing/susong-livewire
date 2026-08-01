@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '765b67e5-8d2b-457a-936c-9da6bb7687cd'
-  PropagateID: '765b67e5-8d2b-457a-936c-9da6bb7687cd'
-  ReservedCode1: '8344ae38-cec3-48f0-8aac-7402ce738725'
-  ReservedCode2: '8344ae38-cec3-48f0-8aac-7402ce738725'
+  ProduceID: '6070f6bd-dd5e-40f4-a627-ee71f0384bf4'
+  PropagateID: '6070f6bd-dd5e-40f4-a627-ee71f0384bf4'
+  ReservedCode1: '9427df19-1e3a-4447-b78f-a47d7fb9df5a'
+  ReservedCode2: '9427df19-1e3a-4447-b78f-a47d7fb9df5a'
 ---
 
 # 开发迭代日志
@@ -52,7 +52,13 @@ AIGC:
 | 1 | admin:fresh --seed 报 PermissionAlreadyExists | migrate:fresh 后 Spatie 缓存残留，添加 forgetCachedPermissions() | 2026-08-01 |
 | 2 | 运营专员登录 403 | dashboard 权限映射改为 null（仅需登录），移除 SUPER_ADMIN_ONLY 硬编码 | 2026-08-01 |
 
-### 4 验证结果
+### 4 待修复 Bug 清单
+
+| # | 严重度 | 描述 | 影响范围 | 预计改动 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 低 | 新建角色/用户时 dashboard 权限未默认勾选，权限界面显示"无权限"但实际可访问（路由中间件设为 null 放行） | 所有非超管角色 | SystemDataSeeder 给所有角色分配 dashboard + 新建角色默认带 dashboard（约 8 行） |
+
+### 5 验证结果
 
 - admin:fresh --seed --force 全流程通过（migrate + SystemDataSeeder + DemoDataSeeder）
 - 超管登录：所有菜单可见，所有按钮可见
