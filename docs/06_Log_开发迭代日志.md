@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '6070f6bd-dd5e-40f4-a627-ee71f0384bf4'
-  PropagateID: '6070f6bd-dd5e-40f4-a627-ee71f0384bf4'
-  ReservedCode1: '9427df19-1e3a-4447-b78f-a47d7fb9df5a'
-  ReservedCode2: '9427df19-1e3a-4447-b78f-a47d7fb9df5a'
+  ProduceID: '939af65b-b6ee-4372-86b6-d87bc0ef7820'
+  PropagateID: '939af65b-b6ee-4372-86b6-d87bc0ef7820'
+  ReservedCode1: '8bd22a44-20e3-42e2-86cc-52d6ca7c662d'
+  ReservedCode2: '8bd22a44-20e3-42e2-86cc-52d6ca7c662d'
 ---
 
 # 开发迭代日志
@@ -56,7 +56,7 @@ AIGC:
 
 | # | 严重度 | 描述 | 影响范围 | 预计改动 |
 | :--- | :--- | :--- | :--- | :--- |
-| 1 | 低 | 新建角色/用户时 dashboard 权限未默认勾选，权限界面显示"无权限"但实际可访问（路由中间件设为 null 放行） | 所有非超管角色 | SystemDataSeeder 给所有角色分配 dashboard + 新建角色默认带 dashboard（约 8 行） |
+| 1 | 低 | ~~新建角色/用户时 dashboard 权限未默认勾选~~ | 所有非超管角色 | ✅ 已修复：SystemDataSeeder 给所有角色分配 dashboard + 新建角色默认带 dashboard |
 
 ### 5 验证结果
 

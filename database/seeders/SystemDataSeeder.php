@@ -278,6 +278,14 @@ class SystemDataSeeder extends Seeder
             $superAdminRole->syncPermissions(Permission::all());
         }
 
+        // 所有非超管角色默认分配 dashboard 权限（确保权限界面显示一致）
+        $dashboardPermission = Permission::where('name', 'dashboard')->first();
+        if ($dashboardPermission) {
+            Role::where('name', '!=', 'super_admin')->get()->each(
+                fn($role) => $role->givePermissionTo($dashboardPermission)
+            );
+        }
+
         $seeding = \App\Models\User::where('username', 'seeding')->first();
         if ($seeding) {
             $seeding->assignRole('super_admin');
