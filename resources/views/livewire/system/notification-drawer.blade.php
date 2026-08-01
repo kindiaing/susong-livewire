@@ -2,7 +2,7 @@
     $notifications = $this->notifications;
 @endphp
 
-<x-ui.slide-panel title="通知" width="400px" :closeOnOutside="$closeOnOutside">
+<x-ui.slide-panel title="通知" width="400px">
     {{-- 触发器：通知铃铛 --}}
     <x-slot:trigger>
         <button type="button" class="relative p-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors" title="通知">

@@ -26,7 +26,7 @@ $isControlled = filled($storeKey);
                  x-transition:leave="transition-opacity ease-in-out duration-200"
                  x-transition:leave-start="opacity-100"
                  x-transition:leave-end="opacity-0"
-                 @click="{{ $closeOnOutside ? "\$store.{$storeKey}.open = false" : '' }}"></div>
+                 @click="$store.{{ $storeKey }}.closeOnOutside !== false && ($store.{{ $storeKey }}.open = false)"></div>
 
             {{-- 右侧面板 --}}
             <div class="fixed right-0 inset-y-0 bg-background border-l border-border shadow-xl flex flex-col"

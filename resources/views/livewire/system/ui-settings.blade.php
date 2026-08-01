@@ -1,4 +1,4 @@
-<x-ui.slide-panel title="界面设置" width="380px" storeKey="uiSettings" :closeOnOutside="$closeOnOutside">
+<x-ui.slide-panel title="界面设置" width="380px" storeKey="uiSettings">
     {{-- 通知设置 --}}
     <div class="px-5 pt-5 pb-2">
         <h4 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">通知</h4>
