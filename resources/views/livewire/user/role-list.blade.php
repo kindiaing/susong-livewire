@@ -5,9 +5,11 @@
             <h1 class="text-2xl font-bold text-foreground">角色管理</h1>
             <p class="text-muted-foreground mt-1">管理系统角色及权限分配</p>
         </div>
+        @can('user.role.create')
         <button type="button" wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
             新增角色
         </button>
+        @endcan
     </div>
 
     {{-- 搜索栏 --}}
@@ -43,6 +45,7 @@
                 <div class="text-sm text-muted-foreground">{{ $role->permissions_count }}</div>
                 <div class="flex items-center gap-1">
                     {{-- 编辑（超级管理员不可编辑） --}}
+                    @can('user.role.edit')
                     @if(!$isSuperAdmin)
                         <button type="button" wire:click="openEditModal({{ $role->id }})" class="p-1.5 rounded-md text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
@@ -50,13 +53,17 @@
                             </svg>
                         </button>
                     @endif
+                    @endcan
                     {{-- 权限分配 --}}
+                    @can('user.role.edit')
                     <button type="button" wire:click="openPermissionModal({{ $role->id }})" class="p-1.5 rounded-md text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors" title="权限分配">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A9.75 9.75 0 016.75 5.087 9.75 9.75 0 0112 4.5c2.048 0 3.94.583 5.468 1.587A9.75 9.75 0 0120.25 9v.75c0 5.385-3.597 10.02-8.25 11.642a1.5 1.5 0 01-1 0C6.02 19.772 2.25 15.135 2.25 9.75V9A9.75 9.75 0 014.686 6.087z" />
                         </svg>
                     </button>
+                    @endcan
                     {{-- 删除（超级管理员不可删除） --}}
+                    @can('user.role.delete')
                     @if(!$isSuperAdmin)
                         <button type="button" wire:click="confirmDelete({{ $role->id }})" class="p-1.5 rounded-md text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
@@ -64,6 +71,7 @@
                             </svg>
                         </button>
                     @endif
+                    @endcan
                 </div>
             </div>
         @empty

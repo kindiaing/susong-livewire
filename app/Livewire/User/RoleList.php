@@ -90,7 +90,12 @@ class RoleList extends Component
             $role->update($data);
             $this->toastSuccess('角色已更新');
         } else {
-            Role::create($data);
+            $role = Role::create($data);
+            // 新建角色默认分配 dashboard 权限（确保权限界面显示一致）
+            $dashboard = \App\Models\Permission::where('name', 'dashboard')->first();
+            if ($dashboard) {
+                $role->givePermissionTo($dashboard);
+            }
             $this->toastSuccess('角色已创建');
         }
 

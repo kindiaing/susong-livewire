@@ -5,9 +5,11 @@
             <h1 class="text-2xl font-bold text-foreground">采购退货</h1>
             <p class="text-muted-foreground mt-1">管理采购退货单据</p>
         </div>
+        @can('purchase.purchase-return.create')
         <button wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
             新增退货单
         </button>
+        @endcan
     </div>
 
     {{-- 搜索栏 --}}
@@ -59,8 +61,12 @@
                     @endif
                 </div>
                 <div class="flex items-center gap-2">
+                    @can('purchase.purchase-return.edit')
                     <button wire:click="openEditModal({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                    @endcan
+                    @can('purchase.purchase-return.delete')
                     <button wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                    @endcan
                 </div>
             </div>
         @empty

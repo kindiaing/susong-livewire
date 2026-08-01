@@ -4,9 +4,11 @@
             <h1 class="text-2xl font-bold text-foreground">分类管理</h1>
             <p class="text-muted-foreground mt-1">商品分类，支持无限级树形结构</p>
         </div>
+        @can('product.category.create')
         <button wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
             新增分类
         </button>
+        @endcan
     </div>
 
     <div class="flex items-center gap-3 mb-4">
@@ -18,7 +20,9 @@
         <button wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导出</button>
         @if($selectedCount > 0)
             <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
+            @can('product.category.delete')
             <button wire:click="batchDelete" class="inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
+            @endcan
             <button wire:click="clearSelection" class="text-sm text-muted-foreground hover:text-foreground transition-colors">取消选择</button>
         @endif
     </div>
@@ -48,8 +52,12 @@
                     @endif
                 </div>
                 <div class="flex items-center gap-2">
+                    @can('product.category.edit')
                     <button wire:click="openEditModal({{ $category->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                    @endcan
+                    @can('product.category.delete')
                     <button wire:click="confirmDelete({{ $category->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                    @endcan
                 </div>
             </div>
         @empty

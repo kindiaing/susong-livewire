@@ -47,9 +47,9 @@ class AdminCreateUserCommand extends Command
         $role = $this->option('role') ?: select(
             label: '请选择角色',
             options: [
-                'operator' => '运营管理员',
+                'operator' => '运营专员',
                 'operator_manager' => '运营经理',
-                'finance' => '财务人员',
+                'finance' => '财务专员',
                 'cashier' => '出纳',
                 'finance_manager' => '财务经理',
                 'picker' => '拣货员',

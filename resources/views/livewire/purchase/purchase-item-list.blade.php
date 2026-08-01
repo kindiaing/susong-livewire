@@ -4,7 +4,9 @@
             <h1 class="text-2xl font-bold text-foreground">待采清单</h1>
             <p class="text-muted-foreground mt-1">自动汇总待采商品，一键生成采购单</p>
         </div>
+        @can('purchase.restock-reminder.create')
         <button wire:click="openCreateModal" type="button" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">新增待采项</button>
+        @endcan
         <button wire:click="confirmGenerateOrders" type="button" class="inline-flex items-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors">批量生成采购单</button>
     </div>
     <div class="flex items-center gap-3 mb-4">
@@ -32,8 +34,12 @@
                     @else<span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">已生成</span>@endif
                 </div>
                 <div class="flex items-center gap-2">
+                    @can('purchase.restock-reminder.edit')
                     <button wire:click="openEditModal({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                    @endcan
+                    @can('purchase.restock-reminder.delete')
                     <button wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                    @endcan
                 </div>
             </div>
         @empty

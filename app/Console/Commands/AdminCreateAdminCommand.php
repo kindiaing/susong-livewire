@@ -51,9 +51,9 @@ class AdminCreateAdminCommand extends Command
             label: '请选择管理角色',
             options: [
                 'super_admin' => '超级管理员',
-                'operator' => '运营管理员',
+                'operator' => '运营专员',
                 'operator_manager' => '运营经理',
-                'finance' => '财务人员',
+                'finance' => '财务专员',
                 'cashier' => '出纳',
                 'finance_manager' => '财务经理',
             ],

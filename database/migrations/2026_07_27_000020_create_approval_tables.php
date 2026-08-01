@@ -62,7 +62,7 @@ return new class extends Migration
 
         DB::table('approval_type_configs')->insert([
             // P0 — 前10个核心资金节点，默认开启
-            ['type_code' => 'manual_recharge', 'type_name' => '后台手工充值', 'module_name' => '财务对账', 'risk_level' => 'P0', 'enabled' => 1, 'applicant_role_id' => $roles['operator'], 'reviewer_role_id' => $roles['finance_manager'], 'sort_order' => 1, 'description' => '运营管理员为商家手动充值', 'created_at' => $now, 'updated_at' => $now],
+            ['type_code' => 'manual_recharge', 'type_name' => '后台手工充值', 'module_name' => '财务对账', 'risk_level' => 'P0', 'enabled' => 1, 'applicant_role_id' => $roles['operator'], 'reviewer_role_id' => $roles['finance_manager'], 'sort_order' => 1, 'description' => '运营专员为商家手动充值', 'created_at' => $now, 'updated_at' => $now],
             ['type_code' => 'supplier_payment', 'type_name' => '供应商付款录入', 'module_name' => '财务对账', 'risk_level' => 'P0', 'enabled' => 1, 'applicant_role_id' => $roles['cashier'], 'reviewer_role_id' => $roles['finance_manager'], 'sort_order' => 2, 'description' => '出纳录入供应商付款记录', 'created_at' => $now, 'updated_at' => $now],
             ['type_code' => 'customer_receipt', 'type_name' => '客户收款录入', 'module_name' => '财务对账', 'risk_level' => 'P0', 'enabled' => 1, 'applicant_role_id' => $roles['cashier'], 'reviewer_role_id' => $roles['finance_manager'], 'sort_order' => 3, 'description' => '出纳录入客户收款记录', 'created_at' => $now, 'updated_at' => $now],
             ['type_code' => 'credit_limit', 'type_name' => '信用额度调整', 'module_name' => '商家管理', 'risk_level' => 'P0', 'enabled' => 1, 'applicant_role_id' => $roles['operator'], 'reviewer_role_id' => $roles['finance_manager'], 'sort_order' => 4, 'description' => '修改商家信用额度', 'created_at' => $now, 'updated_at' => $now],

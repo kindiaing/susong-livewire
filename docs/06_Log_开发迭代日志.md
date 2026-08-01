@@ -1,12 +1,12 @@
----
+﻿---
 AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '1015a218-bcb5-4b1b-8cb7-8fce5acc566b'
-  PropagateID: '1015a218-bcb5-4b1b-8cb7-8fce5acc566b'
-  ReservedCode1: 'c885f7d1-128e-4ef8-84c0-02fafa676009'
-  ReservedCode2: 'c885f7d1-128e-4ef8-84c0-02fafa676009'
+  ProduceID: '939af65b-b6ee-4372-86b6-d87bc0ef7820'
+  PropagateID: '939af65b-b6ee-4372-86b6-d87bc0ef7820'
+  ReservedCode1: '8bd22a44-20e3-42e2-86cc-52d6ca7c662d'
+  ReservedCode2: '8bd22a44-20e3-42e2-86cc-52d6ca7c662d'
 ---
 
 # 开发迭代日志
@@ -16,6 +16,53 @@ AIGC:
 技术栈：Laravel 13 + Livewire 4.x + Tailwind CSS 4.2+ + Alpine.js + PHP 8.4+ + MySQL 8.0 + Redis 7.x
 
 记录规则：每次迭代新增一节，按版本号倒序排列。每条变更需标注开发人、完成时间和关联模块。
+
+---
+
+## V1.9.0 | 迭代周期：2026-08-01
+
+负责人：项目负责人
+参与开发人员：后端开发
+
+### 1 本次新增功能清单
+
+| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 权限体系 | 权限名改为三级格式：模块.页面.动作（如 org.supplier.create） | 后端 | 2026-08-01 | ✅ |
+| 2 | 权限体系 | 每个页面级权限自动生成 .view 页面访问权限（如 org.supplier.view） | 后端 | 2026-08-01 | ✅ |
+| 3 | 权限体系 | SystemDataSeeder 完整重写：12模块 + 38页面 + 128按钮 = 178条权限 | 后端 | 2026-08-01 | ✅ |
+| 4 | 权限体系 | AppServiceProvider 注册 Gate::before，super_admin 角色自动通过所有 @can 检查 | 后端 | 2026-08-01 | ✅ |
+| 5 | 菜单系统 | 新增 config/menu.php 菜单配置文件（8模块 + 全部子菜单项） | 后端 | 2026-08-01 | ✅ |
+| 6 | 菜单系统 | 顶部导航改为动态渲染：从 config('menu') 读取 + @can 过滤不可见菜单 | 后端 | 2026-08-01 | ✅ |
+| 7 | 按钮权限 | 全部列表页 Blade 添加 @can 权限控制（约 40 个文件） | 后端 | 2026-08-01 | ✅ |
+| 8 | 路由保护 | CheckPermission 中间件 ROUTE_PERMISSION_MAP 改为三级格式 .view | 后端 | 2026-08-01 | ✅ |
+| 9 | 路由保护 | dashboard 路由设为仅需登录（null），不再要求权限 | 后端 | 2026-08-01 | ✅ |
+| 10 | 安装命令 | AdminInstallCommand 在 migrate:fresh 后清 Spatie 权限缓存，避免 Seeder 冲突 | 后端 | 2026-08-01 | ✅ |
+
+### 2 本次优化/重构
+
+| 序号 | 优化项 | 说明 | 完成时间 |
+| :--- | :--- | :--- | :--- |
+| 1 | SUPER_ADMIN_ONLY 列表清空 | 不再硬编码超管专属路由，由权限表统一控制 | 2026-08-01 |
+
+### 3 Bug 修复
+
+| 序号 | Bug 描述 | 修复方案 | 完成时间 |
+| :--- | :--- | :--- | :--- |
+| 1 | admin:fresh --seed 报 PermissionAlreadyExists | migrate:fresh 后 Spatie 缓存残留，添加 forgetCachedPermissions() | 2026-08-01 |
+| 2 | 运营专员登录 403 | dashboard 权限映射改为 null（仅需登录），移除 SUPER_ADMIN_ONLY 硬编码 | 2026-08-01 |
+
+### 4 待修复 Bug 清单
+
+| # | 严重度 | 描述 | 影响范围 | 预计改动 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 低 | ~~新建角色/用户时 dashboard 权限未默认勾选~~ | 所有非超管角色 | ✅ 已修复：SystemDataSeeder 给所有角色分配 dashboard + 新建角色默认带 dashboard |
+
+### 5 验证结果
+
+- admin:fresh --seed --force 全流程通过（migrate + SystemDataSeeder + DemoDataSeeder）
+- 超管登录：所有菜单可见，所有按钮可见
+- 运营专员（operator 角色 + org/product 权限）：仅可见商品管理和组织主体菜单，无权限路由 403 拦截
 
 ---
 
@@ -975,3 +1022,5 @@ AIGC:
 | :--- | :--- | :--- | :--- |
 | SESSION_DRIVER | redis | file | Redis 扩展未安装 |
 | CACHE_STORE | redis | file | Redis 扩展未安装 |
+
+> AI生成

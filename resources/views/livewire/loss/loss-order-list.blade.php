@@ -5,7 +5,11 @@
             <h1 class="text-2xl font-bold text-foreground">损耗管理</h1>
             <p class="text-muted-foreground mt-1">管理损耗单据及审核流程</p>
         </div>
+        @can('loss.loss-order.create')
         <button wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+            新增损耗单
+        </button>
+        @endcan
             新增损耗单
         </button>
     </div>
@@ -75,6 +79,7 @@
                     @endif
                 </div>
                 <div class="flex items-center gap-2">
+                    @can('loss.loss-order.edit')
                     @if($item->approval_status === 1)
                         <button wire:click="confirmApprove({{ $item->id }})" class="text-green-600 hover:text-green-700 text-sm">审核</button>
                     @endif
@@ -87,7 +92,10 @@
                     @if($item->status === 1)
                         <button wire:click="openEditModal({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
                     @endif
+                    @endcan
+                    @can('loss.loss-order.delete')
                     <button wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                    @endcan
                 </div>
             </div>
         @empty

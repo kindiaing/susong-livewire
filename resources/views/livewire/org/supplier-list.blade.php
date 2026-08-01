@@ -5,9 +5,11 @@
             <h1 class="text-2xl font-bold text-foreground">供应商管理</h1>
             <p class="text-muted-foreground mt-1">管理供应商信息及结算周期</p>
         </div>
+        @can('org.supplier.create')
         <button type="button" wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
             新增供应商
         </button>
+        @endcan
     </div>
 
     {{-- 搜索栏 --}}
@@ -40,11 +42,13 @@
         <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">列配置</button>
         <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导入</button>
         <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导出</button>
-        @if($selectedCount > 0)
-            <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
-            <button type="button" wire:click="batchDelete" class="inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
-            <button type="button" wire:click="clearSelection" class="text-sm text-muted-foreground hover:text-foreground transition-colors">取消选择</button>
-        @endif
+            @if($selectedCount > 0)
+                <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
+                @can('org.supplier.delete')
+                <button type="button" wire:click="batchDelete" class="inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
+                @endcan
+                <button type="button" wire:click="clearSelection" class="text-sm text-muted-foreground hover:text-foreground transition-colors">取消选择</button>
+            @endif
     </div>
 
     {{-- 供应商列表 --}}
@@ -102,11 +106,17 @@
                     @endswitch
                 @endforeach
                 <div class="flex items-center gap-2">
+                    @can('org.supplier.edit')
                     <button wire:click="openEditModal({{ $supplier->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                    @endcan
+                    @can('org.supplier.edit')
                     <button wire:click="toggleStatus({{ $supplier->id }})" class="text-sm {{ $supplier->status === 1 ? 'text-orange-600 hover:text-orange-700' : 'text-green-600 hover:text-green-700' }}">
                         {{ $supplier->status === 1 ? '禁用' : '启用' }}
                     </button>
+                    @endcan
+                    @can('org.supplier.delete')
                     <button wire:click="confirmDelete({{ $supplier->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                    @endcan
                 </div>
             </div>
         @empty

@@ -25,94 +25,92 @@ class CheckPermission
      */
     private const ROUTE_PERMISSION_MAP = [
         // 基础
-        'dashboard'           => 'dashboard',
+        'dashboard'           => null, // 仅需登录
         'profile'             => null, // 仅需登录
 
         // ── 用户权限 ──
-        'users'               => 'user.manage',
-        'roles'               => 'role.manage',
-        'permissions'          => 'permission.manage',
+        'users'               => 'user.user.view',
+        'roles'               => 'user.role.view',
+        'permissions'          => 'user.permission.view',
 
         // ── 组织管理 ──
-        'suppliers'           => 'supplier.index',
-        'merchants'           => 'merchant.index',
-        'delivery-routes'     => 'route.index',
-        'drivers'             => 'driver.index',
-        'vehicles'            => 'vehicle.index',
+        'suppliers'           => 'org.supplier.view',
+        'merchants'           => 'org.merchant.view',
+        'delivery-routes'     => 'org.route.view',
+        'drivers'             => 'org.driver.view',
+        'vehicles'            => 'org.vehicle.view',
 
         // ── 商品管理 ──
-        'categories'          => 'category.index',
-        'products'            => 'product.index',
-        'skus'                => 'product.index',
-        'tags'                => 'tag.index',
-        'keywords'            => 'keyword.index',
-        'sku-barcodes'        => 'product.index',
-        'sku-suppliers'       => 'product.index',
-        'restock-reminders'   => 'restock-reminder.index',
+        'categories'          => 'product.category.view',
+        'products'            => 'product.product.view',
+        'skus'                => 'product.product.view',
+        'tags'                => 'product.tag.view',
+        'keywords'            => 'product.keyword.view',
+        'sku-barcodes'        => 'product.product.view',
+        'sku-suppliers'       => 'product.product.view',
+        'restock-reminders'   => 'purchase.restock-reminder.view',
 
         // ── 采购管理 ──
-        'purchase-items'      => 'purchase-order.index',
-        'purchase-orders'     => 'purchase-order.index',
-        'purchase-orders.detail' => 'purchase-order.index',
-        'purchase-returns'    => 'purchase-return.index',
+        'purchase-items'      => 'purchase.purchase-order.view',
+        'purchase-orders'     => 'purchase.purchase-order.view',
+        'purchase-orders.detail' => 'purchase.purchase-order.view',
+        'purchase-returns'    => 'purchase.purchase-return.view',
 
         // ── 订单管理 ──
-        'orders'              => 'order.index',
-        'carts'               => 'cart.index',
-        'frequently-bought'   => 'order.index',
-        'repurchase-templates' => 'order.index',
-        'order-returns'       => 'order-return.index',
+        'orders'              => 'order.order.view',
+        'carts'               => 'order.cart.view',
+        'frequently-bought'   => 'order.order.view',
+        'repurchase-templates' => 'order.order.view',
+        'order-returns'       => 'order.order-return.view',
 
         // ── 库存管理 ──
-        'warehouses'          => 'warehouse.index',
-        'inventories'         => 'inventory.index',
-        'inventory-logs'      => 'inventory-log.index',
-        'picking-tasks'       => 'inventory.index',
+        'warehouses'          => 'inventory.warehouse.view',
+        'inventories'         => 'inventory.inventory.view',
+        'inventory-logs'      => 'inventory.inventory-log.view',
+        'picking-tasks'       => 'inventory.warehouse.view',
 
         // ── 配送管理 ──
-        'delivery-tasks'      => 'delivery-task.index',
-        'signatures'          => 'signature.index',
-        'temperatures'        => 'temperature.index',
-        'discrepancies'       => 'discrepancy.index',
+        'delivery-tasks'      => 'delivery.delivery-task.view',
+        'signatures'          => 'delivery.signature.view',
+        'temperatures'        => 'delivery.temperature.view',
+        'discrepancies'       => 'delivery.discrepancy.view',
 
         // ── 损耗管理 ──
-        'loss-orders'         => 'loss-order.index',
+        'loss-orders'         => 'loss.loss-order.view',
 
         // ── 财务管理 ──
-        'merchant-accounts'   => 'recharge.index',
-        'recharges'           => 'recharge.index',
-        'supplier-settlements' => 'supplier-settlement.index',
-        'receivables'         => 'receivable.index',
-        'invoices'            => 'invoice.index',
-        'correction-authorizations' => 'recharge.index',
-        'price-strategies'    => 'price-strategy.index',
-        'price-apportionments' => 'price-apportionment.index',
-        'price-change-logs'   => 'price-change-log.index',
+        'merchant-accounts'   => 'finance.recharge.view',
+        'recharges'           => 'finance.recharge.view',
+        'supplier-settlements' => 'finance.supplier-settlement.view',
+        'receivables'         => 'finance.receivable.view',
+        'invoices'            => 'finance.invoice.view',
+        'correction-authorizations' => 'finance.recharge.view',
+        'price-strategies'    => 'price.price-strategy.view',
+        'price-apportionments' => 'price.price-apportionment.view',
+        'price-change-logs'   => 'price.price-change-log.view',
 
         // ── 商家扩展 ──
-        'merchant-addresses'  => 'merchant.index',
-        'merchant-favorites'  => 'merchant.index',
+        'merchant-addresses'  => 'org.merchant.view',
+        'merchant-favorites'  => 'org.merchant.view',
 
         // ── 系统管理 ──
-        'settings'            => 'system-config.index',
-        'banners'             => 'banner.index',
-        'promotions'          => 'system-config.index',
-        'approval-config'     => 'system-config.index',
-        'approvals'           => 'system-config.index',
-        'operation-logs'      => 'audit-log.index',
-        'audit-logs'          => 'audit-log.index',
-        'login-logs'          => 'login-log.index',
-        'wechat-users'        => 'wechat-user.index',
+        'settings'            => 'system.system-config.view',
+        'banners'             => 'system.banner.view',
+        'promotions'          => 'system.system-config.view',
+        'approval-config'     => 'system.system-config.view',
+        'approvals'           => 'system.system-config.view',
+        'operation-logs'      => 'system.audit-log.view',
+        'audit-logs'          => 'system.audit-log.view',
+        'login-logs'          => 'system.login-log.view',
+        'wechat-users'        => 'system.wechat-user.view',
     ];
 
     /**
      * super_admin 角色专有路由（仅超管可访问）
      */
+    // 超管专属路由已废弃，权限由权限表统一控制
+    // 如果需要限制某路由仅超管可访问，在权限树中只给 super_admin 分配即可
     private const SUPER_ADMIN_ONLY = [
-        'roles',
-        'permissions',
-        'approval-config',
-        'settings',
     ];
 
     public function handle(Request $request, Closure $next)
