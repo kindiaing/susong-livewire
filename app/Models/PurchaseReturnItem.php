@@ -61,6 +61,14 @@ class PurchaseReturnItem extends Model
     }
 
     /**
+     * 关联采购单明细
+     */
+    public function purchaseOrderItem()
+    {
+        return $this->belongsTo(PurchaseOrderItem::class);
+    }
+
+    /**
      * 关联 SKU
      */
     public function sku()

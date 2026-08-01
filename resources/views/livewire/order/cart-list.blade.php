@@ -1,4 +1,4 @@
-<div class="p-6">
+﻿<div class="p-6">
     <div class="flex items-center justify-between mb-6">
         <div>
             <h1 class="text-2xl font-bold text-foreground">购物车</h1>
@@ -11,7 +11,7 @@
     </div>
     <div class="rounded-lg border bg-card">
         <div class="grid grid-cols-[60px_1fr_1fr_80px_80px_100px_80px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            <div>ID</div><div>商家</div><div>商品</div><div>SKU</div><div>数量</div><div>单价(厘)</div><div>操作</div>
+            <div>ID</div><div>商家</div><div>商品</div><div>SKU</div><div>数量</div><div>单价（元）</div><div>操作</div>
         </div>
         @forelse($cartItems as $item)
             <div class="grid grid-cols-[60px_1fr_1fr_80px_80px_100px_80px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors" wire:key="cart-{{ $item->id }}">
@@ -35,7 +35,7 @@
             <h2 class="text-lg font-semibold text-foreground mb-2">确认删除</h2>
             <p class="text-sm text-muted-foreground mb-6">确定要删除该购物车项吗？</p>
             <div class="flex justify-end gap-3">
-                <button wire:click="closeDeleteConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="closeDeleteConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
                 <button wire:click="delete" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>
             </div>
         </div>

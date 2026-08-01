@@ -128,4 +128,12 @@ class ApprovalTypeConfig extends Model
     {
         return $query->orderBy('sort_order');
     }
+
+    /**
+     * 作用域：按风险等级
+     */
+    public function scopeByRiskLevel($query, string $riskLevel)
+    {
+        return $query->where('risk_level', $riskLevel);
+    }
 }

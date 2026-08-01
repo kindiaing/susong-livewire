@@ -5,6 +5,7 @@ namespace App\Livewire\Finance;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
 use App\Models\PurchaseOrder;
@@ -20,6 +21,7 @@ class SupplierSettlementList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithMoneyConversion;
     use WithToast;
 
     protected string $modelClass = SupplierSettlement::class;
@@ -32,7 +34,7 @@ class SupplierSettlementList extends Component
 
     public int $formSupplierId = 0;
     public int $formPurchaseOrderId = 0;
-    public int $formAmount = 0;
+    public string $formAmount = '';
     public string $formSettlementDate = '';
     public string $formNote = '';
 
@@ -88,7 +90,7 @@ class SupplierSettlementList extends Component
         return [
             '供应商ID' => 'supplier_id',
             '采购单ID' => 'purchase_order_id',
-            '金额(分)' => 'amount',
+            '金额(元)' => 'amount',
             '结算日期' => 'settlement_date',
             '备注' => 'note',
         ];
@@ -97,6 +99,11 @@ class SupplierSettlementList extends Component
     public function getPageIds(): array
     {
         return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
+    }
+
+    public function getImportMoneyFields(): array
+    {
+        return ['amount'];
     }
 
     public function openCreateModal(): void
@@ -110,7 +117,7 @@ class SupplierSettlementList extends Component
         $this->validate([
             'formSupplierId' => 'required|integer|exists:suppliers,id',
             'formPurchaseOrderId' => 'required|integer|exists:purchase_orders,id',
-            'formAmount' => 'required|integer|min:1',
+            'formAmount' => 'required|numeric|min:0.01',
             'formSettlementDate' => 'required|date',
         ]);
 
@@ -118,7 +125,7 @@ class SupplierSettlementList extends Component
             'supplier_id' => $this->formSupplierId,
             'purchase_order_id' => $this->formPurchaseOrderId,
             'settlement_no' => 'SS' . now()->format('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT),
-            'amount' => $this->formAmount,
+            'amount' => money_to_cents($this->formAmount),
             'status' => 0,
             'settlement_date' => $this->formSettlementDate,
             'note' => $this->formNote ?: null,
@@ -179,7 +186,7 @@ class SupplierSettlementList extends Component
         $this->editingId = null;
         $this->formSupplierId = 0;
         $this->formPurchaseOrderId = 0;
-        $this->formAmount = 0;
+        $this->formAmount = '';
         $this->formSettlementDate = '';
         $this->formNote = '';
     }

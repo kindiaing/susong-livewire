@@ -19,6 +19,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class SettlementPayment extends Model
 {
+    // 付款方式常量
+    public const METHOD_BANK = 1;
+    public const METHOD_CASH = 2;
+    public const METHOD_MANUAL = 3;
+
+    // 审核状态常量
+    public const APPROVAL_PENDING = 1;
+    public const APPROVAL_APPROVED = 2;
+    public const APPROVAL_REJECTED = 3;
 
     protected $fillable = [
         'settlement_id',
@@ -43,4 +52,61 @@ class SettlementPayment extends Model
         ];
     }
 
+    /**
+     * 付款方式映射
+     */
+    public static function paymentMethodMap(): array
+    {
+        return [
+            self::METHOD_BANK => '银行转账',
+            self::METHOD_CASH => '线下现金',
+            self::METHOD_MANUAL => '后台手工',
+        ];
+    }
+
+    /**
+     * 审核状态映射
+     */
+    public static function approvalStatusMap(): array
+    {
+        return [
+            self::APPROVAL_PENDING => '待审核',
+            self::APPROVAL_APPROVED => '已通过',
+            self::APPROVAL_REJECTED => '已拒绝',
+        ];
+    }
+
+    public function getPaymentMethodLabelAttribute(): string
+    {
+        return self::paymentMethodMap()[$this->payment_method] ?? '未知';
+    }
+
+    public function getApprovalStatusLabelAttribute(): string
+    {
+        return self::approvalStatusMap()[$this->approval_status] ?? '未知';
+    }
+
+    /**
+     * 关联结算单
+     */
+    public function settlement()
+    {
+        return $this->belongsTo(SupplierSettlement::class, 'settlement_id');
+    }
+
+    /**
+     * 关联操作人
+     */
+    public function operator()
+    {
+        return $this->belongsTo(User::class, 'operator_id');
+    }
+
+    /**
+     * 作用域：待审核
+     */
+    public function scopePending($query)
+    {
+        return $query->where('approval_status', self::APPROVAL_PENDING);
+    }
 }

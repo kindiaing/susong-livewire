@@ -38,4 +38,19 @@ class CorrectionAuthorization extends Model
         ];
     }
 
+    /**
+     * 关联订单
+     */
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * 关联授权人
+     */
+    public function operator()
+    {
+        return $this->belongsTo(User::class, 'operator_id');
+    }
 }

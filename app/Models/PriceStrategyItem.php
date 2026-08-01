@@ -24,6 +24,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class PriceStrategyItem extends Model
 {
+    // 价格类型常量
+    public const PRICE_FIXED = 1;
+    public const PRICE_DISCOUNT = 2;
+    public const PRICE_COST_WEIGHT = 3;
+
+    // 状态常量
+    public const STATUS_DISABLED = 0;
+    public const STATUS_ENABLED = 1;
 
     protected $fillable = [
         'price_strategy_id',
@@ -60,4 +68,76 @@ class PriceStrategyItem extends Model
         ];
     }
 
+    /**
+     * 价格类型映射
+     */
+    public static function priceTypeMap(): array
+    {
+        return [
+            self::PRICE_FIXED => '固定价',
+            self::PRICE_DISCOUNT => '折扣率',
+            self::PRICE_COST_WEIGHT => '成本加权',
+        ];
+    }
+
+    /**
+     * 状态映射
+     */
+    public static function statusMap(): array
+    {
+        return [
+            self::STATUS_ENABLED => '启用',
+            self::STATUS_DISABLED => '禁用',
+        ];
+    }
+
+    public function getPriceTypeLabelAttribute(): string
+    {
+        return self::priceTypeMap()[$this->price_type] ?? '未知';
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::statusMap()[$this->status] ?? '未知';
+    }
+
+    /**
+     * 关联价格策略
+     */
+    public function priceStrategy()
+    {
+        return $this->belongsTo(PriceStrategy::class);
+    }
+
+    /**
+     * 关联分类
+     */
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * 关联商品
+     */
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * 关联 SKU
+     */
+    public function sku()
+    {
+        return $this->belongsTo(Sku::class);
+    }
+
+    /**
+     * 作用域：启用
+     */
+    public function scopeEnabled($query)
+    {
+        return $query->where('status', self::STATUS_ENABLED);
+    }
 }

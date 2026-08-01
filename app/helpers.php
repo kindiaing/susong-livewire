@@ -1,16 +1,28 @@
 <?php
 
 /**
- * 金额格式化：整数分 → 元（带千分位）
- * 例：23000 → ¥230.00
+ * 金额格式化：整数厘 → 元（带千分位）
+ * 例：8000 → ¥8.00
  */
 function money_format(int|float|null $cents, bool $withSymbol = true): string
 {
     if ($cents === null) {
         return $withSymbol ? '¥0.00' : '0.00';
     }
-    $yuan = number_format($cents / 100, 2, '.', ',');
+    $yuan = number_format($cents / 1000, 2, '.', ',');
     return $withSymbol ? '¥' . $yuan : $yuan;
+}
+
+/**
+ * 金额反格式化：元（字符串/浮点） → 整数厘
+ * 例：'8.00' → 8000, 130.5 → 130500
+ */
+function money_to_cents(string|float|null $yuan): int
+{
+    if ($yuan === null || $yuan === '') {
+        return 0;
+    }
+    return (int) round((float) $yuan * 1000);
 }
 
 /**

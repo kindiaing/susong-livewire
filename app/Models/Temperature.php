@@ -31,4 +31,11 @@ class Temperature extends Model
         ];
     }
 
+    /**
+     * 关联配送任务
+     */
+    public function deliveryTask()
+    {
+        return $this->belongsTo(DeliveryTask::class);
+    }
 }

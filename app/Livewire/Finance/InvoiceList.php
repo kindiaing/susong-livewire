@@ -5,6 +5,7 @@ namespace App\Livewire\Finance;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
 use App\Models\Invoice;
@@ -19,6 +20,7 @@ class InvoiceList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithMoneyConversion;
     use WithToast;
 
     protected string $modelClass = Invoice::class;
@@ -30,7 +32,7 @@ class InvoiceList extends Component
     public ?int $deletingId = null;
 
     public int $formMerchantId = 0;
-    public int $formAmount = 0;
+    public string $formAmount = '';
     public int $formType = 0;
     public string $formTitle = '';
     public string $formTaxNo = '';
@@ -94,7 +96,7 @@ class InvoiceList extends Component
     {
         return [
             '商家ID' => 'merchant_id',
-            '金额(分)' => 'amount',
+            '金额(元)' => 'amount',
             '类型' => 'type',
             '抬头' => 'title',
             '税号' => 'tax_no',
@@ -104,6 +106,11 @@ class InvoiceList extends Component
     public function getPageIds(): array
     {
         return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
+    }
+
+    public function getImportMoneyFields(): array
+    {
+        return ['amount'];
     }
 
     public function openCreateModal(): void
@@ -116,7 +123,7 @@ class InvoiceList extends Component
     {
         $this->validate([
             'formMerchantId' => 'required|integer|exists:merchants,id',
-            'formAmount' => 'required|integer|min:1',
+            'formAmount' => 'required|numeric|min:0.01',
             'formType' => 'required|integer|in:0,1',
             'formTitle' => 'required|string|max:200',
             'formTaxNo' => 'required|string|max:50',
@@ -125,7 +132,7 @@ class InvoiceList extends Component
         Invoice::create([
             'merchant_id' => $this->formMerchantId,
             'invoice_no' => 'INV' . now()->format('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT),
-            'amount' => $this->formAmount,
+            'amount' => money_to_cents($this->formAmount),
             'type' => $this->formType,
             'title' => $this->formTitle,
             'tax_no' => $this->formTaxNo,
@@ -200,7 +207,7 @@ class InvoiceList extends Component
     {
         $this->editingId = null;
         $this->formMerchantId = 0;
-        $this->formAmount = 0;
+        $this->formAmount = '';
         $this->formType = 0;
         $this->formTitle = '';
         $this->formTaxNo = '';

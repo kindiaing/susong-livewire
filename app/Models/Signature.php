@@ -17,6 +17,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Signature extends Model
 {
+    use SoftDeletes;
+
+    // 类型常量
+    public const TYPE_PHOTO = 1;
+    public const TYPE_ELECTRONIC = 2;
+    public const TYPE_QC = 3;
 
     protected $fillable = [
         'order_id',
@@ -37,4 +43,36 @@ class Signature extends Model
         ];
     }
 
+    /**
+     * 类型映射
+     */
+    public static function typeMap(): array
+    {
+        return [
+            self::TYPE_PHOTO => '拍照签收',
+            self::TYPE_ELECTRONIC => '电子签名',
+            self::TYPE_QC => '质检照片',
+        ];
+    }
+
+    public function getTypeLabelAttribute(): string
+    {
+        return self::typeMap()[$this->type] ?? '未知';
+    }
+
+    /**
+     * 关联订单
+     */
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * 关联配送任务
+     */
+    public function deliveryTask()
+    {
+        return $this->belongsTo(DeliveryTask::class);
+    }
 }

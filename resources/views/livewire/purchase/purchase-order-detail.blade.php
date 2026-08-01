@@ -150,7 +150,7 @@
                 </div>
                 <div class="rounded-md bg-muted p-3 text-xs text-muted-foreground">
                     <p class="font-medium mb-1">导入模板列：</p>
-                    <p>SKU编码 | 数量 | 采购单价(厘)</p>
+                    <p>SKU编码 | 数量 | 采购单价（元）</p>
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">
@@ -184,8 +184,8 @@
                     @error('formQuantity') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">采购单价(厘) <span class="text-red-500">*</span></label>
-                    <input type="number" wire:model="formPrice" min="0" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                    <label class="block text-sm font-medium text-foreground mb-1">采购单价（元） <span class="text-red-500">*</span></label>
+                    <input type="number" wire:model="formPrice" min="0" step="0.01" placeholder="0.00" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
                     @error('formPrice') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
             </div>
@@ -225,7 +225,7 @@
                 {{-- 逐行入库明细 --}}
                 <div class="rounded-lg border">
                     <div class="grid grid-cols-[1fr_80px_80px_80px_80px_1fr] gap-2 px-4 py-2 text-xs font-medium text-muted-foreground border-b">
-                        <div>SKU</div><div class="text-right">采购数</div><div>实际数量</div><div>实际单价(厘)</div><div class="text-right">差异</div><div>差异原因</div>
+                        <div>SKU</div><div class="text-right">采购数</div><div>实际数量</div>                        <div>实际单价（元）</div><div class="text-right">差异</div><div>差异原因</div>
                     </div>
                     @foreach($stockInItems as $i => $item)
                         <div class="grid grid-cols-[1fr_80px_80px_80px_80px_1fr] gap-2 px-4 py-2 items-center border-b last:border-b-0 text-sm">
@@ -235,7 +235,7 @@
                                 <input type="number" wire:model="stockInItems.{{ $i }}.actual_quantity" min="0" class="w-full h-7 rounded border border-input bg-background px-2 text-sm" />
                             </div>
                             <div>
-                                <input type="number" wire:model="stockInItems.{{ $i }}.actual_price" min="0" class="w-full h-7 rounded border border-input bg-background px-2 text-sm" />
+                                <input type="number" wire:model="stockInItems.{{ $i }}.actual_price" min="0" step="0.01" placeholder="0.00" class="w-full h-7 rounded border border-input bg-background px-2 text-sm" />
                             </div>
                             <div class="text-center @if($item['actual_quantity'] != $item['quantity']) text-orange-600 font-medium @else text-green-600 @endif">
                                 {{ $item['actual_quantity'] - $item['quantity'] }}

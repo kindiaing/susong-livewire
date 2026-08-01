@@ -103,6 +103,14 @@ class PurchaseOrder extends Model
     }
 
     /**
+     * 关联采购退货
+     */
+    public function purchaseReturns()
+    {
+        return $this->hasMany(PurchaseReturn::class);
+    }
+
+    /**
      * 采购单号生成
      */
     public static function generateOrderNo(): string

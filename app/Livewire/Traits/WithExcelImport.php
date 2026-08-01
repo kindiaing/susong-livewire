@@ -52,6 +52,7 @@ trait WithExcelImport
                 columnMap: $this->getImportColumnMap(),
                 uniqueBy: $this->getImportUniqueBy(),
                 valueMap: $this->getImportValueMap(),
+                moneyFields: $this->getImportMoneyFields(),
             );
 
             Excel::import($import, $this->importFile);
@@ -137,6 +138,15 @@ trait WithExcelImport
      * 返回中文列名数组，如 ['名称', '联系人', '状态']
      */
     public function getImportRequiredFields(): array
+    {
+        return [];
+    }
+
+    /**
+     * 组件覆盖：需要元→厘转换的金额字段
+     * 返回模型字段名数组，如 ['amount', 'unit_price']
+     */
+    public function getImportMoneyFields(): array
     {
         return [];
     }

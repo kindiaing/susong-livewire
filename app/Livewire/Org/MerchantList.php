@@ -5,6 +5,7 @@ namespace App\Livewire\Org;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
 use App\Models\DeliveryRoute;
@@ -19,6 +20,7 @@ class MerchantList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithMoneyConversion;
     use WithToast;
 
     protected string $modelClass = Merchant::class;
@@ -39,9 +41,9 @@ class MerchantList extends Component
     public string $formAddress = '';
     public int $formDeliveryRouteId = 0;
     public int $formDeliverySort = 0;
-    public int $formMinOrderAmount = 0;
+    public string $formMinOrderAmount = '';
     public int $formSettlementType = 1;
-    public int $formCreditLimit = 0;
+    public string $formCreditLimit = '';
     public int $formStatus = 1;
     public string $formRemark = '';
 
@@ -66,9 +68,9 @@ class MerchantList extends Component
         $this->formAddress = $merchant->address ?? '';
         $this->formDeliveryRouteId = $merchant->delivery_route_id ?? 0;
         $this->formDeliverySort = $merchant->delivery_sort ?? 0;
-        $this->formMinOrderAmount = $merchant->min_order_amount ?? 0;
+        $this->formMinOrderAmount = $this->centsToYuan($merchant->min_order_amount);
         $this->formSettlementType = $merchant->settlement_type;
-        $this->formCreditLimit = $merchant->credit_limit ?? 0;
+        $this->formCreditLimit = $this->centsToYuan($merchant->credit_limit);
         $this->formStatus = $merchant->status;
         $this->formRemark = $merchant->remark ?? '';
         $this->showModal = true;
@@ -83,9 +85,9 @@ class MerchantList extends Component
             'formAddress' => 'required|string|max:255',
             'formDeliveryRouteId' => 'nullable|integer|exists:delivery_routes,id',
             'formDeliverySort' => 'nullable|integer|min:0',
-            'formMinOrderAmount' => 'required|integer|min:0',
+            'formMinOrderAmount' => 'required|numeric|min:0',
             'formSettlementType' => 'required|in:1,2,3',
-            'formCreditLimit' => 'required|integer|min:0',
+            'formCreditLimit' => 'required|numeric|min:0',
             'formStatus' => 'required|in:0,1',
             'formRemark' => 'nullable|string|max:500',
         ]);
@@ -97,9 +99,9 @@ class MerchantList extends Component
             'address' => $validated['formAddress'],
             'delivery_route_id' => $validated['formDeliveryRouteId'] ?: null,
             'delivery_sort' => $validated['formDeliverySort'],
-            'min_order_amount' => $validated['formMinOrderAmount'],
+            'min_order_amount' => money_to_cents($validated['formMinOrderAmount']),
             'settlement_type' => $validated['formSettlementType'],
-            'credit_limit' => $validated['formCreditLimit'],
+            'credit_limit' => money_to_cents($validated['formCreditLimit']),
             'status' => $validated['formStatus'],
             'remark' => $validated['formRemark'],
         ];
@@ -240,9 +242,9 @@ class MerchantList extends Component
         $this->formAddress = '';
         $this->formDeliveryRouteId = 0;
         $this->formDeliverySort = 0;
-        $this->formMinOrderAmount = 0;
+        $this->formMinOrderAmount = '';
         $this->formSettlementType = 1;
-        $this->formCreditLimit = 0;
+        $this->formCreditLimit = '';
         $this->formStatus = 1;
         $this->formRemark = '';
     }

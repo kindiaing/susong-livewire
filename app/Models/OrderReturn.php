@@ -22,6 +22,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class OrderReturn extends Model
 {
+    use SoftDeletes;
+
+    // 状态常量
+    public const STATUS_PENDING = 1;
+    public const STATUS_APPROVED = 2;
+    public const STATUS_RETURNED = 3;
+    public const STATUS_REFUNDED = 4;
+    public const STATUS_CANCELLED = 9;
 
     protected $fillable = [
         'return_no',
@@ -51,4 +59,70 @@ class OrderReturn extends Model
         ];
     }
 
+    /**
+     * 状态映射
+     */
+    public static function statusMap(): array
+    {
+        return [
+            self::STATUS_PENDING => '待审核',
+            self::STATUS_APPROVED => '已审核',
+            self::STATUS_RETURNED => '已退货',
+            self::STATUS_REFUNDED => '退款完成',
+            self::STATUS_CANCELLED => '取消',
+        ];
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::statusMap()[$this->status] ?? '未知';
+    }
+
+    /**
+     * 关联订单
+     */
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * 关联商家
+     */
+    public function merchant()
+    {
+        return $this->belongsTo(Merchant::class);
+    }
+
+    /**
+     * 关联退货明细
+     */
+    public function items()
+    {
+        return $this->hasMany(OrderReturnItem::class);
+    }
+
+    /**
+     * 关联经办人
+     */
+    public function operator()
+    {
+        return $this->belongsTo(User::class, 'operator_id');
+    }
+
+    /**
+     * 关联审核人
+     */
+    public function auditor()
+    {
+        return $this->belongsTo(User::class, 'audited_by');
+    }
+
+    /**
+     * 作用域：待审核
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', self::STATUS_PENDING);
+    }
 }

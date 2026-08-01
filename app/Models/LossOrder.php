@@ -156,6 +156,22 @@ class LossOrder extends Model
     }
 
     /**
+     * 关联申请人
+     */
+    public function applicant()
+    {
+        return $this->belongsTo(User::class, 'applicant_id');
+    }
+
+    /**
+     * 关联审核人
+     */
+    public function reviewer()
+    {
+        return $this->belongsTo(User::class, 'reviewer_id');
+    }
+
+    /**
      * 作用域：待审核
      */
     public function scopePending($query)

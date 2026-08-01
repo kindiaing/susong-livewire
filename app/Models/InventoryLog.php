@@ -103,4 +103,44 @@ class InventoryLog extends Model
     {
         return $this->belongsTo(User::class, 'operator_id');
     }
+
+    /**
+     * 作用域：按仓库
+     */
+    public function scopeByWarehouse($query, int $warehouseId)
+    {
+        return $query->where('warehouse_id', $warehouseId);
+    }
+
+    /**
+     * 作用域：按 SKU
+     */
+    public function scopeBySku($query, int $skuId)
+    {
+        return $query->where('sku_id', $skuId);
+    }
+
+    /**
+     * 作用域：按变动类型
+     */
+    public function scopeByType($query, int $type)
+    {
+        return $query->where('type', $type);
+    }
+
+    /**
+     * 作用域：入库
+     */
+    public function scopeInbound($query)
+    {
+        return $query->where('type', self::TYPE_IN);
+    }
+
+    /**
+     * 作用域：出库
+     */
+    public function scopeOutbound($query)
+    {
+        return $query->where('type', self::TYPE_OUT);
+    }
 }

@@ -141,6 +141,70 @@ class Merchant extends Model
     }
 
     /**
+     * 关联购物车
+     */
+    public function cart()
+    {
+        return $this->hasOne(Cart::class);
+    }
+
+    /**
+     * 关联收藏商品
+     */
+    public function favorites()
+    {
+        return $this->hasMany(MerchantFavorite::class);
+    }
+
+    /**
+     * 关联常购清单
+     */
+    public function frequentlyBought()
+    {
+        return $this->hasMany(FrequentlyBought::class);
+    }
+
+    /**
+     * 关联复购模板
+     */
+    public function repurchaseTemplates()
+    {
+        return $this->hasMany(RepurchaseTemplate::class);
+    }
+
+    /**
+     * 关联充值记录
+     */
+    public function recharges()
+    {
+        return $this->hasMany(Recharge::class);
+    }
+
+    /**
+     * 关联通知
+     */
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    /**
+     * 关联 SKU 可见性
+     */
+    public function skuVisibilities()
+    {
+        return $this->hasMany(MerchantSkuVisibility::class);
+    }
+
+    /**
+     * 关联补货提醒
+     */
+    public function restockReminders()
+    {
+        return $this->hasMany(RestockReminder::class);
+    }
+
+    /**
      * 作用域：启用
      */
     public function scopeEnabled($query)

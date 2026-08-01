@@ -39,4 +39,19 @@ class DeliveryTrack extends Model
         ];
     }
 
+    /**
+     * 关联配送任务
+     */
+    public function deliveryTask()
+    {
+        return $this->belongsTo(DeliveryTask::class);
+    }
+
+    /**
+     * 关联司机
+     */
+    public function driver()
+    {
+        return $this->belongsTo(Driver::class);
+    }
 }

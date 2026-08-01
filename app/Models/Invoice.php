@@ -21,6 +21,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Invoice extends Model
 {
+    // 类型常量
+    public const TYPE_CUSTOMER = 1;
+    public const TYPE_SUPPLIER = 2;
+
+    // 状态常量
+    public const STATUS_PENDING = 1;
+    public const STATUS_ISSUED = 2;
+    public const STATUS_SENT = 3;
 
     protected $fillable = [
         'invoice_no',
@@ -48,4 +56,52 @@ class Invoice extends Model
         ];
     }
 
+    /**
+     * 类型映射
+     */
+    public static function typeMap(): array
+    {
+        return [
+            self::TYPE_CUSTOMER => '客户发票',
+            self::TYPE_SUPPLIER => '供应商发票',
+        ];
+    }
+
+    /**
+     * 状态映射
+     */
+    public static function statusMap(): array
+    {
+        return [
+            self::STATUS_PENDING => '待开具',
+            self::STATUS_ISSUED => '已开具',
+            self::STATUS_SENT => '已寄出',
+        ];
+    }
+
+    public function getTypeLabelAttribute(): string
+    {
+        return self::typeMap()[$this->type] ?? '未知';
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::statusMap()[$this->status] ?? '未知';
+    }
+
+    /**
+     * 作用域：按类型
+     */
+    public function scopeByType($query, int $type)
+    {
+        return $query->where('type', $type);
+    }
+
+    /**
+     * 作用域：待开具
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', self::STATUS_PENDING);
+    }
 }

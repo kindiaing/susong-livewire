@@ -5,6 +5,7 @@ namespace App\Livewire\Finance;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
 use App\Models\Merchant;
@@ -19,6 +20,7 @@ class RechargeList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithMoneyConversion;
     use WithToast;
 
     protected string $modelClass = Recharge::class;
@@ -30,7 +32,7 @@ class RechargeList extends Component
     public ?int $deletingId = null;
 
     public int $formMerchantId = 0;
-    public int $formAmount = 0;
+    public string $formAmount = '';
     public int $formPaymentMethod = 0;
     public string $formNote = '';
 
@@ -93,7 +95,7 @@ class RechargeList extends Component
     {
         return [
             '商家ID' => 'merchant_id',
-            '金额(分)' => 'amount',
+            '金额(元)' => 'amount',
             '支付方式' => 'payment_method',
             '备注' => 'note',
         ];
@@ -102,6 +104,11 @@ class RechargeList extends Component
     public function getPageIds(): array
     {
         return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
+    }
+
+    public function getImportMoneyFields(): array
+    {
+        return ['amount'];
     }
 
     public function openCreateModal(): void
@@ -114,14 +121,14 @@ class RechargeList extends Component
     {
         $this->validate([
             'formMerchantId' => 'required|integer|exists:merchants,id',
-            'formAmount' => 'required|integer|min:1',
+            'formAmount' => 'required|numeric|min:0.01',
             'formPaymentMethod' => 'required|integer|in:0,1,2,3',
         ]);
 
         Recharge::create([
             'merchant_id' => $this->formMerchantId,
             'transaction_no' => 'RC' . now()->format('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT),
-            'amount' => $this->formAmount,
+            'amount' => money_to_cents($this->formAmount),
             'payment_method' => $this->formPaymentMethod,
             'status' => 0,
             'note' => $this->formNote ?: null,
@@ -203,7 +210,7 @@ class RechargeList extends Component
     {
         $this->editingId = null;
         $this->formMerchantId = 0;
-        $this->formAmount = 0;
+        $this->formAmount = '';
         $this->formPaymentMethod = 0;
         $this->formNote = '';
     }

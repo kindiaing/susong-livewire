@@ -70,4 +70,12 @@ class PurchaseOrderItem extends Model
     {
         return $this->belongsTo(Sku::class);
     }
+
+    /**
+     * 关联价格策略
+     */
+    public function priceStrategy()
+    {
+        return $this->belongsTo(PriceStrategy::class);
+    }
 }

@@ -5,6 +5,7 @@ namespace App\Livewire\Finance;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
 use App\Models\Merchant;
@@ -20,6 +21,7 @@ class ReceivableList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithMoneyConversion;
     use WithToast;
 
     protected string $modelClass = Receivable::class;
@@ -32,7 +34,7 @@ class ReceivableList extends Component
 
     public int $formOrderId = 0;
     public int $formMerchantId = 0;
-    public int $formAmount = 0;
+    public string $formAmount = '';
 
     public static array $statusMap = [
         0 => '未收',
@@ -86,13 +88,18 @@ class ReceivableList extends Component
         return [
             '订单ID' => 'order_id',
             '商家ID' => 'merchant_id',
-            '金额(分)' => 'amount',
+            '金额(元)' => 'amount',
         ];
     }
 
     public function getPageIds(): array
     {
         return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
+    }
+
+    public function getImportMoneyFields(): array
+    {
+        return ['amount'];
     }
 
     public function openCreateModal(): void
@@ -106,13 +113,13 @@ class ReceivableList extends Component
         $this->validate([
             'formOrderId' => 'required|integer|exists:orders,id',
             'formMerchantId' => 'required|integer|exists:merchants,id',
-            'formAmount' => 'required|integer|min:1',
+            'formAmount' => 'required|numeric|min:0.01',
         ]);
 
         Receivable::create([
             'order_id' => $this->formOrderId,
             'merchant_id' => $this->formMerchantId,
-            'amount' => $this->formAmount,
+            'amount' => money_to_cents($this->formAmount),
             'received_amount' => 0,
             'status' => 0,
         ]);
@@ -175,7 +182,7 @@ class ReceivableList extends Component
         $this->editingId = null;
         $this->formOrderId = 0;
         $this->formMerchantId = 0;
-        $this->formAmount = 0;
+        $this->formAmount = '';
     }
 
     public function render()

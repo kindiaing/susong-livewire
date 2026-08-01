@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithToast;
 use App\Models\SkuSupplier;
 use App\Models\Supplier;
@@ -17,6 +18,7 @@ class SkuSupplierList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithMoneyConversion;
     use WithPagination;
     use WithRowSelection;
     use WithToast;
@@ -41,7 +43,7 @@ class SkuSupplierList extends Component
 
     public int $formIsDefault = 0;
 
-    public int $formPurchasePrice = 0;
+    public string $formPurchasePrice = '';
 
     public int $formStatus = 1;
 
@@ -65,7 +67,7 @@ class SkuSupplierList extends Component
         $this->formSkuId = $skuSupplier->sku_id;
         $this->formSupplierId = $skuSupplier->supplier_id;
         $this->formIsDefault = $skuSupplier->is_default;
-        $this->formPurchasePrice = $skuSupplier->purchase_price;
+        $this->formPurchasePrice = $this->centsToYuan($skuSupplier->purchase_price);
         $this->formStatus = $skuSupplier->status;
         $this->formSort = $skuSupplier->sort;
         $this->showModal = true;
@@ -77,7 +79,7 @@ class SkuSupplierList extends Component
             'formSkuId' => 'required|integer|min:1',
             'formSupplierId' => 'required|integer|min:1',
             'formIsDefault' => 'required|in:0,1',
-            'formPurchasePrice' => 'required|integer|min:0',
+            'formPurchasePrice' => 'required|numeric|min:0',
             'formStatus' => 'required|in:0,1',
             'formSort' => 'required|integer|min:0',
         ]);
@@ -86,7 +88,7 @@ class SkuSupplierList extends Component
             'sku_id' => $validated['formSkuId'],
             'supplier_id' => $validated['formSupplierId'],
             'is_default' => $validated['formIsDefault'],
-            'purchase_price' => $validated['formPurchasePrice'],
+            'purchase_price' => money_to_cents($validated['formPurchasePrice']),
             'status' => $validated['formStatus'],
             'sort' => $validated['formSort'],
         ];
@@ -146,7 +148,7 @@ class SkuSupplierList extends Component
         $this->formSkuId = 0;
         $this->formSupplierId = 0;
         $this->formIsDefault = 0;
-        $this->formPurchasePrice = 0;
+        $this->formPurchasePrice = '';
         $this->formStatus = 1;
         $this->formSort = 0;
     }
@@ -195,7 +197,7 @@ class SkuSupplierList extends Component
         return [
             'SKU ID' => 'sku_id',
             '供应商ID' => 'supplier_id',
-            '采购价(厘)' => 'purchase_price',
+            '采购价(元)' => 'purchase_price',
             '是否默认' => 'is_default',
             '排序' => 'sort',
             '状态' => 'status',
@@ -205,6 +207,11 @@ class SkuSupplierList extends Component
     public function getPageIds(): array
     {
         return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
+    }
+
+    public function getImportMoneyFields(): array
+    {
+        return ['purchase_price'];
     }
 
     public function render()

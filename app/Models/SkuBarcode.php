@@ -71,6 +71,22 @@ class SkuBarcode extends Model
     }
 
     /**
+     * 状态映射（is_enabled 字段）
+     */
+    public static function statusMap(): array
+    {
+        return [
+            1 => '启用',
+            0 => '禁用',
+        ];
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::statusMap()[$this->is_enabled] ?? '未知';
+    }
+
+    /**
      * 关联 SKU
      */
     public function sku()
