@@ -28,41 +28,49 @@
     </div>
 
     <div class="rounded-lg border bg-card">
-        <div class="grid grid-cols-[40px_60px_1fr_120px_80px_80px_100px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            <div><input type="checkbox" wire:model.live="selectAll" class="rounded" /></div>
-            <div>ID</div>
-            <div>分类名称</div>
-            <div>父级分类</div>
-            <div>排序</div>
-            <div>状态</div>
-            <div>操作</div>
-        </div>
-        @forelse($categories as $category)
-            <div class="grid grid-cols-[40px_60px_1fr_120px_80px_80px_100px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors" wire:key="category-{{ $category->id }}">
-                <div><input type="checkbox" value="{{ $category->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm text-muted-foreground">{{ $category->id }}</div>
-                <div class="text-sm font-medium text-foreground">{{ $category->name }}</div>
-                <div class="text-sm text-foreground">{{ $category->parent_id == 0 ? '根节点' : ($category->parent?->name ?? '-') }}</div>
-                <div class="text-sm text-foreground">{{ $category->sort }}</div>
-                <div>
-                    @if($category->status === 1)
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
-                    @else
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
-                    @endif
-                </div>
-                <div class="flex items-center gap-2">
-                    @can('product.category.edit')
-                    <button type="button" wire:click="openEditModal({{ $category->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
-                    @endcan
-                    @can('product.category.delete')
-                    <button type="button" wire:click="confirmDelete({{ $category->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
-                    @endcan
-                </div>
-            </div>
-        @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无分类数据</div>
-        @endforelse
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAll" class="rounded" /></th>
+                    <th class="px-4 py-2 text-left w-16">ID</th>
+                    <th class="px-4 py-2 text-left">分类名称</th>
+                    <th class="px-4 py-2 text-left">父级分类</th>
+                    <th class="px-4 py-2 text-left">排序</th>
+                    <th class="px-4 py-2 text-left">状态</th>
+                    <th class="px-4 py-2 text-left w-24">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($categories as $category)
+                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="category-{{ $category->id }}">
+                    <td class="px-4 py-2"><input type="checkbox" value="{{ $category->id }}" wire:model.live="selectedIds" class="rounded" /></td>
+                    <td class="px-4 py-2 text-muted-foreground">{{ $category->id }}</td>
+                    <td class="px-4 py-2 font-medium text-foreground">{{ $category->name }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $category->parent_id == 0 ? '根节点' : ($category->parent?->name ?? '-') }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $category->sort }}</td>
+                    <td class="px-4 py-2">
+                        @if($category->status === 1)
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
+                        @else
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
+                        @endif
+                    </td>
+                    <td class="px-4 py-2">
+                        <div class="flex items-center gap-2">
+                            @can('product.category.edit')
+                            <button type="button" wire:click="openEditModal({{ $category->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                            @endcan
+                            @can('product.category.delete')
+                            <button type="button" wire:click="confirmDelete({{ $category->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                            @endcan
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="7" class="px-6 py-12 text-center text-muted-foreground">暂无分类数据</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 
     <div class="mt-4">{{ $categories->links() }}</div>

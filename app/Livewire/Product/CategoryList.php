@@ -184,7 +184,7 @@ class CategoryList extends Component
             $query->where('name', 'like', "%{$this->search}%");
         }
 
-        $categories = $query->paginate(20);
+        $categories = $query->paginate(setting('per_page', 10));
 
         $parentOptions = Category::orderBy('sort')->orderBy('id')->get();
         $allColumns = $this->getAllColumns();

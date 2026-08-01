@@ -266,7 +266,7 @@ class DeliveryTaskList extends Component
             $query->where('status', $this->filterStatus);
         }
 
-        return $query->paginate(20);
+        return $query->paginate(setting('per_page', 10));
     }
 
     public function render()

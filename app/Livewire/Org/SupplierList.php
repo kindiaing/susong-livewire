@@ -309,7 +309,7 @@ class SupplierList extends Component
     {
         $query = $this->applyFilters(Supplier::query())->orderBy('id', 'desc');
 
-        $suppliers = $query->paginate(10);
+        $suppliers = $query->paginate(setting('per_page', 10));
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 

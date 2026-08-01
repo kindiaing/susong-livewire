@@ -10,8 +10,6 @@
             新增库存
         </button>
         @endcan
-            新增库存
-        </button>
     </div>
 
     {{-- 搜索栏 --}}
@@ -28,42 +26,48 @@
 
     {{-- 列表 --}}
     <div class="rounded-lg border bg-card overflow-x-auto">
-        <div class="grid grid-cols-[60px_1fr_1fr_100px_100px_100px_120px_100px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider min-w-[900px]">
-            <div>ID</div>
-            <div>仓库</div>
-            <div>SKU</div>
-            <div>总库存</div>
-            <div>锁定</div>
-            <div>可用</div>
-            <div>效期</div>
-            <div>操作</div>
-        </div>
-
-        @forelse($items as $item)
-            <div class="grid grid-cols-[60px_1fr_1fr_100px_100px_100px_120px_100px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors min-w-[900px]"
-                 wire:key="inventory-{{ $item->id }}">
-                <div class="text-sm text-muted-foreground">{{ $item->id }}</div>
-                <div class="text-sm text-foreground">{{ $item->warehouse?->name ?? '-' }}</div>
-                <div class="text-sm text-foreground">
-                    {{ $item->sku?->sku_code ?? '-' }}
-                    <span class="text-muted-foreground text-xs ml-1">{{ $item->sku?->product?->name ?? '' }}</span>
-                </div>
-                <div class="text-sm text-foreground">{{ $item->total_stock }}</div>
-                <div class="text-sm text-foreground">{{ $item->locked_stock }}</div>
-                <div class="text-sm {{ $item->available_stock <= $item->warning_value ? 'text-red-600 font-medium' : 'text-foreground' }}">{{ $item->available_stock }}</div>
-                <div class="text-sm text-muted-foreground">{{ $item->expiry_date ? $item->expiry_date->format('Y-m-d') : '-' }}</div>
-                <div class="flex items-center gap-2">
-                    @can('inventory.inventory.edit')
-                    <button type="button" wire:click="openEditModal({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
-                    @endcan
-                    @can('inventory.inventory.delete')
-                    <button type="button" wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
-                    @endcan
-                </div>
-            </div>
-        @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无库存数据</div>
-        @endforelse
+        <table class="w-full text-sm min-w-[900px]">
+            <thead>
+                <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th class="px-4 py-2 text-left w-16">ID</th>
+                    <th class="px-4 py-2 text-left">仓库</th>
+                    <th class="px-4 py-2 text-left">SKU</th>
+                    <th class="px-4 py-2 text-left">总库存</th>
+                    <th class="px-4 py-2 text-left">锁定</th>
+                    <th class="px-4 py-2 text-left">可用</th>
+                    <th class="px-4 py-2 text-left">效期</th>
+                    <th class="px-4 py-2 text-left w-24">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($items as $item)
+                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="inventory-{{ $item->id }}">
+                    <td class="px-4 py-2 text-muted-foreground">{{ $item->id }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $item->warehouse?->name ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground">
+                        {{ $item->sku?->sku_code ?? '-' }}
+                        <span class="text-muted-foreground text-xs ml-1">{{ $item->sku?->product?->name ?? '' }}</span>
+                    </td>
+                    <td class="px-4 py-2 text-foreground">{{ $item->total_stock }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $item->locked_stock }}</td>
+                    <td class="px-4 py-2 {{ $item->available_stock <= $item->warning_value ? 'text-red-600 font-medium' : 'text-foreground' }}">{{ $item->available_stock }}</td>
+                    <td class="px-4 py-2 text-muted-foreground">{{ $item->expiry_date ? $item->expiry_date->format('Y-m-d') : '-' }}</td>
+                    <td class="px-4 py-2">
+                        <div class="flex items-center gap-2">
+                            @can('inventory.inventory.edit')
+                            <button type="button" wire:click="openEditModal({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                            @endcan
+                            @can('inventory.inventory.delete')
+                            <button type="button" wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                            @endcan
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="8" class="px-6 py-12 text-center text-muted-foreground">暂无库存数据</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 
     <div class="mt-4">{{ $items->links() }}</div>

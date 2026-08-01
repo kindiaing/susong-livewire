@@ -381,7 +381,7 @@ class RoleList extends Component
             });
         }
 
-        $roles = $query->paginate(20);
+        $roles = $query->paginate(setting('per_page', 10));
 
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();

@@ -28,33 +28,41 @@
     </div>
 
     <div class="rounded-lg border bg-card">
-        <div class="grid grid-cols-[40px_60px_1fr_1fr_100px_100px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            <div><input type="checkbox" wire:model.live="selectAll" class="rounded" /></div>
-            <div>ID</div>
-            <div>关键词</div>
-            <div>关联商品</div>
-            <div>搜索次数</div>
-            <div>操作</div>
-        </div>
-        @forelse($keywords as $kw)
-            <div class="grid grid-cols-[40px_60px_1fr_1fr_100px_100px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors" wire:key="keyword-{{ $kw->id }}">
-                <div><input type="checkbox" value="{{ $kw->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm text-muted-foreground">{{ $kw->id }}</div>
-                <div class="text-sm font-medium text-foreground">{{ $kw->keyword }}</div>
-                <div class="text-sm text-foreground">{{ $kw->product?->name ?? '-' }}</div>
-                <div class="text-sm text-foreground">{{ $kw->search_count }}</div>
-                <div class="flex items-center gap-2">
-                    @can('product.keyword.edit')
-                    <button type="button" wire:click="openEditModal({{ $kw->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
-                    @endcan
-                    @can('product.keyword.delete')
-                    <button type="button" wire:click="confirmDelete({{ $kw->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
-                    @endcan
-                </div>
-            </div>
-        @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无关键词数据</div>
-        @endforelse
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAll" class="rounded" /></th>
+                    <th class="px-4 py-2 text-left w-16">ID</th>
+                    <th class="px-4 py-2 text-left">关键词</th>
+                    <th class="px-4 py-2 text-left">关联商品</th>
+                    <th class="px-4 py-2 text-left">搜索次数</th>
+                    <th class="px-4 py-2 text-left w-24">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($keywords as $kw)
+                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="keyword-{{ $kw->id }}">
+                    <td class="px-4 py-2"><input type="checkbox" value="{{ $kw->id }}" wire:model.live="selectedIds" class="rounded" /></td>
+                    <td class="px-4 py-2 text-muted-foreground">{{ $kw->id }}</td>
+                    <td class="px-4 py-2 font-medium text-foreground">{{ $kw->keyword }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $kw->product?->name ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $kw->search_count }}</td>
+                    <td class="px-4 py-2">
+                        <div class="flex items-center gap-2">
+                            @can('product.keyword.edit')
+                            <button type="button" wire:click="openEditModal({{ $kw->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                            @endcan
+                            @can('product.keyword.delete')
+                            <button type="button" wire:click="confirmDelete({{ $kw->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                            @endcan
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="6" class="px-6 py-12 text-center text-muted-foreground">暂无关键词数据</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 
     <div class="mt-4">{{ $keywords->links() }}</div>

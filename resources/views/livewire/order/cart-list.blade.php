@@ -10,22 +10,34 @@
         <button type="button" wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
     </div>
     <div class="rounded-lg border bg-card">
-        <div class="grid grid-cols-[60px_1fr_1fr_80px_80px_100px_80px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            <div>ID</div><div>商家</div><div>商品</div><div>SKU</div><div>数量</div><div>单价（元）</div><div>操作</div>
-        </div>
-        @forelse($cartItems as $item)
-            <div class="grid grid-cols-[60px_1fr_1fr_80px_80px_100px_80px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors" wire:key="cart-{{ $item->id }}">
-                <div class="text-sm text-muted-foreground">{{ $item->id }}</div>
-                <div class="text-sm text-foreground">{{ $item->cart?->merchant?->name ?? '-' }}</div>
-                <div class="text-sm text-foreground truncate">{{ $item->sku?->product?->name ?? '-' }}</div>
-                <div class="text-sm font-mono text-foreground">{{ $item->sku?->sku_code ?? '-' }}</div>
-                <div class="text-sm text-foreground">{{ $item->quantity }}</div>
-                <div class="text-sm text-foreground">{{ $item->price }}</div>
-                <div>@can('order.cart.delete')<button type="button" wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>@endcan</div>
-            </div>
-        @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无购物车数据</div>
-        @endforelse
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th class="px-4 py-2 text-left w-16">ID</th>
+                    <th class="px-4 py-2 text-left">商家</th>
+                    <th class="px-4 py-2 text-left">商品</th>
+                    <th class="px-4 py-2 text-left">SKU</th>
+                    <th class="px-4 py-2 text-left">数量</th>
+                    <th class="px-4 py-2 text-left">单价（元）</th>
+                    <th class="px-4 py-2 text-left w-24">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($cartItems as $item)
+                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="cart-{{ $item->id }}">
+                    <td class="px-4 py-2 text-muted-foreground">{{ $item->id }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $item->cart?->merchant?->name ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground truncate">{{ $item->sku?->product?->name ?? '-' }}</td>
+                    <td class="px-4 py-2 font-mono text-foreground">{{ $item->sku?->sku_code ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $item->quantity }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $item->price }}</td>
+                    <td class="px-4 py-2">@can('order.cart.delete')<button type="button" wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>@endcan</td>
+                </tr>
+                @empty
+                <tr><td colspan="7" class="px-6 py-12 text-center text-muted-foreground">暂无购物车数据</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
     <div class="mt-4">{{ $cartItems->links() }}</div>
     @if($showDeleteConfirm)

@@ -21,22 +21,32 @@
         <button type="button" wire:click="openImportModal" class="rounded-md border border-input px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors">导入</button>
     </div>
     <div class="rounded-lg border bg-card">
-        <div class="grid grid-cols-[40px_60px_1fr_1fr_100px_100px] gap-2 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            <div><input type="checkbox" wire:model.live="selectAllPage" class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500" /></div>
-            <div>ID</div><div>商家</div><div>商品</div><div>购买次数</div><div>创建时间</div>
-        </div>
-        @forelse($items as $item)
-            <div class="grid grid-cols-[40px_60px_1fr_1fr_100px_100px] gap-2 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors" wire:key="fb-{{ $item->id }}">
-                <div><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500" /></div>
-                <div class="text-sm text-muted-foreground">{{ $item->id }}</div>
-                <div class="text-sm text-foreground">{{ $item->merchant?->name ?? '-' }}</div>
-                <div class="text-sm text-foreground truncate">{{ $item->sku?->product?->name ?? '-' }}</div>
-                <div class="text-sm font-medium text-foreground">{{ $item->buy_count }}</div>
-                <div class="text-sm text-muted-foreground">{{ $item->created_at?->format('Y-m-d H:i') }}</div>
-            </div>
-        @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无常购数据</div>
-        @endforelse
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAllPage" class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500" /></th>
+                    <th class="px-4 py-2 text-left w-16">ID</th>
+                    <th class="px-4 py-2 text-left">商家</th>
+                    <th class="px-4 py-2 text-left">商品</th>
+                    <th class="px-4 py-2 text-left">购买次数</th>
+                    <th class="px-4 py-2 text-left">创建时间</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($items as $item)
+                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="fb-{{ $item->id }}">
+                    <td class="px-4 py-2"><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500" /></td>
+                    <td class="px-4 py-2 text-muted-foreground">{{ $item->id }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $item->merchant?->name ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground truncate">{{ $item->sku?->product?->name ?? '-' }}</td>
+                    <td class="px-4 py-2 font-medium text-foreground">{{ $item->buy_count }}</td>
+                    <td class="px-4 py-2 text-muted-foreground">{{ $item->created_at?->format('Y-m-d H:i') }}</td>
+                </tr>
+                @empty
+                <tr><td colspan="6" class="px-6 py-12 text-center text-muted-foreground">暂无常购数据</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
     <div class="mt-4">{{ $items->links() }}</div>
     @include('partials.column-modal')

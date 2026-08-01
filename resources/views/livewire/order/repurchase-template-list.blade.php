@@ -24,32 +24,44 @@
         <button type="button" wire:click="openImportModal" class="rounded-md border border-input px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors">导入</button>
     </div>
     <div class="rounded-lg border bg-card">
-        <div class="grid grid-cols-[40px_60px_1fr_1fr_80px_100px] gap-2 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            <div><input type="checkbox" wire:model.live="selectAllPage" class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500" /></div>
-            <div>ID</div><div>模板名称</div><div>商家</div><div>状态</div><div>操作</div>
-        </div>
-        @forelse($templates as $tpl)
-            <div class="grid grid-cols-[40px_60px_1fr_1fr_80px_100px] gap-2 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors" wire:key="rt-{{ $tpl->id }}">
-                <div><input type="checkbox" value="{{ $tpl->id }}" wire:model.live="selectedIds" class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500" /></div>
-                <div class="text-sm text-muted-foreground">{{ $tpl->id }}</div>
-                <div class="text-sm font-medium text-foreground">{{ $tpl->name }}</div>
-                <div class="text-sm text-foreground">{{ $tpl->merchant?->name ?? '-' }}</div>
-                <div>
-                    @if($tpl->status === 1)<span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
-                    @else<span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>@endif
-                </div>
-                <div class="flex items-center gap-2">
-                    @can('order.cart.edit')
-                    <button type="button" wire:click="openEditModal({{ $tpl->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
-                    @endcan
-                    @can('order.cart.delete')
-                    <button type="button" wire:click="confirmDelete({{ $tpl->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
-                    @endcan
-                </div>
-            </div>
-        @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无复购模板数据</div>
-        @endforelse
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAllPage" class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500" /></th>
+                    <th class="px-4 py-2 text-left w-16">ID</th>
+                    <th class="px-4 py-2 text-left">模板名称</th>
+                    <th class="px-4 py-2 text-left">商家</th>
+                    <th class="px-4 py-2 text-left">状态</th>
+                    <th class="px-4 py-2 text-left w-24">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($templates as $tpl)
+                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="rt-{{ $tpl->id }}">
+                    <td class="px-4 py-2"><input type="checkbox" value="{{ $tpl->id }}" wire:model.live="selectedIds" class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500" /></td>
+                    <td class="px-4 py-2 text-muted-foreground">{{ $tpl->id }}</td>
+                    <td class="px-4 py-2 font-medium text-foreground">{{ $tpl->name }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $tpl->merchant?->name ?? '-' }}</td>
+                    <td class="px-4 py-2">
+                        @if($tpl->status === 1)<span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
+                        @else<span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>@endif
+                    </td>
+                    <td class="px-4 py-2">
+                        <div class="flex items-center gap-2">
+                            @can('order.cart.edit')
+                            <button type="button" wire:click="openEditModal({{ $tpl->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                            @endcan
+                            @can('order.cart.delete')
+                            <button type="button" wire:click="confirmDelete({{ $tpl->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                            @endcan
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="6" class="px-6 py-12 text-center text-muted-foreground">暂无复购模板数据</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
     <div class="mt-4">{{ $templates->links() }}</div>
     @if($showModal)

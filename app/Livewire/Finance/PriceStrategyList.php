@@ -101,7 +101,7 @@ class PriceStrategyList extends Component
             $query->where('name', 'like', "%{$this->search}%");
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
 

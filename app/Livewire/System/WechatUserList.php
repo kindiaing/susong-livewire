@@ -102,7 +102,7 @@ class WechatUserList extends Component
             $query->where('nickname', 'like', "%{$this->search}%");
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
 
         return view('livewire.system.wechat-user-list', [
             'items' => $items,

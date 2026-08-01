@@ -129,7 +129,7 @@ class BannerList extends Component
             $query->where('title', 'like', "%{$this->search}%");
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
 
         return view('livewire.system.banner-list', [
             'items' => $items,

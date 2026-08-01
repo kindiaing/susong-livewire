@@ -105,7 +105,7 @@ class PriceChangeLogList extends Component
             $query->where('field_name', 'like', "%{$this->search}%");
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
 
         return view('livewire.price.price-change-log-list', [
             'items' => $items,

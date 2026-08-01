@@ -30,43 +30,49 @@
 
     {{-- 列表 --}}
     <div class="rounded-lg border bg-card">
-        <div class="grid grid-cols-[60px_1fr_100px_100px_1fr_80px_100px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            <div>ID</div>
-            <div>仓库名称</div>
-            <div>类型</div>
-            <div>冷链</div>
-            <div>地址</div>
-            <div>状态</div>
-            <div>操作</div>
-        </div>
-
-        @forelse($items as $item)
-            <div class="grid grid-cols-[60px_1fr_100px_100px_1fr_80px_100px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors"
-                 wire:key="warehouse-{{ $item->id }}">
-                <div class="text-sm text-muted-foreground">{{ $item->id }}</div>
-                <div class="text-sm font-medium text-foreground truncate">{{ $item->name }}</div>
-                <div class="text-sm text-foreground">{{ \App\Models\Warehouse::typeMap()[$item->type] ?? '-' }}</div>
-                <div class="text-sm text-foreground">{{ $item->is_cold_chain ? '是' : '否' }}</div>
-                <div class="text-sm text-muted-foreground truncate">{{ $item->address ?: '-' }}</div>
-                <div>
-                    @if($item->status === 1)
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
-                    @else
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
-                    @endif
-                </div>
-                <div class="flex items-center gap-2">
-                    @can('inventory.warehouse.edit')
-                    <button type="button" wire:click="openEditModal({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
-                    @endcan
-                    @can('inventory.warehouse.delete')
-                    <button type="button" wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
-                    @endcan
-                </div>
-            </div>
-        @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无仓库数据</div>
-        @endforelse
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th class="px-4 py-2 text-left w-16">ID</th>
+                    <th class="px-4 py-2 text-left">仓库名称</th>
+                    <th class="px-4 py-2 text-left">类型</th>
+                    <th class="px-4 py-2 text-left">冷链</th>
+                    <th class="px-4 py-2 text-left">地址</th>
+                    <th class="px-4 py-2 text-left">状态</th>
+                    <th class="px-4 py-2 text-left w-24">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($items as $item)
+                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="warehouse-{{ $item->id }}">
+                    <td class="px-4 py-2 text-muted-foreground">{{ $item->id }}</td>
+                    <td class="px-4 py-2 font-medium text-foreground truncate">{{ $item->name }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ \App\Models\Warehouse::typeMap()[$item->type] ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $item->is_cold_chain ? '是' : '否' }}</td>
+                    <td class="px-4 py-2 text-muted-foreground truncate">{{ $item->address ?: '-' }}</td>
+                    <td class="px-4 py-2">
+                        @if($item->status === 1)
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
+                        @else
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
+                        @endif
+                    </td>
+                    <td class="px-4 py-2">
+                        <div class="flex items-center gap-2">
+                            @can('inventory.warehouse.edit')
+                            <button type="button" wire:click="openEditModal({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                            @endcan
+                            @can('inventory.warehouse.delete')
+                            <button type="button" wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                            @endcan
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="7" class="px-6 py-12 text-center text-muted-foreground">暂无仓库数据</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 
     <div class="mt-4">{{ $items->links() }}</div>

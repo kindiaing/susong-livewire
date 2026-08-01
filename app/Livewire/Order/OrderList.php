@@ -288,7 +288,7 @@ class OrderList extends Component
 
     public function render()
     {
-        $orders = $this->buildQuery()->paginate(20);
+        $orders = $this->buildQuery()->paginate(setting('per_page', 10));
         $merchants = Merchant::orderBy('name')->get();
 
         return view('livewire.order.order-list', [

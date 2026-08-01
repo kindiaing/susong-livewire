@@ -174,7 +174,7 @@ class MerchantSkuVisibilityList extends Component
     {
         $records = $this->getBaseQuery()
             ->orderByDesc('id')
-            ->paginate(10);
+            ->paginate(setting('per_page', 10));
 
         $merchants = Merchant::where('status', 1)->orderBy('name')->get();
 

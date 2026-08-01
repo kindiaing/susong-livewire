@@ -128,7 +128,7 @@ class PromotionList extends Component
             $query->where('title', 'like', "%{$this->search}%");
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
 
         return view('livewire.system.promotion-list', [
             'items' => $items,

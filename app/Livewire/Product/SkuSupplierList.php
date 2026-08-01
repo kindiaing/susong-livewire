@@ -232,7 +232,7 @@ class SkuSupplierList extends Component
             $query->where('status', $this->filterStatus);
         }
 
-        $skuSuppliers = $query->paginate(20);
+        $skuSuppliers = $query->paginate(setting('per_page', 10));
         $suppliers = Supplier::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);

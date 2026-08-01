@@ -196,7 +196,7 @@ class PurchaseReturnList extends Component
             $query->where('status', $this->filterStatus);
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
         $purchaseOrders = PurchaseOrder::orderBy('id', 'desc')->limit(50)->get();
         $suppliers = Supplier::enabled()->orderBy('name')->get();
         $warehouses = Warehouse::enabled()->orderBy('name')->get();

@@ -221,7 +221,7 @@ class CartList extends Component
 
     public function render()
     {
-        $carts = $this->buildQuery()->paginate(20);
+        $carts = $this->buildQuery()->paginate(setting('per_page', 10));
         $merchants = Merchant::orderBy('name')->get();
         $skus = Sku::with('product')->orderBy('sku_code')->get();
 

@@ -59,52 +59,53 @@
 
     {{-- 日志列表 --}}
     <div class="rounded-lg border bg-card">
-        <div class="grid grid-cols-[40px_60px_80px_1fr_1fr_150px_120px_120px] gap-2 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            <div><input type="checkbox" wire:model.live="selectAllPage" class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500" /></div>
-            <div>ID</div>
-            <div>方法</div>
-            <div>操作内容</div>
-            <div>路径</div>
-            <div>操作人</div>
-            <div>IP</div>
-            <div>时间</div>
-        </div>
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAllPage" class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500" /></th>
+                    <th class="px-4 py-2 text-left w-16">ID</th>
+                    <th class="px-4 py-2 text-left">方法</th>
+                    <th class="px-4 py-2 text-left">操作内容</th>
+                    <th class="px-4 py-2 text-left">路径</th>
+                    <th class="px-4 py-2 text-left">操作人</th>
+                    <th class="px-4 py-2 text-left">IP</th>
+                    <th class="px-4 py-2 text-left">时间</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($logs as $log)
+                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="olog-{{ $log->id }}">
+                    <td class="px-4 py-2"><input type="checkbox" value="{{ $log->id }}" wire:model.live="selectedIds" class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500" /></td>
+                    <td class="px-4 py-2 text-muted-foreground">{{ $log->id }}</td>
 
-        @forelse($logs as $log)
-            <div class="grid grid-cols-[40px_60px_80px_1fr_1fr_150px_120px_120px] gap-2 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors"
-                 wire:key="olog-{{ $log->id }}">
-                <div><input type="checkbox" value="{{ $log->id }}" wire:model.live="selectedIds" class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500" /></div>
+                    {{-- 请求方法 --}}
+                    <td class="px-4 py-2">
+                        @php $mc = $log->method_color; @endphp
+                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium {{ $mc === 'green' ? 'bg-green-100 text-green-700' : ($mc === 'blue' ? 'bg-blue-100 text-blue-700' : ($mc === 'orange' ? 'bg-orange-100 text-orange-700' : ($mc === 'red' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'))) }}">
+                            {{ $log->method }}
+                        </span>
+                    </td>
 
-                <div class="text-sm text-muted-foreground">{{ $log->id }}</div>
+                    {{-- 操作内容 --}}
+                    <td class="px-4 py-2 text-foreground truncate min-w-0">{{ $log->content }}</td>
 
-                {{-- 请求方法 --}}
-                <div>
-                    @php $mc = $log->method_color; @endphp
-                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium {{ $mc === 'green' ? 'bg-green-100 text-green-700' : ($mc === 'blue' ? 'bg-blue-100 text-blue-700' : ($mc === 'orange' ? 'bg-orange-100 text-orange-700' : ($mc === 'red' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'))) }}">
-                        {{ $log->method }}
-                    </span>
-                </div>
+                    {{-- 路径 --}}
+                    <td class="px-4 py-2 text-muted-foreground truncate font-mono min-w-0">{{ $log->path }}</td>
 
-                {{-- 操作内容 --}}
-                <div class="text-sm text-foreground truncate min-w-0">{{ $log->content }}</div>
+                    {{-- 操作人 --}}
+                    <td class="px-4 py-2 text-foreground">{{ $log->username ?? '-' }}</td>
 
-                {{-- 路径 --}}
-                <div class="text-sm text-muted-foreground truncate font-mono min-w-0">{{ $log->path }}</div>
+                    {{-- IP --}}
+                    <td class="px-4 py-2 text-muted-foreground font-mono">{{ $log->ip ?? '-' }}</td>
 
-                {{-- 操作人 --}}
-                <div class="text-sm text-foreground">{{ $log->username ?? '-' }}</div>
-
-                {{-- IP --}}
-                <div class="text-sm text-muted-foreground font-mono">{{ $log->ip ?? '-' }}</div>
-
-                {{-- 时间 --}}
-                <div class="text-sm text-muted-foreground">{{ $log->created_at?->format('Y-m-d H:i') }}</div>
-            </div>
-        @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">
-                暂无操作日志
-            </div>
-        @endforelse
+                    {{-- 时间 --}}
+                    <td class="px-4 py-2 text-muted-foreground">{{ $log->created_at?->format('Y-m-d H:i') }}</td>
+                </tr>
+                @empty
+                <tr><td colspan="8" class="px-6 py-12 text-center text-muted-foreground">暂无操作日志</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 
     {{-- 分页 --}}

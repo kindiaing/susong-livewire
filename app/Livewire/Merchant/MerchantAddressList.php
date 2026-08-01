@@ -130,7 +130,7 @@ class MerchantAddressList extends Component
             $query->where('address', 'like', "%{$this->search}%");
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
 
         return view('livewire.merchant.merchant-address-list', [
             'items' => $items,

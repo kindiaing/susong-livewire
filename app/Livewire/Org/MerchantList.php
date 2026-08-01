@@ -270,7 +270,7 @@ class MerchantList extends Component
     {
         $query = $this->applyFilters(Merchant::with('deliveryRoute'))->orderBy('id', 'desc');
 
-        $merchants = $query->paginate(10);
+        $merchants = $query->paginate(setting('per_page', 10));
         $routes = DeliveryRoute::enabled()->ordered()->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);

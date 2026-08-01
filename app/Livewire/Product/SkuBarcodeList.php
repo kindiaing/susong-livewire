@@ -212,7 +212,7 @@ class SkuBarcodeList extends Component
             $query->where('barcode_type', $this->filterBarcodeType);
         }
 
-        $barcodes = $query->paginate(20);
+        $barcodes = $query->paginate(setting('per_page', 10));
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 

@@ -234,7 +234,7 @@ class DriverList extends Component
     {
         $query = $this->applyFilters(Driver::query())->orderBy('id', 'desc');
 
-        $drivers = $query->paginate(10);
+        $drivers = $query->paginate(setting('per_page', 10));
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 

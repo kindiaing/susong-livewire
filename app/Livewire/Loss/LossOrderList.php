@@ -296,7 +296,7 @@ class LossOrderList extends Component
             $query->where('loss_type', $this->filterLossType);
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
         $warehouses = Warehouse::enabled()->orderBy('name')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();

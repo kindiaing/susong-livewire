@@ -36,47 +36,53 @@
 
     {{-- 列表 --}}
     <div class="rounded-lg border bg-card overflow-x-auto">
-        <div class="grid grid-cols-[40px_60px_1fr_1fr_100px_100px_120px_80px_100px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider min-w-[800px]">
-            <div><input type="checkbox" wire:model.live="selectAll" class="rounded" /></div>
-            <div>ID</div>
-            <div>商家</div>
-            <div>SKU</div>
-            <div>阈值</div>
-            <div>周期</div>
-            <div>上次提醒</div>
-            <div>状态</div>
-            <div>操作</div>
-        </div>
-
-        @forelse($items as $item)
-            <div class="grid grid-cols-[40px_60px_1fr_1fr_100px_100px_120px_80px_100px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors min-w-[800px]"
-                 wire:key="reminder-{{ $item->id }}">
-                <div><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm text-muted-foreground">{{ $item->id }}</div>
-                <div class="text-sm font-medium text-foreground truncate">{{ $item->merchant?->name ?? '-' }}</div>
-                <div class="text-sm text-foreground">{{ $item->sku?->sku_code ?? '-' }}</div>
-                <div class="text-sm text-foreground">{{ $item->threshold_quantity }}</div>
-                <div class="text-sm text-foreground">{{ \App\Models\RestockReminder::remindCycleMap()[$item->remind_cycle] ?? '-' }}</div>
-                <div class="text-sm text-muted-foreground">{{ $item->last_reminded_at ? $item->last_reminded_at->format('Y-m-d H:i') : '-' }}</div>
-                <div>
-                    @if($item->status === 1)
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
-                    @else
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
-                    @endif
-                </div>
-                <div class="flex items-center gap-2">
-                    @can('purchase.restock-reminder.edit')
-                    <button type="button" wire:click="openEditModal({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
-                    @endcan
-                    @can('purchase.restock-reminder.delete')
-                    <button type="button" wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
-                    @endcan
-                </div>
-            </div>
-        @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无补货提醒数据</div>
-        @endforelse
+        <table class="w-full text-sm min-w-[800px]">
+            <thead>
+                <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAll" class="rounded" /></th>
+                    <th class="px-4 py-2 text-left w-16">ID</th>
+                    <th class="px-4 py-2 text-left">商家</th>
+                    <th class="px-4 py-2 text-left">SKU</th>
+                    <th class="px-4 py-2 text-left">阈值</th>
+                    <th class="px-4 py-2 text-left">周期</th>
+                    <th class="px-4 py-2 text-left">上次提醒</th>
+                    <th class="px-4 py-2 text-left">状态</th>
+                    <th class="px-4 py-2 text-left w-24">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($items as $item)
+                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="reminder-{{ $item->id }}">
+                    <td class="px-4 py-2"><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></td>
+                    <td class="px-4 py-2 text-muted-foreground">{{ $item->id }}</td>
+                    <td class="px-4 py-2 font-medium text-foreground truncate">{{ $item->merchant?->name ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $item->sku?->sku_code ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $item->threshold_quantity }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ \App\Models\RestockReminder::remindCycleMap()[$item->remind_cycle] ?? '-' }}</td>
+                    <td class="px-4 py-2 text-muted-foreground">{{ $item->last_reminded_at ? $item->last_reminded_at->format('Y-m-d H:i') : '-' }}</td>
+                    <td class="px-4 py-2">
+                        @if($item->status === 1)
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
+                        @else
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
+                        @endif
+                    </td>
+                    <td class="px-4 py-2">
+                        <div class="flex items-center gap-2">
+                            @can('purchase.restock-reminder.edit')
+                            <button type="button" wire:click="openEditModal({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                            @endcan
+                            @can('purchase.restock-reminder.delete')
+                            <button type="button" wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                            @endcan
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="9" class="px-6 py-12 text-center text-muted-foreground">暂无补货提醒数据</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 
     <div class="mt-4">{{ $items->links() }}</div>

@@ -281,7 +281,7 @@ class OrderReturnList extends Component
 
     public function render()
     {
-        $items = $this->buildQuery()->paginate(20);
+        $items = $this->buildQuery()->paginate(setting('per_page', 10));
         $merchants = Merchant::orderBy('name')->get();
 
         return view('livewire.order.order-return-list', [

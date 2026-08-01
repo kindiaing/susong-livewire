@@ -232,7 +232,7 @@ class VehicleList extends Component
     {
         $query = $this->applyFilters(Vehicle::query())->orderBy('id', 'desc');
 
-        $vehicles = $query->paginate(10);
+        $vehicles = $query->paginate(setting('per_page', 10));
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 

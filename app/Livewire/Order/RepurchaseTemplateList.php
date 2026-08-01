@@ -189,7 +189,7 @@ class RepurchaseTemplateList extends Component
             $query->where('name', 'like', "%{$this->search}%");
         }
 
-        $templates = $query->paginate(20);
+        $templates = $query->paginate(setting('per_page', 10));
 
         return view('livewire.order.repurchase-template-list', [
             'templates' => $templates,

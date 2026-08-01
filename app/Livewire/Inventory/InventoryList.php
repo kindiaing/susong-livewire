@@ -212,7 +212,7 @@ class InventoryList extends Component
             $query->where('warehouse_id', $this->filterWarehouseId);
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
         $warehouses = Warehouse::enabled()->orderBy('name')->get();
         $skus = Sku::with('product')->orderBy('sku_code')->get();
         $allColumns = $this->getAllColumns();

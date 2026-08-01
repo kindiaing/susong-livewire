@@ -28,50 +28,56 @@
 
     {{-- 列表 --}}
     <div class="rounded-lg border bg-card overflow-x-auto">
-        <div class="grid grid-cols-[60px_1fr_1fr_1fr_120px_120px_80px_100px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider min-w-[900px]">
-            <div>ID</div>
-            <div>退货单号</div>
-            <div>供应商</div>
-            <div>仓库</div>
-            <div>退货金额</div>
-            <div>实际金额</div>
-            <div>状态</div>
-            <div>操作</div>
-        </div>
-
-        @forelse($items as $item)
-            <div class="grid grid-cols-[60px_1fr_1fr_1fr_120px_120px_80px_100px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors min-w-[900px]"
-                 wire:key="preturn-{{ $item->id }}">
-                <div class="text-sm text-muted-foreground">{{ $item->id }}</div>
-                <div class="text-sm font-medium text-foreground">{{ $item->return_no }}</div>
-                <div class="text-sm text-foreground">{{ $item->supplier?->name ?? '-' }}</div>
-                <div class="text-sm text-foreground">{{ $item->warehouse?->name ?? '-' }}</div>
-                <div class="text-sm text-foreground">{{ number_format($item->total_amount / 100, 2) }} 元</div>
-                <div class="text-sm text-foreground">{{ number_format($item->actual_amount / 100, 2) }} 元</div>
-                <div>
-                    @php($statusLabel = \App\Models\PurchaseReturn::statusMap()[$item->status] ?? '未知')
-                    @if($item->status === 1)
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-yellow-100 text-yellow-700">{{ $statusLabel }}</span>
-                    @elseif($item->status === 4)
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">{{ $statusLabel }}</span>
-                    @elseif($item->status === 9)
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">{{ $statusLabel }}</span>
-                    @else
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-blue-100 text-blue-700">{{ $statusLabel }}</span>
-                    @endif
-                </div>
-                <div class="flex items-center gap-2">
-                    @can('purchase.purchase-return.edit')
-                    <button type="button" wire:click="openEditModal({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
-                    @endcan
-                    @can('purchase.purchase-return.delete')
-                    <button type="button" wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
-                    @endcan
-                </div>
-            </div>
-        @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无退货单数据</div>
-        @endforelse
+        <table class="w-full text-sm min-w-[900px]">
+            <thead>
+                <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th class="px-4 py-2 text-left w-16">ID</th>
+                    <th class="px-4 py-2 text-left">退货单号</th>
+                    <th class="px-4 py-2 text-left">供应商</th>
+                    <th class="px-4 py-2 text-left">仓库</th>
+                    <th class="px-4 py-2 text-left">退货金额</th>
+                    <th class="px-4 py-2 text-left">实际金额</th>
+                    <th class="px-4 py-2 text-left">状态</th>
+                    <th class="px-4 py-2 text-left w-24">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($items as $item)
+                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="preturn-{{ $item->id }}">
+                    <td class="px-4 py-2 text-muted-foreground">{{ $item->id }}</td>
+                    <td class="px-4 py-2 font-medium text-foreground">{{ $item->return_no }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $item->supplier?->name ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $item->warehouse?->name ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ number_format($item->total_amount / 100, 2) }} 元</td>
+                    <td class="px-4 py-2 text-foreground">{{ number_format($item->actual_amount / 100, 2) }} 元</td>
+                    <td class="px-4 py-2">
+                        @php($statusLabel = \App\Models\PurchaseReturn::statusMap()[$item->status] ?? '未知')
+                        @if($item->status === 1)
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-yellow-100 text-yellow-700">{{ $statusLabel }}</span>
+                        @elseif($item->status === 4)
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">{{ $statusLabel }}</span>
+                        @elseif($item->status === 9)
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">{{ $statusLabel }}</span>
+                        @else
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-blue-100 text-blue-700">{{ $statusLabel }}</span>
+                        @endif
+                    </td>
+                    <td class="px-4 py-2">
+                        <div class="flex items-center gap-2">
+                            @can('purchase.purchase-return.edit')
+                            <button type="button" wire:click="openEditModal({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                            @endcan
+                            @can('purchase.purchase-return.delete')
+                            <button type="button" wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                            @endcan
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="8" class="px-6 py-12 text-center text-muted-foreground">暂无退货单数据</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 
     <div class="mt-4">{{ $items->links() }}</div>

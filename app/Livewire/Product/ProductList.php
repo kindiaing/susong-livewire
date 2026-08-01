@@ -226,7 +226,7 @@ class ProductList extends Component
             $query->where('status', $this->filterStatus);
         }
 
-        $products = $query->paginate(20);
+        $products = $query->paginate(setting('per_page', 10));
         $categories = Category::orderBy('sort')->orderBy('id')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);

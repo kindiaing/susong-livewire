@@ -26,6 +26,15 @@ function money_to_cents(string|float|null $yuan): int
 }
 
 /**
+ * 获取系统配置值（全局助手函数）
+ * 例：setting('per_page', 10) → 10
+ */
+function setting(string $key, mixed $default = null): mixed
+{
+    return \App\Support\Setting::get($key, $default);
+}
+
+/**
  * 状态颜色映射（通用）
  */
 function status_badge(int $status, string $type = 'default'): string

@@ -102,7 +102,7 @@ class LoginLogList extends Component
             $query->where('username', 'like', "%{$this->search}%");
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
 
         return view('livewire.system.login-log-list', [
             'items' => $items,

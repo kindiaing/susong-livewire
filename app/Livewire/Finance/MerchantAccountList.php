@@ -173,7 +173,7 @@ class MerchantAccountList extends Component
             $query->whereHas('merchant', fn($q) => $q->where('name', 'like', "%{$this->search}%"));
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
         $merchants = Merchant::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
 

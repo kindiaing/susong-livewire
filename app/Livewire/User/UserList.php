@@ -286,7 +286,7 @@ class UserList extends Component
             });
         }
 
-        $users = $query->paginate(20);
+        $users = $query->paginate(setting('per_page', 10));
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
 

@@ -173,7 +173,7 @@ class KeywordList extends Component
             $query->where('keyword', 'like', "%{$this->search}%");
         }
 
-        $keywords = $query->paginate(20);
+        $keywords = $query->paginate(setting('per_page', 10));
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 

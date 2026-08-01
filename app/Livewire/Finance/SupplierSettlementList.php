@@ -202,7 +202,7 @@ class SupplierSettlementList extends Component
             });
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
         $suppliers = Supplier::orderBy('name')->get();
         $purchaseOrders = PurchaseOrder::orderBy('id', 'desc')->get();
         $allColumns = $this->getAllColumns();

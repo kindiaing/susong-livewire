@@ -247,7 +247,7 @@ class SkuList extends Component
             $query->where('approval_status', $this->filterApprovalStatus);
         }
 
-        $skus = $query->paginate(20);
+        $skus = $query->paginate(setting('per_page', 10));
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 

@@ -214,7 +214,7 @@ class RouteList extends Component
             });
         }
 
-        $routes = $query->paginate(10);
+        $routes = $query->paginate(setting('per_page', 10));
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 

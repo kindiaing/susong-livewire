@@ -136,7 +136,7 @@ class MerchantFavoriteList extends Component
             });
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
 
         return view('livewire.merchant.merchant-favorite-list', [
             'items' => $items,

@@ -226,7 +226,7 @@ class RechargeList extends Component
             });
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
         $merchants = Merchant::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
 

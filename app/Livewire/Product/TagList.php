@@ -176,7 +176,7 @@ class TagList extends Component
             $query->where('name', 'like', "%{$this->search}%");
         }
 
-        $tags = $query->paginate(20);
+        $tags = $query->paginate(setting('per_page', 10));
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 

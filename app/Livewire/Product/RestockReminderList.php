@@ -211,7 +211,7 @@ class RestockReminderList extends Component
             $query->where('status', $this->filterStatus);
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
         $merchants = Merchant::orderBy('name')->get();
         $skus = Sku::orderBy('sku_code')->get();
         $allColumns = $this->getAllColumns();

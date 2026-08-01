@@ -33,45 +33,53 @@
     </div>
 
     <div class="rounded-lg border bg-card">
-        <div class="grid grid-cols-[40px_60px_120px_1fr_100px_80px_80px_80px_100px] gap-2 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            <div><input type="checkbox" wire:model.live="selectAll" class="rounded" /></div>
-            <div>ID</div>
-            <div>SKU编码</div>
-            <div>供应商</div>
-            <div>采购价(厘)</div>
-            <div>默认</div>
-            <div>排序</div>
-            <div>状态</div>
-            <div>操作</div>
-        </div>
-        @forelse($skuSuppliers as $item)
-            <div class="grid grid-cols-[40px_60px_120px_1fr_100px_80px_80px_80px_100px] gap-2 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors" wire:key="sku-supplier-{{ $item->id }}">
-                <div><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm text-muted-foreground">{{ $item->id }}</div>
-                <div class="text-sm font-medium text-foreground font-mono">{{ $item->sku?->sku_code ?? '-' }}</div>
-                <div class="text-sm text-foreground">{{ $item->supplier?->name ?? '-' }}</div>
-                <div class="text-sm text-foreground">{{ money_format($item->purchase_price) }}</div>
-                <div class="text-sm text-foreground">{{ $item->is_default ? '是' : '否' }}</div>
-                <div class="text-sm text-foreground">{{ $item->sort }}</div>
-                <div>
-                    @if($item->status === 1)
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
-                    @else
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
-                    @endif
-                </div>
-                <div class="flex items-center gap-2">
-                    @can('product.product.edit')
-                    <button type="button" wire:click="openEditModal({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
-                    @endcan
-                    @can('product.product.delete')
-                    <button type="button" wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
-                    @endcan
-                </div>
-            </div>
-        @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无一品多供数据</div>
-        @endforelse
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAll" class="rounded" /></th>
+                    <th class="px-4 py-2 text-left w-16">ID</th>
+                    <th class="px-4 py-2 text-left">SKU编码</th>
+                    <th class="px-4 py-2 text-left">供应商</th>
+                    <th class="px-4 py-2 text-left">采购价(厘)</th>
+                    <th class="px-4 py-2 text-left">默认</th>
+                    <th class="px-4 py-2 text-left">排序</th>
+                    <th class="px-4 py-2 text-left">状态</th>
+                    <th class="px-4 py-2 text-left w-24">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($skuSuppliers as $item)
+                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="sku-supplier-{{ $item->id }}">
+                    <td class="px-4 py-2"><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></td>
+                    <td class="px-4 py-2 text-muted-foreground">{{ $item->id }}</td>
+                    <td class="px-4 py-2 font-medium text-foreground font-mono">{{ $item->sku?->sku_code ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $item->supplier?->name ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ money_format($item->purchase_price) }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $item->is_default ? '是' : '否' }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $item->sort }}</td>
+                    <td class="px-4 py-2">
+                        @if($item->status === 1)
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
+                        @else
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
+                        @endif
+                    </td>
+                    <td class="px-4 py-2">
+                        <div class="flex items-center gap-2">
+                            @can('product.product.edit')
+                            <button type="button" wire:click="openEditModal({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                            @endcan
+                            @can('product.product.delete')
+                            <button type="button" wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                            @endcan
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="9" class="px-6 py-12 text-center text-muted-foreground">暂无一品多供数据</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 
     <div class="mt-4">{{ $skuSuppliers->links() }}</div>

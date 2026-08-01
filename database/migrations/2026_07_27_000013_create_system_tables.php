@@ -159,6 +159,7 @@ return new class extends Migration
 
             // ── 界面配置 ──────────────────────────
             ['config_key' => 'ui_close_on_outside', 'config_value' => '1', 'default_value' => '1', 'config_type' => 'boolean', 'config_group' => 'ui', 'label' => '点击旁边关闭通知', 'hint' => '开启后，点击通知面板外的区域将自动关闭通知菜单', 'options' => null, 'validation_rules' => null, 'sort_order' => 1, 'is_public' => 1, 'is_readonly' => 0, 'description' => '控制点击通知 Drawer 外部区域时是否自动关闭面板', 'created_at' => $now, 'updated_at' => $now],
+            ['config_key' => 'per_page', 'config_value' => '10', 'default_value' => '10', 'config_type' => 'integer', 'config_group' => 'ui', 'label' => '列表每页条数', 'hint' => '管理后台列表页默认每页显示条数', 'options' => json_encode([['label' => '10条/页', 'value' => '10'], ['label' => '15条/页', 'value' => '15'], ['label' => '20条/页', 'value' => '20'], ['label' => '50条/页', 'value' => '50']]), 'validation_rules' => 'required|integer|in:10,15,20,50', 'sort_order' => 2, 'is_public' => 0, 'is_readonly' => 0, 'description' => '列表页分页条数，全局生效', 'created_at' => $now, 'updated_at' => $now],
         ]);
     }
 

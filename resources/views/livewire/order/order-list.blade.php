@@ -19,34 +19,48 @@
         <button type="button" wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
     </div>
     <div class="rounded-lg border bg-card">
-        <div class="grid grid-cols-[60px_120px_1fr_100px_80px_100px_80px_80px_100px] gap-2 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            <div>ID</div><div>订单号</div><div>商家</div><div>总金额</div><div>批次</div><div>最终金额</div><div>状态</div><div>支付</div><div>操作</div>
-        </div>
-        @forelse($orders as $order)
-            <div class="grid grid-cols-[60px_120px_1fr_100px_80px_100px_80px_80px_100px] gap-2 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors" wire:key="order-{{ $order->id }}">
-                <div class="text-sm text-muted-foreground">{{ $order->id }}</div>
-                <div class="text-sm font-mono text-foreground">{{ $order->order_no }}</div>
-                <div class="text-sm text-foreground truncate">{{ $order->merchant?->name ?? '-' }}</div>
-                <div class="text-sm text-foreground">{{ $order->total_amount }}</div>
-                <div class="text-sm text-foreground">{{ $order->batch === 1 ? '上午' : '下午' }}</div>
-                <div class="text-sm text-foreground">{{ $order->final_amount }}</div>
-                <div>
-                    @php $sc = ['1'=>'yellow','2'=>'blue','3'=>'orange','4'=>'green','5'=>'gray','9'=>'red']; $c = $sc[$order->status] ?? 'gray'; @endphp
-                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $c }}-100 text-{{ $c }}-700">{{ $order->status_label }}</span>
-                </div>
-                <div>
-                    @php $pc = ['1'=>'yellow','2'=>'green','3'=>'blue']; $cp = $pc[$order->payment_status] ?? 'gray'; @endphp
-                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $cp }}-100 text-{{ $cp }}-700">{{ $order->payment_status_label }}</span>
-                </div>
-                <div>
-                    @can('order.order.delete')
-                    <button type="button" wire:click="confirmDelete({{ $order->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
-                    @endcan
-                </div>
-            </div>
-        @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无订单数据</div>
-        @endforelse
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th class="px-4 py-2 text-left w-16">ID</th>
+                    <th class="px-4 py-2 text-left">订单号</th>
+                    <th class="px-4 py-2 text-left">商家</th>
+                    <th class="px-4 py-2 text-left">总金额</th>
+                    <th class="px-4 py-2 text-left">批次</th>
+                    <th class="px-4 py-2 text-left">最终金额</th>
+                    <th class="px-4 py-2 text-left">状态</th>
+                    <th class="px-4 py-2 text-left">支付</th>
+                    <th class="px-4 py-2 text-left w-24">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($orders as $order)
+                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="order-{{ $order->id }}">
+                    <td class="px-4 py-2 text-muted-foreground">{{ $order->id }}</td>
+                    <td class="px-4 py-2 font-mono text-foreground">{{ $order->order_no }}</td>
+                    <td class="px-4 py-2 text-foreground truncate">{{ $order->merchant?->name ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $order->total_amount }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $order->batch === 1 ? '上午' : '下午' }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $order->final_amount }}</td>
+                    <td class="px-4 py-2">
+                        @php $sc = ['1'=>'yellow','2'=>'blue','3'=>'orange','4'=>'green','5'=>'gray','9'=>'red']; $c = $sc[$order->status] ?? 'gray'; @endphp
+                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $c }}-100 text-{{ $c }}-700">{{ $order->status_label }}</span>
+                    </td>
+                    <td class="px-4 py-2">
+                        @php $pc = ['1'=>'yellow','2'=>'green','3'=>'blue']; $cp = $pc[$order->payment_status] ?? 'gray'; @endphp
+                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $cp }}-100 text-{{ $cp }}-700">{{ $order->payment_status_label }}</span>
+                    </td>
+                    <td class="px-4 py-2">
+                        @can('order.order.delete')
+                        <button type="button" wire:click="confirmDelete({{ $order->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                        @endcan
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="9" class="px-6 py-12 text-center text-muted-foreground">暂无订单数据</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
     <div class="mt-4">{{ $orders->links() }}</div>
     @if($showDeleteConfirm)

@@ -39,45 +39,53 @@
     </div>
 
     <div class="rounded-lg border bg-card">
-        <div class="grid grid-cols-[40px_60px_1fr_120px_60px_80px_80px_80px_100px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            <div><input type="checkbox" wire:model.live="selectAll" class="rounded" /></div>
-            <div>ID</div>
-            <div>商品名称</div>
-            <div>分类</div>
-            <div>单位</div>
-            <div>称重改价</div>
-            <div>预警值</div>
-            <div>状态</div>
-            <div>操作</div>
-        </div>
-        @forelse($products as $product)
-            <div class="grid grid-cols-[40px_60px_1fr_120px_60px_80px_80px_80px_100px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors" wire:key="product-{{ $product->id }}">
-                <div><input type="checkbox" value="{{ $product->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm text-muted-foreground">{{ $product->id }}</div>
-                <div class="text-sm font-medium text-foreground truncate">{{ $product->name }}</div>
-                <div class="text-sm text-foreground">{{ $product->category?->name ?? '-' }}</div>
-                <div class="text-sm text-foreground">{{ $product->unit }}</div>
-                <div class="text-sm text-foreground">{{ $product->is_weight_priced ? '是' : '否' }}</div>
-                <div class="text-sm text-foreground">{{ $product->stock_warning_value }}</div>
-                <div>
-                    @if($product->status === 1)
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">上架</span>
-                    @else
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">下架</span>
-                    @endif
-                </div>
-                <div class="flex items-center gap-2">
-                    @can('product.product.edit')
-                    <button type="button" wire:click="openEditModal({{ $product->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
-                    @endcan
-                    @can('product.product.delete')
-                    <button type="button" wire:click="confirmDelete({{ $product->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
-                    @endcan
-                </div>
-            </div>
-        @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无商品数据</div>
-        @endforelse
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAll" class="rounded" /></th>
+                    <th class="px-4 py-2 text-left w-16">ID</th>
+                    <th class="px-4 py-2 text-left">商品名称</th>
+                    <th class="px-4 py-2 text-left">分类</th>
+                    <th class="px-4 py-2 text-left">单位</th>
+                    <th class="px-4 py-2 text-left">称重改价</th>
+                    <th class="px-4 py-2 text-left">预警值</th>
+                    <th class="px-4 py-2 text-left">状态</th>
+                    <th class="px-4 py-2 text-left w-24">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($products as $product)
+                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="product-{{ $product->id }}">
+                    <td class="px-4 py-2"><input type="checkbox" value="{{ $product->id }}" wire:model.live="selectedIds" class="rounded" /></td>
+                    <td class="px-4 py-2 text-muted-foreground">{{ $product->id }}</td>
+                    <td class="px-4 py-2 font-medium text-foreground truncate">{{ $product->name }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $product->category?->name ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $product->unit }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $product->is_weight_priced ? '是' : '否' }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $product->stock_warning_value }}</td>
+                    <td class="px-4 py-2">
+                        @if($product->status === 1)
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">上架</span>
+                        @else
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">下架</span>
+                        @endif
+                    </td>
+                    <td class="px-4 py-2">
+                        <div class="flex items-center gap-2">
+                            @can('product.product.edit')
+                            <button type="button" wire:click="openEditModal({{ $product->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                            @endcan
+                            @can('product.product.delete')
+                            <button type="button" wire:click="confirmDelete({{ $product->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                            @endcan
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="9" class="px-6 py-12 text-center text-muted-foreground">暂无商品数据</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 
     <div class="mt-4">{{ $products->links() }}</div>

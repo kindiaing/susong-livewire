@@ -179,7 +179,7 @@ class PurchaseOrderList extends Component
             $query->where('status', $this->filterStatus);
         }
 
-        $orders = $query->paginate(20);
+        $orders = $query->paginate(setting('per_page', 10));
         $suppliers = Supplier::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();

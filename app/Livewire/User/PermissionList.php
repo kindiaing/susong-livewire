@@ -289,7 +289,7 @@ class PermissionList extends Component
             });
         }
 
-        $permissions = $query->paginate(20);
+        $permissions = $query->paginate(setting('per_page', 10));
         $parentOptions = Permission::roots()->get();
         $moduleOptions = Permission::roots()->orderBy('sort')->get();
         $allColumns = $this->getAllColumns();

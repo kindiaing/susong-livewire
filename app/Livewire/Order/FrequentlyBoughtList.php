@@ -110,7 +110,7 @@ class FrequentlyBoughtList extends Component
 
     public function render()
     {
-        $items = $this->buildQuery()->paginate(20);
+        $items = $this->buildQuery()->paginate(setting('per_page', 10));
 
         return view('livewire.order.frequently-bought-list', [
             'items' => $items,

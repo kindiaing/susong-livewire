@@ -9,23 +9,34 @@
         <button type="button" wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
     </div>
     <div class="rounded-lg border bg-card">
-        <div class="grid grid-cols-[60px_1fr_120px_100px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            <div>ID</div><div>商家账户</div><div>创建时间</div><div>操作</div>
-        </div>
-        @forelse($items as $item)
-            <div class="grid grid-cols-[60px_1fr_120px_100px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors" wire:key="merchant-account-list-{{ $item->id }}">
-                <div class="text-sm text-muted-foreground">{{ $item->id }}</div>
-                <div class="text-sm text-foreground">{{ $item->merchant_id }}</div>
-                <div class="text-sm text-muted-foreground">{{ $item->created_at?->format('Y-m-d H:i') }}</div>
-                <div class="flex items-center gap-2">
-                    @can('finance.receivable.delete')
-                    <button type="button" wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
-                    @endcan
-                </div>
-            </div>
-        @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无数据</div>
-        @endforelse
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th class="px-4 py-2 text-left w-16">ID</th>
+                    <th class="px-4 py-2 text-left">商家账户</th>
+                    <th class="px-4 py-2 text-left">创建时间</th>
+                    <th class="px-4 py-2 text-left w-24">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($items as $item)
+                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="merchant-account-list-{{ $item->id }}">
+                    <td class="px-4 py-2 text-muted-foreground">{{ $item->id }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $item->merchant_id }}</td>
+                    <td class="px-4 py-2 text-muted-foreground">{{ $item->created_at?->format('Y-m-d H:i') }}</td>
+                    <td class="px-4 py-2">
+                        <div class="flex items-center gap-2">
+                            @can('finance.receivable.delete')
+                            <button type="button" wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                            @endcan
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="4" class="px-6 py-12 text-center text-muted-foreground">暂无数据</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
     <div class="mt-4">{{ $items->links() }}</div>
     @if($showDeleteConfirm)

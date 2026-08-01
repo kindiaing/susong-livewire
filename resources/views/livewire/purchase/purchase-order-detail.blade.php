@@ -59,39 +59,51 @@
             </div>
         </div>
 
-        {{-- 表头 --}}
-        <div class="grid grid-cols-[1fr_70px_80px_80px_70px_80px_30px] gap-1 px-3 py-1.5 text-[11px] font-medium text-muted-foreground border-b bg-muted/30">
-            <div>SKU</div><div class="text-right">数量</div><div class="text-right">单价</div><div class="text-right">金额</div><div class="text-right">实际数量</div><div class="text-right">实际金额</div><div></div>
-        </div>
-
-        {{-- 表体 --}}
-        @forelse($order->items as $item)
-            <div class="grid grid-cols-[1fr_70px_80px_80px_70px_80px_30px] gap-1 px-3 py-1.5 items-center border-b last:border-b-0 hover:bg-muted/30 transition-colors text-sm" wire:key="item-{{ $item->id }}">
-                <div class="truncate">
-                    <span class="font-mono text-foreground">{{ $item->sku?->sku_code }}</span>
-                    <span class="text-muted-foreground ml-1">{{ $item->sku?->product?->name }}</span>
-                </div>
-                <div class="text-right tabular-nums">{{ $item->quantity }}</div>
-                <div class="text-right tabular-nums">{{ money_format($item->price) }}</div>
-                <div class="text-right tabular-nums font-medium">{{ money_format($item->amount) }}</div>
-                <div class="text-right tabular-nums {{ $item->actual_quantity && $item->actual_quantity != $item->quantity ? 'text-orange-600 font-medium' : '' }}">{{ $item->actual_quantity ?: '-' }}</div>
-                <div class="text-right tabular-nums">{{ $item->actual_amount ? money_format($item->actual_amount) : '-' }}</div>
-                <div>
-                    @if(in_array($order->status, [1, 2]))
-                        <button type="button" wire:click="removeItem({{ $item->id }})" type="button" class="text-red-500 hover:text-red-700">
-                            <x-ui.icon name="trash" class="w-3.5 h-3.5" />
-                        </button>
-                    @endif
-                </div>
-            </div>
-            @if($item->discrepancy_reason)
-                <div class="px-3 py-0.5 bg-orange-50 text-[11px] text-orange-700 border-b">
-                    差异：{{ $item->discrepancy_reason }}
-                </div>
-            @endif
-        @empty
-            <div class="px-3 py-6 text-center text-sm text-muted-foreground">暂无明细</div>
-        @endforelse
+        {{-- 表头 + 表体 --}}
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b text-[11px] font-medium text-muted-foreground bg-muted/30">
+                    <th class="px-3 py-1.5 text-left">SKU</th>
+                    <th class="px-3 py-1.5 text-right w-[70px]">数量</th>
+                    <th class="px-3 py-1.5 text-right w-[80px]">单价</th>
+                    <th class="px-3 py-1.5 text-right w-[80px]">金额</th>
+                    <th class="px-3 py-1.5 text-right w-[70px]">实际数量</th>
+                    <th class="px-3 py-1.5 text-right w-[80px]">实际金额</th>
+                    <th class="px-3 py-1.5 w-[30px]"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($order->items as $item)
+                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="item-{{ $item->id }}">
+                    <td class="px-3 py-1.5 truncate">
+                        <span class="font-mono text-foreground">{{ $item->sku?->sku_code }}</span>
+                        <span class="text-muted-foreground ml-1">{{ $item->sku?->product?->name }}</span>
+                    </td>
+                    <td class="px-3 py-1.5 text-right tabular-nums">{{ $item->quantity }}</td>
+                    <td class="px-3 py-1.5 text-right tabular-nums">{{ money_format($item->price) }}</td>
+                    <td class="px-3 py-1.5 text-right tabular-nums font-medium">{{ money_format($item->amount) }}</td>
+                    <td class="px-3 py-1.5 text-right tabular-nums {{ $item->actual_quantity && $item->actual_quantity != $item->quantity ? 'text-orange-600 font-medium' : '' }}">{{ $item->actual_quantity ?: '-' }}</td>
+                    <td class="px-3 py-1.5 text-right tabular-nums">{{ $item->actual_amount ? money_format($item->actual_amount) : '-' }}</td>
+                    <td class="px-3 py-1.5">
+                        @if(in_array($order->status, [1, 2]))
+                            <button type="button" wire:click="removeItem({{ $item->id }})" type="button" class="text-red-500 hover:text-red-700">
+                                <x-ui.icon name="trash" class="w-3.5 h-3.5" />
+                            </button>
+                        @endif
+                    </td>
+                </tr>
+                @if($item->discrepancy_reason)
+                <tr>
+                    <td colspan="7" class="px-3 py-0.5 bg-orange-50 text-[11px] text-orange-700">
+                        差异：{{ $item->discrepancy_reason }}
+                    </td>
+                </tr>
+                @endif
+                @empty
+                <tr><td colspan="7" class="px-3 py-6 text-center text-muted-foreground">暂无明细</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 
     {{-- 导出弹窗 --}}

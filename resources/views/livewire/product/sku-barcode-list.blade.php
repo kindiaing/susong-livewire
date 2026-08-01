@@ -35,47 +35,55 @@
     </div>
 
     <div class="rounded-lg border bg-card">
-        <div class="grid grid-cols-[40px_60px_120px_1fr_100px_100px_80px_80px_80px_100px] gap-2 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            <div><input type="checkbox" wire:model.live="selectAll" class="rounded" /></div>
-            <div>ID</div>
-            <div>SKU编码</div>
-            <div>条码值</div>
-            <div>条码类型</div>
-            <div>供应商</div>
-            <div>默认</div>
-            <div>启用</div>
-            <div>备注</div>
-            <div>操作</div>
-        </div>
-        @forelse($barcodes as $barcode)
-            <div class="grid grid-cols-[40px_60px_120px_1fr_100px_100px_80px_80px_80px_100px] gap-2 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors" wire:key="barcode-{{ $barcode->id }}">
-                <div><input type="checkbox" value="{{ $barcode->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm text-muted-foreground">{{ $barcode->id }}</div>
-                <div class="text-sm font-medium text-foreground font-mono">{{ $barcode->sku?->sku_code ?? '-' }}</div>
-                <div class="text-sm text-foreground font-mono">{{ $barcode->barcode_code }}</div>
-                <div class="text-sm text-foreground">{{ \App\Models\SkuBarcode::barcodeTypeMap()[$barcode->barcode_type] ?? '-' }}</div>
-                <div class="text-sm text-foreground">{{ $barcode->supplier?->name ?? '-' }}</div>
-                <div class="text-sm text-foreground">{{ $barcode->is_default ? '是' : '否' }}</div>
-                <div>
-                    @if($barcode->is_enabled === 1)
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
-                    @else
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
-                    @endif
-                </div>
-                <div class="text-sm text-muted-foreground truncate">{{ $barcode->remark ?? '-' }}</div>
-                <div class="flex items-center gap-2">
-                    @can('product.product.edit')
-                    <button type="button" wire:click="openEditModal({{ $barcode->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
-                    @endcan
-                    @can('product.product.delete')
-                    <button type="button" wire:click="confirmDelete({{ $barcode->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
-                    @endcan
-                </div>
-            </div>
-        @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无条码数据</div>
-        @endforelse
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAll" class="rounded" /></th>
+                    <th class="px-4 py-2 text-left w-16">ID</th>
+                    <th class="px-4 py-2 text-left">SKU编码</th>
+                    <th class="px-4 py-2 text-left">条码值</th>
+                    <th class="px-4 py-2 text-left">条码类型</th>
+                    <th class="px-4 py-2 text-left">供应商</th>
+                    <th class="px-4 py-2 text-left">默认</th>
+                    <th class="px-4 py-2 text-left">启用</th>
+                    <th class="px-4 py-2 text-left">备注</th>
+                    <th class="px-4 py-2 text-left w-24">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($barcodes as $barcode)
+                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="barcode-{{ $barcode->id }}">
+                    <td class="px-4 py-2"><input type="checkbox" value="{{ $barcode->id }}" wire:model.live="selectedIds" class="rounded" /></td>
+                    <td class="px-4 py-2 text-muted-foreground">{{ $barcode->id }}</td>
+                    <td class="px-4 py-2 font-medium text-foreground font-mono">{{ $barcode->sku?->sku_code ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground font-mono">{{ $barcode->barcode_code }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ \App\Models\SkuBarcode::barcodeTypeMap()[$barcode->barcode_type] ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $barcode->supplier?->name ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $barcode->is_default ? '是' : '否' }}</td>
+                    <td class="px-4 py-2">
+                        @if($barcode->is_enabled === 1)
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
+                        @else
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
+                        @endif
+                    </td>
+                    <td class="px-4 py-2 text-muted-foreground truncate">{{ $barcode->remark ?? '-' }}</td>
+                    <td class="px-4 py-2">
+                        <div class="flex items-center gap-2">
+                            @can('product.product.edit')
+                            <button type="button" wire:click="openEditModal({{ $barcode->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                            @endcan
+                            @can('product.product.delete')
+                            <button type="button" wire:click="confirmDelete({{ $barcode->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                            @endcan
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="10" class="px-6 py-12 text-center text-muted-foreground">暂无条码数据</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 
     <div class="mt-4">{{ $barcodes->links() }}</div>
