@@ -21,7 +21,7 @@ return [
             ['key' => 'product.category',  'label' => '分类管理',   'route' => 'categories',         'permission' => 'product.category.view',  'description' => '商品分类层级树'],
             ['key' => 'product.product',   'label' => '商品管理',   'route' => 'products',           'permission' => 'product.product.view',   'description' => '商品信息与图片维护'],
             ['key' => 'product.sku',       'label' => 'SKU 管理',  'route' => 'skus',               'permission' => 'product.product.view',   'description' => '规格、价格、库存单位'],
-            ['key' => 'product.visibility', 'label' => '可见性配置', 'route' => 'merchant-addresses',  'permission' => 'org.merchant.view',      'description' => '商家可见SKU配置'],
+            ['key' => 'product.visibility', 'label' => '可见性配置', 'route' => 'merchant-sku-visibility', 'permission' => 'product.visibility.view', 'description' => '商家可见SKU配置'],
             ['key' => 'product.keyword',   'label' => '关键词标签', 'route' => 'keywords',           'permission' => 'product.keyword.view',   'description' => '商品搜索与标签'],
             ['key' => 'product.barcode',   'label' => '条码管理',   'route' => 'sku-barcodes',       'permission' => 'product.product.view',   'description' => 'SKU条码绑定'],
             ['key' => 'product.supplier',  'label' => '一品多供',   'route' => 'sku-suppliers',      'permission' => 'product.product.view',   'description' => '多供应商供应关系'],

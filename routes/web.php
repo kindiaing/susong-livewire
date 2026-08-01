@@ -38,6 +38,7 @@ use App\Livewire\Product\SkuBarcodeList;
 use App\Livewire\Product\SkuList;
 use App\Livewire\Product\RestockReminderList;
 use App\Livewire\Product\SkuSupplierList;
+use App\Livewire\Product\MerchantSkuVisibilityList;
 use App\Livewire\Product\TagList;
 use App\Livewire\Purchase\PurchaseItemList;
 use App\Livewire\Purchase\PurchaseOrderDetail;
@@ -97,6 +98,7 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::get('/keywords', KeywordList::class)->name('keywords');
     Route::get('/sku-barcodes', SkuBarcodeList::class)->name('sku-barcodes');
     Route::get('/sku-suppliers', SkuSupplierList::class)->name('sku-suppliers');
+    Route::get('/merchant-sku-visibility', MerchantSkuVisibilityList::class)->name('merchant-sku-visibility');
     Route::get('/restock-reminders', RestockReminderList::class)->name('restock-reminders');
 
     // ── 采购管理 ──

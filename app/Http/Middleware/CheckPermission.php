@@ -48,6 +48,7 @@ class CheckPermission
         'keywords'            => 'product.keyword.view',
         'sku-barcodes'        => 'product.product.view',
         'sku-suppliers'       => 'product.product.view',
+        'merchant-sku-visibility' => 'product.visibility.view',
         'restock-reminders'   => 'purchase.restock-reminder.view',
 
         // ── 采购管理 ──

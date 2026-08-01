@@ -67,6 +67,7 @@ class SystemDataSeeder extends Seeder
                 'product.category' => ['display_name' => '分类管理', 'buttons' => ['product.category.create', 'product.category.edit', 'product.category.delete']],
                 'product.tag' => ['display_name' => '标签管理', 'buttons' => ['product.tag.create', 'product.tag.edit', 'product.tag.delete']],
                 'product.keyword' => ['display_name' => '关键词管理', 'buttons' => ['product.keyword.create', 'product.keyword.edit', 'product.keyword.delete']],
+                'product.visibility' => ['display_name' => '可见性配置', 'buttons' => ['product.visibility.create', 'product.visibility.edit', 'product.visibility.delete']],
             ],
         ],
         'purchase' => [
@@ -165,6 +166,7 @@ class SystemDataSeeder extends Seeder
         'product.category.create' => '创建分类', 'product.category.edit' => '编辑分类', 'product.category.delete' => '删除分类',
         'product.tag.create' => '创建标签', 'product.tag.edit' => '编辑标签', 'product.tag.delete' => '删除标签',
         'product.keyword.create' => '创建关键词', 'product.keyword.edit' => '编辑关键词', 'product.keyword.delete' => '删除关键词',
+        'product.visibility.create' => '创建可见性配置', 'product.visibility.edit' => '编辑可见性配置', 'product.visibility.delete' => '删除可见性配置',
         // 采购管理
         'purchase.purchase-order.create' => '创建采购单', 'purchase.purchase-order.edit' => '编辑采购单', 'purchase.purchase-order.delete' => '删除采购单',
         'purchase.purchase-order.submit' => '提交审核', 'purchase.purchase-order.approve' => '审核采购单',
