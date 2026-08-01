@@ -15,6 +15,7 @@ class DeliveryDemoSeeder extends Seeder
     public function run(): void
     {
         $this->seedPickingTasks();
+        $this->seedPickingTaskItems();
         $this->seedDeliveryTasks();
         $this->seedSignatures();
         $this->seedTemperatures();
@@ -34,6 +35,38 @@ class DeliveryDemoSeeder extends Seeder
                 'picker_id' => $pickerUser?->id, 'batch' => 1, 'status' => 3,
                 'started_at' => $now, 'completed_at' => $now, 'created_at' => $now, 'updated_at' => $now,
             ]);
+        }
+    }
+
+    protected function seedPickingTaskItems(): void
+    {
+        $now = now();
+        $pickingTask = DB::table('picking_tasks')->where('task_no', 'PK-20260728-001')->first();
+        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-001')->first();
+
+        if (! $pickingTask || ! $order1) return;
+
+        $productNames = ['大白菜', '五花肉', '鲜虾'];
+        foreach ($productNames as $productName) {
+            $product = DB::table('products')->where('name', $productName)->first();
+            if (! $product) continue;
+            $sku = DB::table('skus')->where('product_id', $product->id)->first();
+            if (! $sku) continue;
+            $orderItem = DB::table('order_items')->where('order_id', $order1->id)->where('sku_id', $sku->id)->first();
+
+            if (! DB::table('picking_task_items')->where('picking_task_id', $pickingTask->id)->where('sku_id', $sku->id)->exists()) {
+                DB::table('picking_task_items')->insert([
+                    'picking_task_id' => $pickingTask->id,
+                    'order_id' => $order1->id,
+                    'order_item_id' => $orderItem?->id,
+                    'sku_id' => $sku->id,
+                    'required_quantity' => $orderItem?->quantity ?? 1,
+                    'picked_quantity' => $orderItem?->quantity ?? 1,
+                    'status' => 2,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
         }
     }
 

@@ -19,6 +19,9 @@ class ProductDemoSeeder extends Seeder
         $this->seedSkuSuppliers();
         $this->seedSkuBarcodes();
         $this->seedKeywords();
+        $this->seedTags();
+        $this->seedProductTags();
+        $this->seedProductImages();
         $this->seedMerchantFavorites();
     }
 
@@ -203,6 +206,84 @@ class ProductDemoSeeder extends Seeder
                     'created_at' => $now,
                     'updated_at' => $now,
                 ]);
+            }
+        }
+    }
+
+    protected function seedTags(): void
+    {
+        $now = now();
+        $tags = [
+            ['name' => '热销', 'sort' => 1, 'status' => 1],
+            ['name' => '新品', 'sort' => 2, 'status' => 1],
+            ['name' => '特价', 'sort' => 3, 'status' => 1],
+            ['name' => '冷链', 'sort' => 4, 'status' => 1],
+            ['name' => '应季', 'sort' => 5, 'status' => 1],
+            ['name' => '已停用标签', 'sort' => 99, 'status' => 0],
+        ];
+
+        foreach ($tags as $tag) {
+            if (! DB::table('tags')->where('name', $tag['name'])->exists()) {
+                DB::table('tags')->insert([
+                    'name' => $tag['name'],
+                    'sort' => $tag['sort'],
+                    'status' => $tag['status'],
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+        }
+    }
+
+    protected function seedProductTags(): void
+    {
+        $now = now();
+        $productNames = ['大白菜', '五花肉', '鲜虾', '金龙鱼大豆油'];
+        $tagNames = ['热销', '新品', '特价', '应季'];
+
+        foreach ($productNames as $productName) {
+            $product = DB::table('products')->where('name', $productName)->first();
+            if (! $product) continue;
+
+            foreach ($tagNames as $tagName) {
+                $tag = DB::table('tags')->where('name', $tagName)->first();
+                if (! $tag) continue;
+
+                if (! DB::table('product_tags')->where('product_id', $product->id)->where('tag_id', $tag->id)->exists()) {
+                    DB::table('product_tags')->insert([
+                        'product_id' => $product->id,
+                        'tag_id' => $tag->id,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]);
+                }
+            }
+        }
+    }
+
+    protected function seedProductImages(): void
+    {
+        $now = now();
+        $images = [
+            ['product' => '大白菜', 'urls' => ['/uploads/products/baicai-1.jpg', '/uploads/products/baicai-2.jpg']],
+            ['product' => '五花肉', 'urls' => ['/uploads/products/wuhua-1.jpg']],
+            ['product' => '鲜虾', 'urls' => ['/uploads/products/xianxia-1.jpg', '/uploads/products/xianxia-2.jpg', '/uploads/products/xianxia-3.jpg']],
+        ];
+
+        foreach ($images as $item) {
+            $product = DB::table('products')->where('name', $item['product'])->first();
+            if (! $product) continue;
+
+            foreach ($item['urls'] as $idx => $url) {
+                if (! DB::table('product_images')->where('product_id', $product->id)->where('image_url', $url)->exists()) {
+                    DB::table('product_images')->insert([
+                        'product_id' => $product->id,
+                        'image_url' => $url,
+                        'sort' => $idx + 1,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]);
+                }
             }
         }
     }
