@@ -34,6 +34,9 @@ class DriverList extends Component
     public int $formOnlineStatus = 0;
     public int $formStatus = 1;
 
+    public ?int $filterStatus = null;
+    public ?int $filterOnlineStatus = null;
+
     public function mount(): void
     {
         $this->initColumnVisibility();
@@ -112,6 +115,8 @@ class DriverList extends Component
     public function resetFilters(): void
     {
         $this->search = '';
+        $this->filterStatus = null;
+        $this->filterOnlineStatus = null;
         $this->resetPage();
         $this->clearSelection();
     }
@@ -142,13 +147,14 @@ class DriverList extends Component
     public function getAllColumns(): array
     {
         return [
-            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
-            ['key' => 'name', 'label' => '姓名', 'sortable' => true, 'exportable' => true],
-            ['key' => 'phone', 'label' => '手机号', 'sortable' => false, 'exportable' => true],
-            ['key' => 'id_number', 'label' => '身份证号', 'sortable' => false, 'exportable' => true],
-            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
-            ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => true],
-            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true, 'width' => '60px'],
+            ['key' => 'name', 'label' => '姓名', 'sortable' => true, 'exportable' => true, 'width' => '1fr'],
+            ['key' => 'phone', 'label' => '手机号', 'sortable' => false, 'exportable' => true, 'width' => '120px'],
+            ['key' => 'id_number', 'label' => '身份证号', 'sortable' => false, 'exportable' => true, 'width' => '160px'],
+            ['key' => 'online_status', 'label' => '在线状态', 'sortable' => false, 'exportable' => true, 'width' => '80px'],
+            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true, 'width' => '80px'],
+            ['key' => 'remark', 'label' => '备注', 'sortable' => false, 'exportable' => true, 'width' => '180px'],
+            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true, 'width' => '150px'],
         ];
     }
 
@@ -159,18 +165,12 @@ class DriverList extends Component
 
     public function getExportQuery()
     {
-        return Driver::when($this->search, function ($q) {
-            $q->where(function ($q2) {
-                $q2->where('name', 'like', "%{$this->search}%")
-                    ->orWhere('phone', 'like', "%{$this->search}%")
-                    ->orWhere('id_card', 'like', "%{$this->search}%");
-            });
-        })->orderBy('id', 'desc');
+        return $this->applyFilters(Driver::query())->orderBy('id', 'desc');
     }
 
     public function getExportFileName(): string
     {
-        return '司机_' . now()->format('Ymd_His');
+        return '司机_'.now()->format('Ymd_His');
     }
 
     public function getImportModelClass(): string
@@ -188,24 +188,53 @@ class DriverList extends Component
         ];
     }
 
+    public function getImportUniqueBy(): array
+    {
+        return ['phone'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['姓名', '手机号', '状态'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [
+            'status' => [
+                '启用' => 1,
+                '禁用' => 0,
+                '1' => 1,
+                '0' => 0,
+            ],
+        ];
+    }
+
     public function getPageIds(): array
     {
-        return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
+        return $this->getExportQuery()->forPage($this->getPage(), 10)->pluck('id')->toArray();
+    }
+
+    private function applyFilters($query)
+    {
+        return $query->when($this->search, function ($q) {
+            $q->where(function ($q2) {
+                $q2->where('name', 'like', "%{$this->search}%")
+                    ->orWhere('phone', 'like', "%{$this->search}%")
+                    ->orWhere('id_card', 'like', "%{$this->search}%");
+            });
+        })->when($this->filterStatus !== null, function ($q) {
+            $q->where('status', $this->filterStatus);
+        })->when($this->filterOnlineStatus !== null, function ($q) {
+            $q->where('online_status', $this->filterOnlineStatus);
+        });
     }
 
     public function render()
     {
-        $query = Driver::orderBy('id', 'desc');
+        $query = $this->applyFilters(Driver::query())->orderBy('id', 'desc');
 
-        if ($this->search) {
-            $query->where(function ($q) {
-                $q->where('name', 'like', "%{$this->search}%")
-                    ->orWhere('phone', 'like', "%{$this->search}%")
-                    ->orWhere('id_card', 'like', "%{$this->search}%");
-            });
-        }
-
-        $drivers = $query->paginate(20);
+        $drivers = $query->paginate(10);
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 

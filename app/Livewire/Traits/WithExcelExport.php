@@ -109,6 +109,7 @@ trait WithExcelExport
     /**
      * 下载导入模板
      * 使用 getImportColumnMap() 的中文标签作为表头，确保与导入映射一致
+     * 必填列表头红色标记
      */
     public function downloadImportTemplate()
     {
@@ -118,12 +119,18 @@ trait WithExcelExport
             return;
         }
 
+        // 获取必填列中文名列表
+        $requiredHeadings = method_exists($this, 'getImportRequiredFields')
+            ? $this->getImportRequiredFields()
+            : [];
+
         // columnMap 格式：['中文标签' => 'db_field', ...]
         // 传空数据数组 + 中文标签作为 headings，走 staticHeadings 分支
         $export = new GenericExport(
             queryOrData: [],
             columns: array_keys($columnMap),
             columnLabels: [],
+            requiredHeadings: $requiredHeadings,
         );
 
         return Excel::download(

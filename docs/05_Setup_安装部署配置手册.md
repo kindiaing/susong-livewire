@@ -1,4 +1,15 @@
-﻿# Setup 系统安装部署配置手册
+---
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: '76ea2f2f-0535-4fe1-8635-1ce36564d274'
+  PropagateID: '76ea2f2f-0535-4fe1-8635-1ce36564d274'
+  ReservedCode1: 'f102a77b-f129-43f9-8827-62cbe94aa2a2'
+  ReservedCode2: 'f102a77b-f129-43f9-8827-62cbe94aa2a2'
+---
+
+# Setup 系统安装部署配置手册
 
 对应 PRD 版本：V1.2
 对应 FSD 版本：V1.2
@@ -714,5 +725,3 @@ php artisan schedule:list          # 查看定时任务
 - [ ] 应收/应付结算流程正常
 - [ ] 审核节点开关生效
 - [ ] 操作日志、审计日志、登录日志正常记录
-
-> AI生成

@@ -50,10 +50,10 @@
     {{-- 供应商列表 --}}
     @php
         $allCols = collect($this->getAllColumns())
-            ->filter(fn($col) => $col['key'] !== 'id' && $col['key'] !== 'name')
+            ->filter(fn($col) => $col['key'] !== 'name')
             ->values();
         $visibleCols = $allCols->filter(fn($col) => $this->isColumnVisible($col['key']));
-        $gridCols = '40px 60px 1fr';
+        $gridCols = '40px 1fr';
         foreach ($visibleCols as $col) {
             $width = $col['width'] ?? '120px';
             $gridCols .= ' ' . $width;
@@ -64,7 +64,6 @@
     <div class="rounded-lg border bg-card">
         <div class="grid gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider" style="grid-template-columns: {{ $gridCols }}">
             <div><input type="checkbox" wire:model.live="selectAllPage" class="rounded" /></div>
-            <div>ID</div>
             <div>供应商名称</div>
             @foreach($visibleCols as $col)
                 <div>{{ $col['label'] }}</div>
@@ -77,10 +76,12 @@
                  style="grid-template-columns: {{ $gridCols }}"
                  wire:key="supplier-{{ $supplier->id }}">
                 <div><input type="checkbox" value="{{ $supplier->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm text-muted-foreground">{{ $supplier->id }}</div>
                 <div class="text-sm font-medium text-foreground truncate">{{ $supplier->name }}</div>
                 @foreach($visibleCols as $col)
                     @switch($col['key'])
+                        @case('id')
+                            <div class="text-sm text-muted-foreground">{{ $supplier->id }}</div>
+                            @break
                         @case('settlement_cycle')
                             <div class="text-sm text-foreground">{{ \App\Models\Supplier::settlementCycleMap()[$supplier->settlement_cycle] ?? '-' }}</div>
                             @break

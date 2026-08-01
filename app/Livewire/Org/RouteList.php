@@ -131,13 +131,13 @@ class RouteList extends Component
     public function getAllColumns(): array
     {
         return [
-            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
-            ['key' => 'name', 'label' => '线路名', 'sortable' => true, 'exportable' => true],
-            ['key' => 'code', 'label' => '编码', 'sortable' => false, 'exportable' => true],
-            ['key' => 'area', 'label' => '区域', 'sortable' => false, 'exportable' => true],
-            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
-            ['key' => 'sort', 'label' => '排序', 'sortable' => true, 'exportable' => true],
-            ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => true],
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true, 'width' => '60px'],
+            ['key' => 'name', 'label' => '线路名', 'sortable' => true, 'exportable' => true, 'width' => '1fr'],
+            ['key' => 'code', 'label' => '编码', 'sortable' => false, 'exportable' => true, 'width' => '120px'],
+            ['key' => 'area', 'label' => '区域', 'sortable' => false, 'exportable' => true, 'width' => '120px'],
+            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true, 'width' => '80px'],
+            ['key' => 'sort', 'label' => '排序', 'sortable' => true, 'exportable' => true, 'width' => '80px'],
+            ['key' => 'remark', 'label' => '备注', 'sortable' => false, 'exportable' => true, 'width' => '180px'],
         ];
     }
 
@@ -176,9 +176,31 @@ class RouteList extends Component
         ];
     }
 
+    public function getImportUniqueBy(): array
+    {
+        return ['name'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['线路名', '状态'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [
+            'status' => [
+                '启用' => 1,
+                '禁用' => 0,
+                '1' => 1,
+                '0' => 0,
+            ],
+        ];
+    }
+
     public function getPageIds(): array
     {
-        return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
+        return $this->getExportQuery()->forPage($this->getPage(), 10)->pluck('id')->toArray();
     }
 
     public function render()
@@ -192,7 +214,7 @@ class RouteList extends Component
             });
         }
 
-        $routes = $query->paginate(20);
+        $routes = $query->paginate(10);
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 

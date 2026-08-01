@@ -1,4 +1,15 @@
-﻿# 开发迭代日志
+---
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: '1015a218-bcb5-4b1b-8cb7-8fce5acc566b'
+  PropagateID: '1015a218-bcb5-4b1b-8cb7-8fce5acc566b'
+  ReservedCode1: 'c885f7d1-128e-4ef8-84c0-02fafa676009'
+  ReservedCode2: 'c885f7d1-128e-4ef8-84c0-02fafa676009'
+---
+
+# 开发迭代日志
 
 对应 PRD 版本：V1.2
 对应 FSD 版本：V1.2
@@ -964,5 +975,3 @@
 | :--- | :--- | :--- | :--- |
 | SESSION_DRIVER | redis | file | Redis 扩展未安装 |
 | CACHE_STORE | redis | file | Redis 扩展未安装 |
-
-> AI生成

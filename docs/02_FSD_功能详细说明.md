@@ -2277,4 +2277,3 @@ docs/
 | 价格策略 | PriceStrategyList ✅, PriceStrategyForm, PriceChangeLogList ✅ | PriceStrategyService | price/ ✅ | - | web ✅ |
 | 审核管理 | ApprovalConfig ✅, ApprovalPendingList, ApprovalReviewedList | ApprovalService | approval/ ✅ | - | web ✅ |
 | 系统支撑 | SystemConfig ✅, BannerList ✅, PromotionList ✅, OperationLogList ✅, AuditLogList ✅, LoginLogList ✅, WechatUserList ✅ | - | system/ ✅ | - | web ✅ |
-

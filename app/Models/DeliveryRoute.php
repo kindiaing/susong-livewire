@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
  * @property string $name 线路名称
  * @property string|null $description 描述
  * @property int $sort 排序
- * @property int $status 状态：1启用，2禁用
+ * @property int $status 状态：0禁用，1启用
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
@@ -22,9 +22,9 @@ class DeliveryRoute extends Model
 {
     use SoftDeletes;
 
-    // 状态常量
+    // 状态常量（统一：0禁用，1启用）
     public const STATUS_ENABLED = 1;
-    public const STATUS_DISABLED = 2;
+    public const STATUS_DISABLED = 0;
 
     protected $fillable = [
         'name',

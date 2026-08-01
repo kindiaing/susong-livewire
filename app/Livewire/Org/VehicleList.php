@@ -33,6 +33,9 @@ class VehicleList extends Component
     public int $formIsColdChain = 0;
     public int $formStatus = 1;
 
+    public ?int $filterStatus = null;
+    public ?int $filterIsColdChain = null;
+
     public function mount(): void
     {
         $this->initColumnVisibility();
@@ -108,6 +111,8 @@ class VehicleList extends Component
     public function resetFilters(): void
     {
         $this->search = '';
+        $this->filterStatus = null;
+        $this->filterIsColdChain = null;
         $this->resetPage();
         $this->clearSelection();
     }
@@ -137,13 +142,12 @@ class VehicleList extends Component
     public function getAllColumns(): array
     {
         return [
-            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
-            ['key' => 'plate_number', 'label' => '车牌号', 'sortable' => true, 'exportable' => true],
-            ['key' => 'type', 'label' => '类型', 'sortable' => false, 'exportable' => true],
-            ['key' => 'load_capacity', 'label' => '载重量', 'sortable' => false, 'exportable' => true],
-            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
-            ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => true],
-            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true, 'width' => '60px'],
+            ['key' => 'plate_number', 'label' => '车牌号', 'sortable' => true, 'exportable' => true, 'width' => '120px'],
+            ['key' => 'type', 'label' => '类型', 'sortable' => false, 'exportable' => true, 'width' => '1fr'],
+            ['key' => 'is_cold_chain', 'label' => '冷链', 'sortable' => false, 'exportable' => true, 'width' => '80px'],
+            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true, 'width' => '80px'],
+            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true, 'width' => '150px'],
         ];
     }
 
@@ -154,17 +158,12 @@ class VehicleList extends Component
 
     public function getExportQuery()
     {
-        return Vehicle::when($this->search, function ($q) {
-            $q->where(function ($q2) {
-                $q2->where('plate_number', 'like', "%{$this->search}%")
-                    ->orWhere('vehicle_type', 'like', "%{$this->search}%");
-            });
-        })->orderBy('id', 'desc');
+        return $this->applyFilters(Vehicle::query())->orderBy('id', 'desc');
     }
 
     public function getExportFileName(): string
     {
-        return '车辆_' . now()->format('Ymd_His');
+        return '车辆_'.now()->format('Ymd_His');
     }
 
     public function getImportModelClass(): string
@@ -182,23 +181,58 @@ class VehicleList extends Component
         ];
     }
 
+    public function getImportUniqueBy(): array
+    {
+        return ['plate_number'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['车牌号', '状态'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [
+            'status' => [
+                '启用' => 1,
+                '禁用' => 0,
+                '1' => 1,
+                '0' => 0,
+            ],
+            'is_cold_chain' => [
+                '是' => 1,
+                '否' => 0,
+                '1' => 1,
+                '0' => 0,
+            ],
+        ];
+    }
+
     public function getPageIds(): array
     {
-        return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
+        return $this->getExportQuery()->forPage($this->getPage(), 10)->pluck('id')->toArray();
+    }
+
+    private function applyFilters($query)
+    {
+        return $query->when($this->search, function ($q) {
+            $q->where(function ($q2) {
+                $q2->where('plate_number', 'like', "%{$this->search}%")
+                    ->orWhere('vehicle_type', 'like', "%{$this->search}%");
+            });
+        })->when($this->filterStatus !== null, function ($q) {
+            $q->where('status', $this->filterStatus);
+        })->when($this->filterIsColdChain !== null, function ($q) {
+            $q->where('is_cold_chain', $this->filterIsColdChain);
+        });
     }
 
     public function render()
     {
-        $query = Vehicle::orderBy('id', 'desc');
+        $query = $this->applyFilters(Vehicle::query())->orderBy('id', 'desc');
 
-        if ($this->search) {
-            $query->where(function ($q) {
-                $q->where('plate_number', 'like', "%{$this->search}%")
-                    ->orWhere('vehicle_type', 'like', "%{$this->search}%");
-            });
-        }
-
-        $vehicles = $query->paginate(20);
+        $vehicles = $query->paginate(10);
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 

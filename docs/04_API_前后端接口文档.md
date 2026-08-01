@@ -1880,4 +1880,3 @@
 | 系统支撑 | system_configs, banners, promotions, operation_logs, audit_logs, login_logs |
 | 微信商家端 | wechat_users, merchant_favorites, notifications, restock_reminders |
 | 微信司机端 | wechat_users, delivery_tracks, signatures, temperatures |
-

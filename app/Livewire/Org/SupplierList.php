@@ -216,6 +216,11 @@ class SupplierList extends Component
         return ['name'];
     }
 
+    public function getImportRequiredFields(): array
+    {
+        return ['名称', '结算周期', '状态'];
+    }
+
     public function getImportValueMap(): array
     {
         return [
@@ -268,7 +273,7 @@ class SupplierList extends Component
 
     public function getPageIds(): array
     {
-        return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
+        return $this->getExportQuery()->forPage($this->getPage(), 10)->pluck('id')->toArray();
     }
 
     private function resetForm(): void
@@ -304,7 +309,7 @@ class SupplierList extends Component
     {
         $query = $this->applyFilters(Supplier::query())->orderBy('id', 'desc');
 
-        $suppliers = $query->paginate(20);
+        $suppliers = $query->paginate(10);
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 
