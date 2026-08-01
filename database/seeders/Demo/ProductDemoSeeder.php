@@ -28,20 +28,61 @@ class ProductDemoSeeder extends Seeder
     protected function seedCategories(): void
     {
         $now = now();
-        $categories = [
-            ['name' => '蔬菜', 'sort' => 1, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['name' => '水果', 'sort' => 2, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['name' => '肉类', 'sort' => 3, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['name' => '水产', 'sort' => 4, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['name' => '粮油', 'sort' => 5, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['name' => '调料', 'sort' => 6, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['name' => '豆制品', 'sort' => 7, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['name' => '冷冻食品', 'sort' => 8, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
+
+        // 一级分类（根节点）
+        $rootCategories = [
+            ['name' => '蔬菜', 'sort' => 1, 'status' => 1],
+            ['name' => '水果', 'sort' => 2, 'status' => 1],
+            ['name' => '肉类', 'sort' => 3, 'status' => 1],
+            ['name' => '水产', 'sort' => 4, 'status' => 1],
+            ['name' => '粮油', 'sort' => 5, 'status' => 1],
+            ['name' => '调料', 'sort' => 6, 'status' => 1],
+            ['name' => '豆制品', 'sort' => 7, 'status' => 1],
+            ['name' => '冷冻食品', 'sort' => 8, 'status' => 1],
         ];
 
-        foreach ($categories as $category) {
-            if (! DB::table('categories')->where('name', $category['name'])->exists()) {
-                DB::table('categories')->insert($category);
+        foreach ($rootCategories as $cat) {
+            if (! DB::table('categories')->where('name', $cat['name'])->where('parent_id', 0)->exists()) {
+                DB::table('categories')->insert([
+                    'parent_id' => 0,
+                    'name' => $cat['name'],
+                    'icon' => null,
+                    'sort' => $cat['sort'],
+                    'status' => $cat['status'],
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+        }
+
+        // 二级子分类
+        $childMap = [
+            '蔬菜' => ['叶菜类', '根茎类', '瓜果类', '菌菇类'],
+            '水果' => ['热带水果', '温带水果', '浆果类'],
+            '肉类' => ['猪肉', '牛肉', '羊肉', '禽类'],
+            '水产' => ['鱼类', '虾蟹类', '贝类'],
+            '粮油' => ['大米', '食用油', '面粉'],
+            '调料' => ['酱油醋', '香辛料', '调味酱'],
+            '豆制品' => ['豆腐类', '豆干类', '腐竹类'],
+            '冷冻食品' => ['速冻面点', '冷冻肉类', '冷冻水产'],
+        ];
+
+        foreach ($childMap as $parentName => $children) {
+            $parentId = DB::table('categories')->where('name', $parentName)->where('parent_id', 0)->value('id');
+            if (! $parentId) continue;
+
+            foreach ($children as $idx => $childName) {
+                if (! DB::table('categories')->where('name', $childName)->where('parent_id', $parentId)->exists()) {
+                    DB::table('categories')->insert([
+                        'parent_id' => $parentId,
+                        'name' => $childName,
+                        'icon' => null,
+                        'sort' => $idx + 1,
+                        'status' => 1,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]);
+                }
             }
         }
     }

@@ -20,6 +20,27 @@
         </div>
     </div>
 
+    {{-- 分类管理 --}}
+    <div class="px-5 pt-5 pb-2">
+        <h4 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">分类管理</h4>
+    </div>
+
+    <div class="px-5 py-3 border-b border-border hover:bg-muted/30 transition-colors">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-foreground">分类树默认展开</p>
+                <p class="text-xs text-muted-foreground mt-0.5">开启后，进入分类页面时自动展开所有节点；关闭则默认折叠</p>
+            </div>
+            <button type="button" wire:click="toggleCategoryTreeExpanded"
+                role="switch"
+                :aria-checked="$wire.categoryTreeExpanded"
+                class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {{ $categoryTreeExpanded ? 'bg-primary' : 'bg-muted' }}"
+            >
+                <span class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-background shadow ring-0 transition duration-200 ease-in-out {{ $categoryTreeExpanded ? 'translate-x-4' : 'translate-x-0' }}"></span>
+            </button>
+        </div>
+    </div>
+
     {{-- 个人中心 --}}
     <div class="px-5 pt-5 pb-2">
         <h4 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">个人中心</h4>

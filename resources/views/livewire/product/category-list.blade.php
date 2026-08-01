@@ -1,4 +1,5 @@
-<div class="p-6">
+<div class="p-6" x-data="{ dragSrcId: null }">
+    {{-- Header --}}
     <div class="flex items-center justify-between mb-6">
         <div>
             <h1 class="text-2xl font-bold text-foreground">分类管理</h1>
@@ -11,9 +12,20 @@
         @endcan
     </div>
 
+    {{-- Toolbar --}}
     <div class="flex items-center gap-3 mb-4">
-        <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background px-3 text-sm" placeholder="搜索分类名称..." />
-        <button type="button" wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
+        <div x-data class="relative">
+            <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background pl-3 pr-8 text-sm" placeholder="搜索分类名称..." />
+            @if($search)
+                <button type="button" wire:click="resetFilters" class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted transition-colors">
+                    <x-ui.icon name="x-mark" class="w-3.5 h-3.5" />
+                </button>
+            @endif
+        </div>
+        <div class="flex items-center gap-2 ml-2">
+            <button type="button" wire:click="expandAll" class="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1.5 text-xs hover:bg-accent transition-colors">全部展开</button>
+            <button type="button" wire:click="collapseAll" class="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1.5 text-xs hover:bg-accent transition-colors">全部折叠</button>
+        </div>
         <div class="flex-1"></div>
         <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">列配置</button>
         <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导入</button>
@@ -27,6 +39,7 @@
         @endif
     </div>
 
+    {{-- Tree Table --}}
     <div class="rounded-lg border bg-card">
         <table class="w-full text-sm">
             <thead>
@@ -34,47 +47,78 @@
                     <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAll" class="rounded" /></th>
                     <th class="px-4 py-2 text-left w-16">ID</th>
                     <th class="px-4 py-2 text-left">分类名称</th>
-                    <th class="px-4 py-2 text-left">父级分类</th>
-                    <th class="px-4 py-2 text-left">排序</th>
-                    <th class="px-4 py-2 text-left">状态</th>
+                    <th class="px-4 py-2 text-left w-24">排序</th>
+                    <th class="px-4 py-2 text-left w-20">状态</th>
                     <th class="px-4 py-2 text-left w-24">操作</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse($categories as $category)
-                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="category-{{ $category->id }}">
+                @forelse($flatTree as [$category, $depth])
+                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors group"
+                    wire:key="category-{{ $category->id }}"
+                    draggable="true"
+                    @dragstart="dragSrcId = {{ $category->id }}; $event.dataTransfer.effectAllowed = 'move'; $event.dataTransfer.setData('text/plain', {{ $category->id }})"
+                    @dragover.prevent="$event.dataTransfer.dropEffect = 'move'"
+                    @drop="if (dragSrcId && dragSrcId !== {{ $category->id }}) { $wire.updateSortOrder(dragSrcId, {{ $category->id }}); dragSrcId = null; }"
+                    data-parent-id="{{ $category->parent_id }}">
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $category->id }}" wire:model.live="selectedIds" class="rounded" /></td>
                     <td class="px-4 py-2 text-muted-foreground">{{ $category->id }}</td>
-                    <td class="px-4 py-2 font-medium text-foreground">{{ $category->name }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $category->parent_id == 0 ? '根节点' : ($category->parent?->name ?? '-') }}</td>
+                    <td class="px-4 py-2 font-medium text-foreground">
+                        <div class="flex items-center" style="padding-left: {{ $depth * 24 }}px">
+                            {{-- Expand/Collapse Arrow --}}
+                            @if($category->children->isNotEmpty())
+                                <button type="button" wire:click="toggleExpand({{ $category->id }})" class="inline-flex items-center justify-center w-5 h-5 mr-1 rounded hover:bg-muted transition-colors">
+                                    @if(in_array((string) $category->id, $expandedIds))
+                                        <svg class="w-3.5 h-3.5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                    @else
+                                        <svg class="w-3.5 h-3.5 text-muted-foreground -rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                    @endif
+                                </button>
+                            @else
+                                <span class="inline-block w-5 h-5 mr-1"></span>
+                            @endif
+                            {{-- Drag Handle --}}
+                            <svg class="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors mr-2 cursor-grab" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
+                            </svg>
+                            <span>{{ $category->name }}</span>
+                        </div>
+                    </td>
                     <td class="px-4 py-2 text-foreground">{{ $category->sort }}</td>
                     <td class="px-4 py-2">
                         @if($category->status === 1)
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
+                            <span class="inline-flex items-center gap-1.5 text-xs text-green-700">
+                                <span class="w-2 h-2 rounded-full bg-green-500"></span>启用
+                            </span>
                         @else
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
+                            <span class="inline-flex items-center gap-1.5 text-xs text-gray-500">
+                                <span class="w-2 h-2 rounded-full bg-gray-400"></span>禁用
+                            </span>
                         @endif
                     </td>
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-2">
                             @can('product.category.edit')
-                            <button type="button" wire:click="openEditModal({{ $category->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                            <button type="button" wire:click="openEditModal({{ $category->id }})" class="text-blue-600 hover:text-blue-700" title="编辑">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            </button>
                             @endcan
                             @can('product.category.delete')
-                            <button type="button" wire:click="confirmDelete({{ $category->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                            <button type="button" wire:click="confirmDelete({{ $category->id }})" class="text-red-600 hover:text-red-700" title="删除">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                            </button>
                             @endcan
                         </div>
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="7" class="px-6 py-12 text-center text-muted-foreground">暂无分类数据</td></tr>
+                <tr><td colspan="6" class="px-6 py-12 text-center text-muted-foreground">暂无分类数据</td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
 
-    <div class="mt-4">{{ $categories->links() }}</div>
-
+    {{-- Create/Edit Modal --}}
     @if($showModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" wire:click="closeModal"></div>
@@ -87,15 +131,17 @@
                     @error('formName') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">父级分类</label>
-                    <select wire:model="formParentId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                        <option value="0">根节点</option>
-                        @foreach($parentOptions as $opt)
-                            <option value="{{ $opt->id }}">{{ $opt->name }}</option>
-                        @endforeach
-                    </select>
+                    <x-ui.searchable-select
+                        label="父级分类"
+                        :wireModel="'formParentId'"
+                        :clearable="true"
+                        placeholder="根节点"
+                        :options="$parentOptions->map(fn($opt) => ['value' => (string) $opt->id, 'label' => $opt->name])->values()->toArray()"
+                        :value="$formParentId"
+                        :error="$errors->first('formParentId')"
+                    />
                 </div>
-                <div class="grid grid-cols-3 gap-4">
+                <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-foreground mb-1">排序</label>
                         <input type="number" wire:model="formSort" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" />
@@ -117,12 +163,13 @@
     </div>
     @endif
 
+    {{-- Delete Confirm Modal --}}
     @if($showDeleteConfirm)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" wire:click="closeDeleteConfirm"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
             <h2 class="text-lg font-semibold text-foreground mb-2">确认删除</h2>
-            <p class="text-sm text-muted-foreground mb-6">确定要删除该分类吗？此操作不可恢复。</p>
+            <p class="text-sm text-muted-foreground mb-6">{{ $deleteWarning }}</p>
             <div class="flex justify-end gap-3">
                 <button type="button" wire:click="closeDeleteConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
                 <button type="button" wire:click="delete" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>
@@ -134,5 +181,4 @@
     @include('partials.column-modal')
     @include('partials.export-modal')
     @include('partials.import-modal')
-    @include('partials.delete-confirm')
 </div>

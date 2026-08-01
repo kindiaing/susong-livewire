@@ -91,4 +91,72 @@ class Category extends Model
     {
         return $query->where('status', self::STATUS_ENABLED);
     }
+
+    /**
+     * 作用域：根分类
+     */
+    public function scopeRoot($query)
+    {
+        return $query->where('parent_id', 0);
+    }
+
+    /**
+     * 作用域：按排序字段排序
+     */
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('sort')->orderBy('id');
+    }
+
+    /**
+     * 是否为根分类
+     */
+    public function isRoot(): bool
+    {
+        return $this->parent_id === 0;
+    }
+
+    /**
+     * 是否有子分类
+     */
+    public function hasChildren(): bool
+    {
+        return $this->children()->exists();
+    }
+
+    /**
+     * 获取所有后代分类ID（递归，含自身）
+     */
+    public function getAllChildrenIds(): array
+    {
+        $ids = [$this->id];
+        $children = $this->children()->get();
+
+        foreach ($children as $child) {
+            $ids = array_merge($ids, $child->getAllChildrenIds());
+        }
+
+        return $ids;
+    }
+
+    /**
+     * 获取树形结构（静态方法，一次性查询后在内存中组装）
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public static function getTree(): \Illuminate\Database\Eloquent\Collection
+    {
+        $all = static::ordered()->get();
+        $byParent = $all->groupBy('parent_id');
+
+        $buildTree = function ($parentId) use (&$buildTree, &$byParent) {
+            $nodes = $byParent->get($parentId, collect());
+            foreach ($nodes as $node) {
+                $node->setRelation('children', $buildTree($node->id));
+            }
+            return $nodes;
+        };
+
+        return $buildTree(0);
+    }
 }

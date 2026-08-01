@@ -13,15 +13,28 @@
 
     {{-- 筛选区 --}}
     <div class="flex items-center gap-3 mb-4">
-        <input type="text" wire:model.live="searchMerchant" class="flex h-9 w-56 rounded-md border border-input bg-background px-3 text-sm" placeholder="搜索商家名称..." />
-        <input type="text" wire:model.live="searchSku" class="flex h-9 w-56 rounded-md border border-input bg-background px-3 text-sm" placeholder="搜索SKU名称/编码..." />
+        <div x-data class="relative">
+            <input type="text" wire:model.live="searchMerchant" class="flex h-9 w-56 rounded-md border border-input bg-background pl-3 pr-8 text-sm" placeholder="搜索商家名称..." />
+            @if($searchMerchant)
+                <button type="button" wire:click="resetFilters" class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted transition-colors">
+                    <x-ui.icon name="x-mark" class="w-3.5 h-3.5" />
+                </button>
+            @endif
+        </div>
+        <div x-data class="relative">
+            <input type="text" wire:model.live="searchSku" class="flex h-9 w-56 rounded-md border border-input bg-background pl-3 pr-8 text-sm" placeholder="搜索SKU名称/编码..." />
+            @if($searchSku)
+                <button type="button" wire:click="resetFilters" class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted transition-colors">
+                    <x-ui.icon name="x-mark" class="w-3.5 h-3.5" />
+                </button>
+            @endif
+        </div>
         <select wire:model.live="filterMerchantId" class="flex h-9 w-56 rounded-md border border-input bg-background px-3 text-sm">
             <option value="">全部商家</option>
             @foreach($merchants as $merchant)
                 <option value="{{ $merchant->id }}">{{ $merchant->name }}</option>
             @endforeach
         </select>
-        <button type="button" wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
         <div class="flex-1"></div>
         <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">列配置</button>
         <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导出</button>

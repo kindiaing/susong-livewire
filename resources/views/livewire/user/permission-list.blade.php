@@ -12,7 +12,14 @@
     </div>
 
     <div class="flex items-center gap-3 mb-4 flex-wrap">
-        <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background px-3 text-sm" placeholder="搜索权限名称..." />
+        <div x-data class="relative">
+            <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background pl-3 pr-8 text-sm" placeholder="搜索权限名称..." />
+            @if($search)
+                <button type="button" wire:click="resetFilters" class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted transition-colors">
+                    <x-ui.icon name="x-mark" class="w-3.5 h-3.5" />
+                </button>
+            @endif
+        </div>
 
         {{-- 类型筛选 --}}
         <select wire:model.live="filterType" class="flex h-9 rounded-md border border-input bg-background px-3 text-sm">
@@ -29,8 +36,6 @@
                 <option value="{{ $mod->id }}">{{ $mod->display_name }}</option>
             @endforeach
         </select>
-
-        <button type="button" wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
     </div>
 
     <div class="rounded-lg border bg-card">
