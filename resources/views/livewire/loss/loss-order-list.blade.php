@@ -6,7 +6,7 @@
             <p class="text-muted-foreground mt-1">管理损耗单据及审核流程</p>
         </div>
         @can('loss.loss-order.create')
-        <button wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+        <button type="button" wire:click="l" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
             新增损耗单
         </button>
         @endcan
@@ -34,7 +34,7 @@
             <option value="4">已关闭</option>
             <option value="9">已取消</option>
         </select>
-        <button wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
+        <button type="button" wire:click="s" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
     </div>
 
     {{-- 列表 --}}
@@ -81,20 +81,20 @@
                 <div class="flex items-center gap-2">
                     @can('loss.loss-order.edit')
                     @if($item->approval_status === 1)
-                        <button wire:click="confirmApprove({{ $item->id }})" class="text-green-600 hover:text-green-700 text-sm">审核</button>
+                        <button type="button" wire:click=")" class="text-green-600 hover:text-green-700 text-sm">审核</button>
                     @endif
                     @if($item->status === 2)
-                        <button wire:click="execute({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">执行</button>
+                        <button type="button" wire:click=")" class="text-blue-600 hover:text-blue-700 text-sm">执行</button>
                     @endif
                     @if($item->status === 3)
-                        <button wire:click="close({{ $item->id }})" class="text-orange-600 hover:text-orange-700 text-sm">关闭</button>
+                        <button type="button" wire:click=")" class="text-orange-600 hover:text-orange-700 text-sm">关闭</button>
                     @endif
                     @if($item->status === 1)
-                        <button wire:click="openEditModal({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                        <button type="button" wire:click=")" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
                     @endif
                     @endcan
                     @can('loss.loss-order.delete')
-                    <button wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                    <button type="button" wire:click=")" class="text-red-600 hover:text-red-700 text-sm">删除</button>
                     @endcan
                 </div>
             </div>
@@ -147,7 +147,7 @@
             </div>
             <div class="flex justify-end gap-3 mt-6">
                 <button type="button" wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
+                <button type="button" wire:click="e" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
             </div>
         </div>
     </div>
@@ -162,7 +162,7 @@
             <p class="text-sm text-muted-foreground mb-6">确定要删除该损耗单吗？此操作不可恢复。</p>
             <div class="flex justify-end gap-3">
                 <button type="button" wire:click="closeDeleteConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button wire:click="delete" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>
+                <button type="button" wire:click="e" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>
             </div>
         </div>
     </div>
@@ -177,8 +177,8 @@
             <p class="text-sm text-muted-foreground mb-6">请选择审核结果</p>
             <div class="flex justify-end gap-3">
                 <button type="button" wire:click="closeApproveConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button wire:click="reject" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">拒绝</button>
-                <button wire:click="approve" class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors">通过</button>
+                <button type="button" wire:click="t" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">拒绝</button>
+                <button type="button" wire:click="e" class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors">通过</button>
             </div>
         </div>
     </div>

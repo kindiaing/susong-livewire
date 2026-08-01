@@ -68,13 +68,13 @@
                             <input type="text" wire:model="editDescription"
                                    class="flex h-7 flex-1 rounded-md border border-input bg-background px-2 text-xs"
                                    placeholder="输入节点说明">
-                            <button wire:click="saveDescription" class="text-xs text-blue-600 hover:text-blue-700 font-medium">保存</button>
-                            <button wire:click="cancelEdit" class="text-xs text-muted-foreground hover:text-foreground">取消</button>
+                            <button type="button" wire:click="n" class="text-xs text-blue-600 hover:text-blue-700 font-medium">保存</button>
+                            <button type="button" wire:click="t" class="text-xs text-muted-foreground hover:text-foreground">取消</button>
                         </div>
                     @else
                         <div class="flex items-center gap-1 mt-0.5">
                             <p class="text-xs text-muted-foreground">{{ $config->description ?? '暂无说明' }}</p>
-                            <button wire:click="startEdit({{ $config->id }})" class="text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100">
+                            <button type="button" wire:click=")" class="text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100">
                                 <x-ui.icon name="pencil" class="w-3 h-3" />
                             </button>
                         </div>

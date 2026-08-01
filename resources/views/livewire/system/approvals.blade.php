@@ -28,8 +28,7 @@
             ];
         @endphp
         @foreach($tabs as $key => $tab)
-            <button
-                wire:click="setActiveTab('{{ $key }}')"
+            <button type="button" wire:click=")"
                 class="px-4 py-2 text-sm font-medium border-b-2 transition-colors {{ $activeTab === $key ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground' }}"
             >
                 {{ $tab['label'] }}
@@ -122,7 +121,7 @@
                 {{-- 弹窗头 --}}
                 <div class="flex items-center justify-between border-b px-6 py-4">
                     <h2 class="text-lg font-semibold text-foreground">审批详情</h2>
-                    <button wire:click="closeDetail" class="p-1 rounded-md hover:bg-muted text-muted-foreground">
+                    <button type="button" wire:click="l" class="p-1 rounded-md hover:bg-muted text-muted-foreground">
                         <x-ui.icon name="x" class="w-5 h-5" />
                     </button>
                 </div>

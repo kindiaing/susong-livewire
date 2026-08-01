@@ -30,7 +30,7 @@
                         <x-ui.icon name="cog-6-tooth" class="w-5 h-5 text-muted-foreground" />
                         <h3 class="text-sm font-semibold">界面设置</h3>
                     </div>
-                    <button @click="$store.uiSettings.open = false" class="rounded-sm p-1 hover:bg-accent transition-colors">
+                    <button type="button" @click="$store.uiSettings.open = false" class="rounded-sm p-1 hover:bg-accent transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
@@ -51,7 +51,7 @@
                                 <p class="text-sm font-medium text-foreground">点击旁边关闭通知</p>
                                 <p class="text-xs text-muted-foreground mt-0.5">开启后，点击通知面板外的区域将自动关闭通知菜单</p>
                             </div>
-                            <button
+                            <button type="button"
                                 wire:click="toggleCloseOnOutside"
                                 role="switch"
                                 :aria-checked="$wire.closeOnOutside"

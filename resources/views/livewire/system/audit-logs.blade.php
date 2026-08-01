@@ -43,7 +43,7 @@
             class="flex h-9 rounded-md border border-input bg-background px-3 text-sm"
         />
 
-        <button wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <button type="button" wire:click="s" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
             重置
         </button>
     </div>
@@ -112,8 +112,7 @@
                 {{-- 详情按钮 --}}
                 <div class="text-right">
                     @if($log->before_data || $log->after_data)
-                        <button
-                            wire:click="showDetail({{ $log->id }})"
+                        <button type="button" wire:click=")"
                             class="text-xs text-blue-600 hover:text-blue-700 font-medium"
                         >
                             查看
@@ -141,7 +140,7 @@
                  wire:click.stop>
                 <div class="flex items-center justify-between border-b px-6 py-4">
                     <h2 class="text-lg font-semibold text-foreground">审计详情</h2>
-                    <button wire:click="closeDetail" class="p-1 rounded-md hover:bg-muted text-muted-foreground">
+                    <button type="button" wire:click="l" class="p-1 rounded-md hover:bg-muted text-muted-foreground">
                         <x-ui.icon name="x" class="w-5 h-5" />
                     </button>
                 </div>

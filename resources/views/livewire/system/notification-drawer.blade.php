@@ -58,7 +58,7 @@
                                 全部已读
                             </button>
                         @endif
-                        <button @click="open = false" class="rounded-sm p-1 hover:bg-accent transition-colors">
+                        <button type="button" @click="open = false" class="rounded-sm p-1 hover:bg-accent transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
