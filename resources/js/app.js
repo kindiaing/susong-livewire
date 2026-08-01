@@ -1,7 +1,9 @@
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
+import { commandPalette } from './command-palette.js';
 
 window.Pusher = Pusher;
+window.commandPalette = commandPalette;
 
 window.Echo = new Echo({
     broadcaster: 'reverb',

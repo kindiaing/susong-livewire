@@ -65,7 +65,7 @@
             </div>
 
             {{-- 关闭按钮 --}}
-            <button @click.stop="Alpine.store('toasts').remove(toast.id)"
+            <button type="button" @click.stop="Alpine.store('toasts').remove(toast.id)"
                     class="shrink-0 rounded-md p-0.5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/5 dark:hover:bg-white/10">
                 <svg class="w-4 h-4 text-current opacity-50" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
