@@ -18,7 +18,9 @@
                 <div class="text-sm text-foreground">{{ $item->task_no }}</div>
                 <div class="text-sm text-muted-foreground">{{ $item->created_at?->format('Y-m-d H:i') }}</div>
                 <div class="flex items-center gap-2">
+                    @can('delivery.delivery-task.delete')
                     <button wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                    @endcan
                 </div>
             </div>
         @empty

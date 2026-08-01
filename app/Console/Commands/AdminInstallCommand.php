@@ -59,6 +59,9 @@ class AdminInstallCommand extends Command
 
         $this->info('  ✓ 迁移完成（角色、审核配置、系统配置、管理员账号已由 Migration 自动初始化）');
 
+        // 清理 Spatie 权限缓存（migrate:fresh 重建表后旧缓存会干扰 Seeder）
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
         // 2. 运行 Seeder（系统内置数据：角色权限 + 超级管理员 + 系统配置）
         $this->newLine();
         $this->info('[2/3] 初始化系统内置数据...');

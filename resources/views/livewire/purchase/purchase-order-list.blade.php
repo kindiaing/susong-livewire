@@ -5,9 +5,11 @@
             <h1 class="text-2xl font-bold text-foreground">采购单管理</h1>
             <p class="text-muted-foreground mt-1">采购单全流程：创建→接单→发货→入库→完成</p>
         </div>
+        @can('purchase.purchase-order.create')
         <button type="button" wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
             新增采购单
         </button>
+        @endcan
     </div>
 
     {{-- 搜索栏 --}}
@@ -68,12 +70,15 @@
                                 </svg>
                             </a>
                             {{-- 编辑 --}}
+                            @can('purchase.purchase-order.edit')
                             <button type="button" wire:click="openEditModal({{ $order->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                                 </svg>
                             </button>
+                            @endcan
                             {{-- 删除（仅待接单状态） --}}
+                            @can('purchase.purchase-order.delete')
                             @if(in_array($order->status, [1]))
                                 <button type="button" wire:click="confirmDelete({{ $order->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
@@ -81,6 +86,7 @@
                                     </svg>
                                 </button>
                             @endif
+                            @endcan
                         </div>
                     </td>
                 </tr>

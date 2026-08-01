@@ -10,7 +10,9 @@
         <div class="flex-1"></div>
         @if($selectedCount > 0)
         <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
+        @can('order.cart.delete')
         <button wire:click="batchDelete" class="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
+        @endcan
         <button wire:click="clearSelection" class="text-xs text-muted-foreground hover:text-foreground">取消选择</button>
         @endif
         <button wire:click="openColumnModal" class="rounded-md border border-input px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors">列配置</button>
@@ -36,7 +38,9 @@
                 </div>
                 <div class="text-sm text-muted-foreground">{{ $item->created_at?->format('Y-m-d H:i') }}</div>
                 <div class="flex items-center gap-2">
+                    @can('order.cart.delete')
                     <button wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                    @endcan
                 </div>
             </div>
         @empty

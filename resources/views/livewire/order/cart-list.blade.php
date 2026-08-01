@@ -21,7 +21,7 @@
                 <div class="text-sm font-mono text-foreground">{{ $item->sku?->sku_code ?? '-' }}</div>
                 <div class="text-sm text-foreground">{{ $item->quantity }}</div>
                 <div class="text-sm text-foreground">{{ $item->price }}</div>
-                <div><button wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button></div>
+                <div>@can('order.cart.delete')<button wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>@endcan</div>
             </div>
         @empty
             <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无购物车数据</div>

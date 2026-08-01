@@ -5,9 +5,11 @@
             <h1 class="text-2xl font-bold text-foreground">仓库管理</h1>
             <p class="text-muted-foreground mt-1">管理仓库信息及冷链配置</p>
         </div>
+        @can('inventory.warehouse.create')
         <button wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
             新增仓库
         </button>
+        @endcan
     </div>
 
     {{-- 搜索栏 --}}
@@ -54,8 +56,12 @@
                     @endif
                 </div>
                 <div class="flex items-center gap-2">
+                    @can('inventory.warehouse.edit')
                     <button wire:click="openEditModal({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                    @endcan
+                    @can('inventory.warehouse.delete')
                     <button wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                    @endcan
                 </div>
             </div>
         @empty
