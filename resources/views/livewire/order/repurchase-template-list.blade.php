@@ -4,7 +4,9 @@
             <h1 class="text-2xl font-bold text-foreground">复购模板</h1>
             <p class="text-muted-foreground mt-1">管理商家复购快速下单模板</p>
         </div>
+        @can('order.cart.create')
         <button wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">新增模板</button>
+        @endcan
     </div>
     <div class="flex items-center gap-3 mb-4">
         <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background px-3 text-sm" placeholder="搜索模板名称..." />
@@ -12,7 +14,9 @@
         <div class="flex-1"></div>
         @if($selectedCount > 0)
         <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
+        @can('order.cart.delete')
         <button wire:click="batchDelete" class="rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
+        @endcan
         <button wire:click="clearSelection" class="text-xs text-muted-foreground hover:text-foreground">取消选择</button>
         @endif
         <button wire:click="openColumnModal" class="rounded-md border border-input px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors">列配置</button>
@@ -35,8 +39,12 @@
                     @else<span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>@endif
                 </div>
                 <div class="flex items-center gap-2">
+                    @can('order.cart.edit')
                     <button wire:click="openEditModal({{ $tpl->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                    @endcan
+                    @can('order.cart.delete')
                     <button wire:click="confirmDelete({{ $tpl->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                    @endcan
                 </div>
             </div>
         @empty

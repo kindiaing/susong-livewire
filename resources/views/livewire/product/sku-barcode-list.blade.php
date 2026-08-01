@@ -4,9 +4,11 @@
             <h1 class="text-2xl font-bold text-foreground">条码管理</h1>
             <p class="text-muted-foreground mt-1">管理SKU条码（厂家/供应商/内部/备用）</p>
         </div>
+        @can('product.product.create')
         <button wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
             新增条码
         </button>
+        @endcan
     </div>
 
     <div class="flex items-center gap-3 mb-4">
@@ -25,7 +27,9 @@
         <button wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导出</button>
         @if($selectedCount > 0)
             <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
+            @can('product.product.delete')
             <button wire:click="batchDelete" class="inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
+            @endcan
             <button wire:click="clearSelection" class="text-sm text-muted-foreground hover:text-foreground transition-colors">取消选择</button>
         @endif
     </div>
@@ -61,8 +65,12 @@
                 </div>
                 <div class="text-sm text-muted-foreground truncate">{{ $barcode->remark ?? '-' }}</div>
                 <div class="flex items-center gap-2">
+                    @can('product.product.edit')
                     <button wire:click="openEditModal({{ $barcode->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                    @endcan
+                    @can('product.product.delete')
                     <button wire:click="confirmDelete({{ $barcode->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                    @endcan
                 </div>
             </div>
         @empty

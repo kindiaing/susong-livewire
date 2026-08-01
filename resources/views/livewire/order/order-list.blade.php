@@ -39,7 +39,9 @@
                     <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $cp }}-100 text-{{ $cp }}-700">{{ $order->payment_status_label }}</span>
                 </div>
                 <div>
+                    @can('order.order.delete')
                     <button wire:click="confirmDelete({{ $order->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                    @endcan
                 </div>
             </div>
         @empty
