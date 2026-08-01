@@ -120,6 +120,41 @@ class PurchaseOrderList extends Component
         $this->formRemark = '';
     }
 
+    public function getDefaultColumns(): array
+    {
+        return ['order_no', 'supplier_id', 'status', 'total_amount', 'remark', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'order_no' => $row->order_no,
+                'supplier_id' => $row->supplier?->name ?? '',
+                'status' => $row->status,
+                'total_amount' => money_format($row->total_amount, false),
+                'remark' => $row->remark ?? '',
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['order_no'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['供应商ID'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [];
+    }
+
     public function getAllColumns(): array
     {
         return [

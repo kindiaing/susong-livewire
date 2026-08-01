@@ -230,6 +230,43 @@ class UserList extends Component
         $this->formStatus = 1;
     }
 
+    public function getDefaultColumns(): array
+    {
+        return ['username', 'name', 'phone', 'email', 'status', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'username' => $row->username,
+                'name' => $row->name,
+                'phone' => $row->phone ?? '',
+                'email' => $row->email ?? '',
+                'status' => $row->status,
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['email'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['用户名', '姓名'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [
+            'status' => ['禁用' => 0, '启用' => 1],
+        ];
+    }
+
     public function getAllColumns(): array
     {
         return [

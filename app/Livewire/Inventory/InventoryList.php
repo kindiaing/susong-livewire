@@ -148,6 +148,44 @@ class InventoryList extends Component
         $this->formWarningValue = 0;
     }
 
+    public function getDefaultColumns(): array
+    {
+        return ['warehouse_id', 'sku_id', 'total_stock', 'locked_stock', 'available_stock', 'batch_no', 'expiry_date', 'warning_value', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'warehouse_id' => $row->warehouse?->name ?? '',
+                'sku_id' => $row->sku?->sku_code ?? '',
+                'total_stock' => $row->total_stock,
+                'locked_stock' => $row->locked_stock,
+                'available_stock' => $row->available_stock,
+                'batch_no' => $row->batch_no ?? '',
+                'expiry_date' => $row->expiry_date ? $row->expiry_date->format('Y-m-d') : '',
+                'warning_value' => $row->warning_value,
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['sku_id'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['仓库ID', 'SKU ID'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [];
+    }
+
     public function getAllColumns(): array
     {
         return [

@@ -32,6 +32,15 @@
                 <option value="{{ $w->id }}">{{ $w->name }}</option>
             @endforeach
         </select>
+        <div class="flex-1"></div>
+        <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">列配置</button>
+        <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导入</button>
+        <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导出</button>
+            @if($selectedCount > 0)
+                <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
+                <button type="button" wire:click="batchDelete" class="inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
+                <button type="button" wire:click="clearSelection" class="text-sm text-muted-foreground hover:text-foreground transition-colors">取消选择</button>
+            @endif
     </div>
 
     {{-- 列表 --}}
@@ -39,7 +48,7 @@
         <table class="w-full text-sm min-w-[1000px]">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    <th class="px-4 py-2 text-left w-16">ID</th>
+                    <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAllPage" class="rounded" /></th>
                     <th class="px-4 py-2 text-left">仓库</th>
                     <th class="px-4 py-2 text-left">SKU</th>
                     <th class="px-4 py-2 text-left">类型</th>
@@ -53,7 +62,7 @@
             <tbody>
                 @forelse($items as $item)
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="invlog-{{ $item->id }}">
-                    <td class="px-4 py-2 text-muted-foreground">{{ $item->id }}</td>
+                    <td class="px-4 py-2"><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></td>
                     <td class="px-4 py-2 text-foreground">{{ $item->warehouse?->name ?? '-' }}</td>
                     <td class="px-4 py-2 text-foreground">
                         {{ $item->sku?->sku_code ?? '-' }}
@@ -81,4 +90,9 @@
     </div>
 
     <div class="mt-4">{{ $items->links() }}</div>
+
+    @include('partials.column-modal')
+    @include('partials.export-modal')
+    @include('partials.import-modal')
+    @include('partials.delete-confirm')
 </div>

@@ -32,6 +32,15 @@
             <option value="1">启用</option>
             <option value="0">禁用</option>
         </select>
+        <div class="flex-1"></div>
+        <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">列配置</button>
+        <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导入</button>
+        <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导出</button>
+            @if($selectedCount > 0)
+                <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
+                <button type="button" wire:click="batchDelete" class="inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
+                <button type="button" wire:click="clearSelection" class="text-sm text-muted-foreground hover:text-foreground transition-colors">取消选择</button>
+            @endif
     </div>
 
     {{-- 列表 --}}
@@ -39,7 +48,7 @@
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    <th class="px-4 py-2 text-left w-16">ID</th>
+                    <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAllPage" class="rounded" /></th>
                     <th class="px-4 py-2 text-left">仓库名称</th>
                     <th class="px-4 py-2 text-left">类型</th>
                     <th class="px-4 py-2 text-left">冷链</th>
@@ -51,7 +60,7 @@
             <tbody>
                 @forelse($items as $item)
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="warehouse-{{ $item->id }}">
-                    <td class="px-4 py-2 text-muted-foreground">{{ $item->id }}</td>
+                    <td class="px-4 py-2"><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></td>
                     <td class="px-4 py-2 font-medium text-foreground truncate">{{ $item->name }}</td>
                     <td class="px-4 py-2 text-foreground">{{ \App\Models\Warehouse::typeMap()[$item->type] ?? '-' }}</td>
                     <td class="px-4 py-2 text-foreground">{{ $item->is_cold_chain ? '是' : '否' }}</td>
@@ -135,18 +144,8 @@
     </div>
     @endif
 
-    {{-- 删除确认弹窗 --}}
-    @if($showDeleteConfirm)
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeDeleteConfirm"></div>
-        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
-            <h2 class="text-lg font-semibold text-foreground mb-2">确认删除</h2>
-            <p class="text-sm text-muted-foreground mb-6">确定要删除该仓库吗？此操作不可恢复。</p>
-            <div class="flex justify-end gap-3">
-                <button type="button" wire:click="closeDeleteConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button type="button" wire:click="delete" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>
-            </div>
-        </div>
-    </div>
-    @endif
+    @include('partials.column-modal')
+    @include('partials.export-modal')
+    @include('partials.import-modal')
+    @include('partials.delete-confirm')
 </div>

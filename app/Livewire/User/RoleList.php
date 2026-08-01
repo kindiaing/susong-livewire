@@ -328,6 +328,40 @@ class RoleList extends Component
         $this->formDescription = '';
     }
 
+    public function getDefaultColumns(): array
+    {
+        return ['name', 'display_name', 'guard_name', 'description', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'name' => $row->name,
+                'display_name' => $row->display_name ?? '',
+                'guard_name' => $row->guard_name,
+                'description' => $row->description ?? '',
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['name'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['角色标识', '角色名称', '守卫'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [];
+    }
+
     public function getAllColumns(): array
     {
         return [

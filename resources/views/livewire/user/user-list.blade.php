@@ -22,6 +22,15 @@
                 </button>
             @endif
         </div>
+        <div class="flex-1"></div>
+        <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">列配置</button>
+        <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导入</button>
+        <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导出</button>
+            @if($selectedCount > 0)
+                <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
+                <button type="button" wire:click="batchDelete" class="inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
+                <button type="button" wire:click="clearSelection" class="text-sm text-muted-foreground hover:text-foreground transition-colors">取消选择</button>
+            @endif
     </div>
 
     {{-- 用户列表 --}}
@@ -29,7 +38,7 @@
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    <th class="px-4 py-2.5 text-left w-12">ID</th>
+                    <th class="px-4 py-2.5 text-left w-10"><input type="checkbox" wire:model.live="selectAllPage" class="rounded" /></th>
                     <th class="px-4 py-2.5 text-left">用户名</th>
                     <th class="px-4 py-2.5 text-left">姓名</th>
                     <th class="px-4 py-2.5 text-left">联系方式</th>
@@ -42,7 +51,7 @@
             @forelse($users as $user)
                 @php $isSuperAdmin = $user->roles->contains('name', 'super_admin') @endphp
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="user-{{ $user->id }}">
-                    <td class="px-4 py-2 text-muted-foreground">{{ $user->id }}</td>
+                    <td class="px-4 py-2"><input type="checkbox" value="{{ $user->id }}" wire:model.live="selectedIds" class="rounded" /></td>
                     <td class="px-4 py-2 font-medium font-mono">{{ $user->username }}</td>
                     <td class="px-4 py-2">{{ $user->name }}</td>
                     <td class="px-4 py-2 text-muted-foreground">
@@ -56,7 +65,7 @@
                                 <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 13.5-13.5"/></svg>
                             </span>
                         @else
-                            <button type="button" wire:click="toggleStatus({{ $user->id }})" type="button" title="{{ $user->status === 1 ? '点击禁用' : '点击启用' }}" class="inline-flex items-center justify-center">
+                            <button type="button" wire:click="toggleStatus({{ $user->id }})" title="{{ $user->status === 1 ? '点击禁用' : '点击启用' }}" class="inline-flex items-center justify-center">
                                 @if($user->status === 1)
                                     <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-500 hover:bg-green-600 transition-colors">
                                         <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 13.5-13.5"/></svg>
@@ -182,20 +191,11 @@
     </div>
     @endif
 
-    {{-- 删除确认弹窗 --}}
-    @if($showDeleteConfirm)
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeDeleteConfirm"></div>
-        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
-            <h2 class="text-lg font-semibold text-foreground mb-2">确认删除</h2>
-            <p class="text-sm text-muted-foreground mb-6">确定要删除该用户吗？此操作不可恢复。</p>
-            <div class="flex justify-end gap-3">
-                <button type="button" wire:click="closeDeleteConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button type="button" wire:click="delete" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>
-            </div>
-        </div>
-    </div>
-    @endif
+    @include('partials.column-modal')
+    @include('partials.export-modal')
+    @include('partials.import-modal')
+    @include('partials.delete-confirm')
+</div>
 
     {{-- 重置密码确认弹窗 --}}
     @if($showResetConfirm)

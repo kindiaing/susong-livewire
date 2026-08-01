@@ -4,6 +4,7 @@ namespace App\Livewire\Price;
 
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
 use App\Models\PriceChangeLog;
@@ -16,6 +17,7 @@ class PriceChangeLogList extends Component
     use WithRowSelection;
     use WithColumnVisibility;
     use WithExcelExport;
+    use WithExcelImport;
     use WithToast;
 
     protected string $modelClass = PriceChangeLog::class;
@@ -27,6 +29,56 @@ class PriceChangeLogList extends Component
     public function mount(): void
     {
         $this->initColumnVisibility();
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['sku', 'field_name', 'before_value', 'after_value', 'operator_id', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'sku' => $row->sku?->sku_code ?? '',
+                'field_name' => $row->field_name ?? '',
+                'before_value' => $row->before_value ?? '',
+                'after_value' => $row->after_value ?? '',
+                'operator_id' => $row->operator?->name ?? '',
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportModelClass(): string
+    {
+        return PriceChangeLog::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            'SKU ID' => 'sku_id',
+            '变更字段' => 'field_name',
+            '修改前' => 'before_value',
+            '修改后' => 'after_value',
+        ];
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['id'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['SKU ID', '变更字段'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [];
     }
 
     public function getAllColumns(): array

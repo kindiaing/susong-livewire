@@ -133,6 +133,45 @@ class WarehouseList extends Component
         $this->formStatus = 1;
     }
 
+    public function getDefaultColumns(): array
+    {
+        return ['name', 'type', 'is_cold_chain', 'address', 'status', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'name' => $row->name,
+                'type' => $row->type,
+                'is_cold_chain' => $row->is_cold_chain,
+                'address' => $row->address ?? '',
+                'status' => $row->status,
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['name'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['仓库名称'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [
+            'type' => ['常温' => 1, '冷藏' => 2],
+            'is_cold_chain' => ['否' => 0, '是' => 1],
+            'status' => ['禁用' => 0, '启用' => 1],
+        ];
+    }
+
     public function getAllColumns(): array
     {
         return [

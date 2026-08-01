@@ -139,6 +139,43 @@ class PurchaseReturnList extends Component
         $this->formRemark = '';
     }
 
+    public function getDefaultColumns(): array
+    {
+        return ['return_no', 'purchase_order_id', 'supplier_id', 'warehouse_id', 'status', 'total_amount', 'reason', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'return_no' => $row->return_no,
+                'purchase_order_id' => $row->purchaseOrder?->order_no ?? '',
+                'supplier_id' => $row->supplier?->name ?? '',
+                'warehouse_id' => $row->warehouse?->name ?? '',
+                'status' => $row->status,
+                'total_amount' => money_format($row->total_amount, false),
+                'reason' => $row->reason ?? '',
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['return_no'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['采购单ID', '供应商ID', '仓库ID', '退货原因'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [];
+    }
+
     public function getAllColumns(): array
     {
         return [

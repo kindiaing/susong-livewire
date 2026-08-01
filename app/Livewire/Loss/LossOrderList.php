@@ -235,6 +235,43 @@ class LossOrderList extends Component
         $this->formRemark = '';
     }
 
+    public function getDefaultColumns(): array
+    {
+        return ['loss_no', 'warehouse_id', 'loss_type', 'total_amount', 'status', 'approval_status', 'reason', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'loss_no' => $row->loss_no,
+                'warehouse_id' => $row->warehouse?->name ?? '',
+                'loss_type' => $row->loss_type,
+                'total_amount' => money_format($row->total_amount, false),
+                'status' => $row->status,
+                'approval_status' => $row->approval_status,
+                'reason' => $row->reason ?? '',
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['loss_no'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['仓库ID', '损耗类型'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [];
+    }
+
     public function getAllColumns(): array
     {
         return [

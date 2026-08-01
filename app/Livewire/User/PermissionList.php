@@ -213,6 +213,43 @@ class PermissionList extends Component
         $this->formIcon = '';
     }
 
+    public function getDefaultColumns(): array
+    {
+        return ['name', 'display_name', 'type', 'parent_id', 'route', 'sort', 'icon', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'name' => $row->name,
+                'display_name' => $row->display_name ?? '',
+                'type' => $row->type,
+                'parent_id' => $row->parent_id,
+                'route' => $row->route ?? '',
+                'sort' => $row->sort,
+                'icon' => $row->icon ?? '',
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['name'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['权限标识', '权限名称', '类型'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [];
+    }
+
     public function getAllColumns(): array
     {
         return [

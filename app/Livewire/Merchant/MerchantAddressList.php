@@ -31,6 +31,43 @@ class MerchantAddressList extends Component
         $this->initColumnVisibility();
     }
 
+    public function getDefaultColumns(): array
+    {
+        return ['merchant', 'contact_name', 'contact_phone', 'address', 'is_default', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'merchant' => $row->merchant?->name ?? '',
+                'contact_name' => $row->contact_name ?? '',
+                'contact_phone' => $row->contact_phone ?? '',
+                'address' => $row->address ?? '',
+                'is_default' => $row->is_default,
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['id'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['商家ID', '联系人', '地址'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [
+            'is_default' => ['否' => 0, '是' => 1],
+        ];
+    }
+
     public function getAllColumns(): array
     {
         return [

@@ -31,6 +31,38 @@ class MerchantFavoriteList extends Component
         $this->initColumnVisibility();
     }
 
+    public function getDefaultColumns(): array
+    {
+        return ['merchant', 'product', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'merchant' => $row->merchant?->name ?? '',
+                'product' => $row->product?->name ?? '',
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['id'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['商家ID', '商品ID'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [];
+    }
+
     public function getAllColumns(): array
     {
         return [

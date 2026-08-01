@@ -38,6 +38,41 @@ class RepurchaseTemplateList extends Component
         $this->initColumnVisibility();
     }
 
+    public function getDefaultColumns(): array
+    {
+        return ['name', 'merchant', 'status', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'name' => $row->name ?? '',
+                'merchant' => $row->merchant?->name ?? '',
+                'status' => $row->status,
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['id'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['商家ID', '模板名称'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [
+            'status' => ['禁用' => 0, '启用' => 1],
+        ];
+    }
+
     public function getAllColumns(): array
     {
         return [

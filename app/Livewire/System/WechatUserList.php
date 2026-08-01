@@ -4,6 +4,7 @@ namespace App\Livewire\System;
 
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
 use App\Models\WechatUser;
@@ -16,6 +17,7 @@ class WechatUserList extends Component
     use WithRowSelection;
     use WithColumnVisibility;
     use WithExcelExport;
+    use WithExcelImport;
     use WithToast;
 
     protected string $modelClass = WechatUser::class;
@@ -27,6 +29,53 @@ class WechatUserList extends Component
     public function mount(): void
     {
         $this->initColumnVisibility();
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['nickname', 'openid', 'phone', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'nickname' => $row->nickname ?? '',
+                'openid' => $row->openid ?? '',
+                'phone' => $row->phone ?? '',
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportModelClass(): string
+    {
+        return WechatUser::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            '昵称' => 'nickname',
+            'OpenID' => 'openid',
+            '手机号' => 'phone',
+        ];
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['openid'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['OpenID'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [];
     }
 
     public function getAllColumns(): array

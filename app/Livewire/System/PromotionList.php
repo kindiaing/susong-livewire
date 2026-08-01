@@ -31,6 +31,42 @@ class PromotionList extends Component
         $this->initColumnVisibility();
     }
 
+    public function getDefaultColumns(): array
+    {
+        return ['product', 'title', 'sort', 'status', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'product' => $row->product?->name ?? '',
+                'title' => $row->title ?? '',
+                'sort' => $row->sort,
+                'status' => $row->status,
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['id'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['商品ID', '标题'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [
+            'status' => ['禁用' => 0, '启用' => 1],
+        ];
+    }
+
     public function getAllColumns(): array
     {
         return [

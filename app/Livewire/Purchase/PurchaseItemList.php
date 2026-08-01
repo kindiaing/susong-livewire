@@ -163,6 +163,40 @@ class PurchaseItemList extends Component
         $this->formSourceType = 1;
     }
 
+    public function getDefaultColumns(): array
+    {
+        return ['sku_id', 'quantity', 'source_type', 'status', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'sku_id' => $row->sku?->sku_code ?? '',
+                'quantity' => $row->quantity,
+                'source_type' => $row->source_type,
+                'status' => $row->status,
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['id'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['SKU ID', '数量'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [];
+    }
+
     public function getAllColumns(): array
     {
         return [

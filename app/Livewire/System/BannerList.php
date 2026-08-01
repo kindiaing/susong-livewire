@@ -31,6 +31,43 @@ class BannerList extends Component
         $this->initColumnVisibility();
     }
 
+    public function getDefaultColumns(): array
+    {
+        return ['title', 'link_url', 'sort', 'status', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'title' => $row->title ?? '',
+                'image_path' => $row->image_path ?? '',
+                'link_url' => $row->link_url ?? '',
+                'sort' => $row->sort,
+                'status' => $row->status,
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['id'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['标题'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [
+            'status' => ['禁用' => 0, '启用' => 1],
+        ];
+    }
+
     public function getAllColumns(): array
     {
         return [
