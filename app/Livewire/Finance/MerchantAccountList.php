@@ -176,8 +176,9 @@ class MerchantAccountList extends Component
         $items = $query->paginate(setting('per_page', 10));
         $merchants = Merchant::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
+        $selectedCount = $this->getSelectedCount();
 
-        return view('livewire.finance.merchant-account-list', compact('items', 'merchants', 'allColumns'))
+        return view('livewire.finance.merchant-account-list', compact('items', 'merchants', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('客户账户');
     }

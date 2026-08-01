@@ -37,9 +37,13 @@ class ReceivableList extends Component
     public string $formAmount = '';
 
     public static array $statusMap = [
-        0 => '未收',
-        1 => '已收',
-        2 => '部分收款',
+        1 => '未结算', 2 => '部分收款', 3 => '已结清',
+        4 => '争议中', 5 => '已办结',
+    ];
+
+    public static array $statusColorMap = [
+        1 => 'yellow', 2 => 'blue', 3 => 'green',
+        4 => 'orange', 5 => 'gray',
     ];
 
     public function mount(): void
@@ -121,7 +125,7 @@ class ReceivableList extends Component
             'merchant_id' => $this->formMerchantId,
             'amount' => money_to_cents($this->formAmount),
             'received_amount' => 0,
-            'status' => 0,
+            'status' => 1,
         ]);
 
         $this->toastSuccess('应收账款已创建');
@@ -132,13 +136,13 @@ class ReceivableList extends Component
     public function confirmReceived(int $id): void
     {
         $item = Receivable::findOrFail($id);
-        if ($item->status === 1) {
-            $this->toastError('该账款已全额收款');
+        if ($item->status === 3) {
+            $this->toastError('该账款已结清');
             return;
         }
         $item->update([
             'received_amount' => $item->amount,
-            'status' => 1,
+            'status' => 3,
         ]);
         $this->toastSuccess('已确认收款');
     }
@@ -200,8 +204,9 @@ class ReceivableList extends Component
         $merchants = Merchant::orderBy('name')->get();
         $orders = Order::orderBy('id', 'desc')->get();
         $allColumns = $this->getAllColumns();
+        $selectedCount = $this->getSelectedCount();
 
-        return view('livewire.finance.receivable-list', compact('items', 'merchants', 'orders', 'allColumns'))
+        return view('livewire.finance.receivable-list', compact('items', 'merchants', 'orders', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('应收账款');
     }

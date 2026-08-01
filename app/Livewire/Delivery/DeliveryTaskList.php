@@ -26,7 +26,7 @@ class DeliveryTaskList extends Component
     protected string $modelClass = DeliveryTask::class;
 
     public string $search = '';
-    public int $filterStatus = -1;
+    public int $filterStatus = 0;
     public bool $showModal = false;
     public bool $showDeleteConfirm = false;
     public ?int $editingId = null;
@@ -38,6 +38,14 @@ class DeliveryTaskList extends Component
     public int $formVehicleId = 0;
     public string $formDeliveryDate = '';
     public string $formNote = '';
+
+    public static array $statusMap = [
+        1 => '待配送', 2 => '配送中', 3 => '任务完成',
+    ];
+
+    public static array $statusColorMap = [
+        1 => 'yellow', 2 => 'blue', 3 => 'green',
+    ];
 
     // 下拉数据
     public array $orderOptions = [];
@@ -114,7 +122,7 @@ class DeliveryTaskList extends Component
                 'driver_id' => $validated['formDriverId'],
                 'vehicle_id' => $validated['formVehicleId'],
                 'planned_at' => $validated['formDeliveryDate'],
-                'status' => 0,
+                'status' => 1,
             ]);
 
             $this->toastSuccess('配送任务已创建');
@@ -127,33 +135,33 @@ class DeliveryTaskList extends Component
     public function startDelivery(int $id): void
     {
         $task = DeliveryTask::findOrFail($id);
-        if ($task->status !== 0) {
+        if ($task->status !== 1) {
             $this->toastError('仅待配送任务可开始');
             return;
         }
-        $task->update(['status' => 1, 'started_at' => now()]);
+        $task->update(['status' => 2, 'started_at' => now()]);
         $this->toastSuccess('已开始配送');
     }
 
     public function completeDelivery(int $id): void
     {
         $task = DeliveryTask::findOrFail($id);
-        if ($task->status !== 1) {
+        if ($task->status !== 2) {
             $this->toastError('仅配送中任务可完成');
             return;
         }
-        $task->update(['status' => 2, 'completed_at' => now()]);
+        $task->update(['status' => 3, 'completed_at' => now()]);
         $this->toastSuccess('配送已完成');
     }
 
     public function markAbnormal(int $id): void
     {
         $task = DeliveryTask::findOrFail($id);
-        if ($task->status !== 1) {
+        if ($task->status !== 2) {
             $this->toastError('仅配送中任务可标记异常');
             return;
         }
-        $task->update(['status' => 3]);
+        $task->update(['note' => ($task->note ? $task->note . "\n" : '') . '[异常] ' . now()->format('H:i') . ' 配送异常']);
         $this->toastSuccess('已标记异常');
     }
 
@@ -262,7 +270,7 @@ class DeliveryTaskList extends Component
             });
         }
 
-        if ($this->filterStatus >= 0) {
+        if ($this->filterStatus >= 1) {
             $query->where('status', $this->filterStatus);
         }
 
@@ -273,8 +281,9 @@ class DeliveryTaskList extends Component
     {
         $items = $this->items();
         $allColumns = $this->getAllColumns();
+        $selectedCount = $this->getSelectedCount();
 
-        return view('livewire.delivery.delivery-task-list', compact('items', 'allColumns'))
+        return view('livewire.delivery.delivery-task-list', compact('items', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('配送任务');
     }

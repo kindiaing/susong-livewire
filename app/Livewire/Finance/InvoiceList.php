@@ -33,19 +33,20 @@ class InvoiceList extends Component
 
     public int $formMerchantId = 0;
     public string $formAmount = '';
-    public int $formType = 0;
+    public int $formType = 1;
     public string $formTitle = '';
     public string $formTaxNo = '';
 
     public static array $statusMap = [
-        0 => '待开具',
-        1 => '已开具',
-        2 => '已寄出',
+        1 => '待开具', 2 => '已开具', 3 => '已寄出',
+    ];
+
+    public static array $statusColorMap = [
+        1 => 'yellow', 2 => 'green', 3 => 'blue',
     ];
 
     public static array $typeMap = [
-        0 => '增值税普通发票',
-        1 => '增值税专用发票',
+        1 => '客户发票', 2 => '供应商发票',
     ];
 
     public function mount(): void
@@ -124,7 +125,7 @@ class InvoiceList extends Component
         $this->validate([
             'formMerchantId' => 'required|integer|exists:merchants,id',
             'formAmount' => 'required|numeric|min:0.01',
-            'formType' => 'required|integer|in:0,1',
+            'formType' => 'required|integer|in:1,2',
             'formTitle' => 'required|string|max:200',
             'formTaxNo' => 'required|string|max:50',
         ]);
@@ -136,7 +137,7 @@ class InvoiceList extends Component
             'type' => $this->formType,
             'title' => $this->formTitle,
             'tax_no' => $this->formTaxNo,
-            'status' => 0,
+            'status' => 1,
         ]);
 
         $this->toastSuccess('发票已创建');
@@ -147,12 +148,12 @@ class InvoiceList extends Component
     public function issue(int $id): void
     {
         $item = Invoice::findOrFail($id);
-        if ($item->status !== 0) {
+        if ($item->status !== 1) {
             $this->toastError('仅待开具状态可操作');
             return;
         }
         $item->update([
-            'status' => 1,
+            'status' => 2,
             'issued_at' => now()->toDateString(),
         ]);
         $this->toastSuccess('发票已开具');
@@ -161,11 +162,11 @@ class InvoiceList extends Component
     public function send(int $id): void
     {
         $item = Invoice::findOrFail($id);
-        if ($item->status !== 1) {
+        if ($item->status !== 2) {
             $this->toastError('仅已开具状态可寄出');
             return;
         }
-        $item->update(['status' => 2]);
+        $item->update(['status' => 3]);
         $this->toastSuccess('发票已寄出');
     }
 
@@ -208,7 +209,7 @@ class InvoiceList extends Component
         $this->editingId = null;
         $this->formMerchantId = 0;
         $this->formAmount = '';
-        $this->formType = 0;
+        $this->formType = 1;
         $this->formTitle = '';
         $this->formTaxNo = '';
     }
@@ -227,8 +228,9 @@ class InvoiceList extends Component
         $items = $query->paginate(setting('per_page', 10));
         $merchants = Merchant::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
+        $selectedCount = $this->getSelectedCount();
 
-        return view('livewire.finance.invoice-list', compact('items', 'merchants', 'allColumns'))
+        return view('livewire.finance.invoice-list', compact('items', 'merchants', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('发票管理');
     }

@@ -39,8 +39,11 @@ class SupplierSettlementList extends Component
     public string $formNote = '';
 
     public static array $statusMap = [
-        0 => '待结算',
-        1 => '已结算',
+        1 => '待结算', 2 => '部分付款', 3 => '已结清', 4 => '已办结',
+    ];
+
+    public static array $statusColorMap = [
+        1 => 'yellow', 2 => 'blue', 3 => 'green', 4 => 'gray',
     ];
 
     public function mount(): void
@@ -126,7 +129,7 @@ class SupplierSettlementList extends Component
             'purchase_order_id' => $this->formPurchaseOrderId,
             'settlement_no' => 'SS' . now()->format('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT),
             'amount' => money_to_cents($this->formAmount),
-            'status' => 0,
+            'status' => 1,
             'settlement_date' => $this->formSettlementDate,
             'note' => $this->formNote ?: null,
         ]);
@@ -139,11 +142,11 @@ class SupplierSettlementList extends Component
     public function confirmPayment(int $id): void
     {
         $item = SupplierSettlement::findOrFail($id);
-        if ($item->status !== 0) {
+        if ($item->status !== 1) {
             $this->toastError('仅待结算状态可确认付款');
             return;
         }
-        $item->update(['status' => 1]);
+        $item->update(['status' => 3]);
         $this->toastSuccess('结算已确认付款');
     }
 
@@ -206,8 +209,9 @@ class SupplierSettlementList extends Component
         $suppliers = Supplier::orderBy('name')->get();
         $purchaseOrders = PurchaseOrder::orderBy('id', 'desc')->get();
         $allColumns = $this->getAllColumns();
+        $selectedCount = $this->getSelectedCount();
 
-        return view('livewire.finance.supplier-settlement-list', compact('items', 'suppliers', 'purchaseOrders', 'allColumns'))
+        return view('livewire.finance.supplier-settlement-list', compact('items', 'suppliers', 'purchaseOrders', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('供应商结算');
     }

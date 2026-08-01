@@ -24,8 +24,8 @@ class OrderList extends Component
     protected string $modelClass = Order::class;
 
     public string $search = '';
-    public int $filterStatus = -1;
-    public int $filterPaymentStatus = -1;
+    public int $filterStatus = 0;
+    public int $filterPaymentStatus = 0;
     public bool $showModal = false;
     public bool $showDeleteConfirm = false;
     public ?int $editingId = null;
@@ -35,21 +35,21 @@ class OrderList extends Component
     public string $formNote = '';
 
     public static array $statusMap = [
-        0 => '待确认', 1 => '已确认', 2 => '配送中',
-        3 => '已完成', 4 => '已取消', 5 => '已退款',
+        1 => '待拣货', 2 => '拣货中', 3 => '配送中',
+        4 => '已签收', 5 => '已锁定', 9 => '已取消',
     ];
 
     public static array $statusColorMap = [
-        0 => 'yellow', 1 => 'blue', 2 => 'orange',
-        3 => 'green', 4 => 'gray', 5 => 'red',
+        1 => 'yellow', 2 => 'blue', 3 => 'orange',
+        4 => 'green', 5 => 'gray', 9 => 'red',
     ];
 
     public static array $paymentStatusMap = [
-        0 => '待支付', 1 => '已支付', 2 => '支付失败',
+        1 => '未支付', 2 => '已支付', 3 => '账期',
     ];
 
     public static array $paymentStatusColorMap = [
-        0 => 'yellow', 1 => 'green', 2 => 'red',
+        1 => 'yellow', 2 => 'green', 3 => 'blue',
     ];
 
     public static array $paymentMethodMap = [
@@ -169,9 +169,9 @@ class OrderList extends Component
                 'order_no' => 'ORD' . date('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT),
                 'merchant_id' => $validated['formMerchantId'],
                 'note' => $validated['formNote'],
-                'status' => 0,
+                'status' => 1,
                 'total_amount' => 0,
-                'payment_status' => 0,
+                'payment_status' => 1,
             ]);
             $this->toastSuccess('订单已创建');
         }
@@ -183,33 +183,33 @@ class OrderList extends Component
     public function confirmOrder(int $id): void
     {
         $order = Order::findOrFail($id);
-        if ($order->status != 0) {
-            $this->toastError('只有待确认订单可确认');
+        if ($order->status != 1) {
+            $this->toastError('只有待拣货订单可确认');
             return;
         }
-        $order->update(['status' => 1]);
+        $order->update(['status' => 2]);
         $this->toastSuccess('订单已确认');
     }
 
     public function cancelOrder(int $id): void
     {
         $order = Order::findOrFail($id);
-        if (in_array($order->status, [3, 4, 5])) {
+        if (in_array($order->status, [4, 5, 9])) {
             $this->toastError('当前状态不可取消');
             return;
         }
-        $order->update(['status' => 4]);
+        $order->update(['status' => 9]);
         $this->toastSuccess('订单已取消');
     }
 
     public function completeOrder(int $id): void
     {
         $order = Order::findOrFail($id);
-        if ($order->status != 2) {
+        if ($order->status != 3) {
             $this->toastError('只有配送中订单可完成');
             return;
         }
-        $order->update(['status' => 3]);
+        $order->update(['status' => 4]);
         $this->toastSuccess('订单已完成');
     }
 
@@ -230,8 +230,8 @@ class OrderList extends Component
     public function resetFilters(): void
     {
         $this->search = '';
-        $this->filterStatus = -1;
-        $this->filterPaymentStatus = -1;
+        $this->filterStatus = 0;
+        $this->filterPaymentStatus = 0;
         $this->resetPage();
     }
 
@@ -275,11 +275,11 @@ class OrderList extends Component
             });
         }
 
-        if ($this->filterStatus >= 0) {
+        if ($this->filterStatus >= 1) {
             $query->where('status', $this->filterStatus);
         }
 
-        if ($this->filterPaymentStatus >= 0) {
+        if ($this->filterPaymentStatus >= 1) {
             $query->where('payment_status', $this->filterPaymentStatus);
         }
 
