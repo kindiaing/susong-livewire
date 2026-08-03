@@ -104,4 +104,41 @@ class Invoice extends Model
     {
         return $query->where('status', self::STATUS_PENDING);
     }
+
+    /**
+     * 关联：客户发票 → 商家
+     */
+    public function merchant()
+    {
+        return $this->belongsTo(Merchant::class, 'target_id')->where('type', self::TYPE_CUSTOMER);
+    }
+
+    /**
+     * 关联：供应商发票 → 供应商
+     */
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class, 'target_id')->where('type', self::TYPE_SUPPLIER);
+    }
+
+    /**
+     * 动态关联：根据 type 自动返回商家或供应商
+     */
+    public function target()
+    {
+        return $this->type === self::TYPE_CUSTOMER
+            ? $this->belongsTo(Merchant::class, 'target_id')
+            : $this->belongsTo(Supplier::class, 'target_id');
+    }
+
+    /**
+     * 获取目标对象名称
+     */
+    public function getTargetNameAttribute(): string
+    {
+        if ($this->type === self::TYPE_CUSTOMER) {
+            return Merchant::find($this->target_id)?->name ?? '-';
+        }
+        return Supplier::find($this->target_id)?->name ?? '-';
+    }
 }

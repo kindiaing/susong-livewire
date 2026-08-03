@@ -1,4 +1,4 @@
-<div class="p-6">
+<div>
     {{-- 页面标题 --}}
     <div class="flex items-center justify-between mb-6">
         <div>
@@ -57,7 +57,6 @@
                     <td class="px-4 py-2 text-muted-foreground">{{ $role->permissions_count }}</td>
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-1">
-                            {{-- 编辑（超级管理员不可编辑） --}}
                             @can('user.role.edit')
                             @if(!$isSuperAdmin)
                                 <button type="button" wire:click="openEditModal({{ $role->id }})" class="p-1.5 rounded-md text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑">
@@ -67,7 +66,6 @@
                                 </button>
                             @endif
                             @endcan
-                            {{-- 权限分配 --}}
                             @can('user.role.edit')
                             <button type="button" wire:click="openPermissionModal({{ $role->id }})" class="p-1.5 rounded-md text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700 transition-colors" title="权限分配">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
@@ -75,7 +73,6 @@
                                 </svg>
                             </button>
                             @endcan
-                            {{-- 删除（超级管理员不可删除） --}}
                             @can('user.role.delete')
                             @if(!$isSuperAdmin)
                                 <button type="button" wire:click="confirmDelete({{ $role->id }})" class="p-1.5 rounded-md text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除">
@@ -100,13 +97,13 @@
     {{-- 新增/编辑弹窗 --}}
     @if($showModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeModal"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
             <h2 class="text-lg font-semibold text-foreground mb-4">{{ $editingId ? '编辑角色' : '新增角色' }}</h2>
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">角色标识 <span class="text-red-500">*</span></label>
-                    <input type="text" wire:model="formName" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="如 super-admin" />
+                    <input type="text" wire:model="formName" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="如 super_admin" />
                     @error('formName') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
@@ -131,12 +128,6 @@
     </div>
     @endif
 
-    @include('partials.column-modal')
-    @include('partials.export-modal')
-    @include('partials.import-modal')
-    @include('partials.delete-confirm')
-</div>
-
     {{-- 权限分配弹窗（表格形式 + checkbox三态） --}}
     @if($showPermissionModal)
     @php
@@ -144,7 +135,7 @@
         $treeData = $permissionTreeData;
     @endphp
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closePermissionModal"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-4xl mx-4 p-6">
             <h2 class="text-lg font-semibold text-foreground mb-1">分配权限</h2>
             <p class="text-sm text-muted-foreground mb-4">角色：{{ $permissionRoleName }}</p>
@@ -166,7 +157,6 @@
                             $moduleState = count($moduleIntersect) === 0 ? 'unchecked' : (count($moduleIntersect) === count($module['allIds']) ? 'checked' : 'partial');
                         @endphp
                         <tr class="border-b last:border-b-0 hover:bg-muted/20 transition-colors">
-                            {{-- 模块 checkbox（三态） --}}
                             <td class="px-3 py-2">
                                 <div x-data="{ indeterminate: {{ $moduleState === 'partial' ? 'true' : 'false' }} }"
                                      x-effect="indeterminate = {{ $moduleState === 'partial' ? 'true' : 'false' }}">
@@ -196,7 +186,6 @@
                                 <td class="px-3 py-1.5"></td>
                                 <td class="px-3 py-1.5">
                                     <label class="inline-flex items-center gap-1.5 cursor-pointer">
-                                        {{-- 页面 checkbox（三态） --}}
                                         <div x-data="{ indeterminate: {{ $pageState === 'partial' ? 'true' : 'false' }} }"
                                              x-effect="indeterminate = {{ $pageState === 'partial' ? 'true' : 'false' }}">
                                             <input type="checkbox"
@@ -215,7 +204,6 @@
                                             @foreach($page['children'] as $btn)
                                                 @php $btnChecked = in_array($btn['id'], $selected) @endphp
                                                 <label class="inline-flex items-center gap-1 cursor-pointer">
-                                                    {{-- 按钮级 checkbox（两态） --}}
                                                     <input type="checkbox"
                                                         wire:click="togglePermission({{ $btn['id'] }})"
                                                         @checked($btnChecked)
@@ -247,4 +235,23 @@
         </div>
     </div>
     @endif
+
+    {{-- 删除确认弹窗 --}}
+    @if($showDeleteConfirm)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
+            <h2 class="text-lg font-semibold text-foreground mb-2">确认删除</h2>
+            <p class="text-sm text-muted-foreground mb-6">确定要删除该角色吗？此操作不可撤销。</p>
+            <div class="flex justify-end gap-3">
+                <button type="button" wire:click="closeDeleteConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="delete" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">确认删除</button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    @include('partials.column-modal')
+    @include('partials.export-modal')
+    @include('partials.import-modal')
 </div>

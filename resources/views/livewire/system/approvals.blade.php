@@ -1,4 +1,4 @@
-<div class="p-6">
+<div class="">
     {{-- 页面标题 --}}
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-foreground">审批列表</h1>

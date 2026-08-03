@@ -9,7 +9,7 @@ use App\Livewire\Finance\CorrectionAuthorizationList;
 use App\Livewire\Finance\InvoiceList;
 use App\Livewire\Finance\MerchantAccountList;
 use App\Livewire\Finance\PriceApportionmentList;
-use App\Livewire\Finance\PriceStrategyList;
+use App\Livewire\Finance\PromotionActivityList;
 use App\Livewire\Finance\ReceivableList;
 use App\Livewire\Finance\RechargeList;
 use App\Livewire\Finance\SupplierSettlementList;
@@ -31,6 +31,7 @@ use App\Livewire\Order\OrderReturnList;
 use App\Livewire\Order\RepurchaseTemplateList;
 use App\Livewire\Picking\PickingTaskList;
 use App\Livewire\Price\PriceChangeLogList;
+use App\Livewire\Price\PricingConfig;
 use App\Livewire\Product\CategoryList;
 use App\Livewire\Product\KeywordList;
 use App\Livewire\Product\ProductList;
@@ -64,7 +65,9 @@ Route::view('/', 'welcome')->name('home');
 
 // 认证路由
 Route::get('/login', Login::class)->name('login');
-Route::post('/logout', function () {
+
+// 退出登录（仅需 auth，无需权限校验）
+Route::middleware(['auth'])->post('/logout', function () {
     auth()->logout();
     session()->invalidate();
     session()->regenerateToken();
@@ -136,7 +139,8 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::get('/receivables', ReceivableList::class)->name('receivables');
     Route::get('/invoices', InvoiceList::class)->name('invoices');
     Route::get('/correction-authorizations', CorrectionAuthorizationList::class)->name('correction-authorizations');
-    Route::get('/price-strategies', PriceStrategyList::class)->name('price-strategies');
+    Route::get('/promotion-activities', PromotionActivityList::class)->name('promotion-activities');
+    Route::get('/pricing-config', PricingConfig::class)->name('pricing-config');
     Route::get('/price-apportionments', PriceApportionmentList::class)->name('price-apportionments');
     Route::get('/price-change-logs', PriceChangeLogList::class)->name('price-change-logs');
 

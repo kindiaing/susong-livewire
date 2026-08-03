@@ -1,4 +1,4 @@
-<div class="p-6">
+<div class="">
     {{-- 顶部：返回 + 单号 + 状态 + 操作按钮 --}}
     <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
