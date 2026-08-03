@@ -6,40 +6,54 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * 运营主推模型
+ * 促销活动主表模型
  *
- * @property mixed $type 类型：1主推商品2主推品类
- * @property mixed $target_id 目标ID
- * @property mixed $sort 排序
+ * @property int $id
+ * @property string $name 活动名称
+ * @property int $promo_type 促销类型
+ * @property string|null $promo_code 活动编码
+ * @property string|null $description 活动描述
+ * @property int $scope_type 适用范围
  * @property mixed $start_at 开始时间
  * @property mixed $end_at 结束时间
- * @property mixed $status 状态
+ * @property int $status 状态
+ * @property int|null $created_by 创建人ID
  */
 class Promotion extends Model
 {
-    // 类型常量
-    public const TYPE_PRODUCT = 1;
-    public const TYPE_CATEGORY = 2;
+    use SoftDeletes;
+
+    // 促销类型常量
+    public const TYPE_PROMOTION = 1;
+    public const TYPE_FULL_REDUCTION = 2;
+    public const TYPE_COUPON = 3;
+    public const TYPE_BUNDLE = 4;
+    public const TYPE_CLEARANCE = 5;
+    public const TYPE_GROUP_BUY = 6;
+    public const TYPE_FLASH_SALE = 7;
+    public const TYPE_MEMBER_DISCOUNT = 8;
 
     // 状态常量
     public const STATUS_DISABLED = 0;
     public const STATUS_ENABLED = 1;
 
     protected $fillable = [
-        'type',
-        'target_id',
-        'sort',
+        'name',
+        'promo_type',
+        'promo_code',
+        'description',
+        'scope_type',
         'start_at',
         'end_at',
         'status',
+        'created_by',
     ];
 
     protected function casts(): array
     {
         return [
-            'type' => 'integer',
-            'target_id' => 'integer',
-            'sort' => 'integer',
+            'promo_type' => 'integer',
+            'scope_type' => 'integer',
             'status' => 'integer',
             'start_at' => 'datetime',
             'end_at' => 'datetime',
@@ -47,13 +61,19 @@ class Promotion extends Model
     }
 
     /**
-     * 类型映射
+     * 促销类型映射
      */
     public static function typeMap(): array
     {
         return [
-            self::TYPE_PRODUCT => '主推商品',
-            self::TYPE_CATEGORY => '主推品类',
+            self::TYPE_PROMOTION => '普通促销',
+            self::TYPE_FULL_REDUCTION => '满减',
+            self::TYPE_COUPON => '优惠券',
+            self::TYPE_BUNDLE => '组合套餐',
+            self::TYPE_CLEARANCE => '清仓临期',
+            self::TYPE_GROUP_BUY => '拼团',
+            self::TYPE_FLASH_SALE => '秒杀',
+            self::TYPE_MEMBER_DISCOUNT => '会员折扣',
         ];
     }
 
@@ -70,7 +90,7 @@ class Promotion extends Model
 
     public function getTypeLabelAttribute(): string
     {
-        return self::typeMap()[$this->type] ?? '未知';
+        return self::typeMap()[$this->promo_type] ?? '未知';
     }
 
     public function getStatusLabelAttribute(): string

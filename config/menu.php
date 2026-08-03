@@ -25,6 +25,7 @@ return [
             ['key' => 'product.keyword',   'label' => '关键词标签', 'route' => 'keywords',           'permission' => 'product.keyword.view',   'description' => '商品搜索与标签'],
             ['key' => 'product.barcode',   'label' => '条码管理',   'route' => 'sku-barcodes',       'permission' => 'product.product.view',   'description' => 'SKU条码绑定'],
             ['key' => 'product.supplier',  'label' => '一品多供',   'route' => 'sku-suppliers',      'permission' => 'product.product.view',   'description' => '多供应商供应关系'],
+            ['key' => 'product.tag',        'label' => '标签管理',   'route' => 'tags',               'permission' => 'product.tag.view',       'description' => '商品标签分组管理'],
         ],
     ],
     [
@@ -115,6 +116,7 @@ return [
             ['key' => 'system.operation','label' => '操作日志', 'route' => 'operation-logs',  'permission' => 'system.audit-log.view',     'description' => '按操作人/时间/模块筛选'],
             ['key' => 'system.audit',    'label' => '审计日志', 'route' => 'audit-logs',      'permission' => 'system.audit-log.view',     'description' => '敏感操作审计记录'],
             ['key' => 'system.approval', 'label' => '审核管理', 'route' => 'approval-config', 'permission' => 'system.system-config.view',  'description' => '19个审核节点开关与列表'],
+            ['key' => 'system.approval-list', 'label' => '审核列表', 'route' => 'approvals',   'permission' => 'system.system-config.view',  'description' => '待审核与已审核记录'],
             ['key' => 'system.price-log','label' => '改价记录', 'route' => 'price-change-logs','permission' => 'price.price-change-log.view','description' => '价格变更历史'],
             ['key' => 'system.login-log','label' => '登录日志', 'route' => 'login-logs',      'permission' => 'system.login-log.view',     'description' => '用户登录记录'],
             ['key' => 'system.wechat',   'label' => '微信用户', 'route' => 'wechat-users',    'permission' => 'system.wechat-user.view',   'description' => '小程序用户绑定'],

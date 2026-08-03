@@ -8,7 +8,7 @@
     <div class="space-y-6 max-w-4xl">
 
         {{-- 取价模式 --}}
-        <div class="rounded-lg border bg-card p-5">
+        <div class="rounded-lg border bg-card px-5 pt-5 pb-4">
             <h2 class="text-base font-semibold text-foreground mb-1">取价模式</h2>
             <p class="text-xs text-muted-foreground mb-4">选择系统计算商品售价的策略</p>
 
@@ -50,7 +50,7 @@
         </div>
 
         {{-- 来源开关 --}}
-        <div class="rounded-lg border bg-card p-5">
+        <div class="rounded-lg border bg-card px-5 pt-5 pb-4">
             <h2 class="text-base font-semibold text-foreground mb-1">取价来源开关</h2>
             <p class="text-xs text-muted-foreground mb-4">关闭某个来源后，该来源不参与取价计算（标准零售价不可关闭）</p>
 
@@ -127,7 +127,7 @@
         </div>
 
         {{-- 常见配置组合速查 --}}
-        <div class="rounded-lg border bg-card p-5">
+        <div class="rounded-lg border bg-card px-5 pt-5 pb-4">
             <h2 class="text-base font-semibold text-foreground mb-1">常见配置组合速查</h2>
             <p class="text-xs text-muted-foreground mb-4">根据业务场景快速选择配置</p>
 

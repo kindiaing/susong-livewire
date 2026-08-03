@@ -42,7 +42,6 @@ class AuditLog extends Model
         'reason',
         'relation_type',
         'relation_id',
-        'created_at',
     ];
 
     protected function casts(): array

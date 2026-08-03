@@ -47,15 +47,16 @@ return new class extends Migration
         });
 
         // 运营主推表
-        Schema::create('promotions', function (Blueprint $table) {
+        Schema::create('featured_promotions', function (Blueprint $table) {
             $table->id()->comment('主键');
             $table->tinyInteger('type')->unsigned()->default(1)->comment('类型：1主推商品，2主推品类');
             $table->unsignedBigInteger('target_id')->comment('目标ID');
             $table->unsignedInteger('sort')->default(0)->comment('排序');
             $table->timestamp('start_at')->nullable()->comment('开始时间');
             $table->timestamp('end_at')->nullable()->comment('结束时间');
-            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态');
+            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：0禁用，1启用');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('type');
             $table->index('target_id');
@@ -170,7 +171,7 @@ return new class extends Migration
         Schema::dropIfExists('login_logs');
         Schema::dropIfExists('audit_logs');
         Schema::dropIfExists('operation_logs');
-        Schema::dropIfExists('promotions');
+        Schema::dropIfExists('featured_promotions');
         Schema::dropIfExists('banners');
         Schema::dropIfExists('system_configs');
     }
