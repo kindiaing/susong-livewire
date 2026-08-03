@@ -44,17 +44,25 @@
         @endif
     </div>
 
-    <div class="rounded-lg border bg-card">
+    <div class="rounded-lg border bg-card overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAll" class="rounded" /></th>
-                    <th class="px-4 py-2 text-left w-16">ID</th>
                     <th class="px-4 py-2 text-left">SKU编码</th>
                     <th class="px-4 py-2 text-left">商品名称</th>
                     <th class="px-4 py-2 text-left">采购价</th>
-                    <th class="px-4 py-2 text-left">批发价</th>
                     <th class="px-4 py-2 text-left">成本价</th>
+                    <th class="px-4 py-2 text-left">最低采购限价</th>
+                    <th class="px-4 py-2 text-left">吊牌价</th>
+                    <th class="px-4 py-2 text-left">零售价</th>
+                    <th class="px-4 py-2 text-left">批发价</th>
+                    <th class="px-4 py-2 text-left">员工价</th>
+                    <th class="px-4 py-2 text-left">门店价</th>
+                    <th class="px-4 py-2 text-left">小程序价</th>
+                    <th class="px-4 py-2 text-left">配送价</th>
+                    <th class="px-4 py-2 text-left">最低销售限价</th>
+                    <th class="px-4 py-2 text-left">最高销售限价</th>
                     <th class="px-4 py-2 text-left">库存</th>
                     <th class="px-4 py-2 text-left">状态</th>
                     <th class="px-4 py-2 text-left">审核</th>
@@ -65,18 +73,26 @@
                 @forelse($skus as $sku)
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="sku-{{ $sku->id }}">
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $sku->id }}" wire:model.live="selectedIds" class="rounded" /></td>
-                    <td class="px-4 py-2 text-muted-foreground">{{ $sku->id }}</td>
                     <td class="px-4 py-2 font-medium text-foreground font-mono">{{ $sku->sku_code }}</td>
                     <td class="px-4 py-2 text-foreground truncate">{{ $sku->product?->name ?? '-' }}</td>
                     <td class="px-4 py-2 text-foreground">{{ money_format($sku->purchase_price) }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->wholesale_price) }}</td>
                     <td class="px-4 py-2 text-foreground">{{ money_format($sku->cost_price) }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->min_purchase_price) }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->list_price) }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->retail_price) }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->wholesale_price) }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->employee_price) }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->offline_price) }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->miniapp_price) }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->delivery_price) }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->min_sale_price) }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->max_sale_price) }}</td>
                     <td class="px-4 py-2 text-foreground">{{ $sku->stock }}</td>
                     <td class="px-4 py-2">
                         @if($sku->status === 1)
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
+                            <span class="inline-flex items-center gap-1.5 text-xs text-green-700"><span class="w-2 h-2 rounded-full bg-green-500"></span>启用</span>
                         @else
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
+                            <span class="inline-flex items-center gap-1.5 text-xs text-gray-500"><span class="w-2 h-2 rounded-full bg-gray-400"></span>禁用</span>
                         @endif
                     </td>
                     <td class="px-4 py-2">
@@ -100,7 +116,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="11" class="px-6 py-12 text-center text-muted-foreground">暂无SKU数据</td></tr>
+                <tr><td colspan="19" class="px-6 py-12 text-center text-muted-foreground">暂无SKU数据</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -108,12 +124,14 @@
 
     <div class="mt-4">{{ $skus->links() }}</div>
 
+    {{-- Create/Edit Modal --}}
     @if($showModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeModal"></div>
-        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-2xl mx-4 p-6 max-h-[85vh] overflow-y-auto">
             <h2 class="text-lg font-semibold text-foreground mb-4">{{ $editingId ? '编辑SKU' : '新增SKU' }}</h2>
-            <div class="space-y-4">
+            <div class="space-y-5">
+                {{-- 基本信息 --}}
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <x-ui.searchable-select label="商品 *" wire-model="formProductId" :options="$productOptions" placeholder="搜索商品..." wireModel="formProductId" />
@@ -129,20 +147,77 @@
                     <label class="block text-sm font-medium text-foreground mb-1">规格属性（JSON）</label>
                     <textarea wire:model="formSpecs" rows="2" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono" placeholder='{"颜色":"红色","规格":"500g"}'></textarea>
                 </div>
-                <div class="grid grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-foreground mb-1">采购价（元）</label>
-                        <input type="number" wire:model="formPurchasePrice" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" step="0.01" placeholder="0.00" />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-foreground mb-1">批发价（元）</label>
-                        <input type="number" wire:model="formWholesalePrice" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" step="0.01" placeholder="0.00" />
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-foreground mb-1">成本价（元）</label>
-                        <input type="number" wire:model="formCostPrice" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" step="0.01" placeholder="0.00" />
+
+                {{-- 采购价格组 --}}
+                <div class="border rounded-lg p-4">
+                    <h3 class="text-sm font-semibold text-foreground mb-3">采购价格</h3>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-1">标准采购价（元）</label>
+                            <input type="number" wire:model="formPurchasePrice" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" step="0.001" placeholder="0.000" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-1">成本价（元）</label>
+                            <input type="number" wire:model="formCostPrice" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" step="0.001" placeholder="0.000" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-1">最低采购限价（元）</label>
+                            <input type="number" wire:model="formMinPurchasePrice" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" step="0.001" placeholder="0.000" />
+                        </div>
                     </div>
                 </div>
+
+                {{-- 销售价格组 --}}
+                <div class="border rounded-lg p-4">
+                    <h3 class="text-sm font-semibold text-foreground mb-3">销售价格</h3>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-1">吊牌价（元）</label>
+                            <input type="number" wire:model="formListPrice" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" step="0.001" placeholder="0.000" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-1">标准零售价（元）</label>
+                            <input type="number" wire:model="formRetailPrice" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" step="0.001" placeholder="0.000" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-1">批发团购价（元）</label>
+                            <input type="number" wire:model="formWholesalePrice" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" step="0.001" placeholder="0.000" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-1">员工内部价（元）</label>
+                            <input type="number" wire:model="formEmployeePrice" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" step="0.001" placeholder="0.000" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-1">最低销售限价（元）</label>
+                            <input type="number" wire:model="formMinSalePrice" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" step="0.001" placeholder="0.000" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-1">最高销售限价（元）</label>
+                            <input type="number" wire:model="formMaxSalePrice" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" step="0.001" placeholder="0.000" />
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 渠道基准价组 --}}
+                <div class="border rounded-lg p-4">
+                    <h3 class="text-sm font-semibold text-foreground mb-3">渠道基准价</h3>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-1">门店基准价（元）</label>
+                            <input type="number" wire:model="formOfflinePrice" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" step="0.001" placeholder="0.000" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-1">小程序基准价（元）</label>
+                            <input type="number" wire:model="formMiniappPrice" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" step="0.001" placeholder="0.000" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-foreground mb-1">配送基准价（元）</label>
+                            <input type="number" wire:model="formDeliveryPrice" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" step="0.001" placeholder="0.000" />
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 状态 --}}
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">状态</label>
                     <select wire:model="formStatus" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
@@ -159,9 +234,10 @@
     </div>
     @endif
 
+    {{-- Delete Confirm Modal --}}
     @if($showDeleteConfirm)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeDeleteConfirm"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
             <h2 class="text-lg font-semibold text-foreground mb-2">确认删除</h2>
             <p class="text-sm text-muted-foreground mb-6">确定要删除该SKU吗？此操作不可恢复。</p>

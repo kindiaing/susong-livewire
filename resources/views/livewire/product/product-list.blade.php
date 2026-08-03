@@ -98,7 +98,7 @@
 
     @if($showModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeModal"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
             <h2 class="text-lg font-semibold text-foreground mb-4">{{ $editingId ? '编辑商品' : '新增商品' }}</h2>
             <div class="space-y-4">
@@ -119,12 +119,21 @@
                         @error('formCategoryId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">默认供应商</label>
+                        <select wire:model="formSupplierId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                            <option value="0">请选择供应商</option>
+                            @foreach($suppliers as $s)
+                                <option value="{{ $s->id }}">{{ $s->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
                         <label class="block text-sm font-medium text-foreground mb-1">单位 <span class="text-red-500">*</span></label>
                         <input type="text" wire:model="formUnit" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="如：斤、箱、份" />
                         @error('formUnit') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
-                </div>
-                <div class="grid grid-cols-3 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-foreground mb-1">称重改价</label>
                         <select wire:model="formIsWeightPriced" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
@@ -136,13 +145,13 @@
                         <label class="block text-sm font-medium text-foreground mb-1">库存预警值</label>
                         <input type="number" wire:model="formStockWarningValue" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" />
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-foreground mb-1">状态 <span class="text-red-500">*</span></label>
-                        <select wire:model="formStatus" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                            <option value="1">上架</option>
-                            <option value="0">下架</option>
-                        </select>
-                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">状态 <span class="text-red-500">*</span></label>
+                    <select wire:model="formStatus" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        <option value="1">上架</option>
+                        <option value="0">下架</option>
+                    </select>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">商品详情</label>
@@ -159,7 +168,7 @@
 
     @if($showDeleteConfirm)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeDeleteConfirm"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
             <h2 class="text-lg font-semibold text-foreground mb-2">确认删除</h2>
             <p class="text-sm text-muted-foreground mb-6">确定要删除该商品吗？此操作不可恢复。</p>

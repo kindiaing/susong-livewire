@@ -10,6 +10,7 @@ use App\Livewire\Traits\WithToast;
 use App\Livewire\Traits\WithListCrud;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Supplier;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -30,6 +31,8 @@ class ProductList extends Component
     public int $filterCategoryId = 0;
 
     public int $filterStatus = -1;
+
+    public int $formSupplierId = 0;
 
     public int $formCategoryId = 0;
 
@@ -54,6 +57,7 @@ class ProductList extends Component
     {
         $product = Product::findOrFail($id);
         $this->editingId = $id;
+        $this->formSupplierId = $product->supplier_id ?? 0;
         $this->formCategoryId = $product->category_id;
         $this->formName = $product->name;
         $this->formUnit = $product->unit;
@@ -67,6 +71,7 @@ class ProductList extends Component
     public function save(): void
     {
         $validated = $this->validate([
+            'formSupplierId' => 'nullable|integer|min:0',
             'formCategoryId' => 'required|integer|min:1',
             'formName' => 'required|string|max:100',
             'formUnit' => 'required|string|max:20',
@@ -77,6 +82,7 @@ class ProductList extends Component
         ]);
 
         $data = [
+            'supplier_id' => $validated['formSupplierId'] ?: null,
             'category_id' => $validated['formCategoryId'],
             'name' => $validated['formName'],
             'unit' => $validated['formUnit'],
@@ -118,6 +124,7 @@ class ProductList extends Component
     private function resetForm(): void
     {
         $this->editingId = null;
+        $this->formSupplierId = 0;
         $this->formCategoryId = 0;
         $this->formName = '';
         $this->formUnit = '';
@@ -131,6 +138,7 @@ class ProductList extends Component
     {
         return [
             ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'supplier_id', 'label' => '默认供应商', 'sortable' => false, 'exportable' => true],
             ['key' => 'name', 'label' => '商品名', 'sortable' => true, 'exportable' => true],
             ['key' => 'category_id', 'label' => '分类', 'sortable' => false, 'exportable' => true],
             ['key' => 'unit', 'label' => '单位', 'sortable' => false, 'exportable' => true],
@@ -200,10 +208,11 @@ class ProductList extends Component
 
         $products = $query->paginate(setting('per_page', 10));
         $categories = Category::orderBy('sort')->orderBy('id')->get();
+        $suppliers = Supplier::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 
-        return view('livewire.product.product-list', compact('products', 'categories', 'allColumns', 'selectedCount'))
+        return view('livewire.product.product-list', compact('products', 'categories', 'suppliers', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('商品管理');
     }
