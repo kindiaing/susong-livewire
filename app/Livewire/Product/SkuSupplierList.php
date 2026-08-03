@@ -6,9 +6,12 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\SkuSupplier;
 use App\Models\Supplier;
+use App\Models\Sku;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -17,9 +20,11 @@ class SkuSupplierList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithMoneyConversion;
     use WithPagination;
     use WithRowSelection;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = SkuSupplier::class;
 
@@ -27,21 +32,13 @@ class SkuSupplierList extends Component
 
     public int $filterStatus = -1;
 
-    public bool $showModal = false;
-
-    public bool $showDeleteConfirm = false;
-
-    public ?int $editingId = null;
-
-    public ?int $deletingId = null;
-
     public int $formSkuId = 0;
 
     public int $formSupplierId = 0;
 
     public int $formIsDefault = 0;
 
-    public int $formPurchasePrice = 0;
+    public string $formPurchasePrice = '';
 
     public int $formStatus = 1;
 
@@ -52,12 +49,6 @@ class SkuSupplierList extends Component
         $this->initColumnVisibility();
     }
 
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
-    }
-
     public function openEditModal(int $id): void
     {
         $skuSupplier = SkuSupplier::findOrFail($id);
@@ -65,7 +56,7 @@ class SkuSupplierList extends Component
         $this->formSkuId = $skuSupplier->sku_id;
         $this->formSupplierId = $skuSupplier->supplier_id;
         $this->formIsDefault = $skuSupplier->is_default;
-        $this->formPurchasePrice = $skuSupplier->purchase_price;
+        $this->formPurchasePrice = $this->centsToYuan($skuSupplier->purchase_price);
         $this->formStatus = $skuSupplier->status;
         $this->formSort = $skuSupplier->sort;
         $this->showModal = true;
@@ -74,10 +65,10 @@ class SkuSupplierList extends Component
     public function save(): void
     {
         $validated = $this->validate([
-            'formSkuId' => 'required|integer|min:1',
+            'formSkuId' => 'required|integer|min:1|exists:skus,id',
             'formSupplierId' => 'required|integer|min:1',
             'formIsDefault' => 'required|in:0,1',
-            'formPurchasePrice' => 'required|integer|min:0',
+            'formPurchasePrice' => 'required|numeric|min:0',
             'formStatus' => 'required|in:0,1',
             'formSort' => 'required|integer|min:0',
         ]);
@@ -86,7 +77,7 @@ class SkuSupplierList extends Component
             'sku_id' => $validated['formSkuId'],
             'supplier_id' => $validated['formSupplierId'],
             'is_default' => $validated['formIsDefault'],
-            'purchase_price' => $validated['formPurchasePrice'],
+            'purchase_price' => money_to_cents($validated['formPurchasePrice']),
             'status' => $validated['formStatus'],
             'sort' => $validated['formSort'],
         ];
@@ -105,12 +96,6 @@ class SkuSupplierList extends Component
         $this->resetForm();
     }
 
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         SkuSupplier::findOrFail($this->deletingId)->delete();
@@ -127,26 +112,13 @@ class SkuSupplierList extends Component
         $this->clearSelection();
     }
 
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
-    }
-
     private function resetForm(): void
     {
         $this->editingId = null;
         $this->formSkuId = 0;
         $this->formSupplierId = 0;
         $this->formIsDefault = 0;
-        $this->formPurchasePrice = 0;
+        $this->formPurchasePrice = '';
         $this->formStatus = 1;
         $this->formSort = 0;
     }
@@ -195,7 +167,7 @@ class SkuSupplierList extends Component
         return [
             'SKU ID' => 'sku_id',
             '供应商ID' => 'supplier_id',
-            '采购价(厘)' => 'purchase_price',
+            '采购价(元)' => 'purchase_price',
             '是否默认' => 'is_default',
             '排序' => 'sort',
             '状态' => 'status',
@@ -205,6 +177,11 @@ class SkuSupplierList extends Component
     public function getPageIds(): array
     {
         return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
+    }
+
+    public function getImportMoneyFields(): array
+    {
+        return ['purchase_price'];
     }
 
     public function render()
@@ -225,12 +202,14 @@ class SkuSupplierList extends Component
             $query->where('status', $this->filterStatus);
         }
 
-        $skuSuppliers = $query->paginate(20);
+        $skuSuppliers = $query->paginate(setting('per_page', 10));
         $suppliers = Supplier::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 
-        return view('livewire.product.sku-supplier-list', compact('skuSuppliers', 'suppliers', 'allColumns', 'selectedCount'))
+        $skuOptions = Sku::with('product')->orderBy('sku_code')->get()->map(fn($s) => ['value' => $s->id, 'label' => $s->sku_code . ' - ' . ($s->product?->name ?? '')])->toArray();
+
+        return view('livewire.product.sku-supplier-list', compact('skuSuppliers', 'suppliers', 'allColumns', 'selectedCount', 'skuOptions'))
             ->layout('components.app-layout')
             ->title('一品多供');
     }

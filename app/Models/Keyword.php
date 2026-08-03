@@ -38,4 +38,12 @@ class Keyword extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    /**
+     * 作用域：热门关键词（按搜索次数排序）
+     */
+    public function scopePopular($query, int $limit = 10)
+    {
+        return $query->orderByDesc('search_count')->limit($limit);
+    }
 }

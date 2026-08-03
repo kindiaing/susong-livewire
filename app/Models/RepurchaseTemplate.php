@@ -42,6 +42,11 @@ class RepurchaseTemplate extends Model
         ];
     }
 
+    public function getStatusLabelAttribute(): string
+    {
+        return self::statusMap()[$this->status] ?? '未知';
+    }
+
     public function merchant()
     {
         return $this->belongsTo(Merchant::class);
@@ -50,5 +55,13 @@ class RepurchaseTemplate extends Model
     public function items()
     {
         return $this->hasMany(RepurchaseTemplateItem::class, 'template_id');
+    }
+
+    /**
+     * 作用域：启用
+     */
+    public function scopeEnabled($query)
+    {
+        return $query->where('status', self::STATUS_ENABLED);
     }
 }

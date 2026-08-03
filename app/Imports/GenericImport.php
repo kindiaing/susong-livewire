@@ -20,18 +20,21 @@ class GenericImport implements ToCollection, WithHeadingRow
 
     protected array $valueMap;
 
+    protected array $moneyFields;
+
     protected int $importedCount = 0;
 
     protected int $skippedCount = 0;
 
     protected array $errorRows = [];
 
-    public function __construct(string $modelClass, array $columnMap = [], array $uniqueBy = [], array $valueMap = [])
+    public function __construct(string $modelClass, array $columnMap = [], array $uniqueBy = [], array $valueMap = [], array $moneyFields = [])
     {
         $this->modelClass = $modelClass;
         $this->columnMap = $columnMap;
         $this->uniqueBy = $uniqueBy;
         $this->valueMap = $valueMap;
+        $this->moneyFields = $moneyFields;
     }
 
     public function collection(Collection $rows)
@@ -53,6 +56,13 @@ class GenericImport implements ToCollection, WithHeadingRow
                             $value = $this->valueMap[$modelField][(string) $value] ?? $value;
                         }
                         $data[$modelField] = $value;
+                    }
+                }
+
+                // 金额字段元→厘转换
+                foreach ($this->moneyFields as $field) {
+                    if (isset($data[$field])) {
+                        $data[$field] = money_to_cents($data[$field]);
                     }
                 }
 

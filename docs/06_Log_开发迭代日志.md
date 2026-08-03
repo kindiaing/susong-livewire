@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '939af65b-b6ee-4372-86b6-d87bc0ef7820'
-  PropagateID: '939af65b-b6ee-4372-86b6-d87bc0ef7820'
-  ReservedCode1: '8bd22a44-20e3-42e2-86cc-52d6ca7c662d'
-  ReservedCode2: '8bd22a44-20e3-42e2-86cc-52d6ca7c662d'
+  ProduceID: '411ba0d1-fe7e-4947-9817-f7f0d74a94dd'
+  PropagateID: '411ba0d1-fe7e-4947-9817-f7f0d74a94dd'
+  ReservedCode1: '7d8b1289-0f8a-4440-ae9a-c246149f4b8a'
+  ReservedCode2: '7d8b1289-0f8a-4440-ae9a-c246149f4b8a'
 ---
 
 # 开发迭代日志
@@ -16,6 +16,60 @@ AIGC:
 技术栈：Laravel 13 + Livewire 4.x + Tailwind CSS 4.2+ + Alpine.js + PHP 8.4+ + MySQL 8.0 + Redis 7.x
 
 记录规则：每次迭代新增一节，按版本号倒序排列。每条变更需标注开发人、完成时间和关联模块。
+
+---
+
+## V1.9.1 | 迭代周期：2026-08-03
+
+负责人：项目负责人
+参与开发人员：后端开发
+
+### 1 本次新增功能清单
+
+| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 断链修复 | PurchaseReturnService：退货单完整生命周期（创建→审核→出库→完成/取消） | 后端 | 2026-08-03 | ✅ |
+| 2 | 断链修复 | 退货出库联动 InventoryService::stockOut() 扣减库存 | 后端 | 2026-08-03 | ✅ |
+| 3 | 断链修复 | LossOrderService：损耗单完整生命周期（创建→审核→执行→关闭/取消） | 后端 | 2026-08-03 | ✅ |
+| 4 | 断链修复 | 损耗单执行时调用 InventoryService::stockOut() 扣减库存 | 后端 | 2026-08-03 | ✅ |
+| 5 | 断链修复 | 入库差异自动创建损耗单：stockIn() 计算 discrepancy_quantity，系统配置开关控制 | 后端 | 2026-08-03 | ✅ |
+| 6 | 断链修复 | 已入库采购单禁止直接取消，提示走退货流程 | 后端 | 2026-08-03 | ✅ |
+| 7 | 断链修复 | 采购单完成前校验：存在未处理差异时阻止完成 | 后端 | 2026-08-03 | ✅ |
+| 8 | 断链修复 | 采购单退货状态追踪（return_status：0无退货/1部分退货/2全部退货） | 后端 | 2026-08-03 | ✅ |
+
+### 2 数据库变更
+
+| 变更 | 表名 | 字段 | 说明 |
+| :--- | :--- | :--- | :--- |
+| 新增字段 | purchase_orders | return_status | 退货状态：0无退货，1部分退货，2全部退货 |
+| 新增字段 | purchase_order_items | discrepancy_quantity | 入库差异数量（采购数量-实际入库数量） |
+| 新增字段 | purchase_order_items | loss_order_id | 关联损耗单ID |
+| 新增字段 | loss_orders | source_type | 来源类型：purchase_order=采购入库差异 |
+| 新增字段 | loss_orders | source_id | 来源业务ID |
+| 新增字段 | loss_order_items | purchase_order_item_id | 采购单明细ID |
+| 新增字段 | loss_order_items | purchase_order_id | 采购单ID |
+| 新增配置 | system_configs | stockin_auto_create_loss | 入库差异自动创建损耗单开关（默认开启） |
+
+### 3 新增文件
+
+| 文件 | 说明 |
+| :--- | :--- |
+| app/Services/PurchaseReturnService.php | 采购退货服务 |
+| app/Services/LossOrderService.php | 损耗单服务 |
+| database/migrations/2026_08_03_004635_add_return_status_to_purchase_orders_and_enhance_loss_tables.php | 断链修复迁移 |
+
+### 4 核心业务规则
+
+- **退货出库**：PurchaseReturnService::ship() 调用 InventoryService::stockOut()，source_type='purchase_return'
+- **入库差异→损耗单**：PurchaseService::stockIn() 计算每行 discrepancy_quantity，当 > 0 且 stockin_auto_create_loss=true 时自动创建损耗单
+- **损耗执行扣库存**：LossOrderService::execute() 调用 InventoryService::stockOut()，source_type='loss_order'
+- **已入库禁止取消**：PurchaseOrder::canTransitionTo() 中 STATUS_STOCKED 只能转到 STATUS_COMPLETED
+- **完成前置校验**：PurchaseService::complete() 检查是否有未处理的差异行（discrepancy_quantity > 0 且 loss_order_id 为空）
+
+### 5 待处理
+
+- **断链3（价格策略联动）**：等断链1-2完成后用户再沟通
+- **P2 问题**：menu.php 补 restock-reminders + temperatures 菜单项，Invoice Model 补关系定义
 
 ---
 

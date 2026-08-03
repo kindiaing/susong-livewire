@@ -10,6 +10,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -18,15 +19,12 @@ class InventoryList extends Component
     use WithPagination;
     use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = Inventory::class;
 
     public string $search = '';
     public int $filterWarehouseId = 0;
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
 
     public int $formWarehouseId = 0;
     public int $formSkuId = 0;
@@ -40,12 +38,6 @@ class InventoryList extends Component
     public function mount(): void
     {
         $this->initColumnVisibility();
-    }
-
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
     }
 
     public function openEditModal(int $id): void
@@ -100,12 +92,6 @@ class InventoryList extends Component
         $this->resetForm();
     }
 
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         $item = Inventory::findOrFail($this->deletingId);
@@ -122,19 +108,6 @@ class InventoryList extends Component
         $this->resetPage();
     }
 
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
-    }
-
     private function resetForm(): void
     {
         $this->editingId = null;
@@ -146,6 +119,44 @@ class InventoryList extends Component
         $this->formBatchNo = '';
         $this->formExpiryDate = '';
         $this->formWarningValue = 0;
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['warehouse_id', 'sku_id', 'total_stock', 'locked_stock', 'available_stock', 'batch_no', 'expiry_date', 'warning_value', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'warehouse_id' => $row->warehouse?->name ?? '',
+                'sku_id' => $row->sku?->sku_code ?? '',
+                'total_stock' => $row->total_stock,
+                'locked_stock' => $row->locked_stock,
+                'available_stock' => $row->available_stock,
+                'batch_no' => $row->batch_no ?? '',
+                'expiry_date' => $row->expiry_date ? $row->expiry_date->format('Y-m-d') : '',
+                'warning_value' => $row->warning_value,
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['sku_id'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['仓库ID', 'SKU ID'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [];
     }
 
     public function getAllColumns(): array
@@ -212,7 +223,7 @@ class InventoryList extends Component
             $query->where('warehouse_id', $this->filterWarehouseId);
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
         $warehouses = Warehouse::enabled()->orderBy('name')->get();
         $skus = Sku::with('product')->orderBy('sku_code')->get();
         $allColumns = $this->getAllColumns();

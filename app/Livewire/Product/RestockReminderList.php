@@ -7,6 +7,7 @@ use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\Merchant;
 use App\Models\RestockReminder;
 use App\Models\Sku;
@@ -21,20 +22,13 @@ class RestockReminderList extends Component
     use WithPagination;
     use WithRowSelection;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = RestockReminder::class;
 
     public string $search = '';
 
     public int $filterStatus = -1;
-
-    public bool $showModal = false;
-
-    public bool $showDeleteConfirm = false;
-
-    public ?int $editingId = null;
-
-    public ?int $deletingId = null;
 
     public int $formMerchantId = 0;
 
@@ -49,12 +43,6 @@ class RestockReminderList extends Component
     public function mount(): void
     {
         $this->initColumnVisibility();
-    }
-
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
     }
 
     public function openEditModal(int $id): void
@@ -100,12 +88,6 @@ class RestockReminderList extends Component
         $this->resetForm();
     }
 
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         $item = RestockReminder::findOrFail($this->deletingId);
@@ -121,19 +103,6 @@ class RestockReminderList extends Component
         $this->filterStatus = -1;
         $this->resetPage();
         $this->clearSelection();
-    }
-
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
     }
 
     private function resetForm(): void
@@ -152,7 +121,9 @@ class RestockReminderList extends Component
             ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
             ['key' => 'merchant_id', 'label' => '商家', 'sortable' => false, 'exportable' => true],
             ['key' => 'sku_id', 'label' => 'SKU', 'sortable' => false, 'exportable' => true],
+            ['key' => 'threshold_quantity', 'label' => '库存阈值', 'sortable' => false, 'exportable' => true],
             ['key' => 'remind_cycle', 'label' => '提醒周期', 'sortable' => false, 'exportable' => true],
+            ['key' => 'last_reminded_at', 'label' => '上次提醒', 'sortable' => true, 'exportable' => true],
             ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
         ];
     }
@@ -211,7 +182,7 @@ class RestockReminderList extends Component
             $query->where('status', $this->filterStatus);
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
         $merchants = Merchant::orderBy('name')->get();
         $skus = Sku::orderBy('sku_code')->get();
         $allColumns = $this->getAllColumns();

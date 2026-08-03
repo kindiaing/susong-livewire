@@ -24,6 +24,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class SupplierSettlement extends Model
 {
+    // 状态常量
+    public const STATUS_PENDING = 1;
+    public const STATUS_PARTIAL = 2;
+    public const STATUS_SETTLED = 3;
+    public const STATUS_CLOSED = 4;
 
     protected $fillable = [
         'settlement_no',
@@ -59,4 +64,61 @@ class SupplierSettlement extends Model
         ];
     }
 
+    /**
+     * 状态映射
+     */
+    public static function statusMap(): array
+    {
+        return [
+            self::STATUS_PENDING => '待结算',
+            self::STATUS_PARTIAL => '部分付款',
+            self::STATUS_SETTLED => '已结清',
+            self::STATUS_CLOSED => '已办结',
+        ];
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::statusMap()[$this->status] ?? '未知';
+    }
+
+    /**
+     * 关联供应商
+     */
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
+    /**
+     * 关联结算明细
+     */
+    public function items()
+    {
+        return $this->hasMany(SupplierSettlementItem::class);
+    }
+
+    /**
+     * 关联付款记录
+     */
+    public function payments()
+    {
+        return $this->hasMany(SettlementPayment::class, 'settlement_id');
+    }
+
+    /**
+     * 关联办结操作人
+     */
+    public function closedBy()
+    {
+        return $this->belongsTo(User::class, 'closed_by');
+    }
+
+    /**
+     * 作用域：待结算
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', self::STATUS_PENDING);
+    }
 }

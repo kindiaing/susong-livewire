@@ -48,6 +48,7 @@ class CheckPermission
         'keywords'            => 'product.keyword.view',
         'sku-barcodes'        => 'product.product.view',
         'sku-suppliers'       => 'product.product.view',
+        'merchant-sku-visibility' => 'product.visibility.view',
         'restock-reminders'   => 'purchase.restock-reminder.view',
 
         // ── 采购管理 ──
@@ -88,6 +89,8 @@ class CheckPermission
         'price-strategies'    => 'price.price-strategy.view',
         'price-apportionments' => 'price.price-apportionment.view',
         'price-change-logs'   => 'price.price-change-log.view',
+        'promotion-activities' => 'price.promotion.view',
+        'pricing-config'      => 'price.pricing-config.view',
 
         // ── 商家扩展 ──
         'merchant-addresses'  => 'org.merchant.view',
@@ -96,7 +99,6 @@ class CheckPermission
         // ── 系统管理 ──
         'settings'            => 'system.system-config.view',
         'banners'             => 'system.banner.view',
-        'promotions'          => 'system.system-config.view',
         'approval-config'     => 'system.system-config.view',
         'approvals'           => 'system.system-config.view',
         'operation-logs'      => 'system.audit-log.view',

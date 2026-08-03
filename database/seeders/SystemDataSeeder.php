@@ -67,6 +67,7 @@ class SystemDataSeeder extends Seeder
                 'product.category' => ['display_name' => '分类管理', 'buttons' => ['product.category.create', 'product.category.edit', 'product.category.delete']],
                 'product.tag' => ['display_name' => '标签管理', 'buttons' => ['product.tag.create', 'product.tag.edit', 'product.tag.delete']],
                 'product.keyword' => ['display_name' => '关键词管理', 'buttons' => ['product.keyword.create', 'product.keyword.edit', 'product.keyword.delete']],
+                'product.visibility' => ['display_name' => '可见性配置', 'buttons' => ['product.visibility.create', 'product.visibility.edit', 'product.visibility.delete']],
             ],
         ],
         'purchase' => [
@@ -127,7 +128,8 @@ class SystemDataSeeder extends Seeder
             'display_name' => '价格管理',
             'icon' => 'calculator',
             'pages' => [
-                'price.price-strategy' => ['display_name' => '价格策略', 'buttons' => ['price.price-strategy.create', 'price.price-strategy.edit', 'price.price-strategy.approve', 'price.price-strategy.toggle']],
+                'price.promotion' => ['display_name' => '促销活动', 'buttons' => ['price.promotion.create', 'price.promotion.edit', 'price.promotion.approve', 'price.promotion.toggle']],
+                'price.pricing-config' => ['display_name' => '取价配置', 'buttons' => ['price.pricing-config.edit']],
                 'price.price-change-log' => ['display_name' => '改价记录', 'buttons' => []],
                 'price.price-apportionment' => ['display_name' => '费用均摊', 'buttons' => []],
             ],
@@ -165,6 +167,7 @@ class SystemDataSeeder extends Seeder
         'product.category.create' => '创建分类', 'product.category.edit' => '编辑分类', 'product.category.delete' => '删除分类',
         'product.tag.create' => '创建标签', 'product.tag.edit' => '编辑标签', 'product.tag.delete' => '删除标签',
         'product.keyword.create' => '创建关键词', 'product.keyword.edit' => '编辑关键词', 'product.keyword.delete' => '删除关键词',
+        'product.visibility.create' => '创建可见性配置', 'product.visibility.edit' => '编辑可见性配置', 'product.visibility.delete' => '删除可见性配置',
         // 采购管理
         'purchase.purchase-order.create' => '创建采购单', 'purchase.purchase-order.edit' => '编辑采购单', 'purchase.purchase-order.delete' => '删除采购单',
         'purchase.purchase-order.submit' => '提交审核', 'purchase.purchase-order.approve' => '审核采购单',
@@ -187,8 +190,9 @@ class SystemDataSeeder extends Seeder
         'finance.receivable.collect' => '收款', 'finance.receivable.approve' => '审核应收',
         'finance.invoice.create' => '创建发票', 'finance.invoice.issue' => '开具发票', 'finance.invoice.send' => '寄出发票',
         // 价格管理
-        'price.price-strategy.create' => '创建策略', 'price.price-strategy.edit' => '编辑策略',
-        'price.price-strategy.approve' => '审核策略', 'price.price-strategy.toggle' => '启用/禁用',
+        'price.promotion.create' => '创建活动', 'price.promotion.edit' => '编辑活动',
+        'price.promotion.approve' => '审核活动', 'price.promotion.toggle' => '启用/禁用',
+        'price.pricing-config.edit' => '编辑取价配置',
         // 系统管理
         'system.system-config.edit' => '编辑配置',
         'system.banner.create' => '创建轮播', 'system.banner.edit' => '编辑轮播', 'system.banner.delete' => '删除轮播',

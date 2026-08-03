@@ -139,4 +139,62 @@ class Order extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    public function signatures()
+    {
+        return $this->hasMany(Signature::class);
+    }
+
+    public function orderReturns()
+    {
+        return $this->hasMany(OrderReturn::class);
+    }
+
+    public function correctionAuthorizations()
+    {
+        return $this->hasMany(CorrectionAuthorization::class);
+    }
+
+    public function receivable()
+    {
+        return $this->hasOne(Receivable::class);
+    }
+
+    public function getSettlementTypeLabelAttribute(): string
+    {
+        return self::settlementTypeMap()[$this->settlement_type] ?? '未知';
+    }
+
+    public function getBatchLabelAttribute(): string
+    {
+        return match ($this->batch) {
+            self::BATCH_MORNING => '上午',
+            self::BATCH_AFTERNOON => '下午',
+            default => '未知',
+        };
+    }
+
+    /**
+     * 作用域：按状态
+     */
+    public function scopeByStatus($query, int $status)
+    {
+        return $query->where('status', $status);
+    }
+
+    /**
+     * 作用域：按配送批次
+     */
+    public function scopeByBatch($query, int $batch)
+    {
+        return $query->where('batch', $batch);
+    }
+
+    /**
+     * 作用域：按支付状态
+     */
+    public function scopeByPaymentStatus($query, int $paymentStatus)
+    {
+        return $query->where('payment_status', $paymentStatus);
+    }
 }

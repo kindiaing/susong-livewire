@@ -76,4 +76,28 @@ class PurchaseItem extends Model
     {
         return $query->where('status', self::STATUS_PENDING);
     }
+
+    /**
+     * 作用域：按来源类型
+     */
+    public function scopeBySourceType($query, int $sourceType)
+    {
+        return $query->where('source_type', $sourceType);
+    }
+
+    /**
+     * 作用域：订单汇总来源
+     */
+    public function scopeFromOrder($query)
+    {
+        return $query->where('source_type', self::SOURCE_ORDER);
+    }
+
+    /**
+     * 作用域：手工添加来源
+     */
+    public function scopeFromManual($query)
+    {
+        return $query->where('source_type', self::SOURCE_MANUAL);
+    }
 }

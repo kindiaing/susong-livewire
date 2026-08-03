@@ -161,6 +161,22 @@ class Notification extends Model
     }
 
     /**
+     * 关联用户
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * 关联商家
+     */
+    public function merchant()
+    {
+        return $this->belongsTo(Merchant::class);
+    }
+
+    /**
      * 作用域：按创建时间倒序
      */
     public function scopeLatestFirst($query)

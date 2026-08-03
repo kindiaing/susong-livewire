@@ -3,17 +3,17 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'ec2f1ba1-4c62-4cd8-919b-03e6843af8c0'
-  PropagateID: 'ec2f1ba1-4c62-4cd8-919b-03e6843af8c0'
-  ReservedCode1: '34b9cc19-9672-42af-b9c4-c8fd8b982cc3'
-  ReservedCode2: '34b9cc19-9672-42af-b9c4-c8fd8b982cc3'
+  ProduceID: '79000a75-610b-4b15-8aea-20ce2906a725'
+  PropagateID: '79000a75-610b-4b15-8aea-20ce2906a725'
+  ReservedCode1: 'b1f217c2-a40c-445a-a481-89d7e07af19f'
+  ReservedCode2: 'b1f217c2-a40c-445a-a481-89d7e07af19f'
 ---
 
 # 项目记忆空间
 
 > 本文档为 AI 协作记忆区，记录项目核心规则、验收标准和开发规范，确保每次会话上下文一致。
 
-> 当前版本：**V1.9.0** | 权限体系已改为三级格式（模块.页面.动作），UI 可见性由 @can + config/menu.php 控制
+> 当前版本：**V1.9.1** | 权限体系已改为三级格式（模块.页面.动作），UI 可见性由 @can + config/menu.php 控制，断链2+断链1核心逻辑已修复
 
 ---
 
@@ -35,6 +35,9 @@ AIGC:
 | 1 | 🗃️ Migration 整洁 | 确保只有 `create` 建表语句，无 `alter` 新增/修改字段；有的话合并到对应 `create` 迁移中 |
 | 2 | ⚙️ `admin:install` | 仅安装核心数据，执行成功 |
 | 3 | 🌱 `admin:install --seed` | 安装核心数据 + 测试数据，执行成功 |
+| 4 | 📋 列配置 | 不同菜单有独立 `getDefaultColumns()`，只显示关键信息，隐藏过多/过长字段 |
+| 5 | ✂️ 长文本截断 | 列表页长文本用 truncate + hover(popover/title) 显示，详情弹窗显示全部内容 |
+| 6 | 🪟 弹窗遮罩 | 遮罩不可点击关闭，必须点关闭/取消按钮才能关闭 |
 
 > 💡 以上两条命令分别通过，才能保证项目可干净交付和初始化安装。
 

@@ -7,6 +7,8 @@ use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
+use App\Models\Merchant;
 use App\Models\RepurchaseTemplate;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -19,14 +21,11 @@ class RepurchaseTemplateList extends Component
     use WithExcelExport;
     use WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = RepurchaseTemplate::class;
 
     public string $search = '';
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
 
     public int $formMerchantId = 0;
     public string $formName = '';
@@ -35,6 +34,41 @@ class RepurchaseTemplateList extends Component
     public function mount(): void
     {
         $this->initColumnVisibility();
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['name', 'merchant', 'status', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'name' => $row->name ?? '',
+                'merchant' => $row->merchant?->name ?? '',
+                'status' => $row->status,
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['id'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['商家ID', '模板名称'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [
+            'status' => ['禁用' => 0, '启用' => 1],
+        ];
     }
 
     public function getAllColumns(): array
@@ -97,12 +131,6 @@ class RepurchaseTemplateList extends Component
         $this->importMessage = '';
     }
 
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
-    }
-
     public function openEditModal(int $id): void
     {
         $tpl = RepurchaseTemplate::findOrFail($id);
@@ -116,7 +144,7 @@ class RepurchaseTemplateList extends Component
     public function save(): void
     {
         $validated = $this->validate([
-            'formMerchantId' => 'required|integer|min:1',
+            'formMerchantId' => 'required|integer|min:1|exists:merchants,id',
             'formName' => 'required|string|max:50',
             'formStatus' => 'required|in:0,1',
         ]);
@@ -139,38 +167,12 @@ class RepurchaseTemplateList extends Component
         $this->resetForm();
     }
 
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         RepurchaseTemplate::findOrFail($this->deletingId)->delete();
         $this->toastSuccess('复购模板已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
-    }
-
-    public function resetFilters(): void
-    {
-        $this->search = '';
-        $this->resetPage();
-        $this->clearSelection();
-    }
-
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
     }
 
     private function resetForm(): void
@@ -189,12 +191,15 @@ class RepurchaseTemplateList extends Component
             $query->where('name', 'like', "%{$this->search}%");
         }
 
-        $templates = $query->paginate(20);
+        $templates = $query->paginate(setting('per_page', 10));
+
+        $merchantOptions = Merchant::orderBy('name')->get()->map(fn($m) => ['value' => $m->id, 'label' => $m->name])->toArray();
 
         return view('livewire.order.repurchase-template-list', [
             'templates' => $templates,
             'allColumns' => $this->getAllColumns(),
             'selectedCount' => $this->getSelectedCount(),
+            'merchantOptions' => $merchantOptions,
         ])
             ->layout('components.app-layout')
             ->title('复购模板');

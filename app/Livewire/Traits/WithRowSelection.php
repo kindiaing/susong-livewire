@@ -33,6 +33,29 @@ trait WithRowSelection
         $this->selectAllPage = false;
     }
 
+    /**
+     * 单行选择切换
+     */
+    public function toggleSelect($id): void
+    {
+        $id = (int) $id;
+        $key = array_search($id, $this->selectedIds);
+        if ($key !== false) {
+            unset($this->selectedIds[$key]);
+            $this->selectedIds = array_values($this->selectedIds);
+        } else {
+            $this->selectedIds[] = $id;
+        }
+        // 同步全选状态
+        $pageIds = $this->getPageIds();
+        $this->selectAllPage = !empty($pageIds) && empty(array_diff($pageIds, $this->selectedIds));
+    }
+
+    public function getSelectedIds(): array
+    {
+        return $this->selectedIds;
+    }
+
     public function getSelectedCount(): int
     {
         return count($this->selectedIds);

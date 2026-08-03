@@ -9,6 +9,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -17,15 +18,12 @@ class PurchaseItemList extends Component
     use WithPagination;
     use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = PurchaseItem::class;
 
     public string $search = '';
     public int $filterStatus = -1;
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
 
     public int $formSkuId = 0;
     public int $formQuantity = 0;
@@ -35,12 +33,6 @@ class PurchaseItemList extends Component
     public function mount(): void
     {
         $this->initColumnVisibility();
-    }
-
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
     }
 
     public function openEditModal(int $id): void
@@ -56,7 +48,7 @@ class PurchaseItemList extends Component
     public function save(): void
     {
         $validated = $this->validate([
-            'formSkuId' => 'required|integer|min:1',
+            'formSkuId' => 'required|integer|min:1|exists:skus,id',
             'formQuantity' => 'required|integer|min:1',
             'formSourceType' => 'required|in:1,2',
         ]);
@@ -80,12 +72,6 @@ class PurchaseItemList extends Component
         $this->resetForm();
     }
 
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         PurchaseItem::findOrFail($this->deletingId)->delete();
@@ -99,19 +85,6 @@ class PurchaseItemList extends Component
         $this->search = '';
         $this->filterStatus = -1;
         $this->resetPage();
-    }
-
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
     }
 
     /**
@@ -161,6 +134,40 @@ class PurchaseItemList extends Component
         $this->formSkuId = 0;
         $this->formQuantity = 0;
         $this->formSourceType = 1;
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['sku_id', 'quantity', 'source_type', 'status', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'sku_id' => $row->sku?->sku_code ?? '',
+                'quantity' => $row->quantity,
+                'source_type' => $row->source_type,
+                'status' => $row->status,
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['id'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['SKU ID', '数量'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [];
     }
 
     public function getAllColumns(): array
@@ -218,11 +225,13 @@ class PurchaseItemList extends Component
             $query->where('status', $this->filterStatus);
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
 
-        return view('livewire.purchase.purchase-item-list', compact('items', 'allColumns', 'selectedCount'))
+        $skuOptions = Sku::with('product')->orderBy('sku_code')->get()->map(fn($s) => ['value' => $s->id, 'label' => $s->sku_code . ' - ' . ($s->product?->name ?? '')])->toArray();
+
+        return view('livewire.purchase.purchase-item-list', compact('items', 'allColumns', 'selectedCount', 'skuOptions'))
             ->layout('components.app-layout')
             ->title('待采清单');
     }

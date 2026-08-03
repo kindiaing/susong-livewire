@@ -16,6 +16,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Banner extends Model
 {
+    use SoftDeletes;
+
+    // 状态常量
+    public const STATUS_DISABLED = 0;
+    public const STATUS_ENABLED = 1;
 
     protected $fillable = [
         'title',
@@ -33,4 +38,35 @@ class Banner extends Model
         ];
     }
 
+    /**
+     * 状态映射
+     */
+    public static function statusMap(): array
+    {
+        return [
+            self::STATUS_ENABLED => '启用',
+            self::STATUS_DISABLED => '禁用',
+        ];
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::statusMap()[$this->status] ?? '未知';
+    }
+
+    /**
+     * 作用域：启用
+     */
+    public function scopeEnabled($query)
+    {
+        return $query->where('status', self::STATUS_ENABLED);
+    }
+
+    /**
+     * 作用域：按排序
+     */
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('sort')->orderBy('id');
+    }
 }

@@ -39,6 +39,8 @@ class User extends Authenticatable
         'password',
         'avatar',
         'status',
+        'last_login_at',
+        'email_verified_at',
     ];
 
     protected $hidden = [
@@ -53,6 +55,17 @@ class User extends Authenticatable
             'password' => 'hashed',
             'status' => 'integer',
             'last_login_at' => 'datetime',
+        ];
+    }
+
+    /**
+     * 状态映射（0=禁用，1=启用）
+     */
+    public static function statusMap(): array
+    {
+        return [
+            0 => '禁用',
+            1 => '启用',
         ];
     }
 

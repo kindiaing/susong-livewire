@@ -9,6 +9,7 @@ use App\Models\Supplier;
 use App\Models\Warehouse;
 use App\Models\Sku;
 use App\Services\PurchaseService;
+use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithToast;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -18,6 +19,7 @@ class PurchaseOrderDetail extends Component
 {
     use WithToast;
     use WithFileUploads;
+    use WithMoneyConversion;
 
     public PurchaseOrder $order;
     public $items;
@@ -26,7 +28,7 @@ class PurchaseOrderDetail extends Component
     public bool $showAddItemModal = false;
     public int $formSkuId = 0;
     public int $formQuantity = 0;
-    public int $formPrice = 0;
+    public string $formPrice = '';
 
     // 入库弹窗
     public bool $showStockInModal = false;
@@ -129,12 +131,12 @@ class PurchaseOrderDetail extends Component
         $this->validate([
             'formSkuId' => 'required|integer|min:1',
             'formQuantity' => 'required|integer|min:1',
-            'formPrice' => 'required|integer|min:0',
+            'formPrice' => 'required|numeric|min:0',
         ]);
 
         try {
             $service = app(PurchaseService::class);
-            $service->addItem($this->order, $this->formSkuId, $this->formQuantity, $this->formPrice);
+            $service->addItem($this->order, $this->formSkuId, $this->formQuantity, money_to_cents($this->formPrice));
             $this->loadOrder($this->order->id);
             $this->showAddItemModal = false;
             $this->toastSuccess('明细已添加');
@@ -175,9 +177,9 @@ class PurchaseOrderDetail extends Component
                 'id' => $item->id,
                 'sku_name' => $item->sku?->sku_code . ' - ' . ($item->sku?->product?->name ?? ''),
                 'quantity' => $item->quantity,
-                'price' => $item->price,
+                'price' => $this->centsToYuan($item->price),
                 'actual_quantity' => $item->quantity,
-                'actual_price' => $item->price,
+                'actual_price' => $this->centsToYuan($item->price),
                 'discrepancy_reason' => '',
             ];
         }
@@ -195,7 +197,12 @@ class PurchaseOrderDetail extends Component
 
         try {
             $service = app(PurchaseService::class);
-            $service->stockIn($this->order, $this->stockInWarehouseId, $this->stockInItems, $this->stockInBatchNo);
+            $items = collect($this->stockInItems)->map(function ($item) {
+                $item['price'] = money_to_cents($item['price']);
+                $item['actual_price'] = money_to_cents($item['actual_price']);
+                return $item;
+            })->toArray();
+            $service->stockIn($this->order, $this->stockInWarehouseId, $items, $this->stockInBatchNo);
             $this->loadOrder($this->order->id);
             $this->showStockInModal = false;
             $this->toastSuccess('入库成功');
@@ -292,7 +299,7 @@ class PurchaseOrderDetail extends Component
 
                 $skuCode = trim($row[0] ?? '');
                 $quantity = (int) ($row[1] ?? 0);
-                $price = (int) ($row[2] ?? 0);
+                $price = money_to_cents($row[2] ?? 0);
 
                 if (! $skuCode || $quantity <= 0) continue;
 
@@ -320,7 +327,7 @@ class PurchaseOrderDetail extends Component
     {
         $this->formSkuId = 0;
         $this->formQuantity = 0;
-        $this->formPrice = 0;
+        $this->formPrice = '';
     }
 
     public function render()

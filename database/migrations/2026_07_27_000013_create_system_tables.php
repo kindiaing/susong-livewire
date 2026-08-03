@@ -47,15 +47,16 @@ return new class extends Migration
         });
 
         // 运营主推表
-        Schema::create('promotions', function (Blueprint $table) {
+        Schema::create('featured_promotions', function (Blueprint $table) {
             $table->id()->comment('主键');
             $table->tinyInteger('type')->unsigned()->default(1)->comment('类型：1主推商品，2主推品类');
             $table->unsignedBigInteger('target_id')->comment('目标ID');
             $table->unsignedInteger('sort')->default(0)->comment('排序');
             $table->timestamp('start_at')->nullable()->comment('开始时间');
             $table->timestamp('end_at')->nullable()->comment('结束时间');
-            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态');
+            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：0禁用，1启用');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('type');
             $table->index('target_id');
@@ -120,7 +121,7 @@ return new class extends Migration
             $table->comment('登录日志表');
         });
 
-        // 内置系统配置（23 条，含分组、类型、排序等完整字段）
+        // 内置系统配置（24 条，含分组、类型、排序等完整字段）
         $now = now();
         DB::table('system_configs')->insert([
             // ── 基础配置 ──────────────────────────
@@ -152,13 +153,21 @@ return new class extends Migration
             ['config_key' => 'weighing_diff_threshold', 'config_value' => '20', 'default_value' => '20', 'config_type' => 'integer', 'config_group' => 'inventory', 'label' => '称重差异阈值（%）', 'hint' => '称重差异超过此百分比需人工确认', 'options' => null, 'validation_rules' => 'required|integer|min:1|max:100', 'sort_order' => 20, 'is_public' => 0, 'is_readonly' => 0, 'description' => '称重差异阈值（百分比）', 'created_at' => $now, 'updated_at' => $now],
             ['config_key' => 'inventory_warning_enabled', 'config_value' => '1', 'default_value' => '1', 'config_type' => 'boolean', 'config_group' => 'inventory', 'label' => '启用库存预警', 'hint' => '开启后低于预警值触发通知', 'options' => null, 'validation_rules' => 'required|boolean', 'sort_order' => 30, 'is_public' => 0, 'is_readonly' => 0, 'description' => '库存预警检测开关', 'created_at' => $now, 'updated_at' => $now],
             ['config_key' => 'inventory_warning_interval_minutes', 'config_value' => '5', 'default_value' => '5', 'config_type' => 'integer', 'config_group' => 'inventory', 'label' => '库存预警检测频率（分钟）', 'hint' => '定时任务检测间隔', 'options' => null, 'validation_rules' => 'required|integer|min:1|max:60', 'sort_order' => 31, 'is_public' => 0, 'is_readonly' => 0, 'description' => '库存预警定时检测周期', 'created_at' => $now, 'updated_at' => $now],
+            ['config_key' => 'stockin_auto_create_loss', 'config_value' => '1', 'default_value' => '1', 'config_type' => 'boolean', 'config_group' => 'inventory', 'label' => '入库差异自动创建损耗单', 'hint' => '开启后采购入库差异自动生成损耗单，关闭则需手动创建', 'options' => null, 'validation_rules' => 'required|boolean', 'sort_order' => 32, 'is_public' => 0, 'is_readonly' => 0, 'description' => '采购入库数量少于采购数量时，自动创建损耗单扣减差异库存', 'created_at' => $now, 'updated_at' => $now],
 
             // ── 审计配置 ──────────────────────────
             ['config_key' => 'audit_retention_days', 'config_value' => '90', 'default_value' => '90', 'config_type' => 'integer', 'config_group' => 'audit', 'label' => '审计日志保留天数', 'hint' => '0=永久保留，1-180天，到期每日定时清理', 'options' => null, 'validation_rules' => 'required|integer|min:0|max:180', 'sort_order' => 50, 'is_public' => 0, 'is_readonly' => 0, 'description' => '审计/日志保留天数', 'created_at' => $now, 'updated_at' => $now],
             ['config_key' => 'loss_approval_threshold', 'config_value' => '200', 'default_value' => '200', 'config_type' => 'integer', 'config_group' => 'audit', 'label' => '损耗审批阈值（元）', 'hint' => '单张损耗单金额超过此值需运营经理审核', 'options' => null, 'validation_rules' => 'required|integer|min:0', 'sort_order' => 51, 'is_public' => 0, 'is_readonly' => 0, 'description' => '损耗审批阈值（元）', 'created_at' => $now, 'updated_at' => $now],
 
+            // ── 取价配置 ──────────────────────────
+            ['config_key' => 'pricing_mode', 'config_value' => 'lowest', 'default_value' => 'lowest', 'config_type' => 'enum', 'config_group' => 'finance', 'label' => '取价模式', 'hint' => 'lowest=最低价模式，first_hit=命中即止模式', 'options' => json_encode([['label' => '最低价模式', 'value' => 'lowest'], ['label' => '命中即止模式', 'value' => 'first_hit']]), 'validation_rules' => 'required|in:lowest,first_hit', 'sort_order' => 40, 'is_public' => 0, 'is_readonly' => 0, 'description' => '系统计算商品售价的策略', 'created_at' => $now, 'updated_at' => $now],
+            ['config_key' => 'pricing_source_enabled', 'config_value' => '{"promotion":true,"store":true,"member":true,"channel":true,"retail":true}', 'default_value' => '{"promotion":true,"store":true,"member":true,"channel":true,"retail":true}', 'config_type' => 'json', 'config_group' => 'finance', 'label' => '取价来源开关', 'hint' => '关闭某个来源后，该来源不参与取价计算', 'options' => null, 'validation_rules' => 'required|json', 'sort_order' => 41, 'is_public' => 0, 'is_readonly' => 0, 'description' => '各取价来源的启用/关闭状态', 'created_at' => $now, 'updated_at' => $now],
+            ['config_key' => 'pricing_priority', 'config_value' => '["promotion","store","member","channel","retail"]', 'default_value' => '["promotion","store","member","channel","retail"]', 'config_type' => 'json', 'config_group' => 'finance', 'label' => '取价优先级排序', 'hint' => '仅命中即止模式下生效，按排序号从小到大排列', 'options' => null, 'validation_rules' => 'required|json', 'sort_order' => 42, 'is_public' => 0, 'is_readonly' => 0, 'description' => '命中即止模式下的取价优先级顺序', 'created_at' => $now, 'updated_at' => $now],
+
             // ── 界面配置 ──────────────────────────
             ['config_key' => 'ui_close_on_outside', 'config_value' => '1', 'default_value' => '1', 'config_type' => 'boolean', 'config_group' => 'ui', 'label' => '点击旁边关闭通知', 'hint' => '开启后，点击通知面板外的区域将自动关闭通知菜单', 'options' => null, 'validation_rules' => null, 'sort_order' => 1, 'is_public' => 1, 'is_readonly' => 0, 'description' => '控制点击通知 Drawer 外部区域时是否自动关闭面板', 'created_at' => $now, 'updated_at' => $now],
+            ['config_key' => 'per_page', 'config_value' => '10', 'default_value' => '10', 'config_type' => 'integer', 'config_group' => 'ui', 'label' => '列表每页条数', 'hint' => '管理后台列表页默认每页显示条数', 'options' => json_encode([['label' => '10条/页', 'value' => '10'], ['label' => '15条/页', 'value' => '15'], ['label' => '20条/页', 'value' => '20'], ['label' => '50条/页', 'value' => '50']]), 'validation_rules' => 'required|integer|in:10,15,20,50', 'sort_order' => 2, 'is_public' => 0, 'is_readonly' => 0, 'description' => '列表页分页条数，全局生效', 'created_at' => $now, 'updated_at' => $now],
+            ['config_key' => 'ui_category_tree_expanded', 'config_value' => '0', 'default_value' => '0', 'config_type' => 'boolean', 'config_group' => 'ui', 'label' => '分类树默认展开', 'hint' => '开启后进入分类页面时自动展开所有节点；关闭则默认折叠', 'options' => null, 'validation_rules' => 'required|boolean', 'sort_order' => 3, 'is_public' => 1, 'is_readonly' => 0, 'description' => '分类树展开状态系统默认值，用户可在界面设置中覆盖', 'created_at' => $now, 'updated_at' => $now],
         ]);
     }
 
@@ -167,7 +176,7 @@ return new class extends Migration
         Schema::dropIfExists('login_logs');
         Schema::dropIfExists('audit_logs');
         Schema::dropIfExists('operation_logs');
-        Schema::dropIfExists('promotions');
+        Schema::dropIfExists('featured_promotions');
         Schema::dropIfExists('banners');
         Schema::dropIfExists('system_configs');
     }

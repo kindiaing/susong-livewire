@@ -27,6 +27,24 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Receivable extends Model
 {
+    use SoftDeletes;
+
+    // 状态常量
+    public const STATUS_UNSETTLED = 1;
+    public const STATUS_PARTIAL = 2;
+    public const STATUS_SETTLED = 3;
+    public const STATUS_DISPUTED = 4;
+    public const STATUS_CLOSED = 5;
+
+    // 结算方式常量
+    public const SETTLEMENT_CASH = 1;
+    public const SETTLEMENT_CREDIT = 2;
+    public const SETTLEMENT_PREPAID = 3;
+
+    // 审核状态常量
+    public const APPROVAL_PENDING = 1;
+    public const APPROVAL_APPROVED = 2;
+    public const APPROVAL_REJECTED = 3;
 
     protected $fillable = [
         'receivable_no',
@@ -68,4 +86,79 @@ class Receivable extends Model
         ];
     }
 
+    /**
+     * 状态映射
+     */
+    public static function statusMap(): array
+    {
+        return [
+            self::STATUS_UNSETTLED => '未结算',
+            self::STATUS_PARTIAL => '部分收款',
+            self::STATUS_SETTLED => '已结清',
+            self::STATUS_DISPUTED => '争议中',
+            self::STATUS_CLOSED => '已办结',
+        ];
+    }
+
+    /**
+     * 审核状态映射
+     */
+    public static function approvalStatusMap(): array
+    {
+        return [
+            self::APPROVAL_PENDING => '待审核',
+            self::APPROVAL_APPROVED => '已通过',
+            self::APPROVAL_REJECTED => '已拒绝',
+        ];
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::statusMap()[$this->status] ?? '未知';
+    }
+
+    public function getApprovalStatusLabelAttribute(): string
+    {
+        return self::approvalStatusMap()[$this->approval_status] ?? '未知';
+    }
+
+    /**
+     * 关联订单
+     */
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * 关联商家
+     */
+    public function merchant()
+    {
+        return $this->belongsTo(Merchant::class);
+    }
+
+    /**
+     * 关联收款记录
+     */
+    public function payments()
+    {
+        return $this->hasMany(ReceivablePayment::class);
+    }
+
+    /**
+     * 关联办结操作人
+     */
+    public function closedByUser()
+    {
+        return $this->belongsTo(User::class, 'closed_by');
+    }
+
+    /**
+     * 作用域：未结算
+     */
+    public function scopeUnsettled($query)
+    {
+        return $query->where('status', self::STATUS_UNSETTLED);
+    }
 }

@@ -69,7 +69,7 @@ class AuditLogs extends Component
             $query->where('created_at', '<=', $this->filterDateEnd . ' 23:59:59');
         }
 
-        $logs = $query->paginate(20);
+        $logs = $query->paginate(setting('per_page', 10));
 
         // 模型类型选项
         $modelTypes = AuditLog::select('model_type')

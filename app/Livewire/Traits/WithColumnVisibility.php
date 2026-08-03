@@ -102,10 +102,16 @@ trait WithColumnVisibility
 
     /**
      * 组件覆盖：默认显示的列 key 数组
+     * 默认行为：排除 id 列后全部显示（兼容未定义的组件）
+     * 组件应覆盖此方法，只返回 5-8 个关键业务列
      */
     public function getDefaultColumns(): array
     {
-        return collect($this->getAllColumns())->pluck('key')->toArray();
+        return collect($this->getAllColumns())
+            ->pluck('key')
+            ->reject(fn($key) => $key === 'id')
+            ->values()
+            ->toArray();
     }
 
     /**

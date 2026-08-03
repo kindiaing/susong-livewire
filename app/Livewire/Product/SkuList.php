@@ -6,7 +6,10 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
+use App\Models\Product;
 use App\Models\Sku;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -16,9 +19,11 @@ class SkuList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithMoneyConversion;
     use WithPagination;
     use WithRowSelection;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = Sku::class;
 
@@ -28,37 +33,23 @@ class SkuList extends Component
 
     public int $filterApprovalStatus = -1;
 
-    public bool $showModal = false;
-
-    public bool $showDeleteConfirm = false;
-
-    public ?int $editingId = null;
-
-    public ?int $deletingId = null;
-
     public int $formProductId = 0;
 
     public string $formSkuCode = '';
 
     public string $formSpecs = '';
 
-    public int $formPurchasePrice = 0;
+    public string $formPurchasePrice = '';
 
-    public int $formWholesalePrice = 0;
+    public string $formWholesalePrice = '';
 
-    public int $formCostPrice = 0;
+    public string $formCostPrice = '';
 
     public int $formStatus = 1;
 
     public function mount(): void
     {
         $this->initColumnVisibility();
-    }
-
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
     }
 
     public function openEditModal(int $id): void
@@ -68,9 +59,9 @@ class SkuList extends Component
         $this->formProductId = $sku->product_id;
         $this->formSkuCode = $sku->sku_code;
         $this->formSpecs = $sku->specs ? json_encode($sku->specs, JSON_UNESCAPED_UNICODE) : '';
-        $this->formPurchasePrice = $sku->purchase_price;
-        $this->formWholesalePrice = $sku->wholesale_price;
-        $this->formCostPrice = $sku->cost_price;
+        $this->formPurchasePrice = $this->centsToYuan($sku->purchase_price);
+        $this->formWholesalePrice = $this->centsToYuan($sku->wholesale_price);
+        $this->formCostPrice = $this->centsToYuan($sku->cost_price);
         $this->formStatus = $sku->status;
         $this->showModal = true;
     }
@@ -78,12 +69,12 @@ class SkuList extends Component
     public function save(): void
     {
         $validated = $this->validate([
-            'formProductId' => 'required|integer|min:1',
+            'formProductId' => 'required|integer|min:1|exists:products,id',
             'formSkuCode' => 'required|string|max:50',
             'formSpecs' => 'nullable|string',
-            'formPurchasePrice' => 'required|integer|min:0',
-            'formWholesalePrice' => 'required|integer|min:0',
-            'formCostPrice' => 'required|integer|min:0',
+            'formPurchasePrice' => 'required|numeric|min:0',
+            'formWholesalePrice' => 'required|numeric|min:0',
+            'formCostPrice' => 'required|numeric|min:0',
             'formStatus' => 'required|in:0,1',
         ]);
 
@@ -93,9 +84,9 @@ class SkuList extends Component
             'product_id' => $validated['formProductId'],
             'sku_code' => $validated['formSkuCode'],
             'specs' => $specs,
-            'purchase_price' => $validated['formPurchasePrice'],
-            'wholesale_price' => $validated['formWholesalePrice'],
-            'cost_price' => $validated['formCostPrice'],
+            'purchase_price' => money_to_cents($validated['formPurchasePrice']),
+            'wholesale_price' => money_to_cents($validated['formWholesalePrice']),
+            'cost_price' => money_to_cents($validated['formCostPrice']),
             'status' => $validated['formStatus'],
         ];
 
@@ -109,12 +100,6 @@ class SkuList extends Component
 
         $this->showModal = false;
         $this->resetForm();
-    }
-
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
     }
 
     public function delete(): void
@@ -134,28 +119,15 @@ class SkuList extends Component
         $this->clearSelection();
     }
 
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
-    }
-
     private function resetForm(): void
     {
         $this->editingId = null;
         $this->formProductId = 0;
         $this->formSkuCode = '';
         $this->formSpecs = '';
-        $this->formPurchasePrice = 0;
-        $this->formWholesalePrice = 0;
-        $this->formCostPrice = 0;
+        $this->formPurchasePrice = '';
+        $this->formWholesalePrice = '';
+        $this->formCostPrice = '';
         $this->formStatus = 1;
     }
 
@@ -168,6 +140,8 @@ class SkuList extends Component
             ['key' => 'purchase_price', 'label' => '采购价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
             ['key' => 'wholesale_price', 'label' => '批发价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
             ['key' => 'cost_price', 'label' => '成本价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
+            ['key' => 'stock', 'label' => '库存', 'sortable' => true, 'exportable' => true],
+            ['key' => 'approval_status', 'label' => '审核状态', 'sortable' => false, 'exportable' => true],
             ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
         ];
     }
@@ -207,9 +181,9 @@ class SkuList extends Component
         return [
             '商品ID' => 'product_id',
             'SKU编码' => 'sku_code',
-            '采购价(厘)' => 'purchase_price',
-            '批发价(厘)' => 'wholesale_price',
-            '成本价(厘)' => 'cost_price',
+            '采购价(元)' => 'purchase_price',
+            '批发价(元)' => 'wholesale_price',
+            '成本价(元)' => 'cost_price',
             '状态' => 'status',
         ];
     }
@@ -217,6 +191,11 @@ class SkuList extends Component
     public function getPageIds(): array
     {
         return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
+    }
+
+    public function getImportMoneyFields(): array
+    {
+        return ['purchase_price', 'wholesale_price', 'cost_price'];
     }
 
     public function render()
@@ -240,11 +219,13 @@ class SkuList extends Component
             $query->where('approval_status', $this->filterApprovalStatus);
         }
 
-        $skus = $query->paginate(20);
+        $skus = $query->paginate(setting('per_page', 10));
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 
-        return view('livewire.product.sku-list', compact('skus', 'allColumns', 'selectedCount'))
+        $productOptions = Product::orderBy('name')->get()->map(fn($p) => ['value' => $p->id, 'label' => $p->name])->toArray();
+
+        return view('livewire.product.sku-list', compact('skus', 'allColumns', 'selectedCount', 'productOptions'))
             ->layout('components.app-layout')
             ->title('SKU管理');
     }

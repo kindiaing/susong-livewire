@@ -1,4 +1,4 @@
-<div class="p-6">
+<div class="">
     {{-- 页面标题 --}}
     <div class="flex items-center justify-between mb-6">
         <div>
@@ -6,7 +6,7 @@
             <p class="text-muted-foreground mt-1">管理配送线路及排序</p>
         </div>
         @can('org.route.create')
-        <button wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+        <button type="button" wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
             新增线路
         </button>
         @endcan
@@ -14,23 +14,24 @@
 
     {{-- 搜索栏 --}}
     <div class="flex items-center gap-3 mb-4">
-        <input
-            type="text"
-            wire:model.live="search"
-            class="flex h-9 w-64 rounded-md border border-input bg-background px-3 text-sm"
-            placeholder="搜索线路名称..."
-        />
-        <button wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
+        <div x-data class="relative">
+            <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background pl-3 pr-8 text-sm" placeholder="搜索线路名称..." />
+            @if($search)
+                <button type="button" wire:click="resetFilters" class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted transition-colors">
+                    <x-ui.icon name="x-mark" class="w-3.5 h-3.5" />
+                </button>
+            @endif
+        </div>
         <div class="flex-1"></div>
-        <button wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">列配置</button>
-        <button wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导入</button>
-        <button wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导出</button>
+        <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">列配置</button>
+        <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导入</button>
+        <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导出</button>
         @if($selectedCount > 0)
             <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
             @can('org.route.delete')
-            <button wire:click="batchDelete" class="inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
+            <button type="button" wire:click="batchDelete" class="inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
             @endcan
-            <button wire:click="clearSelection" class="text-sm text-muted-foreground hover:text-foreground transition-colors">取消选择</button>
+            <button type="button" wire:click="clearSelection" class="text-sm text-muted-foreground hover:text-foreground transition-colors">取消选择</button>
         @endif
     </div>
 
@@ -80,11 +81,7 @@
                             @break
                         @case('status')
                             <div>
-                                @if($route->status === 1)
-                                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
-                                @else
-                                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
-                                @endif
+                                {!! status_badge($route->status, 'active') !!}
                             </div>
                             @break
                         @default
@@ -93,10 +90,10 @@
                 @endforeach
                 <div class="flex items-center gap-2">
                     @can('org.route.edit')
-                    <button wire:click="openEditModal({{ $route->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                    <button type="button" wire:click="openEditModal({{ $route->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
                     @endcan
                     @can('org.route.delete')
-                    <button wire:click="confirmDelete({{ $route->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                    <button type="button" wire:click="confirmDelete({{ $route->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
                     @endcan
                 </div>
             </div>
@@ -110,7 +107,7 @@
     {{-- 新增/编辑弹窗 --}}
     @if($showModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeModal"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
             <h2 class="text-lg font-semibold text-foreground mb-4">{{ $editingId ? '编辑线路' : '新增线路' }}</h2>
             <div class="space-y-4">
@@ -141,8 +138,8 @@
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">
-                <button wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
+                <button type="button" wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
             </div>
         </div>
     </div>
@@ -151,13 +148,13 @@
     {{-- 删除确认弹窗 --}}
     @if($showDeleteConfirm)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeDeleteConfirm"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
             <h2 class="text-lg font-semibold text-foreground mb-2">确认删除</h2>
             <p class="text-sm text-muted-foreground mb-6">确定要删除该配送线路吗？此操作不可恢复。</p>
             <div class="flex justify-end gap-3">
-                <button wire:click="closeDeleteConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button wire:click="delete" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>
+                <button type="button" wire:click="closeDeleteConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="delete" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>
             </div>
         </div>
     </div>

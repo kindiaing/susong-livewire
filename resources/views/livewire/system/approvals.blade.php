@@ -1,4 +1,4 @@
-<div class="p-6">
+<div class="">
     {{-- 页面标题 --}}
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-foreground">审批列表</h1>
@@ -28,8 +28,7 @@
             ];
         @endphp
         @foreach($tabs as $key => $tab)
-            <button
-                wire:click="setActiveTab('{{ $key }}')"
+            <button type="button" wire:click="setActiveTab('{{ $key }}')"
                 class="px-4 py-2 text-sm font-medium border-b-2 transition-colors {{ $activeTab === $key ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground' }}"
             >
                 {{ $tab['label'] }}
@@ -52,60 +51,65 @@
 
     {{-- 审批列表 --}}
     <div class="rounded-lg border bg-card">
-        <div class="grid grid-cols-[1fr_120px_120px_100px_150px_100px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            <div>审批信息</div>
-            <div>类型</div>
-            <div>申请人</div>
-            <div>涉及金额</div>
-            <div>时间</div>
-            <div class="text-right">状态</div>
-        </div>
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th class="px-4 py-2 text-left">审批信息</th>
+                    <th class="px-4 py-2 text-left">类型</th>
+                    <th class="px-4 py-2 text-left">申请人</th>
+                    <th class="px-4 py-2 text-left">涉及金额</th>
+                    <th class="px-4 py-2 text-left">时间</th>
+                    <th class="px-4 py-2 text-right">状态</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($approvals as $approval)
+                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors cursor-pointer"
+                     wire:click="showDetail({{ $approval->id }})"
+                     wire:key="approval-{{ $approval->id }}">
+                    {{-- 审批信息 --}}
+                    <td class="px-4 py-3">
+                        <div class="min-w-0">
+                            <div class="font-medium text-foreground truncate">{{ $approval->typeConfig?->type_name ?? $approval->approval_type }}</div>
+                            <div class="text-xs text-muted-foreground mt-0.5 truncate">
+                                {{ $approval->target_type }} #{{ $approval->target_id }}
+                            </div>
+                        </div>
+                    </td>
 
-        @forelse($approvals as $approval)
-            <div class="grid grid-cols-[1fr_120px_120px_100px_150px_100px] gap-3 border-b last:border-b-0 px-6 py-4 items-center hover:bg-muted/30 transition-colors cursor-pointer"
-                 wire:click="showDetail({{ $approval->id }})"
-                 wire:key="approval-{{ $approval->id }}">
-                {{-- 审批信息 --}}
-                <div class="min-w-0">
-                    <div class="text-sm font-medium text-foreground truncate">{{ $approval->typeConfig?->type_name ?? $approval->approval_type }}</div>
-                    <div class="text-xs text-muted-foreground mt-0.5 truncate">
-                        {{ $approval->target_type }} #{{ $approval->target_id }}
-                    </div>
-                </div>
+                    {{-- 类型编码 --}}
+                    <td class="px-4 py-3 text-muted-foreground">{{ $approval->approval_type }}</td>
 
-                {{-- 类型编码 --}}
-                <div class="text-sm text-muted-foreground">{{ $approval->approval_type }}</div>
+                    {{-- 申请人 --}}
+                    <td class="px-4 py-3 text-foreground">{{ $approval->applicant_name }}</td>
 
-                {{-- 申请人 --}}
-                <div class="text-sm text-foreground">{{ $approval->applicant_name }}</div>
+                    {{-- 金额 --}}
+                    <td class="px-4 py-3 font-mono text-foreground">
+                        @if($approval->amount)
+                            {{ number_format($approval->amount / 100, 2) }} 元
+                        @else
+                            -
+                        @endif
+                    </td>
 
-                {{-- 金额 --}}
-                <div class="text-sm font-mono text-foreground">
-                    @if($approval->amount)
-                        {{ number_format($approval->amount / 100, 2) }} 元
-                    @else
-                        -
-                    @endif
-                </div>
+                    {{-- 时间 --}}
+                    <td class="px-4 py-3 text-muted-foreground">
+                        {{ $approval->created_at?->format('Y-m-d H:i') }}
+                    </td>
 
-                {{-- 时间 --}}
-                <div class="text-sm text-muted-foreground">
-                    {{ $approval->created_at?->format('Y-m-d H:i') }}
-                </div>
-
-                {{-- 状态 --}}
-                <div class="text-right">
-                    @php $color = $approval->status_color; @endphp
-                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $color === 'green' ? 'bg-green-100 text-green-700' : ($color === 'red' ? 'bg-red-100 text-red-700' : ($color === 'orange' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600')) }}">
-                        {{ $approval->status_label }}
-                    </span>
-                </div>
-            </div>
-        @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">
-                暂无审批记录
-            </div>
-        @endforelse
+                    {{-- 状态 --}}
+                    <td class="px-4 py-3 text-right">
+                        @php $color = $approval->status_color; @endphp
+                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $color === 'green' ? 'bg-green-100 text-green-700' : ($color === 'red' ? 'bg-red-100 text-red-700' : ($color === 'orange' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600')) }}">
+                            {{ $approval->status_label }}
+                        </span>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="6" class="px-6 py-12 text-center text-muted-foreground">暂无审批记录</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 
     {{-- 分页 --}}
@@ -115,14 +119,14 @@
 
     {{-- 详情弹窗 --}}
     @if($detailApproval)
-        <div class="fixed inset-0 z-50 flex items-center justify-center" wire:click="closeDetail">
-            <div class="absolute inset-0 bg-black/50"></div>
+        <div class="fixed inset-0 z-50 flex items-center justify-center">
+            <div class="absolute inset-0 bg-black/50" aria-hidden="true"></div>
             <div class="relative z-10 w-full max-w-2xl mx-4 rounded-lg border bg-background shadow-lg max-h-[85vh] overflow-y-auto"
                  wire:click.stop>
                 {{-- 弹窗头 --}}
                 <div class="flex items-center justify-between border-b px-6 py-4">
                     <h2 class="text-lg font-semibold text-foreground">审批详情</h2>
-                    <button wire:click="closeDetail" class="p-1 rounded-md hover:bg-muted text-muted-foreground">
+                    <button type="button" wire:click="closeDetail" class="p-1 rounded-md hover:bg-muted text-muted-foreground">
                         <x-ui.icon name="x" class="w-5 h-5" />
                     </button>
                 </div>
@@ -231,8 +235,7 @@
                                     variant="info"
                                     :confirmAction="'$wire.withdraw(' . $detailApproval->id . ')'"
                                 >
-                                    <button
-                                        class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
+                                    <button type="button" class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-muted text-muted-foreground hover:bg-muted/80 transition-colors"
                                     >
                                         撤回
                                     </button>
@@ -245,8 +248,7 @@
                                     variant="destructive"
                                     :confirmAction="'$wire.reject(' . $detailApproval->id . ')'"
                                 >
-                                    <button
-                                        class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-colors"
+                                    <button type="button" class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-red-600 text-white hover:bg-red-700 transition-colors"
                                     >
                                         拒绝
                                     </button>
@@ -259,8 +261,7 @@
                                     variant="warning"
                                     :confirmAction="'$wire.approve(' . $detailApproval->id . ')'"
                                 >
-                                    <button
-                                        class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
+                                    <button type="button" class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
                                     >
                                         通过
                                     </button>

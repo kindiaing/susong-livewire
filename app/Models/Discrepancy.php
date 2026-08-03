@@ -30,6 +30,43 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Discrepancy extends Model
 {
+    use SoftDeletes;
+
+    // 差异环节常量
+    public const STAGE_PICKING = 1;
+    public const STAGE_DELIVERY = 2;
+    public const STAGE_RECEIVING = 3;
+
+    // 差异类型常量
+    public const TYPE_SHORT = 1;
+    public const TYPE_REJECT = 2;
+    public const TYPE_DEFECT = 3;
+    public const TYPE_OTHER = 4;
+
+    // 责任方常量
+    public const PARTY_SUPPLIER = 1;
+    public const PARTY_PLATFORM = 2;
+    public const PARTY_DRIVER = 3;
+    public const PARTY_MERCHANT = 4;
+
+    // 处理决策常量
+    public const DECISION_RESTOCK = 1;
+    public const DECISION_REFUND = 2;
+    public const DECISION_DEDUCT = 3;
+    public const DECISION_LOSS = 4;
+    public const DECISION_IGNORE = 5;
+
+    // 状态常量
+    public const STATUS_PENDING = 1;
+    public const STATUS_PROCESSING = 2;
+    public const STATUS_RESOLVED = 3;
+    public const STATUS_CLOSED = 4;
+    public const STATUS_DISPUTED = 5;
+
+    // 审核状态常量
+    public const APPROVAL_PENDING = 1;
+    public const APPROVAL_APPROVED = 2;
+    public const APPROVAL_REJECTED = 3;
 
     protected $fillable = [
         'discrepancy_no',
@@ -75,4 +112,114 @@ class Discrepancy extends Model
         ];
     }
 
+    /**
+     * 状态映射
+     */
+    public static function statusMap(): array
+    {
+        return [
+            self::STATUS_PENDING => '待处理',
+            self::STATUS_PROCESSING => '处理中',
+            self::STATUS_RESOLVED => '已处理',
+            self::STATUS_CLOSED => '已关闭',
+            self::STATUS_DISPUTED => '争议中',
+        ];
+    }
+
+    /**
+     * 审核状态映射
+     */
+    public static function approvalStatusMap(): array
+    {
+        return [
+            self::APPROVAL_PENDING => '待审核',
+            self::APPROVAL_APPROVED => '已通过',
+            self::APPROVAL_REJECTED => '已拒绝',
+        ];
+    }
+
+    /**
+     * 差异环节映射
+     */
+    public static function stageMap(): array
+    {
+        return [
+            self::STAGE_PICKING => '拣货',
+            self::STAGE_DELIVERY => '配送',
+            self::STAGE_RECEIVING => '实收',
+        ];
+    }
+
+    /**
+     * 差异类型映射
+     */
+    public static function typeMap(): array
+    {
+        return [
+            self::TYPE_SHORT => '少收',
+            self::TYPE_REJECT => '拒收',
+            self::TYPE_DEFECT => '残次',
+            self::TYPE_OTHER => '其他',
+        ];
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::statusMap()[$this->status] ?? '未知';
+    }
+
+    public function getApprovalStatusLabelAttribute(): string
+    {
+        return self::approvalStatusMap()[$this->approval_status] ?? '未知';
+    }
+
+    public function getStageLabelAttribute(): string
+    {
+        return self::stageMap()[$this->stage] ?? '未知';
+    }
+
+    public function getTypeLabelAttribute(): string
+    {
+        return self::typeMap()[$this->type] ?? '未知';
+    }
+
+    /**
+     * 关联订单
+     */
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * 关联订单明细
+     */
+    public function orderItem()
+    {
+        return $this->belongsTo(OrderItem::class);
+    }
+
+    /**
+     * 关联处理人
+     */
+    public function handler()
+    {
+        return $this->belongsTo(User::class, 'handler_id');
+    }
+
+    /**
+     * 作用域：待处理
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', self::STATUS_PENDING);
+    }
+
+    /**
+     * 作用域：按差异环节
+     */
+    public function scopeByStage($query, int $stage)
+    {
+        return $query->where('stage', $stage);
+    }
 }

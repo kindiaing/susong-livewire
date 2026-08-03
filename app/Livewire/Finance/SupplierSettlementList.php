@@ -5,8 +5,10 @@ namespace App\Livewire\Finance;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
 use App\Models\SupplierSettlement;
@@ -20,25 +22,26 @@ class SupplierSettlementList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithMoneyConversion;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = SupplierSettlement::class;
 
     public string $search = '';
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
 
     public int $formSupplierId = 0;
     public int $formPurchaseOrderId = 0;
-    public int $formAmount = 0;
+    public string $formAmount = '';
     public string $formSettlementDate = '';
     public string $formNote = '';
 
     public static array $statusMap = [
-        0 => '待结算',
-        1 => '已结算',
+        1 => '待结算', 2 => '部分付款', 3 => '已结清', 4 => '已办结',
+    ];
+
+    public static array $statusColorMap = [
+        1 => 'yellow', 2 => 'blue', 3 => 'green', 4 => 'gray',
     ];
 
     public function mount(): void
@@ -88,7 +91,7 @@ class SupplierSettlementList extends Component
         return [
             '供应商ID' => 'supplier_id',
             '采购单ID' => 'purchase_order_id',
-            '金额(分)' => 'amount',
+            '金额(元)' => 'amount',
             '结算日期' => 'settlement_date',
             '备注' => 'note',
         ];
@@ -99,10 +102,9 @@ class SupplierSettlementList extends Component
         return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
     }
 
-    public function openCreateModal(): void
+    public function getImportMoneyFields(): array
     {
-        $this->resetForm();
-        $this->showModal = true;
+        return ['amount'];
     }
 
     public function save(): void
@@ -110,7 +112,7 @@ class SupplierSettlementList extends Component
         $this->validate([
             'formSupplierId' => 'required|integer|exists:suppliers,id',
             'formPurchaseOrderId' => 'required|integer|exists:purchase_orders,id',
-            'formAmount' => 'required|integer|min:1',
+            'formAmount' => 'required|numeric|min:0.01',
             'formSettlementDate' => 'required|date',
         ]);
 
@@ -118,8 +120,8 @@ class SupplierSettlementList extends Component
             'supplier_id' => $this->formSupplierId,
             'purchase_order_id' => $this->formPurchaseOrderId,
             'settlement_no' => 'SS' . now()->format('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT),
-            'amount' => $this->formAmount,
-            'status' => 0,
+            'amount' => money_to_cents($this->formAmount),
+            'status' => 1,
             'settlement_date' => $this->formSettlementDate,
             'note' => $this->formNote ?: null,
         ]);
@@ -132,18 +134,12 @@ class SupplierSettlementList extends Component
     public function confirmPayment(int $id): void
     {
         $item = SupplierSettlement::findOrFail($id);
-        if ($item->status !== 0) {
+        if ($item->status !== 1) {
             $this->toastError('仅待结算状态可确认付款');
             return;
         }
-        $item->update(['status' => 1]);
+        $item->update(['status' => 3]);
         $this->toastSuccess('结算已确认付款');
-    }
-
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
     }
 
     public function delete(): void
@@ -154,32 +150,12 @@ class SupplierSettlementList extends Component
         $this->deletingId = null;
     }
 
-    public function resetFilters(): void
-    {
-        $this->search = '';
-        $this->resetPage();
-        $this->clearSelection();
-    }
-
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
-    }
-
     private function resetForm(): void
     {
         $this->editingId = null;
         $this->formSupplierId = 0;
         $this->formPurchaseOrderId = 0;
-        $this->formAmount = 0;
+        $this->formAmount = '';
         $this->formSettlementDate = '';
         $this->formNote = '';
     }
@@ -195,12 +171,13 @@ class SupplierSettlementList extends Component
             });
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
         $suppliers = Supplier::orderBy('name')->get();
         $purchaseOrders = PurchaseOrder::orderBy('id', 'desc')->get();
         $allColumns = $this->getAllColumns();
+        $selectedCount = $this->getSelectedCount();
 
-        return view('livewire.finance.supplier-settlement-list', compact('items', 'suppliers', 'purchaseOrders', 'allColumns'))
+        return view('livewire.finance.supplier-settlement-list', compact('items', 'suppliers', 'purchaseOrders', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('供应商结算');
     }

@@ -107,7 +107,7 @@ class OperationLogs extends Component
 
     public function render()
     {
-        $logs = $this->buildQuery()->paginate(20);
+        $logs = $this->buildQuery()->paginate(setting('per_page', 10));
 
         return view('livewire.system.operation-logs', [
             'logs' => $logs,

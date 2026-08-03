@@ -47,11 +47,11 @@ $confirmClasses = match($variant) {
                     <h3 class="text-lg font-semibold leading-none tracking-tight">{{ $title }}</h3>
                     <p class="mt-2 text-sm text-muted-foreground">{{ $description }}</p>
                     <div class="mt-6 flex justify-end gap-3">
-                        <button @click="open = false"
+                        <button type="button" @click="open = false"
                                 class="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors">
                             {{ $cancelText }}
                         </button>
-                        <button @click="open = false; {{ $confirmAction }}"
+                        <button type="button" @click="open = false; {{ $confirmAction }}"
                                 class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium text-white transition-colors {{ $confirmClasses }}">
                             {{ $confirmText }}
                         </button>

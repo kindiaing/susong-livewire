@@ -13,9 +13,18 @@ use Illuminate\Support\Carbon;
  * @property int $product_id 商品ID
  * @property string $sku_code SKU编码
  * @property array|null $specs 规格属性
- * @property int $purchase_price 采购参考价（厘）
- * @property int $wholesale_price 批发销售价（厘）
- * @property int $cost_price 财务成本价（厘）
+ * @property int $purchase_price 标准采购价（厘）
+ * @property int $cost_price 加权平均成本价（厘）
+ * @property int $min_purchase_price 最低采购限价（厘）
+ * @property int $list_price 吊牌价（厘）
+ * @property int $retail_price 标准零售价（厘）
+ * @property int $wholesale_price 批发团购价（厘）
+ * @property int $employee_price 员工内部价（厘）
+ * @property int $offline_price 门店基准价（厘）
+ * @property int $miniapp_price 小程序基准价（厘）
+ * @property int $delivery_price 配送基准价（厘）
+ * @property int $min_sale_price 最低销售限价（厘）
+ * @property int $max_sale_price 最高销售限价（厘）
  * @property int $stock 当前库存
  * @property int $status 状态：0禁用，1启用
  * @property int $approval_status 审核状态：1待审核，2已通过，3已拒绝
@@ -41,8 +50,17 @@ class Sku extends Model
         'sku_code',
         'specs',
         'purchase_price',
-        'wholesale_price',
         'cost_price',
+        'min_purchase_price',
+        'list_price',
+        'retail_price',
+        'wholesale_price',
+        'employee_price',
+        'offline_price',
+        'miniapp_price',
+        'delivery_price',
+        'min_sale_price',
+        'max_sale_price',
         'stock',
         'status',
         'approval_status',
@@ -54,8 +72,17 @@ class Sku extends Model
             'product_id' => 'integer',
             'specs' => 'array',
             'purchase_price' => 'integer',
-            'wholesale_price' => 'integer',
             'cost_price' => 'integer',
+            'min_purchase_price' => 'integer',
+            'list_price' => 'integer',
+            'retail_price' => 'integer',
+            'wholesale_price' => 'integer',
+            'employee_price' => 'integer',
+            'offline_price' => 'integer',
+            'miniapp_price' => 'integer',
+            'delivery_price' => 'integer',
+            'min_sale_price' => 'integer',
+            'max_sale_price' => 'integer',
             'stock' => 'integer',
             'status' => 'integer',
             'approval_status' => 'integer',
@@ -133,5 +160,37 @@ class Sku extends Model
     public function scopeEnabled($query)
     {
         return $query->where('status', self::STATUS_ENABLED);
+    }
+
+    /**
+     * 作用域：禁用
+     */
+    public function scopeDisabled($query)
+    {
+        return $query->where('status', self::STATUS_DISABLED);
+    }
+
+    /**
+     * 作用域：待审核
+     */
+    public function scopePendingApproval($query)
+    {
+        return $query->where('approval_status', self::APPROVAL_PENDING);
+    }
+
+    /**
+     * 作用域：已通过审核
+     */
+    public function scopeApproved($query)
+    {
+        return $query->where('approval_status', self::APPROVAL_APPROVED);
+    }
+
+    /**
+     * 作用域：按商品筛选
+     */
+    public function scopeByProduct($query, int $productId)
+    {
+        return $query->where('product_id', $productId);
     }
 }

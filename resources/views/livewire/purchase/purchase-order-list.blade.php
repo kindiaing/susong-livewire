@@ -1,4 +1,4 @@
-<div class="p-6">
+<div class="">
     {{-- 页面标题 --}}
     <div class="flex items-center justify-between mb-6">
         <div>
@@ -14,12 +14,14 @@
 
     {{-- 搜索栏 --}}
     <div class="flex items-center gap-3 mb-4">
-        <input
-            type="text"
-            wire:model.live="search"
-            class="flex h-9 w-64 rounded-md border border-input bg-background px-3 text-sm"
-            placeholder="搜索单号/供应商..."
-        />
+        <div x-data class="relative">
+            <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background pl-3 pr-8 text-sm" placeholder="搜索单号/供应商..." />
+            @if($search)
+                <button type="button" wire:click="resetFilters" class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted transition-colors">
+                    <x-ui.icon name="x-mark" class="w-3.5 h-3.5" />
+                </button>
+            @endif
+        </div>
         <select wire:model.live="filterStatus" class="flex h-9 rounded-md border border-input bg-background px-3 text-sm">
             <option value="-1">全部状态</option>
             <option value="1">待接单</option>
@@ -29,7 +31,15 @@
             <option value="5">完成</option>
             <option value="9">取消</option>
         </select>
-        <button type="button" wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
+        <div class="flex-1"></div>
+        <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">列配置</button>
+        <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导入</button>
+        <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导出</button>
+            @if($selectedCount > 0)
+                <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
+                <button type="button" wire:click="batchDelete" class="inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
+                <button type="button" wire:click="clearSelection" class="text-sm text-muted-foreground hover:text-foreground transition-colors">取消选择</button>
+            @endif
     </div>
 
     {{-- 采购单列表 --}}
@@ -37,7 +47,7 @@
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    <th class="px-4 py-2.5 text-left w-12">ID</th>
+                    <th class="px-4 py-2.5 text-left w-10"><input type="checkbox" wire:model.live="selectAllPage" class="rounded" /></th>
                     <th class="px-4 py-2.5 text-left">采购单号</th>
                     <th class="px-4 py-2.5 text-left">供应商</th>
                     <th class="px-4 py-2.5 text-right w-24">总金额</th>
@@ -49,7 +59,7 @@
             <tbody>
             @forelse($orders as $order)
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="po-{{ $order->id }}">
-                    <td class="px-4 py-2 text-muted-foreground">{{ $order->id }}</td>
+                    <td class="px-4 py-2"><input type="checkbox" value="{{ $order->id }}" wire:model.live="selectedIds" class="rounded" /></td>
                     <td class="px-4 py-2">
                         <a href="{{ route('purchase-orders.detail', $order->id) }}" class="font-mono text-blue-600 hover:text-blue-700">{{ $order->order_no }}</a>
                     </td>
@@ -102,7 +112,7 @@
     {{-- 新增/编辑弹窗 --}}
     @if($showModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeModal"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
             <h2 class="text-lg font-semibold text-foreground mb-4">{{ $editingId ? '编辑采购单' : '新增采购单' }}</h2>
             <div class="space-y-4">
@@ -127,18 +137,8 @@
     </div>
     @endif
 
-    {{-- 删除确认弹窗 --}}
-    @if($showDeleteConfirm)
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeDeleteConfirm"></div>
-        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
-            <h2 class="text-lg font-semibold text-foreground mb-2">确认删除</h2>
-            <p class="text-sm text-muted-foreground mb-6">确定要删除该采购单吗？</p>
-            <div class="flex justify-end gap-3">
-                <button type="button" wire:click="closeDeleteConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button type="button" wire:click="delete" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>
-            </div>
-        </div>
-    </div>
-    @endif
+    @include('partials.column-modal')
+    @include('partials.export-modal')
+    @include('partials.import-modal')
+    @include('partials.delete-confirm')
 </div>

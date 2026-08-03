@@ -1,4 +1,4 @@
-<div class="p-6">
+<div class="">
     {{-- 页面标题 --}}
     <div class="flex items-center justify-between mb-6">
         <div>
@@ -9,7 +9,14 @@
 
     {{-- 搜索栏 --}}
     <div class="flex items-center gap-3 mb-4">
-        <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background px-3 text-sm" placeholder="搜索SKU编码/变动原因..." />
+        <div x-data class="relative">
+            <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background pl-3 pr-8 text-sm" placeholder="搜索SKU编码/变动原因..." />
+            @if($search)
+                <button type="button" wire:click="resetFilters" class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted transition-colors">
+                    <x-ui.icon name="x-mark" class="w-3.5 h-3.5" />
+                </button>
+            @endif
+        </div>
         <select wire:model.live="filterType" class="flex h-9 w-32 rounded-md border border-input bg-background px-3 text-sm">
             <option value="-1">全部类型</option>
             <option value="1">入库</option>
@@ -25,50 +32,63 @@
                 <option value="{{ $w->id }}">{{ $w->name }}</option>
             @endforeach
         </select>
-        <button wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
+        <div class="flex-1"></div>
+        <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">列配置</button>
+        <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导入</button>
+        <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导出</button>
+            @if($selectedCount > 0)
+                <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
+                <button type="button" wire:click="batchDelete" class="inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
+                <button type="button" wire:click="clearSelection" class="text-sm text-muted-foreground hover:text-foreground transition-colors">取消选择</button>
+            @endif
     </div>
 
     {{-- 列表 --}}
     <div class="rounded-lg border bg-card overflow-x-auto">
-        <div class="grid grid-cols-[60px_1fr_1fr_80px_100px_100px_100px_1fr_140px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider min-w-[1000px]">
-            <div>ID</div>
-            <div>仓库</div>
-            <div>SKU</div>
-            <div>类型</div>
-            <div>变动数量</div>
-            <div>变动前</div>
-            <div>变动后</div>
-            <div>原因</div>
-            <div>时间</div>
-        </div>
-
-        @forelse($items as $item)
-            <div class="grid grid-cols-[60px_1fr_1fr_80px_100px_100px_100px_1fr_140px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors min-w-[1000px]"
-                 wire:key="invlog-{{ $item->id }}">
-                <div class="text-sm text-muted-foreground">{{ $item->id }}</div>
-                <div class="text-sm text-foreground">{{ $item->warehouse?->name ?? '-' }}</div>
-                <div class="text-sm text-foreground">
-                    {{ $item->sku?->sku_code ?? '-' }}
-                    <span class="text-muted-foreground text-xs ml-1">{{ $item->sku?->product?->name ?? '' }}</span>
-                </div>
-                <div>
-                    @php($typeLabel = \App\Models\InventoryLog::typeMap()[$item->type] ?? '未知')
-                    @if(in_array($item->type, [1, 5, 6]))
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">{{ $typeLabel }}</span>
-                    @else
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-red-100 text-red-700">{{ $typeLabel }}</span>
-                    @endif
-                </div>
-                <div class="text-sm {{ $item->quantity >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ $item->quantity >= 0 ? '+' : '' }}{{ $item->quantity }}</div>
-                <div class="text-sm text-muted-foreground">{{ $item->before_stock }}</div>
-                <div class="text-sm text-foreground">{{ $item->after_stock }}</div>
-                <div class="text-sm text-muted-foreground truncate">{{ $item->reason ?: '-' }}</div>
-                <div class="text-sm text-muted-foreground">{{ $item->created_at ? $item->created_at->format('Y-m-d H:i') : '-' }}</div>
-            </div>
-        @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无库存变动记录</div>
-        @endforelse
+        <table class="w-full text-sm min-w-[1000px]">
+            <thead>
+                <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAllPage" class="rounded" /></th>
+                    <th class="px-4 py-2 text-left">仓库</th>
+                    <th class="px-4 py-2 text-left">SKU</th>
+                    <th class="px-4 py-2 text-left">类型</th>
+                    <th class="px-4 py-2 text-left">变动数量</th>
+                    <th class="px-4 py-2 text-left">变动前</th>
+                    <th class="px-4 py-2 text-left">变动后</th>
+                    <th class="px-4 py-2 text-left">原因</th>
+                    <th class="px-4 py-2 text-left">时间</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($items as $item)
+                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="invlog-{{ $item->id }}">
+                    <td class="px-4 py-2"><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></td>
+                    <td class="px-4 py-2 text-foreground">{{ $item->warehouse?->name ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground">
+                        {{ $item->sku?->sku_code ?? '-' }}
+                        <span class="text-muted-foreground text-xs ml-1">{{ $item->sku?->product?->name ?? '' }}</span>
+                    </td>
+                    <td class="px-4 py-2">
+                        @php($typeLabel = \App\Models\InventoryLog::typeMap()[$item->type] ?? '未知')
+                        {!! status_badge($item->type, 'inventory_log', $typeLabel) !!}
+                    </td>
+                    <td class="px-4 py-2 {{ $item->quantity >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ $item->quantity >= 0 ? '+' : '' }}{{ $item->quantity }}</td>
+                    <td class="px-4 py-2 text-muted-foreground">{{ $item->before_stock }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $item->after_stock }}</td>
+                    <td class="px-4 py-2 text-muted-foreground truncate">{{ $item->reason ?: '-' }}</td>
+                    <td class="px-4 py-2 text-muted-foreground">{{ $item->created_at ? $item->created_at->format('Y-m-d H:i') : '-' }}</td>
+                </tr>
+                @empty
+                <tr><td colspan="9" class="px-6 py-12 text-center text-muted-foreground">暂无库存变动记录</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 
     <div class="mt-4">{{ $items->links() }}</div>
+
+    @include('partials.column-modal')
+    @include('partials.export-modal')
+    @include('partials.import-modal')
+    @include('partials.delete-confirm')
 </div>

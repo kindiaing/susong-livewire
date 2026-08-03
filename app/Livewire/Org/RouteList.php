@@ -7,6 +7,7 @@ use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\DeliveryRoute;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -19,14 +20,11 @@ class RouteList extends Component
     use WithExcelExport;
     use WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = DeliveryRoute::class;
 
     public string $search = '';
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
 
     public string $formName = '';
     public string $formDescription = '';
@@ -36,12 +34,6 @@ class RouteList extends Component
     public function mount(): void
     {
         $this->initColumnVisibility();
-    }
-
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
     }
 
     public function openEditModal(int $id): void
@@ -84,12 +76,6 @@ class RouteList extends Component
         $this->resetForm();
     }
 
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         $route = DeliveryRoute::findOrFail($this->deletingId);
@@ -97,26 +83,6 @@ class RouteList extends Component
         $this->toastSuccess('配送线路已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
-    }
-
-    public function resetFilters(): void
-    {
-        $this->search = '';
-        $this->resetPage();
-        $this->clearSelection();
-    }
-
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
     }
 
     private function resetForm(): void
@@ -214,7 +180,7 @@ class RouteList extends Component
             });
         }
 
-        $routes = $query->paginate(10);
+        $routes = $query->paginate(setting('per_page', 10));
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 

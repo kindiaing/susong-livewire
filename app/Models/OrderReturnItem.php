@@ -44,4 +44,27 @@ class OrderReturnItem extends Model
         ];
     }
 
+    /**
+     * 关联退货单
+     */
+    public function orderReturn()
+    {
+        return $this->belongsTo(OrderReturn::class);
+    }
+
+    /**
+     * 关联订单明细
+     */
+    public function orderItem()
+    {
+        return $this->belongsTo(OrderItem::class);
+    }
+
+    /**
+     * 关联 SKU
+     */
+    public function sku()
+    {
+        return $this->belongsTo(Sku::class);
+    }
 }

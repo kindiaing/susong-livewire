@@ -7,13 +7,18 @@ use App\Models\Warehouse;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class InventoryLogList extends Component
 {
     use WithPagination;
-    use WithRowSelection, WithColumnVisibility, WithExcelExport;
+    use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
+    use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = InventoryLog::class;
 
@@ -32,6 +37,57 @@ class InventoryLogList extends Component
         $this->filterType = -1;
         $this->filterWarehouseId = 0;
         $this->resetPage();
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['warehouse_id', 'sku_id', 'type', 'quantity', 'before_stock', 'after_stock', 'reason', 'operator_id', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'warehouse_id' => $row->warehouse?->name ?? '',
+                'sku_id' => $row->sku?->sku_code ?? '',
+                'type' => $row->type,
+                'quantity' => $row->quantity,
+                'before_stock' => $row->before_stock,
+                'after_stock' => $row->after_stock,
+                'reason' => $row->reason ?? '',
+                'operator_id' => $row->operator?->name ?? '',
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportModelClass(): string
+    {
+        return InventoryLog::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            '仓库ID' => 'warehouse_id',
+            'SKU ID' => 'sku_id',
+            '变动类型' => 'type',
+            '变动数量' => 'quantity',
+            '变动前库存' => 'before_stock',
+            '变动后库存' => 'after_stock',
+            '原因' => 'reason',
+        ];
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['id'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['仓库ID', 'SKU ID', '变动类型'];
     }
 
     public function getAllColumns(): array
@@ -84,7 +140,7 @@ class InventoryLogList extends Component
             $query->where('warehouse_id', $this->filterWarehouseId);
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
         $warehouses = Warehouse::enabled()->orderBy('name')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();

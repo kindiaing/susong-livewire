@@ -20,6 +20,15 @@ class LoginLog extends Model
 {
     public const UPDATED_AT = null;
 
+    // 登录类型常量
+    public const LOGIN_ADMIN = 1;
+    public const LOGIN_MERCHANT = 2;
+    public const LOGIN_DRIVER = 3;
+
+    // 结果常量
+    public const RESULT_FAIL = 0;
+    public const RESULT_SUCCESS = 1;
+
     protected $fillable = [
         'user_id',
         'username',
@@ -39,4 +48,68 @@ class LoginLog extends Model
         ];
     }
 
+    /**
+     * 登录类型映射
+     */
+    public static function loginTypeMap(): array
+    {
+        return [
+            self::LOGIN_ADMIN => '管理后台',
+            self::LOGIN_MERCHANT => '商家小程序',
+            self::LOGIN_DRIVER => '司机小程序',
+        ];
+    }
+
+    /**
+     * 结果映射
+     */
+    public static function statusMap(): array
+    {
+        return [
+            self::RESULT_SUCCESS => '成功',
+            self::RESULT_FAIL => '失败',
+        ];
+    }
+
+    public function getLoginTypeLabelAttribute(): string
+    {
+        return self::loginTypeMap()[$this->login_type] ?? '未知';
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::statusMap()[$this->status] ?? '未知';
+    }
+
+    /**
+     * 关联用户
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * 作用域：按登录类型
+     */
+    public function scopeByLoginType($query, int $type)
+    {
+        return $query->where('login_type', $type);
+    }
+
+    /**
+     * 作用域：成功
+     */
+    public function scopeSuccess($query)
+    {
+        return $query->where('status', self::RESULT_SUCCESS);
+    }
+
+    /**
+     * 作用域：失败
+     */
+    public function scopeFailed($query)
+    {
+        return $query->where('status', self::RESULT_FAIL);
+    }
 }

@@ -32,7 +32,7 @@
                 @endif
             </div>
             <div class="flex items-center gap-3">
-                <button wire:click="downloadImportTemplate" class="rounded-md border border-input px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors">
+                <button type="button" wire:click="downloadImportTemplate" class="rounded-md border border-input px-3 py-1.5 text-xs font-medium text-foreground hover:bg-accent transition-colors">
                     下载模板
                 </button>
                 <span class="text-xs text-muted-foreground">请先下载模板填写数据，<span class="text-red-600">红色列头</span>为必填</span>
@@ -66,8 +66,8 @@
             @endif
         </div>
         <div class="flex justify-end gap-3 mt-6">
-            <button wire:click="closeImportModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">关闭</button>
-            <button wire:click="doImport" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">导入</button>
+            <button type="button" wire:click="closeImportModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">关闭</button>
+            <button type="button" wire:click="doImport" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">导入</button>
         </div>
     </div>
 </div>

@@ -30,4 +30,19 @@ class SupplierSettlementItem extends Model
         ];
     }
 
+    /**
+     * 关联结算单
+     */
+    public function settlement()
+    {
+        return $this->belongsTo(SupplierSettlement::class, 'supplier_settlement_id');
+    }
+
+    /**
+     * 关联采购单
+     */
+    public function purchaseOrder()
+    {
+        return $this->belongsTo(PurchaseOrder::class);
+    }
 }

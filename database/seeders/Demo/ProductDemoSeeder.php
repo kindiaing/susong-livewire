@@ -19,26 +19,70 @@ class ProductDemoSeeder extends Seeder
         $this->seedSkuSuppliers();
         $this->seedSkuBarcodes();
         $this->seedKeywords();
+        $this->seedTags();
+        $this->seedProductTags();
+        $this->seedProductImages();
         $this->seedMerchantFavorites();
     }
 
     protected function seedCategories(): void
     {
         $now = now();
-        $categories = [
-            ['name' => '蔬菜', 'sort' => 1, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['name' => '水果', 'sort' => 2, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['name' => '肉类', 'sort' => 3, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['name' => '水产', 'sort' => 4, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['name' => '粮油', 'sort' => 5, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['name' => '调料', 'sort' => 6, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['name' => '豆制品', 'sort' => 7, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['name' => '冷冻食品', 'sort' => 8, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
+
+        // 一级分类（根节点）
+        $rootCategories = [
+            ['name' => '蔬菜', 'sort' => 1, 'status' => 1],
+            ['name' => '水果', 'sort' => 2, 'status' => 1],
+            ['name' => '肉类', 'sort' => 3, 'status' => 1],
+            ['name' => '水产', 'sort' => 4, 'status' => 1],
+            ['name' => '粮油', 'sort' => 5, 'status' => 1],
+            ['name' => '调料', 'sort' => 6, 'status' => 1],
+            ['name' => '豆制品', 'sort' => 7, 'status' => 1],
+            ['name' => '冷冻食品', 'sort' => 8, 'status' => 1],
         ];
 
-        foreach ($categories as $category) {
-            if (! DB::table('categories')->where('name', $category['name'])->exists()) {
-                DB::table('categories')->insert($category);
+        foreach ($rootCategories as $cat) {
+            if (! DB::table('categories')->where('name', $cat['name'])->where('parent_id', 0)->exists()) {
+                DB::table('categories')->insert([
+                    'parent_id' => 0,
+                    'name' => $cat['name'],
+                    'icon' => null,
+                    'sort' => $cat['sort'],
+                    'status' => $cat['status'],
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+        }
+
+        // 二级子分类
+        $childMap = [
+            '蔬菜' => ['叶菜类', '根茎类', '瓜果类', '菌菇类'],
+            '水果' => ['热带水果', '温带水果', '浆果类'],
+            '肉类' => ['猪肉', '牛肉', '羊肉', '禽类'],
+            '水产' => ['鱼类', '虾蟹类', '贝类'],
+            '粮油' => ['大米', '食用油', '面粉'],
+            '调料' => ['酱油醋', '香辛料', '调味酱'],
+            '豆制品' => ['豆腐类', '豆干类', '腐竹类'],
+            '冷冻食品' => ['速冻面点', '冷冻肉类', '冷冻水产'],
+        ];
+
+        foreach ($childMap as $parentName => $children) {
+            $parentId = DB::table('categories')->where('name', $parentName)->where('parent_id', 0)->value('id');
+            if (! $parentId) continue;
+
+            foreach ($children as $idx => $childName) {
+                if (! DB::table('categories')->where('name', $childName)->where('parent_id', $parentId)->exists()) {
+                    DB::table('categories')->insert([
+                        'parent_id' => $parentId,
+                        'name' => $childName,
+                        'icon' => null,
+                        'sort' => $idx + 1,
+                        'status' => 1,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]);
+                }
             }
         }
     }
@@ -203,6 +247,84 @@ class ProductDemoSeeder extends Seeder
                     'created_at' => $now,
                     'updated_at' => $now,
                 ]);
+            }
+        }
+    }
+
+    protected function seedTags(): void
+    {
+        $now = now();
+        $tags = [
+            ['name' => '热销', 'sort' => 1, 'status' => 1],
+            ['name' => '新品', 'sort' => 2, 'status' => 1],
+            ['name' => '特价', 'sort' => 3, 'status' => 1],
+            ['name' => '冷链', 'sort' => 4, 'status' => 1],
+            ['name' => '应季', 'sort' => 5, 'status' => 1],
+            ['name' => '已停用标签', 'sort' => 99, 'status' => 0],
+        ];
+
+        foreach ($tags as $tag) {
+            if (! DB::table('tags')->where('name', $tag['name'])->exists()) {
+                DB::table('tags')->insert([
+                    'name' => $tag['name'],
+                    'sort' => $tag['sort'],
+                    'status' => $tag['status'],
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+        }
+    }
+
+    protected function seedProductTags(): void
+    {
+        $now = now();
+        $productNames = ['大白菜', '五花肉', '鲜虾', '金龙鱼大豆油'];
+        $tagNames = ['热销', '新品', '特价', '应季'];
+
+        foreach ($productNames as $productName) {
+            $product = DB::table('products')->where('name', $productName)->first();
+            if (! $product) continue;
+
+            foreach ($tagNames as $tagName) {
+                $tag = DB::table('tags')->where('name', $tagName)->first();
+                if (! $tag) continue;
+
+                if (! DB::table('product_tags')->where('product_id', $product->id)->where('tag_id', $tag->id)->exists()) {
+                    DB::table('product_tags')->insert([
+                        'product_id' => $product->id,
+                        'tag_id' => $tag->id,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]);
+                }
+            }
+        }
+    }
+
+    protected function seedProductImages(): void
+    {
+        $now = now();
+        $images = [
+            ['product' => '大白菜', 'urls' => ['/uploads/products/baicai-1.jpg', '/uploads/products/baicai-2.jpg']],
+            ['product' => '五花肉', 'urls' => ['/uploads/products/wuhua-1.jpg']],
+            ['product' => '鲜虾', 'urls' => ['/uploads/products/xianxia-1.jpg', '/uploads/products/xianxia-2.jpg', '/uploads/products/xianxia-3.jpg']],
+        ];
+
+        foreach ($images as $item) {
+            $product = DB::table('products')->where('name', $item['product'])->first();
+            if (! $product) continue;
+
+            foreach ($item['urls'] as $idx => $url) {
+                if (! DB::table('product_images')->where('product_id', $product->id)->where('image_url', $url)->exists()) {
+                    DB::table('product_images')->insert([
+                        'product_id' => $product->id,
+                        'image_url' => $url,
+                        'sort' => $idx + 1,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]);
+                }
             }
         }
     }

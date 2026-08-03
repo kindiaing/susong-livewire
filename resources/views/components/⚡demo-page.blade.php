@@ -20,7 +20,7 @@ new class extends Component
 
 <div>
     <!-- Toast container (global) -->
-    <x-ui.toast />
+    <x-ui.toaster />
 
     <div class="min-h-screen bg-muted/30">
         <!-- Header -->

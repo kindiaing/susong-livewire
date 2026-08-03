@@ -112,10 +112,34 @@ class Supplier extends Model
     }
 
     /**
+     * 关联 SKU 条码
+     */
+    public function skuBarcodes()
+    {
+        return $this->hasMany(SkuBarcode::class);
+    }
+
+    /**
+     * 关联采购退货
+     */
+    public function purchaseReturns()
+    {
+        return $this->hasMany(PurchaseReturn::class);
+    }
+
+    /**
      * 作用域：启用
      */
     public function scopeEnabled($query)
     {
         return $query->where('status', self::STATUS_ENABLED);
+    }
+
+    /**
+     * 作用域：按结算周期
+     */
+    public function scopeBySettlementCycle($query, int $cycle)
+    {
+        return $query->where('settlement_cycle', $cycle);
     }
 }
