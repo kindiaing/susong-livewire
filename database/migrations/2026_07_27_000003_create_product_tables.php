@@ -82,12 +82,15 @@ return new class extends Migration
         Schema::create('merchant_sku_visibility', function (Blueprint $table) {
             $table->id()->comment('主键');
             $table->unsignedBigInteger('merchant_id')->comment('商家ID');
-            $table->unsignedBigInteger('sku_id')->comment('SKU ID');
+            $table->string('target_type', 20)->default('sku')->comment('配置类型：product=商品级，sku=SKU级');
+            $table->unsignedBigInteger('product_id')->nullable()->comment('商品ID（商品级配置时使用）');
+            $table->unsignedBigInteger('sku_id')->nullable()->comment('SKU ID（SKU级配置时使用）');
             $table->tinyInteger('is_visible')->unsigned()->default(1)->comment('是否可见：0否，1是');
             $table->timestamps();
-            $table->unique(['merchant_id', 'sku_id']);
+            $table->unique(['merchant_id', 'target_type', 'product_id', 'sku_id'], 'uk_merchant_visibility');
+            $table->index('product_id');
             $table->index('sku_id');
-            $table->comment('商家SKU可见性表');
+            $table->comment('商家可见性配置表');
         });
 
         Schema::create('tags', function (Blueprint $table) {
