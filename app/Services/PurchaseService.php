@@ -19,6 +19,7 @@ class PurchaseService
 {
     public function __construct(
         private InventoryService $inventoryService,
+        private LossOrderService $lossOrderService,
     ) {}
 
     /**
@@ -138,6 +139,9 @@ class PurchaseService
     /**
      * 入库核心操作（已发货→已入库）
      *
+     * 断链修复：入库时计算差异数量(discrepancy_quantity)
+     * 当系统配置 stockin_auto_create_loss=true 且差异>0 时，自动创建损耗单
+     *
      * @param PurchaseOrder $order 采购单
      * @param int $warehouseId 入库仓库
      * @param array $items 入库明细 [{id: purchaseOrderItemId, actual_quantity, actual_price, discrepancy_reason}]
@@ -164,12 +168,16 @@ class PurchaseService
                 $actualPrice = (int) ($item['actual_price'] ?? $orderItem->price);
                 $actualAmount = intdiv($actualQuantity * $actualPrice, 1000);
 
-                // 更新明细的实际数量和金额
+                // 计算差异数量（采购数量 - 实际入库数量）
+                $discrepancyQuantity = max(0, $orderItem->quantity - $actualQuantity);
+
+                // 更新明细的实际数量、金额和差异数量
                 $orderItem->update([
                     'actual_quantity' => $actualQuantity,
                     'actual_price' => $actualPrice,
                     'actual_amount' => $actualAmount,
                     'discrepancy_reason' => $item['discrepancy_reason'] ?? null,
+                    'discrepancy_quantity' => $discrepancyQuantity,
                 ]);
 
                 // 入库数量 > 0 时才更新库存
@@ -189,17 +197,35 @@ class PurchaseService
             // 重算实际入库金额
             $order->recalculateAmounts();
 
+            // 断链修复：当存在入库差异且系统配置开启时，自动创建损耗单
+            $autoCreateLoss = (bool) setting('stockin_auto_create_loss', true);
+            if ($autoCreateLoss) {
+                $this->lossOrderService->createFromDiscrepancy($order->fresh());
+            }
+
             return $order->fresh();
         });
     }
 
     /**
      * 完成（已入库→完成）
+     *
+     * 前置校验：存在未处理的入库差异（discrepancy_quantity > 0 且无关联损耗单）时阻止完成
      */
     public function complete(PurchaseOrder $order): PurchaseOrder
     {
         if (!$order->canTransitionTo(PurchaseOrder::STATUS_COMPLETED)) {
             throw new \Exception('当前状态不允许完成');
+        }
+
+        // 断链修复：检查是否有未处理的入库差异
+        $unresolvedDiscrepancy = $order->items()
+            ->where('discrepancy_quantity', '>', 0)
+            ->whereNull('loss_order_id')
+            ->exists();
+
+        if ($unresolvedDiscrepancy) {
+            throw new \Exception('存在未处理的入库差异，请先处理损耗单后再完成');
         }
 
         $order->update([
@@ -211,10 +237,16 @@ class PurchaseService
 
     /**
      * 取消
+     *
+     * 断链修复：已入库/完成状态的采购单禁止直接取消，必须走退货流程
      */
     public function cancel(PurchaseOrder $order): PurchaseOrder
     {
         if (!$order->canTransitionTo(PurchaseOrder::STATUS_CANCELLED)) {
+            // 给出更明确的错误提示
+            if (in_array($order->status, [PurchaseOrder::STATUS_STOCKED, PurchaseOrder::STATUS_COMPLETED])) {
+                throw new \Exception('已入库/完成的采购单禁止直接取消，请走退货流程');
+            }
             throw new \Exception('当前状态不允许取消');
         }
 

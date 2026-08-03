@@ -3,17 +3,17 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '686e8672-8489-4aa8-a2cf-c80d8df0e25a'
-  PropagateID: '686e8672-8489-4aa8-a2cf-c80d8df0e25a'
-  ReservedCode1: 'b15a5f67-b56a-4eb4-9dbc-bf9e057e881b'
-  ReservedCode2: 'b15a5f67-b56a-4eb4-9dbc-bf9e057e881b'
+  ProduceID: '79000a75-610b-4b15-8aea-20ce2906a725'
+  PropagateID: '79000a75-610b-4b15-8aea-20ce2906a725'
+  ReservedCode1: 'b1f217c2-a40c-445a-a481-89d7e07af19f'
+  ReservedCode2: 'b1f217c2-a40c-445a-a481-89d7e07af19f'
 ---
 
 # 项目记忆空间
 
 > 本文档为 AI 协作记忆区，记录项目核心规则、验收标准和开发规范，确保每次会话上下文一致。
 
-> 当前版本：**V1.9.0** | 权限体系已改为三级格式（模块.页面.动作），UI 可见性由 @can + config/menu.php 控制
+> 当前版本：**V1.9.1** | 权限体系已改为三级格式（模块.页面.动作），UI 可见性由 @can + config/menu.php 控制，断链2+断链1核心逻辑已修复
 
 ---
 

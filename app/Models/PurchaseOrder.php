@@ -29,6 +29,11 @@ class PurchaseOrder extends Model
 {
     use SoftDeletes;
 
+    // 退货状态常量
+    public const RETURN_STATUS_NONE = 0;
+    public const RETURN_STATUS_PARTIAL = 1;
+    public const RETURN_STATUS_FULL = 2;
+
     public const STATUS_PENDING = 1;
     public const STATUS_PREPARING = 2;
     public const STATUS_SHIPPED = 3;
@@ -48,6 +53,7 @@ class PurchaseOrder extends Model
         'shipped_at',
         'stocked_at',
         'remark',
+        'return_status',
     ];
 
     protected function casts(): array
@@ -62,6 +68,7 @@ class PurchaseOrder extends Model
             'ordered_at' => 'datetime',
             'shipped_at' => 'datetime',
             'stocked_at' => 'datetime',
+            'return_status' => 'integer',
         ];
     }
 
@@ -75,6 +82,23 @@ class PurchaseOrder extends Model
             self::STATUS_COMPLETED => '完成',
             self::STATUS_CANCELLED => '取消',
         ];
+    }
+
+    /**
+     * 退货状态映射
+     */
+    public static function returnStatusMap(): array
+    {
+        return [
+            self::RETURN_STATUS_NONE => '无退货',
+            self::RETURN_STATUS_PARTIAL => '部分退货',
+            self::RETURN_STATUS_FULL => '全部退货',
+        ];
+    }
+
+    public function getReturnStatusLabelAttribute(): string
+    {
+        return self::returnStatusMap()[$this->return_status] ?? '未知';
     }
 
     public function getStatusLabelAttribute(): string
@@ -120,6 +144,9 @@ class PurchaseOrder extends Model
 
     /**
      * 是否可流转到下一状态
+     *
+     * 核心规则：已入库(4)只能→完成(5)，禁止直接取消
+     * 已入库的采购单如需取消，必须走退货流程
      */
     public function canTransitionTo(int $status): bool
     {
@@ -131,6 +158,54 @@ class PurchaseOrder extends Model
         ];
 
         return in_array($status, $flow[$this->status] ?? []);
+    }
+
+    /**
+     * 是否有进行中的退货
+     */
+    public function hasActiveReturn(): bool
+    {
+        return $this->purchaseReturns()
+            ->whereNotIn('status', [PurchaseReturn::STATUS_COMPLETED, PurchaseReturn::STATUS_CANCELLED])
+            ->exists();
+    }
+
+    /**
+     * 更新退货状态
+     */
+    public function updateReturnStatus(): void
+    {
+        $returns = $this->purchaseReturns()
+            ->where('status', '!=', PurchaseReturn::STATUS_CANCELLED)
+            ->get();
+
+        if ($returns->isEmpty()) {
+            $this->return_status = self::RETURN_STATUS_NONE;
+        } else {
+            // 检查所有明细是否全部退货
+            $orderedQuantities = $this->items()->pluck('quantity', 'id');
+            $returnedQuantities = [];
+            foreach ($returns as $return) {
+                foreach ($return->items as $item) {
+                    $poiId = $item->purchase_order_item_id;
+                    $returnedQuantities[$poiId] = ($returnedQuantities[$poiId] ?? 0) + $item->quantity;
+                }
+            }
+
+            $allFullyReturned = true;
+            foreach ($orderedQuantities as $poiId => $qty) {
+                if (($returnedQuantities[$poiId] ?? 0) < $qty) {
+                    $allFullyReturned = false;
+                    break;
+                }
+            }
+
+            $this->return_status = $allFullyReturned
+                ? self::RETURN_STATUS_FULL
+                : self::RETURN_STATUS_PARTIAL;
+        }
+
+        $this->save();
     }
 
     /**
