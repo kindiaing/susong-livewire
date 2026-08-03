@@ -66,24 +66,39 @@ class SystemConfig extends Model
     }
 
     /**
-     * 设置配置值
+     * 设置配置值（不存在则自动创建）
      */
     public static function setValue(string $key, mixed $value): void
     {
         $config = static::getAll()->first(fn($c) => $c->config_key === $key);
-        if (!$config) return;
 
-        if ($config->is_readonly) {
+        if ($config && $config->is_readonly) {
             throw new \RuntimeException("配置项 [{$key}] 为只读，不允许修改");
         }
 
         // 转换为存储格式
-        $storeValue = match($config->config_type) {
+        $storeValue = match($config?->config_type ?? 'string') {
             'boolean' => $value ? '1' : '0',
             default => (string) $value,
         };
 
-        static::where('config_key', $key)->update(['config_value' => $storeValue]);
+        if ($config) {
+            static::where('config_key', $key)->update(['config_value' => $storeValue]);
+        } else {
+            // key 不存在，自动创建
+            static::create([
+                'config_key' => $key,
+                'config_value' => $storeValue,
+                'default_value' => $storeValue,
+                'config_type' => 'string',
+                'config_group' => 'finance',
+                'label' => $key,
+                'sort_order' => 0,
+                'is_public' => false,
+                'is_readonly' => false,
+            ]);
+        }
+
         static::flushCache();
     }
 
@@ -101,9 +116,11 @@ class SystemConfig extends Model
     public static function resetToDefault(string $key): void
     {
         $config = static::getAll()->first(fn($c) => $c->config_key === $key);
-        if (!$config || $config->is_readonly) return;
+        if (!$config) return;
+        if ($config->is_readonly) return;
 
-        static::where('config_key', $key)->update(['config_value' => $config->default_value]);
+        $default = $config->default_value ?? '';
+        static::where('config_key', $key)->update(['config_value' => $default]);
         static::flushCache();
     }
 
