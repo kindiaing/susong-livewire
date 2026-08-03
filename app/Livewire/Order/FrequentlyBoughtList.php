@@ -5,6 +5,7 @@ namespace App\Livewire\Order;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithListCrud;
 use App\Livewire\Traits\WithRowSelection;
 use App\Models\FrequentlyBought;
 use Livewire\Component;
@@ -17,6 +18,7 @@ class FrequentlyBoughtList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithListCrud;
 
     protected string $modelClass = FrequentlyBought::class;
 
@@ -65,30 +67,6 @@ class FrequentlyBoughtList extends Component
     public function getPageIds(): array
     {
         return $this->buildQuery()->forPage($this->page, 20)->pluck('id')->toArray();
-    }
-
-    public function closeColumnModal(): void
-    {
-        $this->showColumnModal = false;
-    }
-
-    public function closeExportModal(): void
-    {
-        $this->showExportModal = false;
-    }
-
-    public function closeImportModal(): void
-    {
-        $this->showImportModal = false;
-        $this->importFile = null;
-        $this->importMessage = '';
-    }
-
-    public function resetFilters(): void
-    {
-        $this->search = '';
-        $this->resetPage();
-        $this->clearSelection();
     }
 
     private function buildQuery()

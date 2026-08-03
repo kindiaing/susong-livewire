@@ -8,6 +8,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -16,12 +17,16 @@ class PromotionActivityList extends Component
     use WithPagination;
     use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = Promotion::class;
 
     public string $search = '';
-    public bool $showDeleteConfirm = false;
-    public ?int $deletingId = null;
+
+    protected function getModalPropertyName(): string
+    {
+        return 'showCreateModal';
+    }
 
     // 创建弹窗
     public bool $showCreateModal = false;
@@ -113,24 +118,12 @@ class PromotionActivityList extends Component
         $this->toastSuccess('已批量删除 ' . count($ids) . ' 条记录');
     }
 
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         Promotion::findOrFail($this->deletingId)->delete();
         $this->toastSuccess('已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
     }
 
     public function resetFilters(): void
@@ -149,6 +142,11 @@ class PromotionActivityList extends Component
             ['key' => 'end_at', 'label' => '结束时间', 'sortable' => true, 'exportable' => true],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
         ];
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['name', 'promo_type', 'status', 'start_at', 'end_at', 'created_at'];
     }
 
     public function getExportQuery()

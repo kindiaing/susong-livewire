@@ -7,6 +7,7 @@ use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\DeliveryTask;
 use App\Models\Driver;
 use App\Models\Order;
@@ -22,15 +23,12 @@ class DeliveryTaskList extends Component
     use WithExcelExport;
     use WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = DeliveryTask::class;
 
     public string $search = '';
     public int $filterStatus = 0;
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
 
     // 表单字段
     public int $formOrderId = 0;
@@ -77,12 +75,6 @@ class DeliveryTaskList extends Component
             ->get(['id', 'plate_number'])
             ->mapWithKeys(fn($v) => [$v->id => $v->plate_number])
             ->toArray();
-    }
-
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
     }
 
     public function openEditModal(int $id): void
@@ -165,12 +157,6 @@ class DeliveryTaskList extends Component
         $this->toastSuccess('已标记异常');
     }
 
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         DeliveryTask::findOrFail($this->deletingId)->delete();
@@ -184,19 +170,6 @@ class DeliveryTaskList extends Component
         $this->search = '';
         $this->filterStatus = -1;
         $this->resetPage();
-    }
-
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
     }
 
     private function resetForm(): void

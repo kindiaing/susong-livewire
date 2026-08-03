@@ -8,6 +8,7 @@ use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\Cart;
 use App\Models\Merchant;
 use App\Models\Sku;
@@ -23,14 +24,11 @@ class CartList extends Component
     use WithExcelImport;
     use WithMoneyConversion;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = Cart::class;
 
     public string $search = '';
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
 
     public int $formMerchantId = 0;
     public int $formSkuId = 0;
@@ -108,12 +106,6 @@ class CartList extends Component
         return $this->buildQuery()->forPage($this->page, 20)->pluck('id')->toArray();
     }
 
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
-    }
-
     public function openEditModal(int $id): void
     {
         $cart = Cart::findOrFail($id);
@@ -153,12 +145,6 @@ class CartList extends Component
         $this->resetForm();
     }
 
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         Cart::findOrFail($this->deletingId)->delete();
@@ -167,30 +153,11 @@ class CartList extends Component
         $this->deletingId = null;
     }
 
-    public function resetFilters(): void
-    {
-        $this->search = '';
-        $this->resetPage();
-    }
-
     public function getBatchActions(): array
     {
         return [
             ['label' => '批量删除', 'method' => 'batchDelete', 'color' => 'bg-red-600 hover:bg-red-700'],
         ];
-    }
-
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
     }
 
     private function resetForm(): void

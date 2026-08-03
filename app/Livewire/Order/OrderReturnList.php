@@ -7,6 +7,7 @@ use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\Merchant;
 use App\Models\OrderReturn;
 use Livewire\Component;
@@ -20,15 +21,12 @@ class OrderReturnList extends Component
     use WithExcelExport;
     use WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = OrderReturn::class;
 
     public string $search = '';
     public int $filterStatus = 0;
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
 
     public int $formOrderId = 0;
     public int $formMerchantId = 0;
@@ -114,12 +112,6 @@ class OrderReturnList extends Component
     public function getPageIds(): array
     {
         return $this->buildQuery()->forPage($this->page, 20)->pluck('id')->toArray();
-    }
-
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
     }
 
     public function openEditModal(int $id): void
@@ -208,12 +200,6 @@ class OrderReturnList extends Component
         $this->toastSuccess('退货单已完成');
     }
 
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         OrderReturn::findOrFail($this->deletingId)->delete();
@@ -234,19 +220,6 @@ class OrderReturnList extends Component
         return [
             ['label' => '批量删除', 'method' => 'batchDelete', 'color' => 'bg-red-600 hover:bg-red-700'],
         ];
-    }
-
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
     }
 
     private function resetForm(): void

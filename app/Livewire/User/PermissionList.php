@@ -9,6 +9,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -17,17 +18,16 @@ class PermissionList extends Component
     use WithPagination;
     use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = Permission::class;
 
     public string $search = '';
     public int $filterType = 0;       // 0=全部, 1=模块, 2=页面, 3=按钮
     public int $filterModule = 0;    // 0=全部, >0=模块ID
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
+
     public bool $showRoleModal = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
+
     public ?int $rolePermissionId = null;
 
     public string $formName = '';
@@ -46,12 +46,6 @@ class PermissionList extends Component
     public function mount(): void
     {
         $this->initColumnVisibility();
-    }
-
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
     }
 
     public function openEditModal(int $id): void
@@ -98,12 +92,6 @@ class PermissionList extends Component
 
         $this->showModal = false;
         $this->resetForm();
-    }
-
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
     }
 
     public function delete(): void
@@ -180,19 +168,6 @@ class PermissionList extends Component
     public function updatedFilterModule(): void
     {
         $this->resetPage();
-    }
-
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
     }
 
     public function closeRoleModal(): void

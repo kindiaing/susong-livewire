@@ -8,6 +8,7 @@ use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\Invoice;
 use App\Models\Merchant;
 use Livewire\Component;
@@ -22,14 +23,11 @@ class InvoiceList extends Component
     use WithExcelImport;
     use WithMoneyConversion;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = Invoice::class;
 
     public string $search = '';
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
 
     public int $formMerchantId = 0;
     public string $formAmount = '';
@@ -114,12 +112,6 @@ class InvoiceList extends Component
         return ['amount'];
     }
 
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
-    }
-
     public function save(): void
     {
         $this->validate([
@@ -170,38 +162,12 @@ class InvoiceList extends Component
         $this->toastSuccess('发票已寄出');
     }
 
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         Invoice::findOrFail($this->deletingId)->delete();
         $this->toastSuccess('发票已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
-    }
-
-    public function resetFilters(): void
-    {
-        $this->search = '';
-        $this->resetPage();
-        $this->clearSelection();
-    }
-
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
     }
 
     private function resetForm(): void

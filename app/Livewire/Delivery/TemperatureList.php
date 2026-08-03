@@ -6,31 +6,26 @@ use App\Models\Temperature;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class TemperatureList extends Component
 {
     use WithPagination;
-    use WithRowSelection, WithColumnVisibility, WithExcelExport;
+    use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = Temperature::class;
 
     public string $search = '';
-    public bool $showDeleteConfirm = false;
-    public ?int $deletingId = null;
 
     public function mount(): void
     {
         $this->initColumnVisibility();
-    }
-
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
     }
 
     public function delete(): void
@@ -39,18 +34,6 @@ class TemperatureList extends Component
         $this->toastSuccess('已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
-    }
-
-    public function resetFilters(): void
-    {
-        $this->search = '';
-        $this->resetPage();
     }
 
     public function getAllColumns(): array
@@ -74,9 +57,27 @@ class TemperatureList extends Component
         return '温度记录_' . now()->format('Ymd_His');
     }
 
+    public function getDefaultColumns(): array
+    {
+        return ['delivery_id', 'temperature', 'recorded_at', 'created_at'];
+    }
+
     public function getPageIds(): array
     {
         return Temperature::orderBy('id', 'desc')->limit(20)->pluck('id')->toArray();
+    }
+
+    public function getImportModelClass(): string
+    {
+        return Temperature::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            '配送单ID' => 'delivery_id',
+            '温度' => 'temperature',
+        ];
     }
 
     public function render()

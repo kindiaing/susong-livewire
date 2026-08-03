@@ -7,6 +7,7 @@ use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\Category;
 use App\Models\UserPreference;
 use App\Support\Setting;
@@ -19,14 +20,13 @@ class CategoryList extends Component
     use WithExcelExport;
     use WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = Category::class;
 
     public string $search = '';
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
+
     public ?int $editingId = null;
-    public ?int $deletingId = null;
 
     // 树形展开状态
     public array $expandedIds = [];
@@ -87,12 +87,6 @@ class CategoryList extends Component
     {
         $this->expandedIds = [];
         UserPreference::setPreference(auth()->id(), 'category_tree_expanded', false);
-    }
-
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
     }
 
     public function openEditModal(int $id): void
@@ -232,13 +226,6 @@ class CategoryList extends Component
     {
         $this->search = '';
         $this->clearSelection();
-    }
-
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
     }
 
     public function closeDeleteConfirm(): void

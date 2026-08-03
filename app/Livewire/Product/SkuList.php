@@ -8,6 +8,7 @@ use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\Product;
 use App\Models\Sku;
 use Livewire\Component;
@@ -22,6 +23,7 @@ class SkuList extends Component
     use WithPagination;
     use WithRowSelection;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = Sku::class;
 
@@ -30,14 +32,6 @@ class SkuList extends Component
     public int $filterStatus = -1;
 
     public int $filterApprovalStatus = -1;
-
-    public bool $showModal = false;
-
-    public bool $showDeleteConfirm = false;
-
-    public ?int $editingId = null;
-
-    public ?int $deletingId = null;
 
     public int $formProductId = 0;
 
@@ -56,12 +50,6 @@ class SkuList extends Component
     public function mount(): void
     {
         $this->initColumnVisibility();
-    }
-
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
     }
 
     public function openEditModal(int $id): void
@@ -114,12 +102,6 @@ class SkuList extends Component
         $this->resetForm();
     }
 
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         Sku::findOrFail($this->deletingId)->delete();
@@ -135,19 +117,6 @@ class SkuList extends Component
         $this->filterApprovalStatus = -1;
         $this->resetPage();
         $this->clearSelection();
-    }
-
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
     }
 
     private function resetForm(): void

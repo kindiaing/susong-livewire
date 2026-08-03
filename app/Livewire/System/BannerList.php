@@ -7,6 +7,7 @@ use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\Banner;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -19,12 +20,11 @@ class BannerList extends Component
     use WithExcelExport;
     use WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = Banner::class;
 
     public string $search = '';
-    public bool $showDeleteConfirm = false;
-    public ?int $deletingId = null;
 
     public function mount(): void
     {
@@ -114,48 +114,12 @@ class BannerList extends Component
         return $this->getExportQuery()->forPage($this->page, 20)->pluck('id')->toArray();
     }
 
-    public function closeColumnModal(): void
-    {
-        $this->showColumnModal = false;
-    }
-
-    public function closeExportModal(): void
-    {
-        $this->showExportModal = false;
-    }
-
-    public function closeImportModal(): void
-    {
-        $this->showImportModal = false;
-        $this->importFile = null;
-        $this->importMessage = '';
-    }
-
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         Banner::findOrFail($this->deletingId)->delete();
         $this->toastSuccess('已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
-    }
-
-    public function resetFilters(): void
-    {
-        $this->search = '';
-        $this->resetPage();
-        $this->clearSelection();
     }
 
     public function render()

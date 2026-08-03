@@ -9,6 +9,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -17,6 +18,7 @@ class InventoryLogList extends Component
     use WithPagination;
     use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = InventoryLog::class;
 
@@ -86,11 +88,6 @@ class InventoryLogList extends Component
     public function getImportRequiredFields(): array
     {
         return ['仓库ID', 'SKU ID', '变动类型'];
-    }
-
-    public function getImportValueMap(): array
-    {
-        return [];
     }
 
     public function getAllColumns(): array

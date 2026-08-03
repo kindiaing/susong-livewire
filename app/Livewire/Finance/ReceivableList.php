@@ -8,6 +8,7 @@ use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\Merchant;
 use App\Models\Order;
 use App\Models\Receivable;
@@ -23,14 +24,11 @@ class ReceivableList extends Component
     use WithExcelImport;
     use WithMoneyConversion;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = Receivable::class;
 
     public string $search = '';
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
 
     public int $formOrderId = 0;
     public int $formMerchantId = 0;
@@ -106,12 +104,6 @@ class ReceivableList extends Component
         return ['amount'];
     }
 
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
-    }
-
     public function save(): void
     {
         $this->validate([
@@ -147,38 +139,12 @@ class ReceivableList extends Component
         $this->toastSuccess('已确认收款');
     }
 
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         Receivable::findOrFail($this->deletingId)->delete();
         $this->toastSuccess('应收账款已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
-    }
-
-    public function resetFilters(): void
-    {
-        $this->search = '';
-        $this->resetPage();
-        $this->clearSelection();
-    }
-
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
     }
 
     private function resetForm(): void

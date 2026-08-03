@@ -7,6 +7,7 @@ use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\Merchant;
 use App\Models\MerchantSkuVisibility;
 use App\Models\Sku;
@@ -21,6 +22,7 @@ class MerchantSkuVisibilityList extends Component
     use WithPagination;
     use WithRowSelection;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = MerchantSkuVisibility::class;
 
@@ -32,9 +34,10 @@ class MerchantSkuVisibilityList extends Component
 
     public bool $showCreateModal = false;
 
-    public bool $showDeleteConfirm = false;
-
-    public ?int $deletingId = null;
+    protected function getModalPropertyName(): string
+    {
+        return 'showCreateModal';
+    }
 
     // 创建表单
     public int $formMerchantId = 0;
@@ -83,12 +86,6 @@ class MerchantSkuVisibilityList extends Component
         $record = MerchantSkuVisibility::findOrFail($id);
         $record->update(['is_visible' => $record->is_visible ? 0 : 1]);
         $this->toastSuccess($record->is_visible ? '已设为可见' : '已设为不可见');
-    }
-
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
     }
 
     public function delete(): void
