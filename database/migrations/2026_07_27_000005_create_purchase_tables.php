@@ -25,9 +25,15 @@ return new class extends Migration
             $table->id()->comment('主键');
             $table->string('order_no', 50)->unique()->comment('采购单号');
             $table->unsignedBigInteger('supplier_id')->comment('供应商ID');
+            $table->unsignedBigInteger('warehouse_id')->nullable()->comment('入库目标仓库');
             $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待接单，2备货中，3已发货，4已入库，5完成，9取消');
+            $table->tinyInteger('return_status')->unsigned()->default(0)->comment('退货状态：0无退货，1部分退货，2全部退货');
             $table->bigInteger('total_amount')->default(0)->comment('总金额');
             $table->bigInteger('actual_amount')->default(0)->comment('实际入库金额');
+            $table->unsignedBigInteger('operator_id')->nullable()->comment('经办人');
+            $table->timestamp('ordered_at')->nullable()->comment('下单时间');
+            $table->timestamp('shipped_at')->nullable()->comment('发货时间');
+            $table->timestamp('stocked_at')->nullable()->comment('入库时间');
             $table->text('remark')->nullable()->comment('备注');
             $table->timestamps();
             $table->softDeletes();
@@ -51,6 +57,8 @@ return new class extends Migration
             $table->unsignedBigInteger('price_strategy_id')->nullable()->comment('价格策略ID');
             $table->unsignedBigInteger('price_strategy_item_id')->nullable()->comment('价格策略明细ID');
             $table->string('discrepancy_reason', 255)->nullable()->comment('入库差异原因');
+            $table->bigInteger('discrepancy_quantity')->default(0)->comment('入库差异数量（采购数量-实际入库数量）');
+            $table->unsignedBigInteger('loss_order_id')->nullable()->comment('关联损耗单ID');
             $table->timestamps();
             $table->index('purchase_order_id');
             $table->index('sku_id');
