@@ -115,4 +115,59 @@ class Promotion extends Model
             ->where('start_at', '<=', now())
             ->where('end_at', '>=', now());
     }
+
+    // ── 子表关联 ──────────────────────────
+
+    public function skus()
+    {
+        return $this->hasMany(PromotionSku::class);
+    }
+
+    public function fullReductions()
+    {
+        return $this->hasMany(PromotionFullReduction::class);
+    }
+
+    public function coupons()
+    {
+        return $this->hasMany(PromotionCoupon::class);
+    }
+
+    public function bundles()
+    {
+        return $this->hasMany(PromotionBundle::class);
+    }
+
+    public function bundleItems()
+    {
+        return $this->hasManyThrough(PromotionBundleItem::class, PromotionBundle::class);
+    }
+
+    public function clearances()
+    {
+        return $this->hasMany(PromotionClearance::class);
+    }
+
+    public function groupBuys()
+    {
+        return $this->hasMany(PromotionGroupBuy::class);
+    }
+
+    public function flashSales()
+    {
+        return $this->hasMany(PromotionFlashSale::class);
+    }
+
+    public function memberDiscounts()
+    {
+        return $this->hasMany(PromotionMemberDiscount::class);
+    }
+
+    /**
+     * 创建人
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 }

@@ -64,6 +64,22 @@ class ApprovalTypeConfig extends Model
     }
 
     /**
+     * 启用状态映射
+     */
+    public static function enabledMap(): array
+    {
+        return [
+            0 => '关闭',
+            1 => '开启',
+        ];
+    }
+
+    public function getEnabledLabelAttribute(): string
+    {
+        return self::enabledMap()[$this->enabled] ?? '未知';
+    }
+
+    /**
      * 申请人角色
      */
     public function applicantRole()

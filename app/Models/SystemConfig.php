@@ -187,7 +187,15 @@ class SystemConfig extends Model
     }
 
     /**
-     * 获取分组标签
+     * 获取分组标签（Eloquent accessor）
+     */
+    public function getGroupLabelAttribute(): string
+    {
+        return static::groupLabels()[$this->config_group] ?? $this->config_group;
+    }
+
+    /**
+     * 获取分组标签（兼容旧调用）
      */
     public function getGroupLabel(): string
     {

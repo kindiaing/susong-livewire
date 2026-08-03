@@ -97,4 +97,41 @@ class FeaturedPromotion extends Model
             ->where('start_at', '<=', now())
             ->where('end_at', '>=', now());
     }
+
+    // ── 关联 ──────────────────────────
+
+    /**
+     * 关联目标（多态：商品或品类）
+     */
+    public function target()
+    {
+        return $this->morphTo();
+    }
+
+    /**
+     * 主推商品 → Sku
+     */
+    public function product()
+    {
+        return $this->belongsTo(Sku::class, 'target_id');
+    }
+
+    /**
+     * 主推品类 → Category
+     */
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'target_id');
+    }
+
+    /**
+     * 获取目标名称
+     */
+    public function getTargetNameAttribute(): string
+    {
+        if ($this->type === self::TYPE_PRODUCT) {
+            return $this->product?->name ?? '商品#'.$this->target_id;
+        }
+        return $this->category?->name ?? '品类#'.$this->target_id;
+    }
 }

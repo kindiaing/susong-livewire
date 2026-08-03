@@ -53,8 +53,7 @@
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></td>
                     <td class="px-4 py-2 font-medium text-foreground">{{ $item->name }}</td>
                     <td class="px-4 py-2">
-                        @php $typeMap = [1=>'普通促销',2=>'满减',3=>'优惠券',4=>'组合套餐',5=>'清仓临期',6=>'拼团',7=>'秒杀',8=>'会员折扣']; @endphp
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-blue-50 text-blue-700">{{ $typeMap[$item->type] ?? '未知' }}</span>
+                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-blue-50 text-blue-700">{{ $typeMap[$item->promo_type] ?? '未知' }}</span>
                     </td>
                     <td class="px-4 py-2">
                         <button type="button" wire:click="toggleStatus({{ $item->id }})" title="{{ $item->status === 1 ? '点击禁用' : '点击启用' }}" class="inline-flex items-center justify-center">
@@ -69,6 +68,8 @@
                             @endif
                         </button>
                     </td>
+                    <td class="px-4 py-2 text-muted-foreground text-xs">{{ $item->start_at?->format('Y-m-d H:i') }}</td>
+                    <td class="px-4 py-2 text-muted-foreground text-xs">{{ $item->end_at?->format('Y-m-d H:i') }}</td>
                     <td class="px-4 py-2 text-muted-foreground text-xs">{{ $item->created_at?->format('Y-m-d H:i') }}</td>
                     <td class="px-4 py-2 text-right">
                         <button type="button" wire:click="confirmDelete({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除">
@@ -79,13 +80,55 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="6" class="px-4 py-10 text-center text-muted-foreground">暂无促销活动数据</td></tr>
+                <tr><td colspan="8" class="px-4 py-10 text-center text-muted-foreground">暂无促销活动数据</td></tr>
             @endforelse
             </tbody>
         </table>
     </div>
 
     <div class="mt-4">{{ $items->links() }}</div>
+
+    {{-- 创建弹窗 --}}
+    @if($showCreateModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
+            <h2 class="text-lg font-semibold text-foreground mb-4">新增促销活动</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">活动名称</label>
+                    <input type="text" wire:model="createFormName" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                    @error('createFormName') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">活动类型</label>
+                    <select wire:model.live="createFormType" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        @foreach($typeMap as $key => $label)
+                            <option value="{{ $key }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    @error('createFormType') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">开始时间</label>
+                        <input type="datetime-local" wire:model="createFormStartAt" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                        @error('createFormStartAt') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">结束时间</label>
+                        <input type="datetime-local" wire:model="createFormEndAt" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                        @error('createFormEndAt') <span class="text-xs text-red-600">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" wire:click="closeCreateModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="create" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">确认创建</button>
+            </div>
+        </div>
+    </div>
+    @endif
 
     {{-- 删除确认弹窗 --}}
     @if($showDeleteConfirm)

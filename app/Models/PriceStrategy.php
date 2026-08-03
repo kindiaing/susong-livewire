@@ -6,7 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
- * 价格策略模型
+ * 价格策略模型（已弃用 — V1.10.0 起由 PricingService + Promotion 体系替代）
+ *
+ * @deprecated 保留仅供 PurchaseOrderItem 旧关联兼容，新代码请勿使用
  *
  * @property mixed $name 策略名称
  * @property mixed $code 策略编码
