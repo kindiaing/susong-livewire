@@ -55,8 +55,7 @@
                     <td class="px-4 py-2 text-foreground">{{ $item->quantity }}</td>
                     <td class="px-4 py-2 text-foreground">{{ \App\Models\PurchaseItem::sourceTypeMap()[$item->source_type] ?? '-' }}</td>
                     <td class="px-4 py-2">
-                        @if($item->status === 1)<span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-yellow-100 text-yellow-700">待生成</span>
-                        @else<span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">已生成</span>@endif
+                        {!! status_badge($item->status, 'purchase_item') !!}
                     </td>
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-2">
@@ -78,7 +77,7 @@
     <div class="mt-4">{{ $items->links() }}</div>
     @if($showModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeModal"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
             <h2 class="text-lg font-semibold text-foreground mb-4">{{ $editingId ? '编辑待采项' : '新增待采项' }}</h2>
             <div class="space-y-4">

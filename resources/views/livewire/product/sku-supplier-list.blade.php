@@ -64,11 +64,7 @@
                     <td class="px-4 py-2 text-foreground">{{ $item->is_default ? '是' : '否' }}</td>
                     <td class="px-4 py-2 text-foreground">{{ $item->sort }}</td>
                     <td class="px-4 py-2">
-                        @if($item->status === 1)
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
-                        @else
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
-                        @endif
+                        {!! status_badge($item->status, 'active') !!}
                     </td>
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-2">

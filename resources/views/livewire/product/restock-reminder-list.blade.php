@@ -67,11 +67,7 @@
                     <td class="px-4 py-2 text-foreground">{{ \App\Models\RestockReminder::remindCycleMap()[$item->remind_cycle] ?? '-' }}</td>
                     <td class="px-4 py-2 text-muted-foreground">{{ $item->last_reminded_at ? $item->last_reminded_at->format('Y-m-d H:i') : '-' }}</td>
                     <td class="px-4 py-2">
-                        @if($item->status === 1)
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
-                        @else
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
-                        @endif
+                        {!! status_badge($item->status, 'active') !!}
                     </td>
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-2">
@@ -96,7 +92,7 @@
     {{-- 新增/编辑弹窗 --}}
     @if($showModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeModal"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
             <h2 class="text-lg font-semibold text-foreground mb-4">{{ $editingId ? '编辑补货提醒' : '新增补货提醒' }}</h2>
             <div class="space-y-4">
@@ -156,7 +152,7 @@
     {{-- 删除确认弹窗 --}}
     @if($showDeleteConfirm)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeDeleteConfirm"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
             <h2 class="text-lg font-semibold text-foreground mb-2">确认删除</h2>
             <p class="text-sm text-muted-foreground mb-6">确定要删除该补货提醒规则吗？</p>

@@ -119,8 +119,8 @@
 
     {{-- 详情弹窗 --}}
     @if($detailApproval)
-        <div class="fixed inset-0 z-50 flex items-center justify-center" wire:click="closeDetail">
-            <div class="absolute inset-0 bg-black/50"></div>
+        <div class="fixed inset-0 z-50 flex items-center justify-center">
+            <div class="absolute inset-0 bg-black/50" aria-hidden="true"></div>
             <div class="relative z-10 w-full max-w-2xl mx-4 rounded-lg border bg-background shadow-lg max-h-[85vh] overflow-y-auto"
                  wire:click.stop>
                 {{-- 弹窗头 --}}

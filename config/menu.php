@@ -112,7 +112,6 @@ return [
         'children' => [
             ['key' => 'system.config',   'label' => '系统配置', 'route' => 'settings',       'permission' => 'system.system-config.view', 'description' => '6组17项系统配置'],
             ['key' => 'system.banner',   'label' => '轮播广告', 'route' => 'banners',        'permission' => 'system.banner.view',        'description' => '首页轮播图管理'],
-            ['key' => 'system.promotion','label' => '运营主推', 'route' => 'promotions',      'permission' => 'system.system-config.view', 'description' => '推荐商品配置'],
             ['key' => 'system.operation','label' => '操作日志', 'route' => 'operation-logs',  'permission' => 'system.audit-log.view',     'description' => '按操作人/时间/模块筛选'],
             ['key' => 'system.audit',    'label' => '审计日志', 'route' => 'audit-logs',      'permission' => 'system.audit-log.view',     'description' => '敏感操作审计记录'],
             ['key' => 'system.approval', 'label' => '审核管理', 'route' => 'approval-config', 'permission' => 'system.system-config.view',  'description' => '19个审核节点开关与列表'],

@@ -67,11 +67,7 @@
                     <td class="px-4 py-2 text-foreground">{{ $barcode->supplier?->name ?? '-' }}</td>
                     <td class="px-4 py-2 text-foreground">{{ $barcode->is_default ? '是' : '否' }}</td>
                     <td class="px-4 py-2">
-                        @if($barcode->is_enabled === 1)
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
-                        @else
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
-                        @endif
+                        {!! status_badge($barcode->is_enabled, 'active') !!}
                     </td>
                     <td class="px-4 py-2 text-muted-foreground truncate">{{ $barcode->remark ?? '-' }}</td>
                     <td class="px-4 py-2">

@@ -70,11 +70,7 @@
                     </td>
                     <td class="px-4 py-2">
                         @php($typeLabel = \App\Models\InventoryLog::typeMap()[$item->type] ?? '未知')
-                        @if(in_array($item->type, [1, 5, 6]))
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">{{ $typeLabel }}</span>
-                        @else
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-red-100 text-red-700">{{ $typeLabel }}</span>
-                        @endif
+                        {!! status_badge($item->type, 'inventory_log', $typeLabel) !!}
                     </td>
                     <td class="px-4 py-2 {{ $item->quantity >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ $item->quantity >= 0 ? '+' : '' }}{{ $item->quantity }}</td>
                     <td class="px-4 py-2 text-muted-foreground">{{ $item->before_stock }}</td>

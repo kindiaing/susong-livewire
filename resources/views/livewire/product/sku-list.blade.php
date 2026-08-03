@@ -96,13 +96,7 @@
                         @endif
                     </td>
                     <td class="px-4 py-2">
-                        @if($sku->approval_status === 2)
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-blue-100 text-blue-700">已通过</span>
-                        @elseif($sku->approval_status === 3)
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-red-100 text-red-700">已拒绝</span>
-                        @else
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-yellow-100 text-yellow-700">待审核</span>
-                        @endif
+                        {!! status_badge($sku->approval_status, 'sku_approval') !!}
                     </td>
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-2">

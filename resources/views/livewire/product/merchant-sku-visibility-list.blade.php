@@ -73,11 +73,7 @@
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $record->id }}" wire:model.live="selectedIds" class="rounded" /></td>
                     <td class="px-4 py-2 font-medium text-foreground">{{ $record->merchant?->name ?? '-' }}</td>
                     <td class="px-4 py-2">
-                        @if($record->target_type === 'product')
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-blue-100 text-blue-700">商品级</span>
-                        @else
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-purple-100 text-purple-700">SKU级</span>
-                        @endif
+                        {!! status_badge($record->target_type, 'target_type') !!}
                     </td>
                     <td class="px-4 py-2 text-foreground">{{ $record->product?->name ?? '-' }}</td>
                     <td class="px-4 py-2 text-muted-foreground font-mono">{{ $record->sku?->sku_code ?? '-' }}</td>

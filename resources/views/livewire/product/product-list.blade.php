@@ -70,11 +70,7 @@
                     <td class="px-4 py-2 text-foreground">{{ $product->is_weight_priced ? '是' : '否' }}</td>
                     <td class="px-4 py-2 text-foreground">{{ $product->stock_warning_value }}</td>
                     <td class="px-4 py-2">
-                        @if($product->status === 1)
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">上架</span>
-                        @else
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">下架</span>
-                        @endif
+                        {!! status_badge($product->status, 'active') !!}
                     </td>
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-2">

@@ -74,24 +74,10 @@
                     <td class="px-4 py-2 text-foreground">{{ \App\Models\LossOrder::typeMap()[$item->loss_type] ?? '-' }}</td>
                     <td class="px-4 py-2 text-foreground">{{ money_format($item->total_amount) }} 元</td>
                     <td class="px-4 py-2">
-                        @php($asLabel = \App\Models\LossOrder::approvalStatusMap()[$item->approval_status] ?? '未知')
-                        @if($item->approval_status === 2)
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">{{ $asLabel }}</span>
-                        @elseif($item->approval_status === 3)
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-red-100 text-red-700">{{ $asLabel }}</span>
-                        @else
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-yellow-100 text-yellow-700">{{ $asLabel }}</span>
-                        @endif
+                        {!! status_badge($item->approval_status, 'loss_approval') !!}
                     </td>
                     <td class="px-4 py-2">
-                        @php($sLabel = \App\Models\LossOrder::statusMap()[$item->status] ?? '未知')
-                        @if(in_array($item->status, [3, 4]))
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-blue-100 text-blue-700">{{ $sLabel }}</span>
-                        @elseif($item->status === 9)
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">{{ $sLabel }}</span>
-                        @else
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-yellow-100 text-yellow-700">{{ $sLabel }}</span>
-                        @endif
+                        {!! status_badge($item->status, 'loss_status') !!}
                     </td>
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-2">
@@ -127,7 +113,7 @@
     {{-- 新增/编辑弹窗 --}}
     @if($showModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeModal"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
             <h2 class="text-lg font-semibold text-foreground mb-4">{{ $editingId ? '编辑损耗单' : '新增损耗单' }}</h2>
             <div class="space-y-4">

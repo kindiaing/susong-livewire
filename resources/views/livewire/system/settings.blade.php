@@ -96,9 +96,7 @@
                                 @else
                                     {{-- 展示模式 --}}
                                     @if($config->config_type === 'boolean')
-                                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $config->config_value == '1' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600' }}">
-                                            {{ $config->config_value == '1' ? '开启' : '关闭' }}
-                                        </span>
+                                        {!! status_badge($config->config_value == '1' ? 1 : 0, 'active') !!}
                                     @elseif($config->config_type === 'enum' && $config->options)
                                         @php
                                             $currentOpt = collect($config->options)->first(fn($o) => $o['value'] == $config->config_value)

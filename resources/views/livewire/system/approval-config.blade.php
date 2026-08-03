@@ -108,11 +108,7 @@
 
                     {{-- 状态 --}}
                     <td class="px-4 py-3">
-                        @if($config->enabled)
-                            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700">启用</span>
-                        @else
-                            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600">关闭</span>
-                        @endif
+                        {!! status_badge($config->enabled ? 1 : 0, 'active') !!}
                     </td>
 
                     {{-- 操作 --}}

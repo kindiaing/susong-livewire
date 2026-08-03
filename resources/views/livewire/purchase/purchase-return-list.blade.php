@@ -66,16 +66,7 @@
                     <td class="px-4 py-2 text-foreground">{{ money_format($item->total_amount) }} 元</td>
                     <td class="px-4 py-2 text-foreground">{{ money_format($item->actual_amount) }} 元</td>
                     <td class="px-4 py-2">
-                        @php($statusLabel = \App\Models\PurchaseReturn::statusMap()[$item->status] ?? '未知')
-                        @if($item->status === 1)
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-yellow-100 text-yellow-700">{{ $statusLabel }}</span>
-                        @elseif($item->status === 4)
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">{{ $statusLabel }}</span>
-                        @elseif($item->status === 9)
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">{{ $statusLabel }}</span>
-                        @else
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-blue-100 text-blue-700">{{ $statusLabel }}</span>
-                        @endif
+                        {!! status_badge($item->status, 'purchase_return') !!}
                     </td>
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-2">
@@ -100,7 +91,7 @@
     {{-- 新增/编辑弹窗 --}}
     @if($showModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeModal"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
             <h2 class="text-lg font-semibold text-foreground mb-4">{{ $editingId ? '编辑退货单' : '新增退货单' }}</h2>
             <div class="space-y-4">

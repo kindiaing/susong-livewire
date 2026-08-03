@@ -51,7 +51,6 @@ use App\Livewire\System\AuditLogs;
 use App\Livewire\System\BannerList;
 use App\Livewire\System\LoginLogList;
 use App\Livewire\System\OperationLogs;
-use App\Livewire\System\PromotionList;
 use App\Livewire\System\Settings;
 use App\Livewire\System\WechatUserList;
 use App\Livewire\User\PermissionList;
@@ -151,7 +150,6 @@ Route::middleware(['auth', 'permission'])->group(function () {
     // ── 系统管理 ──
     Route::get('/settings', Settings::class)->name('settings');
     Route::get('/banners', BannerList::class)->name('banners');
-    Route::get('/promotions', PromotionList::class)->name('promotions');
     Route::get('/approval-config', ApprovalConfig::class)->name('approval-config');
     Route::get('/approvals', Approvals::class)->name('approvals');
     Route::get('/operation-logs', OperationLogs::class)->name('operation-logs');
