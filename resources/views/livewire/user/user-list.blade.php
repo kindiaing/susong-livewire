@@ -195,7 +195,6 @@
     @include('partials.export-modal')
     @include('partials.import-modal')
     @include('partials.delete-confirm')
-</div>
 
     {{-- 重置密码确认弹窗 --}}
     @if($showResetConfirm)
