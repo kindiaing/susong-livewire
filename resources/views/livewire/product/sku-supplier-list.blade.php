@@ -46,7 +46,7 @@
                     <th class="px-4 py-2 text-left w-16">ID</th>
                     <th class="px-4 py-2 text-left">SKU编码</th>
                     <th class="px-4 py-2 text-left">供应商</th>
-                    <th class="px-4 py-2 text-left">采购价(厘)</th>
+                    <th class="px-4 py-2 text-left">采购价</th>
                     <th class="px-4 py-2 text-left">默认</th>
                     <th class="px-4 py-2 text-left">排序</th>
                     <th class="px-4 py-2 text-left">状态</th>

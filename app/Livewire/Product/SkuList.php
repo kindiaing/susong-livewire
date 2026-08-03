@@ -171,6 +171,8 @@ class SkuList extends Component
             ['key' => 'purchase_price', 'label' => '采购价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
             ['key' => 'wholesale_price', 'label' => '批发价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
             ['key' => 'cost_price', 'label' => '成本价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
+            ['key' => 'stock', 'label' => '库存', 'sortable' => true, 'exportable' => true],
+            ['key' => 'approval_status', 'label' => '审核状态', 'sortable' => false, 'exportable' => true],
             ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
         ];
     }

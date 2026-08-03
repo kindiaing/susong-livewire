@@ -4,6 +4,7 @@ namespace App\Livewire\Product;
 
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
 use App\Models\Merchant;
@@ -16,6 +17,7 @@ class MerchantSkuVisibilityList extends Component
 {
     use WithColumnVisibility;
     use WithExcelExport;
+    use WithExcelImport;
     use WithPagination;
     use WithRowSelection;
     use WithToast;
@@ -146,6 +148,25 @@ class MerchantSkuVisibilityList extends Component
         return 'SKU可见性配置_'.now()->format('Ymd_His');
     }
 
+    public function getImportModelClass(): string
+    {
+        return MerchantSkuVisibility::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            '商家ID' => 'merchant_id',
+            'SKU ID' => 'sku_id',
+            '是否可见' => 'is_visible',
+        ];
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['merchant_id', 'sku_id'];
+    }
+
     public function getPageIds(): array
     {
         return $this->getBaseQuery()->forPage($this->getPage(), 10)->pluck('id')->toArray();
@@ -164,8 +185,10 @@ class MerchantSkuVisibilityList extends Component
             })
             ->when($this->searchSku, function ($q) {
                 $q->whereHas('sku', function ($q) {
-                    $q->where('name', 'like', "%{$this->searchSku}%")
-                        ->orWhere('sku_code', 'like', "%{$this->searchSku}%");
+                    $q->where('sku_code', 'like', "%{$this->searchSku}%")
+                        ->orWhereHas('product', function ($pq) {
+                            $pq->where('name', 'like', "%{$this->searchSku}%");
+                        });
                 });
             });
     }

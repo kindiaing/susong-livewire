@@ -38,6 +38,7 @@
         <div class="flex-1"></div>
         <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">列配置</button>
         <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导出</button>
+        <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导入</button>
         @if($selectedCount > 0)
             <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
             @can('product.visibility.delete')
@@ -67,7 +68,7 @@
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $record->id }}" wire:model.live="selectedIds" class="rounded" /></td>
                     <td class="px-4 py-2 text-muted-foreground">{{ $record->id }}</td>
                     <td class="px-4 py-2 font-medium text-foreground">{{ $record->merchant?->name ?? '-' }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $record->sku?->name ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $record->sku?->product?->name ?? '-' }}</td>
                     <td class="px-4 py-2 text-muted-foreground">{{ $record->sku?->sku_code ?? '-' }}</td>
                     <td class="px-4 py-2">
                         <button type="button" wire:click="toggleVisibility({{ $record->id }})" class="inline-flex items-center gap-1.5 cursor-pointer">
@@ -100,7 +101,7 @@
     {{-- 新增/编辑弹窗 --}}
     @if($showCreateModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeCreateModal"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
             <h2 class="text-lg font-semibold text-foreground mb-4">新增可见性配置</h2>
             <div class="space-y-4">
@@ -137,7 +138,7 @@
     {{-- 删除确认弹窗 --}}
     @if($showDeleteConfirm)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeDeleteConfirm"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
             <h2 class="text-lg font-semibold text-foreground mb-2">确认删除</h2>
             <p class="text-sm text-muted-foreground mb-6">确定要删除该可见性配置吗？</p>
@@ -151,5 +152,6 @@
 
     @include('partials.column-modal')
     @include('partials.export-modal')
+    @include('partials.import-modal')
     @include('partials.delete-confirm')
 </div>

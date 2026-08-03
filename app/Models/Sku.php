@@ -134,4 +134,36 @@ class Sku extends Model
     {
         return $query->where('status', self::STATUS_ENABLED);
     }
+
+    /**
+     * 作用域：禁用
+     */
+    public function scopeDisabled($query)
+    {
+        return $query->where('status', self::STATUS_DISABLED);
+    }
+
+    /**
+     * 作用域：待审核
+     */
+    public function scopePendingApproval($query)
+    {
+        return $query->where('approval_status', self::APPROVAL_PENDING);
+    }
+
+    /**
+     * 作用域：已通过审核
+     */
+    public function scopeApproved($query)
+    {
+        return $query->where('approval_status', self::APPROVAL_APPROVED);
+    }
+
+    /**
+     * 作用域：按商品筛选
+     */
+    public function scopeByProduct($query, int $productId)
+    {
+        return $query->where('product_id', $productId);
+    }
 }

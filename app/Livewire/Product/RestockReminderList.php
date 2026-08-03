@@ -152,7 +152,9 @@ class RestockReminderList extends Component
             ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
             ['key' => 'merchant_id', 'label' => '商家', 'sortable' => false, 'exportable' => true],
             ['key' => 'sku_id', 'label' => 'SKU', 'sortable' => false, 'exportable' => true],
+            ['key' => 'threshold_quantity', 'label' => '库存阈值', 'sortable' => false, 'exportable' => true],
             ['key' => 'remind_cycle', 'label' => '提醒周期', 'sortable' => false, 'exportable' => true],
+            ['key' => 'last_reminded_at', 'label' => '上次提醒', 'sortable' => true, 'exportable' => true],
             ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
         ];
     }

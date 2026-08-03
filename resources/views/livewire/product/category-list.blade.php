@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between mb-6">
         <div>
             <h1 class="text-2xl font-bold text-foreground">分类管理</h1>
-            <p class="text-muted-foreground mt-1">商品分类，支持无限级树形结构</p>
+            <p class="text-muted-foreground mt-1">支持无限级分类、拖拽排序、展开/折叠管理</p>
         </div>
         @can('product.category.create')
         <button type="button" wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
@@ -44,8 +44,8 @@
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th class="px-2 py-2 w-8"></th>
                     <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAll" class="rounded" /></th>
-                    <th class="px-4 py-2 text-left w-16">ID</th>
                     <th class="px-4 py-2 text-left">分类名称</th>
                     <th class="px-4 py-2 text-left w-24">排序</th>
                     <th class="px-4 py-2 text-left w-20">状态</th>
@@ -61,27 +61,27 @@
                     @dragover.prevent="$event.dataTransfer.dropEffect = 'move'"
                     @drop="if (dragSrcId && dragSrcId !== {{ $category->id }}) { $wire.updateSortOrder(dragSrcId, {{ $category->id }}); dragSrcId = null; }"
                     data-parent-id="{{ $category->parent_id }}">
+                    {{-- 拖拽手柄 --}}
+                    <td class="px-2 py-2 w-8">
+                        <svg class="w-4 h-4 text-muted-foreground/30 group-hover:text-muted-foreground transition-colors cursor-grab" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
+                        </svg>
+                    </td>
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $category->id }}" wire:model.live="selectedIds" class="rounded" /></td>
-                    <td class="px-4 py-2 text-muted-foreground">{{ $category->id }}</td>
                     <td class="px-4 py-2 font-medium text-foreground">
-                        <div class="flex items-center" style="padding-left: {{ $depth * 24 }}px">
-                            {{-- Expand/Collapse Arrow --}}
+                        <div class="flex items-center justify-between" style="padding-left: {{ $depth * 24 }}px">
+                            <span>{{ $category->name }}</span>
                             @if($category->children->isNotEmpty())
-                                <button type="button" wire:click="toggleExpand({{ $category->id }})" class="inline-flex items-center justify-center w-5 h-5 mr-1 rounded hover:bg-muted transition-colors">
+                                <button type="button" wire:click="toggleExpand({{ $category->id }})" class="inline-flex items-center gap-1 ml-2 text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0">
                                     @if(in_array((string) $category->id, $expandedIds))
-                                        <svg class="w-3.5 h-3.5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                        <span>收起</span>
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
                                     @else
-                                        <svg class="w-3.5 h-3.5 text-muted-foreground -rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                        <span>展开</span>
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                                     @endif
                                 </button>
-                            @else
-                                <span class="inline-block w-5 h-5 mr-1"></span>
                             @endif
-                            {{-- Drag Handle --}}
-                            <svg class="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground transition-colors mr-2 cursor-grab" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/>
-                            </svg>
-                            <span>{{ $category->name }}</span>
                         </div>
                     </td>
                     <td class="px-4 py-2 text-foreground">{{ $category->sort }}</td>
@@ -112,7 +112,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="6" class="px-6 py-12 text-center text-muted-foreground">暂无分类数据</td></tr>
+                <tr><td colspan="7" class="px-6 py-12 text-center text-muted-foreground">暂无分类数据</td></tr>
                 @endforelse
             </tbody>
         </table>

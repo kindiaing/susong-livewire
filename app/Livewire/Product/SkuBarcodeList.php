@@ -150,7 +150,12 @@ class SkuBarcodeList extends Component
         return [
             ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
             ['key' => 'sku_id', 'label' => 'SKU', 'sortable' => false, 'exportable' => true],
+            ['key' => 'barcode_type', 'label' => '条码类型', 'sortable' => false, 'exportable' => true],
             ['key' => 'barcode_code', 'label' => '条码', 'sortable' => false, 'exportable' => true],
+            ['key' => 'supplier_id', 'label' => '供应商', 'sortable' => false, 'exportable' => true],
+            ['key' => 'is_default', 'label' => '默认', 'sortable' => false, 'exportable' => true],
+            ['key' => 'is_enabled', 'label' => '启用', 'sortable' => false, 'exportable' => true],
+            ['key' => 'remark', 'label' => '备注', 'sortable' => false, 'exportable' => true],
         ];
     }
 

@@ -17,6 +17,8 @@ use Illuminate\Support\Carbon;
  */
 class MerchantSkuVisibility extends Model
 {
+    protected $table = 'merchant_sku_visibility';
+
     protected $fillable = [
         'merchant_id',
         'sku_id',
@@ -46,5 +48,29 @@ class MerchantSkuVisibility extends Model
     public function sku()
     {
         return $this->belongsTo(Sku::class);
+    }
+
+    /**
+     * 作用域：可见
+     */
+    public function scopeVisible($query)
+    {
+        return $query->where('is_visible', 1);
+    }
+
+    /**
+     * 作用域：按商家筛选
+     */
+    public function scopeByMerchant($query, int $merchantId)
+    {
+        return $query->where('merchant_id', $merchantId);
+    }
+
+    /**
+     * 作用域：按SKU筛选
+     */
+    public function scopeBySku($query, int $skuId)
+    {
+        return $query->where('sku_id', $skuId);
     }
 }
