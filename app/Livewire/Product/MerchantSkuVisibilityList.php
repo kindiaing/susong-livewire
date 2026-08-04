@@ -53,7 +53,7 @@ class MerchantSkuVisibilityList extends Component
 
     public int $formSkuId = 0;
 
-    public int $formIsVisible = 1;
+    public int $formIsVisible = 0;
 
     public function mount(): void
     {
@@ -167,7 +167,7 @@ class MerchantSkuVisibilityList extends Component
         $this->formTargetType = 'product';
         $this->formProductId = 0;
         $this->formSkuId = 0;
-        $this->formIsVisible = 1;
+        $this->formIsVisible = 0;
     }
 
     public function getAllColumns(): array

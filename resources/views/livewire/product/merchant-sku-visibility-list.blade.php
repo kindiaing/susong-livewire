@@ -165,8 +165,8 @@
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">可见性</label>
                     <select wire:model="formIsVisible" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                        <option value="1">可见</option>
                         <option value="0">不可见</option>
+                        <option value="1">可见</option>
                     </select>
                 </div>
             </div>

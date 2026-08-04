@@ -85,7 +85,7 @@ return new class extends Migration
             $table->string('target_type', 20)->default('sku')->comment('配置类型：product=商品级，sku=SKU级');
             $table->unsignedBigInteger('product_id')->nullable()->comment('商品ID（商品级配置时使用）');
             $table->unsignedBigInteger('sku_id')->nullable()->comment('SKU ID（SKU级配置时使用）');
-            $table->tinyInteger('is_visible')->unsigned()->default(1)->comment('是否可见：0否，1是');
+            $table->tinyInteger('is_visible')->unsigned()->default(0)->comment('是否可见：0否，1是');
             $table->timestamps();
             $table->unique(['merchant_id', 'target_type', 'product_id', 'sku_id'], 'uk_merchant_visibility');
             $table->index('product_id');
