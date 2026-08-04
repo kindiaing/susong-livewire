@@ -72,7 +72,7 @@
                     <td class="px-4 py-2 font-medium text-foreground">{{ $item->loss_no }}</td>
                     <td class="px-4 py-2 text-foreground">{{ $item->warehouse?->name ?? '-' }}</td>
                     <td class="px-4 py-2 text-foreground">{{ \App\Models\LossOrder::typeMap()[$item->loss_type] ?? '-' }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ money_format($item->total_amount) }} 元</td>
+                    <td class="px-4 py-2 text-foreground">{{ money_format($item->total_amount) }}</td>
                     <td class="px-4 py-2">
                         {!! status_badge($item->approval_status, 'loss_approval') !!}
                     </td>
@@ -162,12 +162,9 @@
     @include('partials.export-modal')
     @include('partials.import-modal')
     @include('partials.delete-confirm')
-</div>
-
-    {{-- 审核弹窗 --}}
     @if($showApproveConfirm)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeApproveConfirm"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
             <h2 class="text-lg font-semibold text-foreground mb-2">审核损耗单</h2>
             <p class="text-sm text-muted-foreground mb-6">请选择审核结果</p>

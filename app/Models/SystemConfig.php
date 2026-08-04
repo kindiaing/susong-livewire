@@ -180,6 +180,7 @@ class SystemConfig extends Model
             'order' => '订单设置',
             'delivery' => '配送设置',
             'finance' => '财务风控',
+            'money' => '金额精度',
             'inventory' => '库存设置',
             'audit' => '审核日志',
             'ui' => '界面设置',

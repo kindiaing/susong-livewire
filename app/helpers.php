@@ -1,20 +1,73 @@
 <?php
 
 /**
- * 金额格式化：整数厘 → 元（带千分位）
- * 例：8000 → ¥8.00
+ * 金额格式化：厘 → 显示字符串
+ *
+ * 三层分离架构：存储层（厘）→ 计算层（厘）→ 显示层（可配置精度+舍入）
+ * 汇总金额永远是后端厘级求和的结果，不是前端把显示值加起来。
+ *
+ * @param int|float|null $cents      厘值（数据库存储单位）
+ * @param bool           $withSymbol 是否带¥符号
+ * @param string|null    $module     模块名（null=用全局默认舍入），如 'order'/'purchase'/'recharge'
+ * @return string
+ *
+ * 调用方式完全向后兼容：
+ *   money_format(8000)                → ¥8.00（全局2位，默认四舍五入）
+ *   money_format(8000, false)         → 8.00（不带¥）
+ *   money_format(8000, true, 'order') → 按订单模块配置的舍入方式显示
  */
-function money_format(int|float|null $cents, bool $withSymbol = true): string
+function money_format(int|float|null $cents, bool $withSymbol = true, ?string $module = null): string
 {
+    $precision = setting('money.display_precision', 2);
+
     if ($cents === null) {
-        return $withSymbol ? '¥0.00' : '0.00';
+        $zero = number_format(0, $precision, '.', ',');
+        return $withSymbol ? '¥' . $zero : $zero;
     }
-    $yuan = number_format($cents / 1000, 2, '.', ',');
-    return $withSymbol ? '¥' . $yuan : $yuan;
+
+    $roundMode = $module
+        ? setting("money.{$module}_round_mode", setting('money.default_round_mode', 'round'))
+        : setting('money.default_round_mode', 'round');
+
+    $yuan = money_round($cents, $precision, $roundMode);
+
+    return $withSymbol
+        ? '¥' . number_format($yuan, $precision, '.', ',')
+        : number_format($yuan, $precision, '.', '');
+}
+
+/**
+ * 金额舍入：厘 → 元（浮点），按精度和舍入模式处理
+ *
+ * 舍入模式枚举：
+ *   round      — 四舍五入（¥3.145 → ¥3.15）
+ *   round_up   — 向上取整（¥3.141 → ¥3.15）
+ *   round_down — 向下取整（¥3.149 → ¥3.14）
+ *   truncate   — 截断抹零（2位精度下同 round_down，3位精度下直接截断）
+ *
+ * @param int|float $cents     厘值
+ * @param int       $precision 显示精度（2=分级，3=厘级）
+ * @param string    $mode      舍入模式：round/round_up/round_down/truncate
+ * @return float 元值
+ */
+function money_round(int|float $cents, int $precision = 2, string $mode = 'round'): float
+{
+    $yuan = $cents / 1000;
+    $factor = pow(10, $precision);
+
+    return match ($mode) {
+        'round'      => round($yuan, $precision),
+        'round_up'   => ceil($yuan * $factor) / $factor,
+        'round_down' => floor($yuan * $factor) / $factor,
+        'truncate'   => floor($yuan * $factor) / $factor,
+        default      => round($yuan, $precision),
+    };
 }
 
 /**
  * 金额反格式化：元（字符串/浮点） → 整数厘
+ *
+ * 注意：输入端始终接受元，输出端始终是厘，不受精度配置影响。
  * 例：'8.00' → 8000, 130.5 → 130500
  */
 function money_to_cents(string|float|null $yuan): int
@@ -23,6 +76,40 @@ function money_to_cents(string|float|null $yuan): int
         return 0;
     }
     return (int) round((float) $yuan * 1000);
+}
+
+/**
+ * 称重数量格式化：厘斤 → 斤显示字符串
+ *
+ * 称重数量精度与金额显示精度是两个独立维度，可分别配置。
+ *
+ * @param int|float|null $liangin   厘斤值（数据库存储单位）
+ * @param bool           $withUnit  是否带"斤"单位
+ * @param int|null       $precision 精度（null=用系统配置 money.weighing_precision）
+ * @return string
+ */
+function weight_format(int|float|null $liangin, bool $withUnit = false, ?int $precision = null): string
+{
+    if ($liangin === null) {
+        return $withUnit ? '0斤' : '0';
+    }
+    $p = $precision ?? setting('money.weighing_precision', 3);
+    $jin = $liangin / 1000;
+    $str = number_format($jin, $p, '.', '');
+    return $withUnit ? $str . '斤' : $str;
+}
+
+/**
+ * 称重数量反格式化：斤 → 厘斤（存储）
+ *
+ * 例：2.13 → 2130, 0.5 → 500
+ */
+function weight_to_liangin(string|float|null $jin): int
+{
+    if ($jin === null || $jin === '') {
+        return 0;
+    }
+    return (int) round((float) $jin * 1000);
 }
 
 /**

@@ -147,7 +147,7 @@ class UserList extends Component
     public function resetPassword(): void
     {
         $user = User::findOrFail($this->resettingId);
-        $user->password = 'Password';
+        $user->password = bcrypt('Password');
         $user->save();
         $this->toastSuccess('密码已重置为 Password');
         $this->showResetConfirm = false;

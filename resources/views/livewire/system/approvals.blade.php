@@ -86,7 +86,7 @@
                     {{-- 金额 --}}
                     <td class="px-4 py-3 font-mono text-foreground">
                         @if($approval->amount)
-                            {{ number_format($approval->amount / 100, 2) }} 元
+                            {{ money_format($approval->amount) }}
                         @else
                             -
                         @endif
@@ -164,7 +164,7 @@
                             <div class="text-xs text-muted-foreground mb-1">涉及金额</div>
                             <div class="text-sm font-mono">
                                 @if($detailApproval->amount)
-                                    {{ number_format($detailApproval->amount / 100, 2) }} 元
+                                    {{ money_format($detailApproval->amount) }}
                                 @else
                                     -
                                 @endif

@@ -63,8 +63,8 @@
                     <td class="px-4 py-2 font-medium text-foreground">{{ $item->return_no }}</td>
                     <td class="px-4 py-2 text-foreground">{{ $item->supplier?->name ?? '-' }}</td>
                     <td class="px-4 py-2 text-foreground">{{ $item->warehouse?->name ?? '-' }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ money_format($item->total_amount) }} 元</td>
-                    <td class="px-4 py-2 text-foreground">{{ money_format($item->actual_amount) }} 元</td>
+                    <td class="px-4 py-2 text-foreground">{{ money_format($item->total_amount) }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ money_format($item->actual_amount) }}</td>
                     <td class="px-4 py-2">
                         {!! status_badge($item->status, 'purchase_return') !!}
                     </td>

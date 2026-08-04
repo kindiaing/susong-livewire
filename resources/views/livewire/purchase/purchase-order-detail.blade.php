@@ -109,7 +109,7 @@
     {{-- 导出弹窗 --}}
     @if($showExportModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeExportModal"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
             <h2 class="text-lg font-semibold text-foreground mb-4">导出采购明细</h2>
             <div class="space-y-3">
@@ -149,7 +149,7 @@
     {{-- 导入弹窗 --}}
     @if($showImportModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeImportModal"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
             <h2 class="text-lg font-semibold text-foreground mb-4">导入采购明细</h2>
             <div class="space-y-4">
@@ -176,7 +176,7 @@
     {{-- 添加明细弹窗 --}}
     @if($showAddItemModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeAddItemModal"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
             <h2 class="text-lg font-semibold text-foreground mb-4">添加采购明细</h2>
             <div class="space-y-4">
@@ -212,7 +212,7 @@
     {{-- 入库弹窗 --}}
     @if($showStockInModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeStockInModal"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-3xl mx-4 p-6 max-h-[90vh] overflow-y-auto">
             <h2 class="text-lg font-semibold text-foreground mb-4">采购入库</h2>
             <div class="space-y-4">
@@ -270,7 +270,7 @@
     {{-- 状态确认弹窗 --}}
     @if($showConfirmModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeConfirmModal"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
             <h2 class="text-lg font-semibold text-foreground mb-2">确认操作</h2>
             <p class="text-sm text-muted-foreground mb-6">{{ $confirmTitle }}</p>
