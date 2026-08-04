@@ -125,7 +125,7 @@
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-2xl mx-4 p-6 max-h-[85vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-foreground">{{ $editingId ? '编辑SKU' : '新增SKU' }}</h2>
-                <button type="button" onclick="if(!confirm('关闭后未保存的内容将丢失，确认关闭？')){event.preventDefault()}else{Livewire.dispatch('closeModal')}" class="inline-flex items-center justify-center rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                <button type="button" wire:click="closeModal" class="inline-flex items-center justify-center rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
