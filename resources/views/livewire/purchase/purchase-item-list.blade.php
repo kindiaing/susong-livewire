@@ -93,11 +93,11 @@
             <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <x-ui.searchable-select label="SKU *" wire:model="formSkuId" :options="$skuOptions" placeholder="搜索SKU..." wireModel="formSkuId" />
+                        <x-ui.searchable-select label="SKU *" wire:model="formSkuId" :options="$skuOptions" placeholder="搜索SKU..." wireModel="formSkuId" :value="$formSkuId" />
                         @error('formSkuId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
-                        <x-ui.searchable-select label="供应商" wire:model="formSupplierId" :options="$supplierOptions" placeholder="选择供应商..." wireModel="formSupplierId" />
+                        <x-ui.searchable-select label="供应商" wire:model="formSupplierId" :options="$supplierOptions" placeholder="选择供应商..." wireModel="formSupplierId" :value="$formSupplierId" />
                         @error('formSupplierId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>

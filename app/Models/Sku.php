@@ -147,6 +147,16 @@ class Sku extends Model
     }
 
     /**
+     * 关联供应商（多对多，通过 sku_suppliers 中间表）
+     */
+    public function suppliers()
+    {
+        return $this->belongsToMany(Supplier::class, 'sku_suppliers', 'sku_id', 'supplier_id')
+            ->withPivot(['is_default', 'purchase_price', 'status', 'sort'])
+            ->withTimestamps();
+    }
+
+    /**
      * 关联商家可见性
      */
     public function merchantVisibilities()

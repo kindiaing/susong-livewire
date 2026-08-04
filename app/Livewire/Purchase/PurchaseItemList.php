@@ -126,14 +126,6 @@ class PurchaseItemList extends Component
         $this->resetErrorBag();
     }
 
-    /**
-     * 获取选中ID
-     */
-    private function getSelectedIds(): array
-    {
-        return array_keys(array_filter($this->selectedRows ?? []));
-    }
-
     private function resetForm(): void
     {
         $this->editingId = null;
