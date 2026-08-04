@@ -8,6 +8,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -16,16 +17,13 @@ class WarehouseList extends Component
     use WithPagination;
     use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = Warehouse::class;
 
     public string $search = '';
     public int $filterType = -1;
     public int $filterStatus = -1;
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
 
     public string $formName = '';
     public int $formType = 1;
@@ -36,12 +34,6 @@ class WarehouseList extends Component
     public function mount(): void
     {
         $this->initColumnVisibility();
-    }
-
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
     }
 
     public function openEditModal(int $id): void
@@ -87,12 +79,6 @@ class WarehouseList extends Component
         $this->resetForm();
     }
 
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         $item = Warehouse::findOrFail($this->deletingId);
@@ -110,19 +96,6 @@ class WarehouseList extends Component
         $this->resetPage();
     }
 
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
-    }
-
     private function resetForm(): void
     {
         $this->editingId = null;
@@ -131,6 +104,45 @@ class WarehouseList extends Component
         $this->formIsColdChain = 0;
         $this->formAddress = '';
         $this->formStatus = 1;
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['name', 'type', 'is_cold_chain', 'address', 'status', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'name' => $row->name,
+                'type' => $row->type,
+                'is_cold_chain' => $row->is_cold_chain,
+                'address' => $row->address ?? '',
+                'status' => $row->status,
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['name'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['仓库名称'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [
+            'type' => ['常温' => 1, '冷藏' => 2],
+            'is_cold_chain' => ['否' => 0, '是' => 1],
+            'status' => ['禁用' => 0, '启用' => 1],
+        ];
     }
 
     public function getAllColumns(): array
@@ -193,7 +205,7 @@ class WarehouseList extends Component
             $query->where('status', $this->filterStatus);
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
 

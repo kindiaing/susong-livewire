@@ -30,6 +30,8 @@ class LossOrderItem extends Model
 
     protected $fillable = [
         'loss_order_id',
+        'purchase_order_item_id',
+        'purchase_order_id',
         'sku_id',
         'loss_type',
         'quantity',
@@ -45,6 +47,8 @@ class LossOrderItem extends Model
     {
         return [
             'loss_order_id' => 'integer',
+            'purchase_order_item_id' => 'integer',
+            'purchase_order_id' => 'integer',
             'sku_id' => 'integer',
             'loss_type' => 'integer',
             'quantity' => 'integer',
@@ -78,6 +82,22 @@ class LossOrderItem extends Model
     public function lossOrder()
     {
         return $this->belongsTo(LossOrder::class);
+    }
+
+    /**
+     * 关联采购单明细
+     */
+    public function purchaseOrderItem()
+    {
+        return $this->belongsTo(PurchaseOrderItem::class);
+    }
+
+    /**
+     * 关联采购单
+     */
+    public function purchaseOrder()
+    {
+        return $this->belongsTo(PurchaseOrder::class);
     }
 
     /**

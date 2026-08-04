@@ -19,6 +19,16 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class ReceivablePayment extends Model
 {
+    // 收款方式常量
+    public const METHOD_BALANCE = 1;
+    public const METHOD_WECHAT = 2;
+    public const METHOD_OFFLINE = 3;
+    public const METHOD_MANUAL = 4;
+
+    // 审核状态常量
+    public const APPROVAL_PENDING = 1;
+    public const APPROVAL_APPROVED = 2;
+    public const APPROVAL_REJECTED = 3;
 
     protected $fillable = [
         'receivable_id',
@@ -43,4 +53,62 @@ class ReceivablePayment extends Model
         ];
     }
 
+    /**
+     * 收款方式映射
+     */
+    public static function paymentMethodMap(): array
+    {
+        return [
+            self::METHOD_BALANCE => '余额扣款',
+            self::METHOD_WECHAT => '微信支付',
+            self::METHOD_OFFLINE => '线下转账',
+            self::METHOD_MANUAL => '后台手工',
+        ];
+    }
+
+    /**
+     * 审核状态映射
+     */
+    public static function approvalStatusMap(): array
+    {
+        return [
+            self::APPROVAL_PENDING => '待审核',
+            self::APPROVAL_APPROVED => '已通过',
+            self::APPROVAL_REJECTED => '已拒绝',
+        ];
+    }
+
+    public function getPaymentMethodLabelAttribute(): string
+    {
+        return self::paymentMethodMap()[$this->payment_method] ?? '未知';
+    }
+
+    public function getApprovalStatusLabelAttribute(): string
+    {
+        return self::approvalStatusMap()[$this->approval_status] ?? '未知';
+    }
+
+    /**
+     * 关联应收账款
+     */
+    public function receivable()
+    {
+        return $this->belongsTo(Receivable::class);
+    }
+
+    /**
+     * 关联操作人
+     */
+    public function operator()
+    {
+        return $this->belongsTo(User::class, 'operator_id');
+    }
+
+    /**
+     * 作用域：待审核
+     */
+    public function scopePending($query)
+    {
+        return $query->where('approval_status', self::APPROVAL_PENDING);
+    }
 }

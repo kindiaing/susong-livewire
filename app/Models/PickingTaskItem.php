@@ -18,6 +18,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class PickingTaskItem extends Model
 {
+    // 状态常量
+    public const STATUS_PENDING = 1;
+    public const STATUS_PICKED = 2;
+    public const STATUS_DISCREPANCY = 3;
 
     protected $fillable = [
         'picking_task_id',
@@ -42,4 +46,52 @@ class PickingTaskItem extends Model
         ];
     }
 
+    /**
+     * 状态映射
+     */
+    public static function statusMap(): array
+    {
+        return [
+            self::STATUS_PENDING => '待拣货',
+            self::STATUS_PICKED => '已拣货',
+            self::STATUS_DISCREPANCY => '差异',
+        ];
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::statusMap()[$this->status] ?? '未知';
+    }
+
+    /**
+     * 关联拣货任务
+     */
+    public function pickingTask()
+    {
+        return $this->belongsTo(PickingTask::class);
+    }
+
+    /**
+     * 关联订单
+     */
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * 关联订单明细
+     */
+    public function orderItem()
+    {
+        return $this->belongsTo(OrderItem::class);
+    }
+
+    /**
+     * 关联 SKU
+     */
+    public function sku()
+    {
+        return $this->belongsTo(Sku::class);
+    }
 }

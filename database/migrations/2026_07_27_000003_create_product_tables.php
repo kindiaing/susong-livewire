@@ -56,9 +56,18 @@ return new class extends Migration
             $table->unsignedBigInteger('product_id')->comment('商品ID');
             $table->string('sku_code', 50)->unique()->comment('SKU编码');
             $table->json('specs')->nullable()->comment('规格属性');
-            $table->bigInteger('purchase_price')->default(0)->comment('采购参考价');
-            $table->bigInteger('wholesale_price')->default(0)->comment('批发销售价');
-            $table->bigInteger('cost_price')->default(0)->comment('财务成本价');
+            $table->bigInteger('purchase_price')->default(0)->comment('标准采购价（厘）');
+            $table->bigInteger('cost_price')->default(0)->comment('加权平均成本价（厘）');
+            $table->bigInteger('min_purchase_price')->default(0)->comment('最低采购限价（厘）');
+            $table->bigInteger('list_price')->default(0)->comment('吊牌价（厘）');
+            $table->bigInteger('retail_price')->default(0)->comment('标准零售价（厘）');
+            $table->bigInteger('wholesale_price')->default(0)->comment('批发团购价（厘）');
+            $table->bigInteger('employee_price')->default(0)->comment('员工内部价（厘）');
+            $table->bigInteger('offline_price')->default(0)->comment('门店基准价（厘）');
+            $table->bigInteger('miniapp_price')->default(0)->comment('小程序基准价（厘）');
+            $table->bigInteger('delivery_price')->default(0)->comment('配送基准价（厘）');
+            $table->bigInteger('min_sale_price')->default(0)->comment('最低销售限价（厘）');
+            $table->bigInteger('max_sale_price')->default(0)->comment('最高销售限价（厘）');
             $table->bigInteger('stock')->default(0)->comment('当前库存冗余字段');
             $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：0禁用，1启用');
             $table->tinyInteger('approval_status')->unsigned()->default(1)->comment('审核状态：1待审核，2已通过，3已拒绝');
@@ -73,12 +82,15 @@ return new class extends Migration
         Schema::create('merchant_sku_visibility', function (Blueprint $table) {
             $table->id()->comment('主键');
             $table->unsignedBigInteger('merchant_id')->comment('商家ID');
-            $table->unsignedBigInteger('sku_id')->comment('SKU ID');
-            $table->tinyInteger('is_visible')->unsigned()->default(1)->comment('是否可见：0否，1是');
+            $table->string('target_type', 20)->default('sku')->comment('配置类型：product=商品级，sku=SKU级');
+            $table->unsignedBigInteger('product_id')->nullable()->comment('商品ID（商品级配置时使用）');
+            $table->unsignedBigInteger('sku_id')->nullable()->comment('SKU ID（SKU级配置时使用）');
+            $table->tinyInteger('is_visible')->unsigned()->default(0)->comment('是否可见：0否，1是');
             $table->timestamps();
-            $table->unique(['merchant_id', 'sku_id']);
+            $table->unique(['merchant_id', 'target_type', 'product_id', 'sku_id'], 'uk_merchant_visibility');
+            $table->index('product_id');
             $table->index('sku_id');
-            $table->comment('商家SKU可见性表');
+            $table->comment('商家可见性配置表');
         });
 
         Schema::create('tags', function (Blueprint $table) {

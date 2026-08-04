@@ -1,11 +1,26 @@
 @props([])
-{{--
-  Command 搜索组件（Alpine.js）
-  参考 shadcn/ui Command 组件风格
-  支持 Ctrl+K / Cmd+K 快捷键唤起
-  ESC 关闭
---}}
-<div x-data="commandPalette()" x-init="init()"
+
+@php
+// 从 config/menu.php 生成命令面板数据（单一数据源，与顶部导航保持一致）
+$commandGroups = collect(config('menu', []))->map(function ($module) {
+    return [
+        'label' => $module['label'],
+        'items' => collect($module['children'] ?? [])->map(function ($item) {
+            $url = '#';
+            try { $url = route($item['route']); } catch (\Throwable $e) {}
+            return [
+                'label' => $item['label'],
+                'url'   => $url,
+            ];
+        })->values()->toArray(),
+    ];
+})->values()->toArray();
+@endphp
+
+{{-- 注入菜单数据到 window，供 Alpine JS 组件使用 --}}
+<script>window.__commandGroups = @json($commandGroups);</script>
+
+<div x-data="commandPalette()"
      @keydown.window="if(($event.metaKey || $event.ctrlKey) && $event.key === 'k') { $event.preventDefault(); open = !open }"
      @keydown.window.escape="if(open) open = false">
 
@@ -62,7 +77,6 @@
 
                     {{-- 搜索结果 --}}
                     <div class="max-h-80 overflow-y-auto py-2">
-                        {{-- 无结果 --}}
                         <template x-if="filteredGroups.length === 0">
                             <div class="py-6 text-center text-sm text-muted-foreground">
                                 没有找到匹配的结果
@@ -101,140 +115,4 @@
             </div>
         </div>
     </template>
-
-    <script>
-        function commandPalette() {
-            return {
-                open: false,
-                query: '',
-                activeIndex: null,
-
-                // 搜索数据源（菜单+功能+页面）
-                groups: [
-                    {
-                        label: '商品管理',
-                        items: [
-                            { label: '分类管理', icon: 'swatch', url: '#' },
-                            { label: '商品管理', icon: 'cube', url: '#' },
-                            { label: 'SKU 管理', icon: 'tag', url: '#' },
-                            { label: '条码管理', icon: 'qr-code', url: '#' },
-                        ]
-                    },
-                    {
-                        label: '采购管理',
-                        items: [
-                            { label: '待采清单', icon: 'clipboard', url: '#' },
-                            { label: '采购单管理', icon: 'document', url: '#' },
-                            { label: '采购退货', icon: 'arrow-uturn-left', url: '#' },
-                        ]
-                    },
-                    {
-                        label: '订单配送',
-                        items: [
-                            { label: '客户订单', icon: 'lock-closed', url: '#' },
-                            { label: '配送任务', icon: 'truck', url: '#' },
-                            { label: '签收存证', icon: 'check-badge', url: '#' },
-                            { label: '差异处理', icon: 'exclamation-triangle', url: '#' },
-                            { label: '售后退货', icon: 'arrow-uturn-left', url: '#' },
-                        ]
-                    },
-                    {
-                        label: '库存拣货',
-                        items: [
-                            { label: '仓库管理', icon: 'building', url: '#' },
-                            { label: '实时库存', icon: 'chart-bar', url: '#' },
-                            { label: '库存日志', icon: 'document', url: '#' },
-                            { label: '库存预警', icon: 'bell', url: '#' },
-                            { label: '拣货任务', icon: 'cube', url: '#' },
-                        ]
-                    },
-                    {
-                        label: '财务管理',
-                        items: [
-                            { label: '客户账户', icon: 'wallet', url: '#' },
-                            { label: '客户充值', icon: 'bank', url: '#' },
-                            { label: '供应商结算', icon: 'briefcase', url: '#' },
-                            { label: '应收账款', icon: 'banknotes', url: '#' },
-                            { label: '损耗管理', icon: 'trash', url: '#' },
-                        ]
-                    },
-                    {
-                        label: '系统管理',
-                        items: [
-                            { label: '系统配置', icon: 'cog', url: '{{ route("settings") }}' },
-                            { label: '个人中心', icon: 'user', url: '{{ route("profile") }}' },
-                            { label: '操作日志', icon: 'document', url: '#' },
-                            { label: '审计日志', icon: 'shield', url: '#' },
-                        ]
-                    },
-                ],
-
-                get filteredGroups() {
-                    if (!this.query.trim()) return this.groups;
-                    const q = this.query.toLowerCase();
-                    return this.groups
-                        .map(g => ({
-                            ...g,
-                            items: g.items.filter(item =>
-                                item.label.toLowerCase().includes(q)
-                            )
-                        }))
-                        .filter(g => g.items.length > 0);
-                },
-
-                init() {
-                    // 打开时聚焦输入框
-                    this.$watch('open', (val) => {
-                        if (val) {
-                            this.query = '';
-                            this.activeIndex = null;
-                            this.$nextTick(() => {
-                                this.$refs.searchInput?.focus();
-                            });
-                        }
-                    });
-                },
-
-                navigateDown() {
-                    const all = this.allItems;
-                    if (all.length === 0) return;
-                    const idx = all.findIndex(k => k === this.activeIndex);
-                    this.activeIndex = all[(idx + 1) % all.length];
-                },
-
-                navigateUp() {
-                    const all = this.allItems;
-                    if (all.length === 0) return;
-                    const idx = all.findIndex(k => k === this.activeIndex);
-                    this.activeIndex = all[(idx - 1 + all.length) % all.length];
-                },
-
-                get allItems() {
-                    const keys = [];
-                    this.filteredGroups.forEach(g => {
-                        g.items.forEach((_, idx) => {
-                            keys.push(g.label + '-' + idx);
-                        });
-                    });
-                    return keys;
-                },
-
-                selectItem() {
-                    if (!this.activeIndex) return;
-                    const [groupLabel, idxStr] = this.activeIndex.split('-');
-                    const group = this.filteredGroups.find(g => g.label === groupLabel);
-                    if (!group) return;
-                    const item = group.items[parseInt(idxStr)];
-                    if (item) this.goTo(item);
-                },
-
-                goTo(item) {
-                    this.open = false;
-                    if (item.url && item.url !== '#') {
-                        window.location.href = item.url;
-                    }
-                }
-            };
-        }
-    </script>
 </div>

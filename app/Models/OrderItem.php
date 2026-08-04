@@ -92,4 +92,20 @@ class OrderItem extends Model
     {
         return $this->belongsTo(Sku::class);
     }
+
+    /**
+     * 作用域：正常
+     */
+    public function scopeNormal($query)
+    {
+        return $query->where('status', self::STATUS_NORMAL);
+    }
+
+    /**
+     * 作用域：待审核
+     */
+    public function scopePendingReview($query)
+    {
+        return $query->where('status', self::STATUS_PENDING_REVIEW);
+    }
 }

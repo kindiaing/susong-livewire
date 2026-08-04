@@ -1,4 +1,4 @@
-<div class="p-6">
+<div class="">
     {{-- 页面标题 --}}
     <div class="flex items-center justify-between mb-6">
         <div>
@@ -6,17 +6,23 @@
             <p class="text-muted-foreground mt-1">管理损耗单据及审核流程</p>
         </div>
         @can('loss.loss-order.create')
-        <button wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+        <button type="button" wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+            <x-ui.icon name="plus" class="w-4 h-4" />
             新增损耗单
         </button>
         @endcan
-            新增损耗单
-        </button>
     </div>
 
     {{-- 搜索栏 --}}
     <div class="flex items-center gap-3 mb-4">
-        <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background px-3 text-sm" placeholder="搜索损耗单号..." />
+        <div x-data class="relative">
+            <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background pl-3 pr-8 text-sm" placeholder="搜索损耗单号..." />
+            @if($search)
+                <button type="button" wire:click="resetFilters" class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted transition-colors">
+                    <x-ui.icon name="x-mark" class="w-3.5 h-3.5" />
+                </button>
+            @endif
+        </div>
         <select wire:model.live="filterLossType" class="flex h-9 w-36 rounded-md border border-input bg-background px-3 text-sm">
             <option value="-1">全部类型</option>
             <option value="1">存储腐坏</option>
@@ -34,73 +40,73 @@
             <option value="4">已关闭</option>
             <option value="9">已取消</option>
         </select>
-        <button wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
+        <div class="flex-1"></div>
+        <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="adjustments" class="w-4 h-4" />列配置</button>
+        <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="arrow-up-tray" class="w-4 h-4" />导入</button>
+        <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="arrow-down-tray" class="w-4 h-4" />导出</button>
+            @if($selectedCount > 0)
+                <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
+                <button type="button" wire:click="batchDelete" class="inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
+                <button type="button" wire:click="clearSelection" class="text-sm text-muted-foreground hover:text-foreground transition-colors">取消选择</button>
+            @endif
     </div>
 
     {{-- 列表 --}}
     <div class="rounded-lg border bg-card overflow-x-auto">
-        <div class="grid grid-cols-[60px_1fr_1fr_100px_120px_80px_80px_120px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider min-w-[900px]">
-            <div>ID</div>
-            <div>损耗单号</div>
-            <div>仓库</div>
-            <div>损耗类型</div>
-            <div>损耗金额</div>
-            <div>审核状态</div>
-            <div>状态</div>
-            <div>操作</div>
-        </div>
-
-        @forelse($items as $item)
-            <div class="grid grid-cols-[60px_1fr_1fr_100px_120px_80px_80px_120px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors min-w-[900px]"
-                 wire:key="loss-{{ $item->id }}">
-                <div class="text-sm text-muted-foreground">{{ $item->id }}</div>
-                <div class="text-sm font-medium text-foreground">{{ $item->loss_no }}</div>
-                <div class="text-sm text-foreground">{{ $item->warehouse?->name ?? '-' }}</div>
-                <div class="text-sm text-foreground">{{ \App\Models\LossOrder::typeMap()[$item->loss_type] ?? '-' }}</div>
-                <div class="text-sm text-foreground">{{ number_format($item->total_amount / 100, 2) }} 元</div>
-                <div>
-                    @php($asLabel = \App\Models\LossOrder::approvalStatusMap()[$item->approval_status] ?? '未知')
-                    @if($item->approval_status === 2)
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">{{ $asLabel }}</span>
-                    @elseif($item->approval_status === 3)
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-red-100 text-red-700">{{ $asLabel }}</span>
-                    @else
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-yellow-100 text-yellow-700">{{ $asLabel }}</span>
-                    @endif
-                </div>
-                <div>
-                    @php($sLabel = \App\Models\LossOrder::statusMap()[$item->status] ?? '未知')
-                    @if(in_array($item->status, [3, 4]))
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-blue-100 text-blue-700">{{ $sLabel }}</span>
-                    @elseif($item->status === 9)
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">{{ $sLabel }}</span>
-                    @else
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-yellow-100 text-yellow-700">{{ $sLabel }}</span>
-                    @endif
-                </div>
-                <div class="flex items-center gap-2">
-                    @can('loss.loss-order.edit')
-                    @if($item->approval_status === 1)
-                        <button wire:click="confirmApprove({{ $item->id }})" class="text-green-600 hover:text-green-700 text-sm">审核</button>
-                    @endif
-                    @if($item->status === 2)
-                        <button wire:click="execute({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">执行</button>
-                    @endif
-                    @if($item->status === 3)
-                        <button wire:click="close({{ $item->id }})" class="text-orange-600 hover:text-orange-700 text-sm">关闭</button>
-                    @endif
-                    @if($item->status === 1)
-                        <button wire:click="openEditModal({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
-                    @endif
-                    @endcan
-                    @can('loss.loss-order.delete')
-                    <button wire:click="confirmDelete({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
-                    @endcan
-                </div>
-            </div>
-        @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无损耗单数据</div>
-        @endforelse
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAllPage" class="rounded" /></th>
+                    <th class="px-4 py-2 text-left">损耗单号</th>
+                    <th class="px-4 py-2 text-left">仓库</th>
+                    <th class="px-4 py-2 text-left">损耗类型</th>
+                    <th class="px-4 py-2 text-left">损耗金额</th>
+                    <th class="px-4 py-2 text-left">审核状态</th>
+                    <th class="px-4 py-2 text-left">状态</th>
+                    <th class="px-4 py-2 text-left w-24">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($items as $item)
+                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="loss-{{ $item->id }}">
+                    <td class="px-4 py-2"><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></td>
+                    <td class="px-4 py-2 font-medium text-foreground">{{ $item->loss_no }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $item->warehouse?->name ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ \App\Models\LossOrder::typeMap()[$item->loss_type] ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ money_format($item->total_amount) }}</td>
+                    <td class="px-4 py-2">
+                        {!! status_badge($item->approval_status, 'loss_approval') !!}
+                    </td>
+                    <td class="px-4 py-2">
+                        {!! status_badge($item->status, 'loss_status') !!}
+                    </td>
+                    <td class="px-4 py-2">
+                        <div class="flex items-center gap-2">
+                            @can('loss.loss-order.edit')
+                            @if($item->approval_status === 1)
+                                <button type="button" wire:click="confirmApprove({{ $item->id }})" class="text-green-600 hover:text-green-700 text-sm">审核</button>
+                            @endif
+                            @if($item->status === 2)
+                                <button type="button" wire:click="execute({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">执行</button>
+                            @endif
+                            @if($item->status === 3)
+                                <button type="button" wire:click="close({{ $item->id }})" class="text-orange-600 hover:text-orange-700 text-sm">关闭</button>
+                            @endif
+                            @if($item->status === 1)
+                                <button type="button" wire:click="openEditModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil" class="w-3.5 h-3.5" /></button>
+                            @endif
+                            @endcan
+                            @can('loss.loss-order.delete')
+                            <button type="button" wire:click="confirmDelete({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
+                            @endcan
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="8" class="px-6 py-12 text-center text-muted-foreground">暂无损耗单数据</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 
     <div class="mt-4">{{ $items->links() }}</div>
@@ -108,7 +114,7 @@
     {{-- 新增/编辑弹窗 --}}
     @if($showModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeModal"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
             <h2 class="text-lg font-semibold text-foreground mb-4">{{ $editingId ? '编辑损耗单' : '新增损耗单' }}</h2>
             <div class="space-y-4">
@@ -146,39 +152,27 @@
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">
-                <button wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
+                <button type="button" wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
             </div>
         </div>
     </div>
     @endif
 
-    {{-- 删除确认弹窗 --}}
-    @if($showDeleteConfirm)
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeDeleteConfirm"></div>
-        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
-            <h2 class="text-lg font-semibold text-foreground mb-2">确认删除</h2>
-            <p class="text-sm text-muted-foreground mb-6">确定要删除该损耗单吗？此操作不可恢复。</p>
-            <div class="flex justify-end gap-3">
-                <button wire:click="closeDeleteConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button wire:click="delete" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>
-            </div>
-        </div>
-    </div>
-    @endif
-
-    {{-- 审核弹窗 --}}
+    @include('partials.column-modal')
+    @include('partials.export-modal')
+    @include('partials.import-modal')
+    @include('partials.delete-confirm')
     @if($showApproveConfirm)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeApproveConfirm"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
             <h2 class="text-lg font-semibold text-foreground mb-2">审核损耗单</h2>
             <p class="text-sm text-muted-foreground mb-6">请选择审核结果</p>
             <div class="flex justify-end gap-3">
-                <button wire:click="closeApproveConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button wire:click="reject" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">拒绝</button>
-                <button wire:click="approve" class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors">通过</button>
+                <button type="button" wire:click="closeApproveConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="reject" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">拒绝</button>
+                <button type="button" wire:click="approve" class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors">通过</button>
             </div>
         </div>
     </div>

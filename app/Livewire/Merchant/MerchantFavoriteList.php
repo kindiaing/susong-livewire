@@ -7,6 +7,7 @@ use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\MerchantFavorite;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -19,16 +20,42 @@ class MerchantFavoriteList extends Component
     use WithExcelExport;
     use WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = MerchantFavorite::class;
 
     public string $search = '';
-    public bool $showDeleteConfirm = false;
-    public ?int $deletingId = null;
 
     public function mount(): void
     {
         $this->initColumnVisibility();
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['merchant', 'product', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'merchant' => $row->merchant?->name ?? '',
+                'product' => $row->product?->name ?? '',
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['id'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['商家ID', '商品ID'];
     }
 
     public function getAllColumns(): array
@@ -78,48 +105,12 @@ class MerchantFavoriteList extends Component
         return $this->getExportQuery()->forPage($this->page, 20)->pluck('id')->toArray();
     }
 
-    public function closeColumnModal(): void
-    {
-        $this->showColumnModal = false;
-    }
-
-    public function closeExportModal(): void
-    {
-        $this->showExportModal = false;
-    }
-
-    public function closeImportModal(): void
-    {
-        $this->showImportModal = false;
-        $this->importFile = null;
-        $this->importMessage = '';
-    }
-
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         MerchantFavorite::findOrFail($this->deletingId)->delete();
         $this->toastSuccess('已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
-    }
-
-    public function resetFilters(): void
-    {
-        $this->search = '';
-        $this->resetPage();
-        $this->clearSelection();
     }
 
     public function render()
@@ -136,7 +127,7 @@ class MerchantFavoriteList extends Component
             });
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
 
         return view('livewire.merchant.merchant-favorite-list', [
             'items' => $items,

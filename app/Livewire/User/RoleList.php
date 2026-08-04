@@ -9,6 +9,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -17,15 +18,14 @@ class RoleList extends Component
     use WithPagination;
     use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = Role::class;
 
     public string $search = '';
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
+
     public bool $showPermissionModal = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
+
     public ?int $permissionRoleId = null;
 
     public string $formName = '';
@@ -46,12 +46,6 @@ class RoleList extends Component
     public function mount(): void
     {
         $this->initColumnVisibility();
-    }
-
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
     }
 
     public function openEditModal(int $id): void
@@ -101,12 +95,6 @@ class RoleList extends Component
 
         $this->showModal = false;
         $this->resetForm();
-    }
-
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
     }
 
     public function delete(): void
@@ -294,25 +282,6 @@ class RoleList extends Component
         $this->showPermissionModal = false;
     }
 
-    public function resetFilters(): void
-    {
-        $this->search = '';
-        $this->resetPage();
-    }
-
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
-    }
-
     public function closePermissionModal(): void
     {
         $this->showPermissionModal = false;
@@ -326,6 +295,40 @@ class RoleList extends Component
         $this->formDisplayName = '';
         $this->formGuardName = 'web';
         $this->formDescription = '';
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['name', 'display_name', 'guard_name', 'description', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'name' => $row->name,
+                'display_name' => $row->display_name ?? '',
+                'guard_name' => $row->guard_name,
+                'description' => $row->description ?? '',
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['name'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['角色标识', '角色名称', '守卫'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [];
     }
 
     public function getAllColumns(): array
@@ -381,7 +384,7 @@ class RoleList extends Component
             });
         }
 
-        $roles = $query->paginate(20);
+        $roles = $query->paginate(setting('per_page', 10));
 
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();

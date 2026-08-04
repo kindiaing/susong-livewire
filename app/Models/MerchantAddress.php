@@ -36,4 +36,19 @@ class MerchantAddress extends Model
         ];
     }
 
+    /**
+     * 关联商家
+     */
+    public function merchant()
+    {
+        return $this->belongsTo(Merchant::class);
+    }
+
+    /**
+     * 作用域：默认地址
+     */
+    public function scopeDefault($query)
+    {
+        return $query->where('is_default', 1);
+    }
 }

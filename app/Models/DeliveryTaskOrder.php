@@ -15,6 +15,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class DeliveryTaskOrder extends Model
 {
+    // 状态常量
+    public const STATUS_PENDING = 1;
+    public const STATUS_DELIVERED = 2;
 
     protected $fillable = [
         'delivery_task_id',
@@ -33,4 +36,35 @@ class DeliveryTaskOrder extends Model
         ];
     }
 
+    /**
+     * 状态映射
+     */
+    public static function statusMap(): array
+    {
+        return [
+            self::STATUS_PENDING => '待配送',
+            self::STATUS_DELIVERED => '已送达',
+        ];
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::statusMap()[$this->status] ?? '未知';
+    }
+
+    /**
+     * 关联配送任务
+     */
+    public function deliveryTask()
+    {
+        return $this->belongsTo(DeliveryTask::class);
+    }
+
+    /**
+     * 关联订单
+     */
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
 }

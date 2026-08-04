@@ -4,8 +4,10 @@ namespace App\Livewire\System;
 
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\LoginLog;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -16,17 +18,59 @@ class LoginLogList extends Component
     use WithRowSelection;
     use WithColumnVisibility;
     use WithExcelExport;
+    use WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = LoginLog::class;
 
     public string $search = '';
-    public bool $showDeleteConfirm = false;
-    public ?int $deletingId = null;
 
     public function mount(): void
     {
         $this->initColumnVisibility();
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['user_id', 'ip', 'user_agent', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'user_id' => $row->user_id,
+                'ip' => $row->ip ?? '',
+                'user_agent' => $row->user_agent ?? '',
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportModelClass(): string
+    {
+        return LoginLog::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            '用户ID' => 'user_id',
+            'IP' => 'ip',
+            'UA' => 'user_agent',
+        ];
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['id'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['用户ID'];
     }
 
     public function getAllColumns(): array
@@ -57,41 +101,12 @@ class LoginLogList extends Component
         return $this->getExportQuery()->forPage($this->page, 20)->pluck('id')->toArray();
     }
 
-    public function closeColumnModal(): void
-    {
-        $this->showColumnModal = false;
-    }
-
-    public function closeExportModal(): void
-    {
-        $this->showExportModal = false;
-    }
-
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         LoginLog::findOrFail($this->deletingId)->delete();
         $this->toastSuccess('已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
-    }
-
-    public function resetFilters(): void
-    {
-        $this->search = '';
-        $this->resetPage();
-        $this->clearSelection();
     }
 
     public function render()
@@ -102,7 +117,7 @@ class LoginLogList extends Component
             $query->where('username', 'like', "%{$this->search}%");
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
 
         return view('livewire.system.login-log-list', [
             'items' => $items,

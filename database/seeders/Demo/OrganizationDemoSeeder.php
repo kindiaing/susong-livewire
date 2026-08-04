@@ -21,6 +21,7 @@ class OrganizationDemoSeeder extends Seeder
         $this->seedMerchants();
         $this->seedDrivers();
         $this->seedVehicles();
+        $this->seedMerchantSkuVisibility();
     }
 
     protected function seedSuppliers(): void
@@ -137,6 +138,79 @@ class OrganizationDemoSeeder extends Seeder
         }
         if ($driver2 && $vehicle2 && ! DB::table('driver_vehicles')->where('driver_id', $driver2->id)->where('vehicle_id', $vehicle2->id)->exists()) {
             DB::table('driver_vehicles')->insert(['driver_id' => $driver2->id, 'vehicle_id' => $vehicle2->id, 'is_default' => 1, 'bound_at' => $now, 'created_at' => $now, 'updated_at' => $now]);
+        }
+    }
+
+    protected function seedMerchantSkuVisibility(): void
+    {
+        $now = now();
+        $merchant1 = DB::table('merchants')->where('name', '味之初餐饮店')->first();
+        if (! $merchant1) return;
+
+        $merchant2 = DB::table('merchants')->where('name', '鲜味轩小吃店')->first();
+
+        // 商品级配置：味之初可见大白菜、五花肉
+        $productVisible = ['大白菜', '五花肉'];
+        foreach ($productVisible as $productName) {
+            $product = DB::table('products')->where('name', $productName)->first();
+            if (! $product) continue;
+
+            if (! DB::table('merchant_sku_visibility')
+                ->where('merchant_id', $merchant1->id)
+                ->where('target_type', 'product')
+                ->where('product_id', $product->id)
+                ->exists()) {
+                DB::table('merchant_sku_visibility')->insert([
+                    'merchant_id' => $merchant1->id,
+                    'target_type' => 'product',
+                    'product_id' => $product->id,
+                    'sku_id' => null,
+                    'is_visible' => 1,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+        }
+
+        // SKU级配置：味之初可见鲜虾的特定SKU
+        $product = DB::table('products')->where('name', '鲜虾')->first();
+        if ($product) {
+            $sku = DB::table('skus')->where('product_id', $product->id)->first();
+            if ($sku && ! DB::table('merchant_sku_visibility')
+                ->where('merchant_id', $merchant1->id)
+                ->where('target_type', 'sku')
+                ->where('sku_id', $sku->id)
+                ->exists()) {
+                DB::table('merchant_sku_visibility')->insert([
+                    'merchant_id' => $merchant1->id,
+                    'target_type' => 'sku',
+                    'product_id' => $product->id,
+                    'sku_id' => $sku->id,
+                    'is_visible' => 1,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
+        }
+
+        // 商品级配置：鲜味轩不可见金龙鱼大豆油
+        if ($merchant2) {
+            $hiddenProduct = DB::table('products')->where('name', '金龙鱼大豆油')->first();
+            if ($hiddenProduct && ! DB::table('merchant_sku_visibility')
+                ->where('merchant_id', $merchant2->id)
+                ->where('target_type', 'product')
+                ->where('product_id', $hiddenProduct->id)
+                ->exists()) {
+                DB::table('merchant_sku_visibility')->insert([
+                    'merchant_id' => $merchant2->id,
+                    'target_type' => 'product',
+                    'product_id' => $hiddenProduct->id,
+                    'sku_id' => null,
+                    'is_visible' => 0,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            }
         }
     }
 }

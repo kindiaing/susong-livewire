@@ -4,8 +4,10 @@ namespace App\Livewire\Price;
 
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
+use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\PriceChangeLog;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -16,17 +18,62 @@ class PriceChangeLogList extends Component
     use WithRowSelection;
     use WithColumnVisibility;
     use WithExcelExport;
+    use WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = PriceChangeLog::class;
 
     public string $search = '';
-    public bool $showDeleteConfirm = false;
-    public ?int $deletingId = null;
 
     public function mount(): void
     {
         $this->initColumnVisibility();
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['sku', 'field_name', 'before_value', 'after_value', 'operator_id', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'sku' => $row->sku?->sku_code ?? '',
+                'field_name' => $row->field_name ?? '',
+                'before_value' => $row->before_value ?? '',
+                'after_value' => $row->after_value ?? '',
+                'operator_id' => $row->operator?->name ?? '',
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportModelClass(): string
+    {
+        return PriceChangeLog::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            'SKU ID' => 'sku_id',
+            '变更字段' => 'field_name',
+            '修改前' => 'before_value',
+            '修改后' => 'after_value',
+        ];
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['id'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['SKU ID', '变更字段'];
     }
 
     public function getAllColumns(): array
@@ -60,41 +107,12 @@ class PriceChangeLogList extends Component
         return $this->getExportQuery()->forPage($this->page, 20)->pluck('id')->toArray();
     }
 
-    public function closeColumnModal(): void
-    {
-        $this->showColumnModal = false;
-    }
-
-    public function closeExportModal(): void
-    {
-        $this->showExportModal = false;
-    }
-
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         PriceChangeLog::findOrFail($this->deletingId)->delete();
         $this->toastSuccess('已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
-    }
-
-    public function resetFilters(): void
-    {
-        $this->search = '';
-        $this->resetPage();
-        $this->clearSelection();
     }
 
     public function render()
@@ -105,7 +123,7 @@ class PriceChangeLogList extends Component
             $query->where('field_name', 'like', "%{$this->search}%");
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
 
         return view('livewire.price.price-change-log-list', [
             'items' => $items,

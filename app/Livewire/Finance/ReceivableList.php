@@ -5,8 +5,10 @@ namespace App\Livewire\Finance;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\Merchant;
 use App\Models\Order;
 use App\Models\Receivable;
@@ -20,24 +22,26 @@ class ReceivableList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithMoneyConversion;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = Receivable::class;
 
     public string $search = '';
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
 
     public int $formOrderId = 0;
     public int $formMerchantId = 0;
-    public int $formAmount = 0;
+    public string $formAmount = '';
 
     public static array $statusMap = [
-        0 => '未收',
-        1 => '已收',
-        2 => '部分收款',
+        1 => '未结算', 2 => '部分收款', 3 => '已结清',
+        4 => '争议中', 5 => '已办结',
+    ];
+
+    public static array $statusColorMap = [
+        1 => 'yellow', 2 => 'blue', 3 => 'green',
+        4 => 'orange', 5 => 'gray',
     ];
 
     public function mount(): void
@@ -86,7 +90,7 @@ class ReceivableList extends Component
         return [
             '订单ID' => 'order_id',
             '商家ID' => 'merchant_id',
-            '金额(分)' => 'amount',
+            '金额(元)' => 'amount',
         ];
     }
 
@@ -95,10 +99,9 @@ class ReceivableList extends Component
         return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
     }
 
-    public function openCreateModal(): void
+    public function getImportMoneyFields(): array
     {
-        $this->resetForm();
-        $this->showModal = true;
+        return ['amount'];
     }
 
     public function save(): void
@@ -106,15 +109,15 @@ class ReceivableList extends Component
         $this->validate([
             'formOrderId' => 'required|integer|exists:orders,id',
             'formMerchantId' => 'required|integer|exists:merchants,id',
-            'formAmount' => 'required|integer|min:1',
+            'formAmount' => 'required|numeric|min:0.01',
         ]);
 
         Receivable::create([
             'order_id' => $this->formOrderId,
             'merchant_id' => $this->formMerchantId,
-            'amount' => $this->formAmount,
+            'amount' => money_to_cents($this->formAmount),
             'received_amount' => 0,
-            'status' => 0,
+            'status' => 1,
         ]);
 
         $this->toastSuccess('应收账款已创建');
@@ -125,21 +128,15 @@ class ReceivableList extends Component
     public function confirmReceived(int $id): void
     {
         $item = Receivable::findOrFail($id);
-        if ($item->status === 1) {
-            $this->toastError('该账款已全额收款');
+        if ($item->status === 3) {
+            $this->toastError('该账款已结清');
             return;
         }
         $item->update([
             'received_amount' => $item->amount,
-            'status' => 1,
+            'status' => 3,
         ]);
         $this->toastSuccess('已确认收款');
-    }
-
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
     }
 
     public function delete(): void
@@ -150,32 +147,12 @@ class ReceivableList extends Component
         $this->deletingId = null;
     }
 
-    public function resetFilters(): void
-    {
-        $this->search = '';
-        $this->resetPage();
-        $this->clearSelection();
-    }
-
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
-    }
-
     private function resetForm(): void
     {
         $this->editingId = null;
         $this->formOrderId = 0;
         $this->formMerchantId = 0;
-        $this->formAmount = 0;
+        $this->formAmount = '';
     }
 
     public function render()
@@ -189,12 +166,13 @@ class ReceivableList extends Component
             });
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
         $merchants = Merchant::orderBy('name')->get();
         $orders = Order::orderBy('id', 'desc')->get();
         $allColumns = $this->getAllColumns();
+        $selectedCount = $this->getSelectedCount();
 
-        return view('livewire.finance.receivable-list', compact('items', 'merchants', 'orders', 'allColumns'))
+        return view('livewire.finance.receivable-list', compact('items', 'merchants', 'orders', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('应收账款');
     }

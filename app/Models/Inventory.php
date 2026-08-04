@@ -71,4 +71,28 @@ class Inventory extends Model
     {
         return $query->whereColumn('available_stock', '<', 'warning_value');
     }
+
+    /**
+     * 作用域：按仓库
+     */
+    public function scopeByWarehouse($query, int $warehouseId)
+    {
+        return $query->where('warehouse_id', $warehouseId);
+    }
+
+    /**
+     * 作用域：按 SKU
+     */
+    public function scopeBySku($query, int $skuId)
+    {
+        return $query->where('sku_id', $skuId);
+    }
+
+    /**
+     * 作用域：有库存
+     */
+    public function scopeInStock($query)
+    {
+        return $query->where('available_stock', '>', 0);
+    }
 }

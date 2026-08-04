@@ -1,4 +1,4 @@
-<div class="p-6">
+<div class="">
     {{-- 页面标题 --}}
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-foreground">审计日志</h1>
@@ -43,89 +43,94 @@
             class="flex h-9 rounded-md border border-input bg-background px-3 text-sm"
         />
 
-        <button wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <button type="button" wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
             重置
         </button>
     </div>
 
     {{-- 日志列表 --}}
     <div class="rounded-lg border bg-card">
-        <div class="grid grid-cols-[1fr_100px_1fr_120px_150px_120px_60px] gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            <div>模型</div>
-            <div>动作</div>
-            <div>原因/关联</div>
-            <div>操作人</div>
-            <div>IP</div>
-            <div>时间</div>
-            <div class="text-right">详情</div>
-        </div>
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    <th class="px-4 py-2 text-left">模型</th>
+                    <th class="px-4 py-2 text-left">动作</th>
+                    <th class="px-4 py-2 text-left">原因/关联</th>
+                    <th class="px-4 py-2 text-left">操作人</th>
+                    <th class="px-4 py-2 text-left">IP</th>
+                    <th class="px-4 py-2 text-left">时间</th>
+                    <th class="px-4 py-2 text-right">详情</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($logs as $log)
+                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="alog-{{ $log->id }}">
+                    {{-- 模型 --}}
+                    <td class="px-4 py-2">
+                        <div class="min-w-0">
+                            <div class="text-foreground truncate">{{ $log->model_type }}</div>
+                            <div class="text-xs text-muted-foreground font-mono">ID: {{ $log->model_id }}</div>
+                        </div>
+                    </td>
 
-        @forelse($logs as $log)
-            <div class="grid grid-cols-[1fr_100px_1fr_120px_150px_120px_60px] gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors"
-                 wire:key="alog-{{ $log->id }}">
-                {{-- 模型 --}}
-                <div class="min-w-0">
-                    <div class="text-sm text-foreground truncate">{{ $log->model_type }}</div>
-                    <div class="text-xs text-muted-foreground font-mono">ID: {{ $log->model_id }}</div>
-                </div>
+                    {{-- 动作 --}}
+                    <td class="px-4 py-2">
+                        @php
+                            $actionLabel = $log->action_label;
+                            $actionColors = [
+                                'create' => 'bg-green-100 text-green-700',
+                                'update' => 'bg-blue-100 text-blue-700',
+                                'delete' => 'bg-red-100 text-red-700',
+                                'approve' => 'bg-green-100 text-green-700',
+                                'reject' => 'bg-red-100 text-red-700',
+                            ];
+                            $actionColor = $actionColors[$log->action] ?? 'bg-gray-100 text-gray-600';
+                        @endphp
+                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium {{ $actionColor }}">
+                            {{ $actionLabel }}
+                        </span>
+                    </td>
 
-                {{-- 动作 --}}
-                <div>
-                    @php
-                        $actionLabel = $log->action_label;
-                        $actionColors = [
-                            'create' => 'bg-green-100 text-green-700',
-                            'update' => 'bg-blue-100 text-blue-700',
-                            'delete' => 'bg-red-100 text-red-700',
-                            'approve' => 'bg-green-100 text-green-700',
-                            'reject' => 'bg-red-100 text-red-700',
-                        ];
-                        $actionColor = $actionColors[$log->action] ?? 'bg-gray-100 text-gray-600';
-                    @endphp
-                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium {{ $actionColor }}">
-                        {{ $actionLabel }}
-                    </span>
-                </div>
+                    {{-- 原因/关联 --}}
+                    <td class="px-4 py-2">
+                        <div class="min-w-0">
+                            @if($log->reason)
+                                <div class="text-foreground truncate">{{ $log->reason }}</div>
+                            @endif
+                            @if($log->relation_type)
+                                <div class="text-xs text-muted-foreground truncate">{{ $log->relation_type }} #{{ $log->relation_id }}</div>
+                            @endif
+                            @if(!$log->reason && !$log->relation_type)
+                                <span class="text-muted-foreground">-</span>
+                            @endif
+                        </div>
+                    </td>
 
-                {{-- 原因/关联 --}}
-                <div class="min-w-0">
-                    @if($log->reason)
-                        <div class="text-sm text-foreground truncate">{{ $log->reason }}</div>
-                    @endif
-                    @if($log->relation_type)
-                        <div class="text-xs text-muted-foreground truncate">{{ $log->relation_type }} #{{ $log->relation_id }}</div>
-                    @endif
-                    @if(!$log->reason && !$log->relation_type)
-                        <span class="text-sm text-muted-foreground">-</span>
-                    @endif
-                </div>
+                    {{-- 操作人 --}}
+                    <td class="px-4 py-2 text-foreground">{{ $log->operator?->username ?? ($log->operator_id ? "ID:{$log->operator_id}" : '-') }}</td>
 
-                {{-- 操作人 --}}
-                <div class="text-sm text-foreground">{{ $log->operator?->username ?? ($log->operator_id ? "ID:{$log->operator_id}" : '-') }}</div>
+                    {{-- IP --}}
+                    <td class="px-4 py-2 text-muted-foreground font-mono truncate">{{ $log->ip ?? '-' }}</td>
 
-                {{-- IP --}}
-                <div class="text-sm text-muted-foreground font-mono truncate">{{ $log->ip ?? '-' }}</div>
+                    {{-- 时间 --}}
+                    <td class="px-4 py-2 text-muted-foreground">{{ $log->created_at?->format('Y-m-d H:i') }}</td>
 
-                {{-- 时间 --}}
-                <div class="text-sm text-muted-foreground">{{ $log->created_at?->format('Y-m-d H:i') }}</div>
-
-                {{-- 详情按钮 --}}
-                <div class="text-right">
-                    @if($log->before_data || $log->after_data)
-                        <button
-                            wire:click="showDetail({{ $log->id }})"
-                            class="text-xs text-blue-600 hover:text-blue-700 font-medium"
-                        >
-                            查看
-                        </button>
-                    @endif
-                </div>
-            </div>
-        @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">
-                暂无审计日志
-            </div>
-        @endforelse
+                    {{-- 详情按钮 --}}
+                    <td class="px-4 py-2 text-right">
+                        @if($log->before_data || $log->after_data)
+                            <button type="button" wire:click="showDetail({{ $log->id }})"
+                                class="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                            >
+                                查看
+                            </button>
+                        @endif
+                    </td>
+                </tr>
+                @empty
+                <tr><td colspan="7" class="px-6 py-12 text-center text-muted-foreground">暂无审计日志</td></tr>
+                @endforelse
+            </tbody>
+        </table>
     </div>
 
     {{-- 分页 --}}
@@ -141,7 +146,7 @@
                  wire:click.stop>
                 <div class="flex items-center justify-between border-b px-6 py-4">
                     <h2 class="text-lg font-semibold text-foreground">审计详情</h2>
-                    <button wire:click="closeDetail" class="p-1 rounded-md hover:bg-muted text-muted-foreground">
+                    <button type="button" wire:click="closeDetail" class="p-1 rounded-md hover:bg-muted text-muted-foreground">
                         <x-ui.icon name="x" class="w-5 h-5" />
                     </button>
                 </div>

@@ -7,7 +7,10 @@ use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
+use App\Models\Sku;
 use App\Models\SkuBarcode;
+use App\Models\Supplier;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -19,18 +22,15 @@ class SkuBarcodeList extends Component
     use WithExcelExport;
     use WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = SkuBarcode::class;
 
     public string $search = '';
     public int $filterBarcodeType = -1;
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
 
     public int $formSkuId = 0;
-    public int $formSupplierId = 0;
+    public ?int $formSupplierId = null;
     public int $formBarcodeType = 1;
     public string $formBarcodeCode = '';
     public int $formIsDefault = 0;
@@ -42,18 +42,12 @@ class SkuBarcodeList extends Component
         $this->initColumnVisibility();
     }
 
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
-    }
-
     public function openEditModal(int $id): void
     {
         $barcode = SkuBarcode::findOrFail($id);
         $this->editingId = $id;
         $this->formSkuId = $barcode->sku_id;
-        $this->formSupplierId = $barcode->supplier_id ?? 0;
+        $this->formSupplierId = $barcode->supplier_id;
         $this->formBarcodeType = $barcode->barcode_type;
         $this->formBarcodeCode = $barcode->barcode_code;
         $this->formIsDefault = $barcode->is_default;
@@ -64,9 +58,14 @@ class SkuBarcodeList extends Component
 
     public function save(): void
     {
+        // searchable-select clearValue sends 0, convert to null before validation
+        if ($this->formSupplierId === 0 || $this->formSupplierId === '0') {
+            $this->formSupplierId = null;
+        }
+
         $validated = $this->validate([
-            'formSkuId' => 'required|integer|min:1',
-            'formSupplierId' => 'nullable|integer',
+            'formSkuId' => 'required|integer|min:1|exists:skus,id',
+            'formSupplierId' => 'nullable|integer|exists:suppliers,id',
             'formBarcodeType' => 'required|in:1,2,3,4',
             'formBarcodeCode' => 'required|string|max:50',
             'formIsDefault' => 'required|in:0,1',
@@ -76,7 +75,7 @@ class SkuBarcodeList extends Component
 
         $data = [
             'sku_id' => $validated['formSkuId'],
-            'supplier_id' => $validated['formSupplierId'] ?: null,
+            'supplier_id' => $validated['formSupplierId'],
             'barcode_type' => $validated['formBarcodeType'],
             'barcode_code' => $validated['formBarcodeCode'],
             'is_default' => $validated['formIsDefault'],
@@ -96,12 +95,6 @@ class SkuBarcodeList extends Component
         $this->resetForm();
     }
 
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         SkuBarcode::findOrFail($this->deletingId)->delete();
@@ -118,24 +111,11 @@ class SkuBarcodeList extends Component
         $this->clearSelection();
     }
 
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
-    }
-
     private function resetForm(): void
     {
         $this->editingId = null;
         $this->formSkuId = 0;
-        $this->formSupplierId = 0;
+        $this->formSupplierId = null;
         $this->formBarcodeType = 1;
         $this->formBarcodeCode = '';
         $this->formIsDefault = 0;
@@ -148,7 +128,12 @@ class SkuBarcodeList extends Component
         return [
             ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
             ['key' => 'sku_id', 'label' => 'SKU', 'sortable' => false, 'exportable' => true],
+            ['key' => 'barcode_type', 'label' => '条码类型', 'sortable' => false, 'exportable' => true],
             ['key' => 'barcode_code', 'label' => '条码', 'sortable' => false, 'exportable' => true],
+            ['key' => 'supplier_id', 'label' => '供应商', 'sortable' => false, 'exportable' => true],
+            ['key' => 'is_default', 'label' => '默认', 'sortable' => false, 'exportable' => true],
+            ['key' => 'is_enabled', 'label' => '启用', 'sortable' => false, 'exportable' => true],
+            ['key' => 'remark', 'label' => '备注', 'sortable' => false, 'exportable' => true],
         ];
     }
 
@@ -212,11 +197,14 @@ class SkuBarcodeList extends Component
             $query->where('barcode_type', $this->filterBarcodeType);
         }
 
-        $barcodes = $query->paginate(20);
+        $barcodes = $query->paginate(setting('per_page', 10));
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 
-        return view('livewire.product.sku-barcode-list', compact('barcodes', 'allColumns', 'selectedCount'))
+        $skuOptions = Sku::with('product')->orderBy('sku_code')->get()->map(fn($s) => ['value' => $s->id, 'label' => $s->sku_code . ' - ' . ($s->product?->name ?? '')])->toArray();
+        $supplierOptions = Supplier::orderBy('name')->get()->map(fn($s) => ['value' => $s->id, 'label' => $s->name])->toArray();
+
+        return view('livewire.product.sku-barcode-list', compact('barcodes', 'allColumns', 'selectedCount', 'skuOptions', 'supplierOptions'))
             ->layout('components.app-layout')
             ->title('条码管理');
     }

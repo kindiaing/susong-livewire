@@ -9,6 +9,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -17,16 +18,15 @@ class UserList extends Component
     use WithPagination;
     use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = User::class;
 
     public string $search = '';
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
+
     public bool $showRoleModal = false;
     public bool $showResetConfirm = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
+
     public ?int $resettingId = null;
     public ?int $roleUserId = null;
 
@@ -45,12 +45,6 @@ class UserList extends Component
     public function mount(): void
     {
         $this->initColumnVisibility();
-    }
-
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
     }
 
     public function openEditModal(int $id): void
@@ -108,12 +102,6 @@ class UserList extends Component
         $this->resetForm();
     }
 
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         $user = User::findOrFail($this->deletingId);
@@ -159,7 +147,7 @@ class UserList extends Component
     public function resetPassword(): void
     {
         $user = User::findOrFail($this->resettingId);
-        $user->password = 'Password';
+        $user->password = bcrypt('Password');
         $user->save();
         $this->toastSuccess('密码已重置为 Password');
         $this->showResetConfirm = false;
@@ -188,25 +176,6 @@ class UserList extends Component
         $this->showRoleModal = false;
     }
 
-    public function resetFilters(): void
-    {
-        $this->search = '';
-        $this->resetPage();
-    }
-
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
-    }
-
     public function closeResetConfirm(): void
     {
         $this->showResetConfirm = false;
@@ -228,6 +197,43 @@ class UserList extends Component
         $this->formEmail = '';
         $this->formPassword = '';
         $this->formStatus = 1;
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['username', 'name', 'phone', 'email', 'status', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'username' => $row->username,
+                'name' => $row->name,
+                'phone' => $row->phone ?? '',
+                'email' => $row->email ?? '',
+                'status' => $row->status,
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['email'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['用户名', '姓名'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [
+            'status' => ['禁用' => 0, '启用' => 1],
+        ];
     }
 
     public function getAllColumns(): array
@@ -286,7 +292,7 @@ class UserList extends Component
             });
         }
 
-        $users = $query->paginate(20);
+        $users = $query->paginate(setting('per_page', 10));
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
 

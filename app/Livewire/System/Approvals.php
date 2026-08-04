@@ -114,7 +114,7 @@ class Approvals extends Component
             $query->where('approval_type', $this->filterType);
         }
 
-        $approvals = $query->paginate(20);
+        $approvals = $query->paginate(setting('per_page', 10));
 
         // 获取审批类型列表（用于筛选）
         $approvalTypes = Approval::select('approval_type')

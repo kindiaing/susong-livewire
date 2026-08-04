@@ -18,6 +18,8 @@ use Illuminate\Support\Carbon;
  */
 class FrequentlyBought extends Model
 {
+    protected $table = 'frequently_bought';
+
     protected $fillable = [
         'merchant_id',
         'sku_id',

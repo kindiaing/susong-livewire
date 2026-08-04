@@ -1,4 +1,4 @@
-<div class="p-6">
+<div class="">
     {{-- 页面标题 --}}
     <div class="flex items-center justify-between mb-6">
         <div>
@@ -6,7 +6,8 @@
             <p class="text-muted-foreground mt-1">管理商家信息及结算方式</p>
         </div>
         @can('org.merchant.create')
-        <button wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+        <button type="button" wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+            <x-ui.icon name="plus" class="w-4 h-4" />
             新增商家
         </button>
         @endcan
@@ -14,12 +15,14 @@
 
     {{-- 搜索栏 --}}
     <div class="flex items-center gap-3 mb-4">
-        <input
-            type="text"
-            wire:model.live="search"
-            class="flex h-9 w-64 rounded-md border border-input bg-background px-3 text-sm"
-            placeholder="搜索商家名称/联系人/电话..."
-        />
+        <div x-data class="relative">
+            <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background pl-3 pr-8 text-sm" placeholder="搜索商家名称/联系人/电话..." />
+            @if($search)
+                <button type="button" wire:click="resetFilters" class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted transition-colors">
+                    <x-ui.icon name="x-mark" class="w-3.5 h-3.5" />
+                </button>
+            @endif
+        </div>
         <select
             wire:model.live="filterStatus"
             class="flex h-9 w-32 rounded-md border border-input bg-background px-3 text-sm"
@@ -46,17 +49,16 @@
                 <option value="{{ $route->id }}">{{ $route->name }}</option>
             @endforeach
         </select>
-        <button type="button" wire:click="resetFilters" class="text-sm text-muted-foreground hover:text-foreground transition-colors">重置</button>
         <div class="flex-1"></div>
-        <button wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">列配置</button>
-        <button wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导入</button>
-        <button wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导出</button>
+        <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="adjustments" class="w-4 h-4" />列配置</button>
+        <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="arrow-up-tray" class="w-4 h-4" />导入</button>
+        <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="arrow-down-tray" class="w-4 h-4" />导出</button>
         @if($selectedCount > 0)
             <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
             @can('org.merchant.delete')
-            <button wire:click="batchDelete" class="inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
+            <button type="button" wire:click="batchDelete" class="inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
             @endcan
-            <button wire:click="clearSelection" class="text-sm text-muted-foreground hover:text-foreground transition-colors">取消选择</button>
+            <button type="button" wire:click="clearSelection" class="text-sm text-muted-foreground hover:text-foreground transition-colors">取消选择</button>
         @endif
     </div>
 
@@ -112,11 +114,7 @@
                             @break
                         @case('status')
                             <div>
-                                @if($merchant->status === 1)
-                                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-green-100 text-green-700">启用</span>
-                                @else
-                                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-gray-100 text-gray-600">禁用</span>
-                                @endif
+                                {!! status_badge($merchant->status, 'active') !!}
                             </div>
                             @break
                         @case('created_at')
@@ -128,10 +126,10 @@
                 @endforeach
                 <div class="flex items-center gap-2">
                     @can('org.merchant.edit')
-                    <button wire:click="openEditModal({{ $merchant->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                    <button type="button" wire:click="openEditModal({{ $merchant->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil" class="w-3.5 h-3.5" /></button>
                     @endcan
                     @can('org.merchant.delete')
-                    <button wire:click="confirmDelete({{ $merchant->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                    <button type="button" wire:click="confirmDelete({{ $merchant->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
                     @endcan
                 </div>
             </div>
@@ -145,7 +143,7 @@
     {{-- 新增/编辑弹窗 --}}
     @if($showModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeModal"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
             <h2 class="text-lg font-semibold text-foreground mb-4">{{ $editingId ? '编辑商家' : '新增商家' }}</h2>
             <div class="space-y-4">
@@ -190,13 +188,13 @@
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-foreground mb-1">起送金额（厘） <span class="text-red-500">*</span></label>
-                        <input type="number" wire:model="formMinOrderAmount" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" placeholder="单位：厘" />
+                        <label class="block text-sm font-medium text-foreground mb-1">起送金额（元） <span class="text-red-500">*</span></label>
+                        <input type="number" wire:model="formMinOrderAmount" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" step="0.01" placeholder="0.00" />
                         @error('formMinOrderAmount') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-foreground mb-1">信用额度（厘） <span class="text-red-500">*</span></label>
-                        <input type="number" wire:model="formCreditLimit" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" placeholder="单位：厘" />
+                        <label class="block text-sm font-medium text-foreground mb-1">信用额度（元） <span class="text-red-500">*</span></label>
+                        <input type="number" wire:model="formCreditLimit" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" step="0.01" placeholder="0.00" />
                         @error('formCreditLimit') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
@@ -226,27 +224,14 @@
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">
-                <button wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
+                <button type="button" wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
             </div>
         </div>
     </div>
     @endif
 
     {{-- 删除确认弹窗 --}}
-    @if($showDeleteConfirm)
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" wire:click="closeDeleteConfirm"></div>
-        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
-            <h2 class="text-lg font-semibold text-foreground mb-2">确认删除</h2>
-            <p class="text-sm text-muted-foreground mb-6">确定要删除该商家吗？此操作不可恢复。</p>
-            <div class="flex justify-end gap-3">
-                <button wire:click="closeDeleteConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button wire:click="delete" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>
-            </div>
-        </div>
-    </div>
-    @endif
 
     @include('partials.column-modal')
     @include('partials.export-modal')

@@ -5,8 +5,10 @@ namespace App\Livewire\Order;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\Cart;
 use App\Models\Merchant;
 use App\Models\Sku;
@@ -20,20 +22,18 @@ class CartList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithMoneyConversion;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = Cart::class;
 
     public string $search = '';
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
 
     public int $formMerchantId = 0;
     public int $formSkuId = 0;
     public int $formQuantity = 1;
-    public int $formUnitPrice = 0;
+    public string $formUnitPrice = '';
 
     public function mount(): void
     {
@@ -73,13 +73,18 @@ class CartList extends Component
             '商家ID' => 'merchant_id',
             'SKU ID' => 'sku_id',
             '数量' => 'quantity',
-            '单价(分)' => 'unit_price',
+            '单价(元)' => 'unit_price',
         ];
     }
 
     public function getImportUniqueBy(): array
     {
         return ['merchant_id', 'sku_id'];
+    }
+
+    public function getImportMoneyFields(): array
+    {
+        return ['unit_price'];
     }
 
     public function getExportRowCallback(): callable
@@ -101,17 +106,12 @@ class CartList extends Component
         return $this->buildQuery()->forPage($this->page, 20)->pluck('id')->toArray();
     }
 
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
-    }
-
     public function openEditModal(int $id): void
     {
         $cart = Cart::findOrFail($id);
         $this->editingId = $id;
         $this->formQuantity = $cart->quantity;
+        $this->formUnitPrice = $this->centsToYuan($cart->unit_price);
         $this->showModal = true;
     }
 
@@ -130,25 +130,19 @@ class CartList extends Component
                 'formMerchantId' => 'required|integer|exists:merchants,id',
                 'formSkuId' => 'required|integer|exists:skus,id',
                 'formQuantity' => 'required|integer|min:1',
-                'formUnitPrice' => 'required|integer|min:0',
+                'formUnitPrice' => 'required|numeric|min:0',
             ]);
             Cart::create([
                 'merchant_id' => $validated['formMerchantId'],
                 'sku_id' => $validated['formSkuId'],
                 'quantity' => $validated['formQuantity'],
-                'unit_price' => $validated['formUnitPrice'],
+                'unit_price' => money_to_cents($validated['formUnitPrice']),
             ]);
             $this->toastSuccess('购物车已创建');
         }
 
         $this->showModal = false;
         $this->resetForm();
-    }
-
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
     }
 
     public function delete(): void
@@ -159,30 +153,11 @@ class CartList extends Component
         $this->deletingId = null;
     }
 
-    public function resetFilters(): void
-    {
-        $this->search = '';
-        $this->resetPage();
-    }
-
     public function getBatchActions(): array
     {
         return [
             ['label' => '批量删除', 'method' => 'batchDelete', 'color' => 'bg-red-600 hover:bg-red-700'],
         ];
-    }
-
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
     }
 
     private function resetForm(): void
@@ -191,7 +166,7 @@ class CartList extends Component
         $this->formMerchantId = 0;
         $this->formSkuId = 0;
         $this->formQuantity = 1;
-        $this->formUnitPrice = 0;
+        $this->formUnitPrice = '';
     }
 
     private function buildQuery()
@@ -213,7 +188,7 @@ class CartList extends Component
 
     public function render()
     {
-        $carts = $this->buildQuery()->paginate(20);
+        $carts = $this->buildQuery()->paginate(setting('per_page', 10));
         $merchants = Merchant::orderBy('name')->get();
         $skus = Sku::with('product')->orderBy('sku_code')->get();
 

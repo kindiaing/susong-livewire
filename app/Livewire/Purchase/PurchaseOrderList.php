@@ -9,6 +9,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -18,15 +19,12 @@ class PurchaseOrderList extends Component
     use WithPagination;
     use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = PurchaseOrder::class;
 
     public string $search = '';
     public int $filterStatus = -1;
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
 
     public int $formSupplierId = 0;
     public string $formRemark = '';
@@ -34,12 +32,6 @@ class PurchaseOrderList extends Component
     public function mount(): void
     {
         $this->initColumnVisibility();
-    }
-
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
     }
 
     public function openEditModal(int $id): void
@@ -79,12 +71,6 @@ class PurchaseOrderList extends Component
         $this->resetForm();
     }
 
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         PurchaseOrder::findOrFail($this->deletingId)->delete();
@@ -100,24 +86,46 @@ class PurchaseOrderList extends Component
         $this->resetPage();
     }
 
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
-    }
-
     private function resetForm(): void
     {
         $this->editingId = null;
         $this->formSupplierId = 0;
         $this->formRemark = '';
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['order_no', 'supplier_id', 'status', 'total_amount', 'remark', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'order_no' => $row->order_no,
+                'supplier_id' => $row->supplier?->name ?? '',
+                'status' => $row->status,
+                'total_amount' => money_format($row->total_amount, false),
+                'remark' => $row->remark ?? '',
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['order_no'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['供应商ID'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [];
     }
 
     public function getAllColumns(): array
@@ -179,7 +187,7 @@ class PurchaseOrderList extends Component
             $query->where('status', $this->filterStatus);
         }
 
-        $orders = $query->paginate(20);
+        $orders = $query->paginate(setting('per_page', 10));
         $suppliers = Supplier::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();

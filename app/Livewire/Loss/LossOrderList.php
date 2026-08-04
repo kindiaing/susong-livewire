@@ -10,6 +10,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -19,17 +20,16 @@ class LossOrderList extends Component
     use WithPagination;
     use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = LossOrder::class;
 
     public string $search = '';
     public int $filterStatus = -1;
     public int $filterLossType = -1;
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
+
     public bool $showApproveConfirm = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
+
     public ?int $approvingId = null;
     public string $approveRemark = '';
 
@@ -41,12 +41,6 @@ class LossOrderList extends Component
     public function mount(): void
     {
         $this->initColumnVisibility();
-    }
-
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
     }
 
     public function openEditModal(int $id): void
@@ -97,12 +91,6 @@ class LossOrderList extends Component
 
         $this->showModal = false;
         $this->resetForm();
-    }
-
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
     }
 
     public function delete(): void
@@ -207,19 +195,6 @@ class LossOrderList extends Component
         $this->resetPage();
     }
 
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
-    }
-
     public function closeApproveConfirm(): void
     {
         $this->showApproveConfirm = false;
@@ -233,6 +208,43 @@ class LossOrderList extends Component
         $this->formLossType = 1;
         $this->formReason = '';
         $this->formRemark = '';
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['loss_no', 'warehouse_id', 'loss_type', 'total_amount', 'status', 'approval_status', 'reason', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'loss_no' => $row->loss_no,
+                'warehouse_id' => $row->warehouse?->name ?? '',
+                'loss_type' => $row->loss_type,
+                'total_amount' => money_format($row->total_amount, false),
+                'status' => $row->status,
+                'approval_status' => $row->approval_status,
+                'reason' => $row->reason ?? '',
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['loss_no'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['仓库ID', '损耗类型'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [];
     }
 
     public function getAllColumns(): array
@@ -296,7 +308,7 @@ class LossOrderList extends Component
             $query->where('loss_type', $this->filterLossType);
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
         $warehouses = Warehouse::enabled()->orderBy('name')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();

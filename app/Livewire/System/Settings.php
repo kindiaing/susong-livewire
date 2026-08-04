@@ -17,6 +17,8 @@ class Settings extends Component
     public function mount(): void
     {
         $groups = SystemConfig::groupLabels();
+        $hiddenGroups = ['finance', 'money'];
+        $groups = array_filter($groups, fn($key) => !in_array($key, $hiddenGroups), ARRAY_FILTER_USE_KEY);
         $this->activeGroup = array_key_first($groups);
     }
 
@@ -90,6 +92,11 @@ class Settings extends Component
     public function render()
     {
         $groups = SystemConfig::groupLabels();
+
+        // 过滤掉已移到财务配置页的分组
+        $hiddenGroups = ['finance', 'money'];
+        $groups = array_filter($groups, fn($key) => !in_array($key, $hiddenGroups), ARRAY_FILTER_USE_KEY);
+
         $configs = SystemConfig::where('config_group', $this->activeGroup)
             ->orderBy('sort_order')
             ->get();

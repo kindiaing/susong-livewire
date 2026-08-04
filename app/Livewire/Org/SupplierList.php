@@ -7,6 +7,7 @@ use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\Supplier;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -19,18 +20,11 @@ class SupplierList extends Component
     use WithPagination;
     use WithRowSelection;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = Supplier::class;
 
     public string $search = '';
-
-    public bool $showModal = false;
-
-    public bool $showDeleteConfirm = false;
-
-    public ?int $editingId = null;
-
-    public ?int $deletingId = null;
 
     public string $formName = '';
 
@@ -57,12 +51,6 @@ class SupplierList extends Component
     public function mount(): void
     {
         $this->initColumnVisibility();
-    }
-
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
     }
 
     public function openEditModal(int $id): void
@@ -120,12 +108,6 @@ class SupplierList extends Component
         $this->resetForm();
     }
 
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         $supplier = Supplier::findOrFail($this->deletingId);
@@ -155,19 +137,6 @@ class SupplierList extends Component
         $this->filterSettlementCycle = null;
         $this->resetPage();
         $this->clearSelection();
-    }
-
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
     }
 
     public function getAllColumns(): array
@@ -309,7 +278,7 @@ class SupplierList extends Component
     {
         $query = $this->applyFilters(Supplier::query())->orderBy('id', 'desc');
 
-        $suppliers = $query->paginate(10);
+        $suppliers = $query->paginate(setting('per_page', 10));
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 

@@ -41,6 +41,8 @@ class PurchaseOrderItem extends Model
         'price_strategy_id',
         'price_strategy_item_id',
         'discrepancy_reason',
+        'discrepancy_quantity',
+        'loss_order_id',
     ];
 
     protected function casts(): array
@@ -58,6 +60,8 @@ class PurchaseOrderItem extends Model
             'strategy_amount' => 'integer',
             'price_strategy_id' => 'integer',
             'price_strategy_item_id' => 'integer',
+            'discrepancy_quantity' => 'integer',
+            'loss_order_id' => 'integer',
         ];
     }
 
@@ -69,5 +73,29 @@ class PurchaseOrderItem extends Model
     public function sku()
     {
         return $this->belongsTo(Sku::class);
+    }
+
+    /**
+     * 关联价格策略
+     */
+    public function priceStrategy()
+    {
+        return $this->belongsTo(PriceStrategy::class);
+    }
+
+    /**
+     * 关联损耗单
+     */
+    public function lossOrder()
+    {
+        return $this->belongsTo(LossOrder::class);
+    }
+
+    /**
+     * 关联退货明细
+     */
+    public function returnItems()
+    {
+        return $this->hasMany(PurchaseReturnItem::class);
     }
 }

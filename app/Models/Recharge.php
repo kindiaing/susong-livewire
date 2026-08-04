@@ -19,6 +19,20 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Recharge extends Model
 {
+    // 支付方式常量
+    public const METHOD_WECHAT = 1;
+    public const METHOD_OFFLINE = 2;
+    public const METHOD_MANUAL = 3;
+
+    // 状态常量
+    public const STATUS_PENDING = 1;
+    public const STATUS_SUCCESS = 2;
+    public const STATUS_FAILED = 3;
+
+    // 审核状态常量
+    public const APPROVAL_PENDING = 1;
+    public const APPROVAL_APPROVED = 2;
+    public const APPROVAL_REJECTED = 3;
 
     protected $fillable = [
         'merchant_id',
@@ -43,4 +57,86 @@ class Recharge extends Model
         ];
     }
 
+    /**
+     * 支付方式映射
+     */
+    public static function paymentMethodMap(): array
+    {
+        return [
+            self::METHOD_WECHAT => '微信支付',
+            self::METHOD_OFFLINE => '线下转账',
+            self::METHOD_MANUAL => '后台手工',
+        ];
+    }
+
+    /**
+     * 状态映射
+     */
+    public static function statusMap(): array
+    {
+        return [
+            self::STATUS_PENDING => '待确认',
+            self::STATUS_SUCCESS => '成功',
+            self::STATUS_FAILED => '失败',
+        ];
+    }
+
+    /**
+     * 审核状态映射
+     */
+    public static function approvalStatusMap(): array
+    {
+        return [
+            self::APPROVAL_PENDING => '待审核',
+            self::APPROVAL_APPROVED => '已通过',
+            self::APPROVAL_REJECTED => '已拒绝',
+        ];
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::statusMap()[$this->status] ?? '未知';
+    }
+
+    public function getApprovalStatusLabelAttribute(): string
+    {
+        return self::approvalStatusMap()[$this->approval_status] ?? '未知';
+    }
+
+    public function getPaymentMethodLabelAttribute(): string
+    {
+        return self::paymentMethodMap()[$this->payment_method] ?? '未知';
+    }
+
+    /**
+     * 关联商家
+     */
+    public function merchant()
+    {
+        return $this->belongsTo(Merchant::class);
+    }
+
+    /**
+     * 关联操作人
+     */
+    public function operator()
+    {
+        return $this->belongsTo(User::class, 'operator_id');
+    }
+
+    /**
+     * 作用域：待确认
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', self::STATUS_PENDING);
+    }
+
+    /**
+     * 作用域：按状态
+     */
+    public function scopeByStatus($query, int $status)
+    {
+        return $query->where('status', $status);
+    }
 }

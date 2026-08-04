@@ -11,6 +11,7 @@ use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -19,15 +20,12 @@ class PurchaseReturnList extends Component
     use WithPagination;
     use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = PurchaseReturn::class;
 
     public string $search = '';
     public int $filterStatus = -1;
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
 
     public int $formPurchaseOrderId = 0;
     public int $formSupplierId = 0;
@@ -38,12 +36,6 @@ class PurchaseReturnList extends Component
     public function mount(): void
     {
         $this->initColumnVisibility();
-    }
-
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
     }
 
     public function openEditModal(int $id): void
@@ -94,12 +86,6 @@ class PurchaseReturnList extends Component
         $this->resetForm();
     }
 
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         $item = PurchaseReturn::findOrFail($this->deletingId);
@@ -116,19 +102,6 @@ class PurchaseReturnList extends Component
         $this->resetPage();
     }
 
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
-    }
-
     private function resetForm(): void
     {
         $this->editingId = null;
@@ -137,6 +110,43 @@ class PurchaseReturnList extends Component
         $this->formWarehouseId = 0;
         $this->formReason = '';
         $this->formRemark = '';
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['return_no', 'purchase_order_id', 'supplier_id', 'warehouse_id', 'status', 'total_amount', 'reason', 'created_at'];
+    }
+
+    public function getExportRowCallback(): callable
+    {
+        return function ($row) {
+            return [
+                'id' => $row->id,
+                'return_no' => $row->return_no,
+                'purchase_order_id' => $row->purchaseOrder?->order_no ?? '',
+                'supplier_id' => $row->supplier?->name ?? '',
+                'warehouse_id' => $row->warehouse?->name ?? '',
+                'status' => $row->status,
+                'total_amount' => money_format($row->total_amount, false),
+                'reason' => $row->reason ?? '',
+                'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
+            ];
+        };
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['return_no'];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['采购单ID', '供应商ID', '仓库ID', '退货原因'];
+    }
+
+    public function getImportValueMap(): array
+    {
+        return [];
     }
 
     public function getAllColumns(): array
@@ -196,7 +206,7 @@ class PurchaseReturnList extends Component
             $query->where('status', $this->filterStatus);
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
         $purchaseOrders = PurchaseOrder::orderBy('id', 'desc')->limit(50)->get();
         $suppliers = Supplier::enabled()->orderBy('name')->get();
         $warehouses = Warehouse::enabled()->orderBy('name')->get();

@@ -32,7 +32,6 @@ class OperationLog extends Model
         'path',
         'ip',
         'content',
-        'created_at',
     ];
 
     protected function casts(): array

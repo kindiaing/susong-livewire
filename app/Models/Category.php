@@ -91,4 +91,100 @@ class Category extends Model
     {
         return $query->where('status', self::STATUS_ENABLED);
     }
+
+    /**
+     * 作用域：根分类
+     */
+    public function scopeRoot($query)
+    {
+        return $query->where('parent_id', 0);
+    }
+
+    /**
+     * 作用域：按排序字段排序
+     */
+    public function scopeOrdered($query)
+    {
+        return $query->orderBy('sort')->orderBy('id');
+    }
+
+    /**
+     * 是否为根分类
+     */
+    public function isRoot(): bool
+    {
+        return $this->parent_id === 0;
+    }
+
+    /**
+     * 是否有子分类
+     */
+    public function hasChildren(): bool
+    {
+        return $this->children()->exists();
+    }
+
+    /**
+     * 获取所有后代分类ID（递归，含自身）
+     */
+    public function getAllChildrenIds(): array
+    {
+        $ids = [$this->id];
+        $children = $this->children()->get();
+
+        foreach ($children as $child) {
+            $ids = array_merge($ids, $child->getAllChildrenIds());
+        }
+
+        return $ids;
+    }
+
+    /**
+     * 获取树形结构（静态方法，一次性查询后在内存中组装）
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public static function getTree(): \Illuminate\Database\Eloquent\Collection
+    {
+        $all = static::ordered()->get();
+        $byParent = $all->groupBy('parent_id');
+
+        $buildTree = function ($parentId) use (&$buildTree, &$byParent) {
+            $nodes = $byParent->get($parentId, collect());
+            foreach ($nodes as $node) {
+                $node->setRelation('children', $buildTree($node->id));
+            }
+            return $nodes;
+        };
+
+        return $buildTree(0);
+    }
+
+    /**
+     * 获取扁平化的分类选择项（用于 searchable-select 下拉）
+     * 一级分类无前缀，二级/三级分类前加缩进前缀（全角空格）
+     *
+     * @return array<array{value: string, label: string}>
+     */
+    public static function toSelectOptions(): array
+    {
+        $tree = static::getTree();
+        $options = [];
+
+        $flatten = function ($nodes, int $depth) use (&$flatten, &$options) {
+            foreach ($nodes as $node) {
+                $prefix = str_repeat('　　', $depth); // 全角空格缩进
+                $options[] = [
+                    'value' => (string) $node->id,
+                    'label' => $prefix . $node->name,
+                ];
+                if ($node->children->isNotEmpty()) {
+                    $flatten($node->children, $depth + 1);
+                }
+            }
+        };
+
+        $flatten($tree, 0);
+        return $options;
+    }
 }

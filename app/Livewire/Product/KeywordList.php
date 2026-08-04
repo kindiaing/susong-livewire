@@ -7,7 +7,9 @@ use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\Keyword;
+use App\Models\Product;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -19,14 +21,11 @@ class KeywordList extends Component
     use WithExcelExport;
     use WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = Keyword::class;
 
     public string $search = '';
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
 
     public string $formKeyword = '';
     public int $formProductId = 0;
@@ -35,12 +34,6 @@ class KeywordList extends Component
     public function mount(): void
     {
         $this->initColumnVisibility();
-    }
-
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
     }
 
     public function openEditModal(int $id): void
@@ -57,7 +50,7 @@ class KeywordList extends Component
     {
         $validated = $this->validate([
             'formKeyword' => 'required|string|max:50',
-            'formProductId' => 'nullable|integer',
+            'formProductId' => 'nullable|integer|exists:products,id',
             'formSearchCount' => 'required|integer|min:0',
         ]);
 
@@ -79,38 +72,12 @@ class KeywordList extends Component
         $this->resetForm();
     }
 
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         Keyword::findOrFail($this->deletingId)->delete();
         $this->toastSuccess('关键词已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
-    }
-
-    public function resetFilters(): void
-    {
-        $this->search = '';
-        $this->resetPage();
-        $this->clearSelection();
-    }
-
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
     }
 
     private function resetForm(): void
@@ -173,11 +140,13 @@ class KeywordList extends Component
             $query->where('keyword', 'like', "%{$this->search}%");
         }
 
-        $keywords = $query->paginate(20);
+        $keywords = $query->paginate(setting('per_page', 10));
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 
-        return view('livewire.product.keyword-list', compact('keywords', 'allColumns', 'selectedCount'))
+        $productOptions = Product::orderBy('name')->get()->map(fn($p) => ['value' => $p->id, 'label' => $p->name])->toArray();
+
+        return view('livewire.product.keyword-list', compact('keywords', 'allColumns', 'selectedCount', 'productOptions'))
             ->layout('components.app-layout')
             ->title('关键词管理');
     }

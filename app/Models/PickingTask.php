@@ -53,4 +53,49 @@ class PickingTask extends Model
             self::STATUS_COMPLETED => '已完成',
         ];
     }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::statusMap()[$this->status] ?? '未知';
+    }
+
+    /**
+     * 关联仓库
+     */
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class);
+    }
+
+    /**
+     * 关联拣货员
+     */
+    public function picker()
+    {
+        return $this->belongsTo(User::class, 'picker_id');
+    }
+
+    /**
+     * 关联拣货明细
+     */
+    public function items()
+    {
+        return $this->hasMany(PickingTaskItem::class);
+    }
+
+    /**
+     * 作用域：按状态
+     */
+    public function scopeByStatus($query, int $status)
+    {
+        return $query->where('status', $status);
+    }
+
+    /**
+     * 作用域：待分配
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', self::STATUS_PENDING);
+    }
 }

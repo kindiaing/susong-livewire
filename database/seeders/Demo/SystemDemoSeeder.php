@@ -49,8 +49,8 @@ class SystemDemoSeeder extends Seeder
         ];
 
         foreach ($promotions as $promo) {
-            if ($promo['target_id'] && ! DB::table('promotions')->where('type', $promo['type'])->where('target_id', $promo['target_id'])->exists()) {
-                DB::table('promotions')->insert(array_merge($promo, ['created_at' => $now, 'updated_at' => $now]));
+            if ($promo['target_id'] && ! DB::table('featured_promotions')->where('type', $promo['type'])->where('target_id', $promo['target_id'])->exists()) {
+                DB::table('featured_promotions')->insert(array_merge($promo, ['created_at' => $now, 'updated_at' => $now]));
             }
         }
     }

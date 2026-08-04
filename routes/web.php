@@ -9,7 +9,7 @@ use App\Livewire\Finance\CorrectionAuthorizationList;
 use App\Livewire\Finance\InvoiceList;
 use App\Livewire\Finance\MerchantAccountList;
 use App\Livewire\Finance\PriceApportionmentList;
-use App\Livewire\Finance\PriceStrategyList;
+use App\Livewire\Finance\PromotionActivityList;
 use App\Livewire\Finance\ReceivableList;
 use App\Livewire\Finance\RechargeList;
 use App\Livewire\Finance\SupplierSettlementList;
@@ -31,6 +31,7 @@ use App\Livewire\Order\OrderReturnList;
 use App\Livewire\Order\RepurchaseTemplateList;
 use App\Livewire\Picking\PickingTaskList;
 use App\Livewire\Price\PriceChangeLogList;
+use App\Livewire\Price\PricingConfig;
 use App\Livewire\Product\CategoryList;
 use App\Livewire\Product\KeywordList;
 use App\Livewire\Product\ProductList;
@@ -38,6 +39,7 @@ use App\Livewire\Product\SkuBarcodeList;
 use App\Livewire\Product\SkuList;
 use App\Livewire\Product\RestockReminderList;
 use App\Livewire\Product\SkuSupplierList;
+use App\Livewire\Product\MerchantSkuVisibilityList;
 use App\Livewire\Product\TagList;
 use App\Livewire\Purchase\PurchaseItemList;
 use App\Livewire\Purchase\PurchaseOrderDetail;
@@ -49,7 +51,7 @@ use App\Livewire\System\AuditLogs;
 use App\Livewire\System\BannerList;
 use App\Livewire\System\LoginLogList;
 use App\Livewire\System\OperationLogs;
-use App\Livewire\System\PromotionList;
+use App\Livewire\System\FinanceSettings;
 use App\Livewire\System\Settings;
 use App\Livewire\System\WechatUserList;
 use App\Livewire\User\PermissionList;
@@ -63,7 +65,9 @@ Route::view('/', 'welcome')->name('home');
 
 // 认证路由
 Route::get('/login', Login::class)->name('login');
-Route::post('/logout', function () {
+
+// 退出登录（仅需 auth，无需权限校验）
+Route::middleware(['auth'])->post('/logout', function () {
     auth()->logout();
     session()->invalidate();
     session()->regenerateToken();
@@ -97,6 +101,7 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::get('/keywords', KeywordList::class)->name('keywords');
     Route::get('/sku-barcodes', SkuBarcodeList::class)->name('sku-barcodes');
     Route::get('/sku-suppliers', SkuSupplierList::class)->name('sku-suppliers');
+    Route::get('/merchant-sku-visibility', MerchantSkuVisibilityList::class)->name('merchant-sku-visibility');
     Route::get('/restock-reminders', RestockReminderList::class)->name('restock-reminders');
 
     // ── 采购管理 ──
@@ -134,7 +139,7 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::get('/receivables', ReceivableList::class)->name('receivables');
     Route::get('/invoices', InvoiceList::class)->name('invoices');
     Route::get('/correction-authorizations', CorrectionAuthorizationList::class)->name('correction-authorizations');
-    Route::get('/price-strategies', PriceStrategyList::class)->name('price-strategies');
+    Route::get('/promotion-activities', PromotionActivityList::class)->name('promotion-activities');
     Route::get('/price-apportionments', PriceApportionmentList::class)->name('price-apportionments');
     Route::get('/price-change-logs', PriceChangeLogList::class)->name('price-change-logs');
 
@@ -143,9 +148,9 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::get('/merchant-favorites', MerchantFavoriteList::class)->name('merchant-favorites');
 
     // ── 系统管理 ──
+    Route::get('/finance-settings', FinanceSettings::class)->name('finance-settings');
     Route::get('/settings', Settings::class)->name('settings');
     Route::get('/banners', BannerList::class)->name('banners');
-    Route::get('/promotions', PromotionList::class)->name('promotions');
     Route::get('/approval-config', ApprovalConfig::class)->name('approval-config');
     Route::get('/approvals', Approvals::class)->name('approvals');
     Route::get('/operation-logs', OperationLogs::class)->name('operation-logs');

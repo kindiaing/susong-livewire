@@ -27,9 +27,13 @@ class Product extends Model
 {
     use SoftDeletes;
 
-    // 状态常量
-    public const STATUS_OFF = 0;
-    public const STATUS_ON = 1;
+    // 状态常量（统一命名）
+    public const STATUS_DISABLED = 0;
+    public const STATUS_ENABLED = 1;
+
+    // 向后兼容
+    public const STATUS_OFF = self::STATUS_DISABLED;
+    public const STATUS_ON = self::STATUS_ENABLED;
 
     protected $fillable = [
         'category_id',
@@ -60,8 +64,8 @@ class Product extends Model
     public static function statusMap(): array
     {
         return [
-            self::STATUS_ON => '上架',
-            self::STATUS_OFF => '下架',
+            self::STATUS_ENABLED => '上架',
+            self::STATUS_DISABLED => '下架',
         ];
     }
 
@@ -124,6 +128,22 @@ class Product extends Model
      */
     public function scopeOnSale($query)
     {
-        return $query->where('status', self::STATUS_ON);
+        return $query->where('status', self::STATUS_ENABLED);
+    }
+
+    /**
+     * 作用域：下架
+     */
+    public function scopeOffSale($query)
+    {
+        return $query->where('status', self::STATUS_DISABLED);
+    }
+
+    /**
+     * 作用域：按分类筛选
+     */
+    public function scopeByCategory($query, int $categoryId)
+    {
+        return $query->where('category_id', $categoryId);
     }
 }

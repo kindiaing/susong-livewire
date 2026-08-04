@@ -5,8 +5,10 @@ namespace App\Livewire\Finance;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\Merchant;
 use App\Models\Recharge;
 use Livewire\Component;
@@ -19,33 +21,29 @@ class RechargeList extends Component
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
+    use WithMoneyConversion;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = Recharge::class;
 
     public string $search = '';
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
 
     public int $formMerchantId = 0;
-    public int $formAmount = 0;
-    public int $formPaymentMethod = 0;
+    public string $formAmount = '';
+    public int $formPaymentMethod = 1;
     public string $formNote = '';
 
     public static array $statusMap = [
-        0 => '待审核',
-        1 => '已通过',
-        2 => '已拒绝',
-        3 => '已到账',
+        1 => '待确认', 2 => '成功', 3 => '失败',
+    ];
+
+    public static array $statusColorMap = [
+        1 => 'yellow', 2 => 'green', 3 => 'red',
     ];
 
     public static array $paymentMethodMap = [
-        0 => '银行转账',
-        1 => '微信支付',
-        2 => '支付宝',
-        3 => '现金',
+        1 => '微信支付', 2 => '线下转账', 3 => '后台手工',
     ];
 
     public function mount(): void
@@ -93,7 +91,7 @@ class RechargeList extends Component
     {
         return [
             '商家ID' => 'merchant_id',
-            '金额(分)' => 'amount',
+            '金额(元)' => 'amount',
             '支付方式' => 'payment_method',
             '备注' => 'note',
         ];
@@ -104,26 +102,25 @@ class RechargeList extends Component
         return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
     }
 
-    public function openCreateModal(): void
+    public function getImportMoneyFields(): array
     {
-        $this->resetForm();
-        $this->showModal = true;
+        return ['amount'];
     }
 
     public function save(): void
     {
         $this->validate([
             'formMerchantId' => 'required|integer|exists:merchants,id',
-            'formAmount' => 'required|integer|min:1',
-            'formPaymentMethod' => 'required|integer|in:0,1,2,3',
+            'formAmount' => 'required|numeric|min:0.01',
+            'formPaymentMethod' => 'required|integer|in:1,2,3',
         ]);
 
         Recharge::create([
             'merchant_id' => $this->formMerchantId,
             'transaction_no' => 'RC' . now()->format('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT),
-            'amount' => $this->formAmount,
+            'amount' => money_to_cents($this->formAmount),
             'payment_method' => $this->formPaymentMethod,
-            'status' => 0,
+            'status' => 1,
             'note' => $this->formNote ?: null,
         ]);
 
@@ -135,40 +132,34 @@ class RechargeList extends Component
     public function approve(int $id): void
     {
         $item = Recharge::findOrFail($id);
-        if ($item->status !== 0) {
+        if ($item->status !== 1) {
             $this->toastError('当前状态不可审核');
             return;
         }
-        $item->update(['status' => 1]);
-        $this->toastSuccess('充值已审核通过');
+        $item->update(['status' => 2]);
+        $this->toastSuccess('充值已确认成功');
     }
 
     public function reject(int $id): void
     {
         $item = Recharge::findOrFail($id);
-        if ($item->status !== 0) {
+        if ($item->status !== 1) {
             $this->toastError('当前状态不可拒绝');
             return;
         }
-        $item->update(['status' => 2]);
+        $item->update(['status' => 3]);
         $this->toastSuccess('充值已拒绝');
     }
 
     public function confirmArrival(int $id): void
     {
         $item = Recharge::findOrFail($id);
-        if ($item->status !== 1) {
-            $this->toastError('仅已通过状态可确认到账');
+        if ($item->status !== 2) {
+            $this->toastError('仅成功状态可确认到账');
             return;
         }
-        $item->update(['status' => 3]);
+        $item->update(['status' => 2, 'remark' => ($item->remark ? $item->remark . "\n" : '') . '已确认到账 ' . now()->format('Y-m-d H:i')]);
         $this->toastSuccess('充值已确认到账');
-    }
-
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
     }
 
     public function delete(): void
@@ -179,32 +170,12 @@ class RechargeList extends Component
         $this->deletingId = null;
     }
 
-    public function resetFilters(): void
-    {
-        $this->search = '';
-        $this->resetPage();
-        $this->clearSelection();
-    }
-
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
-    }
-
     private function resetForm(): void
     {
         $this->editingId = null;
         $this->formMerchantId = 0;
-        $this->formAmount = 0;
-        $this->formPaymentMethod = 0;
+        $this->formAmount = '';
+        $this->formPaymentMethod = 1;
         $this->formNote = '';
     }
 
@@ -219,11 +190,12 @@ class RechargeList extends Component
             });
         }
 
-        $items = $query->paginate(20);
+        $items = $query->paginate(setting('per_page', 10));
         $merchants = Merchant::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
+        $selectedCount = $this->getSelectedCount();
 
-        return view('livewire.finance.recharge-list', compact('items', 'merchants', 'allColumns'))
+        return view('livewire.finance.recharge-list', compact('items', 'merchants', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('客户充值');
     }

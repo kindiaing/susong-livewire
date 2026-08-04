@@ -7,8 +7,10 @@ use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Supplier;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -20,6 +22,7 @@ class ProductList extends Component
     use WithPagination;
     use WithRowSelection;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = Product::class;
 
@@ -29,13 +32,7 @@ class ProductList extends Component
 
     public int $filterStatus = -1;
 
-    public bool $showModal = false;
-
-    public bool $showDeleteConfirm = false;
-
-    public ?int $editingId = null;
-
-    public ?int $deletingId = null;
+    public int $formSupplierId = 0;
 
     public int $formCategoryId = 0;
 
@@ -51,21 +48,18 @@ class ProductList extends Component
 
     public string $formDescription = '';
 
+    public string $formCover = '';
+
     public function mount(): void
     {
         $this->initColumnVisibility();
-    }
-
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
     }
 
     public function openEditModal(int $id): void
     {
         $product = Product::findOrFail($id);
         $this->editingId = $id;
+        $this->formSupplierId = $product->supplier_id ?? 0;
         $this->formCategoryId = $product->category_id;
         $this->formName = $product->name;
         $this->formUnit = $product->unit;
@@ -73,14 +67,17 @@ class ProductList extends Component
         $this->formStockWarningValue = $product->stock_warning_value;
         $this->formStatus = $product->status;
         $this->formDescription = $product->description ?? '';
+        $this->formCover = $product->cover ?? '';
         $this->showModal = true;
     }
 
     public function save(): void
     {
         $validated = $this->validate([
+            'formSupplierId' => 'nullable|integer|min:0',
             'formCategoryId' => 'required|integer|min:1',
             'formName' => 'required|string|max:100',
+            'formCover' => 'nullable|string|max:255',
             'formUnit' => 'required|string|max:20',
             'formIsWeightPriced' => 'required|in:0,1',
             'formStockWarningValue' => 'required|integer|min:0',
@@ -89,8 +86,10 @@ class ProductList extends Component
         ]);
 
         $data = [
+            'supplier_id' => $validated['formSupplierId'] ?: null,
             'category_id' => $validated['formCategoryId'],
             'name' => $validated['formName'],
+            'cover' => $validated['formCover'] ?: null,
             'unit' => $validated['formUnit'],
             'is_weight_priced' => $validated['formIsWeightPriced'],
             'stock_warning_value' => $validated['formStockWarningValue'],
@@ -110,12 +109,6 @@ class ProductList extends Component
         $this->resetForm();
     }
 
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
-    }
-
     public function delete(): void
     {
         Product::findOrFail($this->deletingId)->delete();
@@ -133,22 +126,10 @@ class ProductList extends Component
         $this->clearSelection();
     }
 
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
-    }
-
     private function resetForm(): void
     {
         $this->editingId = null;
+        $this->formSupplierId = 0;
         $this->formCategoryId = 0;
         $this->formName = '';
         $this->formUnit = '';
@@ -156,14 +137,19 @@ class ProductList extends Component
         $this->formStockWarningValue = 0;
         $this->formStatus = 1;
         $this->formDescription = '';
+        $this->formCover = '';
     }
 
     public function getAllColumns(): array
     {
         return [
             ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
+            ['key' => 'supplier_id', 'label' => '默认供应商', 'sortable' => false, 'exportable' => true],
             ['key' => 'name', 'label' => '商品名', 'sortable' => true, 'exportable' => true],
             ['key' => 'category_id', 'label' => '分类', 'sortable' => false, 'exportable' => true],
+            ['key' => 'unit', 'label' => '单位', 'sortable' => false, 'exportable' => true],
+            ['key' => 'is_weight_priced', 'label' => '称重改价', 'sortable' => false, 'exportable' => true],
+            ['key' => 'stock_warning_value', 'label' => '库存预警值', 'sortable' => false, 'exportable' => true],
             ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
             ['key' => 'description', 'label' => '描述', 'sortable' => false, 'exportable' => true],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
@@ -226,12 +212,13 @@ class ProductList extends Component
             $query->where('status', $this->filterStatus);
         }
 
-        $products = $query->paginate(20);
-        $categories = Category::orderBy('sort')->orderBy('id')->get();
+        $products = $query->paginate(setting('per_page', 10));
+        $categoryOptions = Category::toSelectOptions();
+        $suppliers = Supplier::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 
-        return view('livewire.product.product-list', compact('products', 'categories', 'allColumns', 'selectedCount'))
+        return view('livewire.product.product-list', compact('products', 'categoryOptions', 'suppliers', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('商品管理');
     }

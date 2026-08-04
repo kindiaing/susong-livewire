@@ -1,7 +1,7 @@
 {{-- 导出弹窗 --}}
 @if($showExportModal)
 <div class="fixed inset-0 z-50 flex items-center justify-center">
-    <div class="fixed inset-0 bg-black/50" wire:click="closeExportModal"></div>
+    <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
     <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6">
         <h2 class="text-lg font-semibold text-foreground mb-4">导出 Excel</h2>
         <div class="space-y-4">
@@ -23,7 +23,7 @@
             <div>
                 <div class="flex items-center justify-between mb-2">
                     <label class="block text-sm font-medium text-foreground">导出列</label>
-                    <button wire:click="exportSelectAllColumns" class="text-xs text-blue-600 hover:text-blue-700">全选</button>
+                    <button type="button" wire:click="exportSelectAllColumns" class="text-xs text-blue-600 hover:text-blue-700">全选</button>
                 </div>
                 <div class="space-y-1 max-h-48 overflow-y-auto border rounded-md p-3">
                     @foreach($this->getExportableColumns() as $col)
@@ -42,8 +42,8 @@
             </div>
         </div>
         <div class="flex justify-end gap-3 mt-6">
-            <button wire:click="closeExportModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-            <button wire:click="doExport" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">导出</button>
+            <button type="button" wire:click="closeExportModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+            <button type="button" wire:click="doExport" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">导出</button>
         </div>
     </div>
 </div>

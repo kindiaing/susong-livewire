@@ -7,6 +7,7 @@ use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Livewire\Traits\WithListCrud;
 use App\Models\Merchant;
 use App\Models\OrderReturn;
 use Livewire\Component;
@@ -20,15 +21,12 @@ class OrderReturnList extends Component
     use WithExcelExport;
     use WithExcelImport;
     use WithToast;
+    use WithListCrud;
 
     protected string $modelClass = OrderReturn::class;
 
     public string $search = '';
-    public int $filterStatus = -1;
-    public bool $showModal = false;
-    public bool $showDeleteConfirm = false;
-    public ?int $editingId = null;
-    public ?int $deletingId = null;
+    public int $filterStatus = 0;
 
     public int $formOrderId = 0;
     public int $formMerchantId = 0;
@@ -36,13 +34,13 @@ class OrderReturnList extends Component
     public string $formNote = '';
 
     public static array $statusMap = [
-        0 => '待审核', 1 => '已通过', 2 => '已拒绝',
-        3 => '退货中', 4 => '已完成',
+        1 => '待审核', 2 => '已审核', 3 => '已退货',
+        4 => '退款完成', 9 => '取消',
     ];
 
     public static array $statusColorMap = [
-        0 => 'yellow', 1 => 'green', 2 => 'red',
-        3 => 'blue', 4 => 'gray',
+        1 => 'yellow', 2 => 'green', 3 => 'blue',
+        4 => 'gray', 9 => 'red',
     ];
 
     public function mount(): void
@@ -116,12 +114,6 @@ class OrderReturnList extends Component
         return $this->buildQuery()->forPage($this->page, 20)->pluck('id')->toArray();
     }
 
-    public function openCreateModal(): void
-    {
-        $this->resetForm();
-        $this->showModal = true;
-    }
-
     public function openEditModal(int $id): void
     {
         $item = OrderReturn::findOrFail($id);
@@ -154,7 +146,7 @@ class OrderReturnList extends Component
                 'order_id' => $validated['formOrderId'],
                 'merchant_id' => $validated['formMerchantId'],
                 'reason' => $validated['formReason'],
-                'status' => 0,
+                'status' => 1,
                 'refund_amount' => 0,
             ]);
             $this->toastSuccess('退货单已创建');
@@ -167,30 +159,30 @@ class OrderReturnList extends Component
     public function approveReturn(int $id): void
     {
         $item = OrderReturn::findOrFail($id);
-        if ($item->status != 0) {
+        if ($item->status != 1) {
             $this->toastError('只有待审核退货单可审核通过');
             return;
         }
-        $item->update(['status' => 1]);
+        $item->update(['status' => 2]);
         $this->toastSuccess('退货单已审核通过');
     }
 
     public function rejectReturn(int $id): void
     {
         $item = OrderReturn::findOrFail($id);
-        if ($item->status != 0) {
+        if ($item->status != 1) {
             $this->toastError('只有待审核退货单可拒绝');
             return;
         }
-        $item->update(['status' => 2]);
+        $item->update(['status' => 9]);
         $this->toastSuccess('退货单已拒绝');
     }
 
     public function startReturn(int $id): void
     {
         $item = OrderReturn::findOrFail($id);
-        if ($item->status != 1) {
-            $this->toastError('只有已通过的退货单可开始退货');
+        if ($item->status != 2) {
+            $this->toastError('只有已审核的退货单可开始退货');
             return;
         }
         $item->update(['status' => 3]);
@@ -201,17 +193,11 @@ class OrderReturnList extends Component
     {
         $item = OrderReturn::findOrFail($id);
         if ($item->status != 3) {
-            $this->toastError('只有退货中的单据可完成');
+            $this->toastError('只有已退货的单据可完成退款');
             return;
         }
         $item->update(['status' => 4]);
         $this->toastSuccess('退货单已完成');
-    }
-
-    public function confirmDelete(int $id): void
-    {
-        $this->deletingId = $id;
-        $this->showDeleteConfirm = true;
     }
 
     public function delete(): void
@@ -234,19 +220,6 @@ class OrderReturnList extends Component
         return [
             ['label' => '批量删除', 'method' => 'batchDelete', 'color' => 'bg-red-600 hover:bg-red-700'],
         ];
-    }
-
-    public function closeModal(): void
-    {
-        $this->showModal = false;
-        $this->resetErrorBag();
-        $this->resetForm();
-    }
-
-    public function closeDeleteConfirm(): void
-    {
-        $this->showDeleteConfirm = false;
-        $this->resetErrorBag();
     }
 
     private function resetForm(): void
@@ -272,7 +245,7 @@ class OrderReturnList extends Component
             });
         }
 
-        if ($this->filterStatus >= 0) {
+        if ($this->filterStatus >= 1) {
             $query->where('status', $this->filterStatus);
         }
 
@@ -281,7 +254,7 @@ class OrderReturnList extends Component
 
     public function render()
     {
-        $items = $this->buildQuery()->paginate(20);
+        $items = $this->buildQuery()->paginate(setting('per_page', 10));
         $merchants = Merchant::orderBy('name')->get();
 
         return view('livewire.order.order-return-list', [

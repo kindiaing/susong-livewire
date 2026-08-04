@@ -101,6 +101,20 @@ return new class extends Migration
         });
 
         $now = now();
+
+        // 用户偏好表
+        Schema::create('user_preferences', function (Blueprint $table) {
+            $table->id()->comment('主键');
+            $table->unsignedBigInteger('user_id')->comment('用户ID');
+            $table->string('pref_key', 100)->comment('偏好键（如 col_vis_Org_SupplierList）');
+            $table->json('pref_value')->nullable()->comment('偏好值（JSON）');
+            $table->timestamps();
+
+            $table->unique(['user_id', 'pref_key']);
+            $table->index('user_id');
+            $table->comment('用户偏好表');
+        });
+
         DB::table('roles')->insert([
             ['name' => 'super_admin', 'guard_name' => 'web', 'display_name' => '超级管理员', 'description' => '全部功能、系统配置、账号管理', 'created_at' => $now, 'updated_at' => $now],
             ['name' => 'operator', 'guard_name' => 'web', 'display_name' => '运营专员', 'description' => '商品、订单、商家、供应商管理', 'created_at' => $now, 'updated_at' => $now],
@@ -133,6 +147,7 @@ return new class extends Migration
 
     public function down(): void
     {
+        Schema::dropIfExists('user_preferences');
         Schema::dropIfExists('personal_access_tokens');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('role_has_permissions');

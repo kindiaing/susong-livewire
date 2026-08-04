@@ -53,6 +53,8 @@ class LossOrder extends Model
 
     protected $fillable = [
         'loss_no',
+        'source_type',
+        'source_id',
         'warehouse_id',
         'total_amount',
         'loss_type',
@@ -77,10 +79,30 @@ class LossOrder extends Model
             'approval_status' => 'integer',
             'applicant_id' => 'integer',
             'reviewer_id' => 'integer',
+            'source_id' => 'integer',
             'reviewed_at' => 'datetime',
             'executed_at' => 'datetime',
             'closed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * 来源类型映射
+     */
+    public static function sourceTypeMap(): array
+    {
+        return [
+            'purchase_order' => '采购入库差异',
+            'manual' => '手工创建',
+        ];
+    }
+
+    public function getSourceTypeLabelAttribute(): string
+    {
+        if ($this->source_type) {
+            return self::sourceTypeMap()[$this->source_type] ?? $this->source_type;
+        }
+        return '手工创建';
     }
 
     /**
@@ -156,10 +178,42 @@ class LossOrder extends Model
     }
 
     /**
+     * 关联申请人
+     */
+    public function applicant()
+    {
+        return $this->belongsTo(User::class, 'applicant_id');
+    }
+
+    /**
+     * 关联审核人
+     */
+    public function reviewer()
+    {
+        return $this->belongsTo(User::class, 'reviewer_id');
+    }
+
+    /**
      * 作用域：待审核
      */
     public function scopePending($query)
     {
         return $query->where('status', self::STATUS_PENDING);
+    }
+
+    /**
+     * 作用域：按来源筛选
+     */
+    public function scopeBySource($query, string $sourceType, int $sourceId)
+    {
+        return $query->where('source_type', $sourceType)->where('source_id', $sourceId);
+    }
+
+    /**
+     * 作用域：入库差异来源
+     */
+    public function scopeFromPurchaseOrder($query, int $purchaseOrderId)
+    {
+        return $query->where('source_type', 'purchase_order')->where('source_id', $purchaseOrderId);
     }
 }

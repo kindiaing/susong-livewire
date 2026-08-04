@@ -97,10 +97,42 @@ class Warehouse extends Model
     }
 
     /**
+     * 关联拣货任务
+     */
+    public function pickingTasks()
+    {
+        return $this->hasMany(PickingTask::class);
+    }
+
+    /**
+     * 关联损耗单
+     */
+    public function lossOrders()
+    {
+        return $this->hasMany(LossOrder::class);
+    }
+
+    /**
+     * 关联采购退货
+     */
+    public function purchaseReturns()
+    {
+        return $this->hasMany(PurchaseReturn::class);
+    }
+
+    /**
      * 作用域：启用
      */
     public function scopeEnabled($query)
     {
         return $query->where('status', self::STATUS_ENABLED);
+    }
+
+    /**
+     * 作用域：冷链仓库
+     */
+    public function scopeColdChain($query)
+    {
+        return $query->where('is_cold_chain', 1);
     }
 }

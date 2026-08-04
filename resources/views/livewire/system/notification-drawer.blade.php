@@ -2,13 +2,17 @@
     $notifications = $this->notifications;
 @endphp
 
-<div x-data="{ open: false }" x-init="$wire.on('open-drawer', () => { open = true })">
-    {{-- 通知铃铛按钮 --}}
-    <button type="button" @click="open = !open"
+{{-- 通知 Drawer — 内联 slide-panel 避免 Livewire 4 与 Blade 组件命名 slot 不兼容 --}}
+<div
+    x-data="{ notificationPanelOpen: false }"
+    @keydown.escape.window="if(notificationPanelOpen) notificationPanelOpen = false"
+>
+    {{-- 触发器：通知铃铛 --}}
+    <button type="button"
             class="relative p-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
-            title="通知">
+            title="通知"
+            @click="notificationPanelOpen = true">
         <x-ui.icon name="bell" class="w-5 h-5" />
-        {{-- 未读角标 --}}
         @if($unreadCount > 0)
             <span class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground">
                 {{ $unreadCount }}
@@ -16,24 +20,24 @@
         @endif
     </button>
 
-    {{-- 通知 Drawer 面板 --}}
+    {{-- 右侧滑出面板 --}}
     <template x-teleport="body">
-        <div x-show="open" class="fixed inset-0 z-50" x-cloak>
+        <div x-show="notificationPanelOpen" class="fixed inset-0 z-50" x-cloak>
             {{-- 遮罩 --}}
             <div class="fixed inset-0 bg-black/40"
-                 x-show="open"
+                 x-show="notificationPanelOpen"
                  x-transition:enter="transition-opacity ease-in-out duration-300"
                  x-transition:enter-start="opacity-0"
                  x-transition:enter-end="opacity-100"
                  x-transition:leave="transition-opacity ease-in-out duration-200"
                  x-transition:leave-start="opacity-100"
                  x-transition:leave-end="opacity-0"
-                 @click="$store.uiSettings.closeOnOutside ? open = false : null"></div>
+                 @click="notificationPanelOpen = false"></div>
 
-            {{-- 抽屉面板 --}}
-            <div class="fixed right-0 inset-y-0 bg-background border-l border-border shadow-xl"
+            {{-- 面板 --}}
+            <div class="fixed right-0 inset-y-0 bg-background border-l border-border shadow-xl flex flex-col"
                  style="width: 400px;"
-                 x-show="open"
+                 x-show="notificationPanelOpen"
                  x-transition:enter="transition-transform ease-in-out duration-300"
                  x-transition:enter-start="translate-x-full"
                  x-transition:enter-end="translate-x-0"
@@ -41,29 +45,29 @@
                  x-transition:leave-start="translate-x-0"
                  x-transition:leave-end="translate-x-full">
 
-                {{-- 头部 --}}
-                <div class="flex items-center justify-between border-b border-border px-4 py-3">
-                    <div class="flex items-center gap-2">
-                        <h3 class="text-sm font-semibold">通知</h3>
-                        @if($unreadCount > 0)
-                            <span class="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-medium text-primary-foreground">
-                                {{ $unreadCount }} 条未读
-                            </span>
-                        @endif
-                    </div>
-                    <div class="flex items-center gap-1">
-                        @if($unreadCount > 0)
-                            <button type="button" wire:click="markAllRead"
-                                    class="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-accent transition-colors">
-                                全部已读
-                            </button>
-                        @endif
-                        <button @click="open = false" class="rounded-sm p-1 hover:bg-accent transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
+                {{-- 标题栏 --}}
+                <div class="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+                    <h3 class="text-sm font-semibold">通知</h3>
+                    <button type="button" @click="notificationPanelOpen = false" class="rounded-sm p-1 hover:bg-accent transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                {{-- 头部补充信息（未读角标 + 全部已读） --}}
+                <div class="flex items-center justify-between px-5 py-3 border-b border-border">
+                    @if($unreadCount > 0)
+                        <span class="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-medium text-primary-foreground">
+                            {{ $unreadCount }} 条未读
+                        </span>
+                        <button type="button" wire:click="markAllRead"
+                                class="text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-accent transition-colors">
+                            全部已读
                         </button>
-                    </div>
+                    @else
+                        <span></span>
+                    @endif
                 </div>
 
                 {{-- 筛选 Tab --}}
@@ -82,7 +86,7 @@
                 </div>
 
                 {{-- 通知列表 --}}
-                <div class="overflow-y-auto" style="max-height: calc(100vh - 110px);">
+                <div class="overflow-y-auto flex-1" style="max-height: calc(100vh - 110px);">
                     @forelse($notifications as $n)
                         <div class="px-4 py-3 hover:bg-accent/50 transition-colors cursor-pointer border-b border-border/50 last:border-0 {{ $n->is_read === 0 ? 'bg-primary/5' : '' }}"
                              wire:click="markRead({{ $n->id }})">

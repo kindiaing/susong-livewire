@@ -47,15 +47,16 @@ return new class extends Migration
         });
 
         // 运营主推表
-        Schema::create('promotions', function (Blueprint $table) {
+        Schema::create('featured_promotions', function (Blueprint $table) {
             $table->id()->comment('主键');
             $table->tinyInteger('type')->unsigned()->default(1)->comment('类型：1主推商品，2主推品类');
             $table->unsignedBigInteger('target_id')->comment('目标ID');
             $table->unsignedInteger('sort')->default(0)->comment('排序');
             $table->timestamp('start_at')->nullable()->comment('开始时间');
             $table->timestamp('end_at')->nullable()->comment('结束时间');
-            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态');
+            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：0禁用，1启用');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('type');
             $table->index('target_id');
@@ -120,7 +121,7 @@ return new class extends Migration
             $table->comment('登录日志表');
         });
 
-        // 内置系统配置（23 条，含分组、类型、排序等完整字段）
+        // 内置系统配置（24 条，含分组、类型、排序等完整字段）
         $now = now();
         DB::table('system_configs')->insert([
             // ── 基础配置 ──────────────────────────
@@ -152,13 +153,36 @@ return new class extends Migration
             ['config_key' => 'weighing_diff_threshold', 'config_value' => '20', 'default_value' => '20', 'config_type' => 'integer', 'config_group' => 'inventory', 'label' => '称重差异阈值（%）', 'hint' => '称重差异超过此百分比需人工确认', 'options' => null, 'validation_rules' => 'required|integer|min:1|max:100', 'sort_order' => 20, 'is_public' => 0, 'is_readonly' => 0, 'description' => '称重差异阈值（百分比）', 'created_at' => $now, 'updated_at' => $now],
             ['config_key' => 'inventory_warning_enabled', 'config_value' => '1', 'default_value' => '1', 'config_type' => 'boolean', 'config_group' => 'inventory', 'label' => '启用库存预警', 'hint' => '开启后低于预警值触发通知', 'options' => null, 'validation_rules' => 'required|boolean', 'sort_order' => 30, 'is_public' => 0, 'is_readonly' => 0, 'description' => '库存预警检测开关', 'created_at' => $now, 'updated_at' => $now],
             ['config_key' => 'inventory_warning_interval_minutes', 'config_value' => '5', 'default_value' => '5', 'config_type' => 'integer', 'config_group' => 'inventory', 'label' => '库存预警检测频率（分钟）', 'hint' => '定时任务检测间隔', 'options' => null, 'validation_rules' => 'required|integer|min:1|max:60', 'sort_order' => 31, 'is_public' => 0, 'is_readonly' => 0, 'description' => '库存预警定时检测周期', 'created_at' => $now, 'updated_at' => $now],
+            ['config_key' => 'stockin_auto_create_loss', 'config_value' => '1', 'default_value' => '1', 'config_type' => 'boolean', 'config_group' => 'inventory', 'label' => '入库差异自动创建损耗单', 'hint' => '开启后采购入库差异自动生成损耗单，关闭则需手动创建', 'options' => null, 'validation_rules' => 'required|boolean', 'sort_order' => 32, 'is_public' => 0, 'is_readonly' => 0, 'description' => '采购入库数量少于采购数量时，自动创建损耗单扣减差异库存', 'created_at' => $now, 'updated_at' => $now],
 
             // ── 审计配置 ──────────────────────────
             ['config_key' => 'audit_retention_days', 'config_value' => '90', 'default_value' => '90', 'config_type' => 'integer', 'config_group' => 'audit', 'label' => '审计日志保留天数', 'hint' => '0=永久保留，1-180天，到期每日定时清理', 'options' => null, 'validation_rules' => 'required|integer|min:0|max:180', 'sort_order' => 50, 'is_public' => 0, 'is_readonly' => 0, 'description' => '审计/日志保留天数', 'created_at' => $now, 'updated_at' => $now],
             ['config_key' => 'loss_approval_threshold', 'config_value' => '200', 'default_value' => '200', 'config_type' => 'integer', 'config_group' => 'audit', 'label' => '损耗审批阈值（元）', 'hint' => '单张损耗单金额超过此值需运营经理审核', 'options' => null, 'validation_rules' => 'required|integer|min:0', 'sort_order' => 51, 'is_public' => 0, 'is_readonly' => 0, 'description' => '损耗审批阈值（元）', 'created_at' => $now, 'updated_at' => $now],
 
+            // ── 取价配置 ──────────────────────────
+            ['config_key' => 'pricing_mode', 'config_value' => 'lowest', 'default_value' => 'lowest', 'config_type' => 'enum', 'config_group' => 'finance', 'label' => '取价模式', 'hint' => 'lowest=最低价模式，first_hit=命中即止模式', 'options' => json_encode([['label' => '最低价模式', 'value' => 'lowest'], ['label' => '命中即止模式', 'value' => 'first_hit']]), 'validation_rules' => 'required|in:lowest,first_hit', 'sort_order' => 40, 'is_public' => 0, 'is_readonly' => 0, 'description' => '系统计算商品售价的策略', 'created_at' => $now, 'updated_at' => $now],
+            ['config_key' => 'pricing_source_enabled', 'config_value' => '{"promotion":true,"store":true,"member":true,"channel":true,"retail":true}', 'default_value' => '{"promotion":true,"store":true,"member":true,"channel":true,"retail":true}', 'config_type' => 'json', 'config_group' => 'finance', 'label' => '取价来源开关', 'hint' => '关闭某个来源后，该来源不参与取价计算', 'options' => null, 'validation_rules' => 'required|json', 'sort_order' => 41, 'is_public' => 0, 'is_readonly' => 0, 'description' => '各取价来源的启用/关闭状态', 'created_at' => $now, 'updated_at' => $now],
+            ['config_key' => 'pricing_priority', 'config_value' => '["promotion","store","member","channel","retail"]', 'default_value' => '["promotion","store","member","channel","retail"]', 'config_type' => 'json', 'config_group' => 'finance', 'label' => '取价优先级排序', 'hint' => '仅命中即止模式下生效，按排序号从小到大排列', 'options' => null, 'validation_rules' => 'required|json', 'sort_order' => 42, 'is_public' => 0, 'is_readonly' => 0, 'description' => '命中即止模式下的取价优先级顺序', 'created_at' => $now, 'updated_at' => $now],
+
             // ── 界面配置 ──────────────────────────
             ['config_key' => 'ui_close_on_outside', 'config_value' => '1', 'default_value' => '1', 'config_type' => 'boolean', 'config_group' => 'ui', 'label' => '点击旁边关闭通知', 'hint' => '开启后，点击通知面板外的区域将自动关闭通知菜单', 'options' => null, 'validation_rules' => null, 'sort_order' => 1, 'is_public' => 1, 'is_readonly' => 0, 'description' => '控制点击通知 Drawer 外部区域时是否自动关闭面板', 'created_at' => $now, 'updated_at' => $now],
+            ['config_key' => 'per_page', 'config_value' => '10', 'default_value' => '10', 'config_type' => 'integer', 'config_group' => 'ui', 'label' => '列表每页条数', 'hint' => '管理后台列表页默认每页显示条数', 'options' => json_encode([['label' => '10条/页', 'value' => '10'], ['label' => '15条/页', 'value' => '15'], ['label' => '20条/页', 'value' => '20'], ['label' => '50条/页', 'value' => '50']]), 'validation_rules' => 'required|integer|in:10,15,20,50', 'sort_order' => 2, 'is_public' => 0, 'is_readonly' => 0, 'description' => '列表页分页条数，全局生效', 'created_at' => $now, 'updated_at' => $now],
+            ['config_key' => 'ui_category_tree_expanded', 'config_value' => '0', 'default_value' => '0', 'config_type' => 'boolean', 'config_group' => 'ui', 'label' => '分类树默认展开', 'hint' => '开启后进入分类页面时自动展开所有节点；关闭则默认折叠', 'options' => null, 'validation_rules' => 'required|boolean', 'sort_order' => 3, 'is_public' => 1, 'is_readonly' => 0, 'description' => '分类树展开状态系统默认值，用户可在界面设置中覆盖', 'created_at' => $now, 'updated_at' => $now],
+
+            // ── 金额精度 ──────────────────────────
+            // 三层分离：存储层（厘，固定不变）→ 计算层（厘，零误差）→ 显示层（可配置精度+舍入）
+            // 汇总金额永远是后端厘级求和的结果，不是前端把显示值加起来
+            // 尾差策略A：汇总精确，明细各自舍入显示，允许视觉上有几分钱尾差
+            ['config_key' => 'money.display_precision', 'config_value' => '2', 'default_value' => '2', 'config_type' => 'enum', 'config_group' => 'money', 'label' => '金额显示精度', 'hint' => '全局金额显示保留几位小数', 'options' => json_encode([['label' => '2位（分）', 'value' => '2'], ['label' => '3位（厘）', 'value' => '3']]), 'validation_rules' => 'required|in:2,3', 'sort_order' => 1, 'is_public' => 0, 'is_readonly' => 0, 'description' => '所有 money_format() 输出的小数位数，2=精确到分，3=精确到厘', 'created_at' => $now, 'updated_at' => $now],
+            ['config_key' => 'money.weighing_precision', 'config_value' => '3', 'default_value' => '3', 'config_type' => 'enum', 'config_group' => 'money', 'label' => '称重数量精度', 'hint' => '称重数量输入框接受几位小数', 'options' => json_encode([['label' => '2位（0.05斤）', 'value' => '2'], ['label' => '3位（0.001斤）', 'value' => '3']]), 'validation_rules' => 'required|in:2,3', 'sort_order' => 2, 'is_public' => 0, 'is_readonly' => 0, 'description' => '称重数量录入精度，2=普通秤，3=精密秤（克级）', 'created_at' => $now, 'updated_at' => $now],
+            ['config_key' => 'money.default_round_mode', 'config_value' => 'round', 'default_value' => 'round', 'config_type' => 'enum', 'config_group' => 'money', 'label' => '全局默认舍入方式', 'hint' => '未单独设置的模块将使用此舍入方式', 'options' => json_encode([['label' => '四舍五入（round）', 'value' => 'round'], ['label' => '向上取整（round_up）', 'value' => 'round_up'], ['label' => '向下取整（round_down）', 'value' => 'round_down'], ['label' => '截断抹零（truncate）', 'value' => 'truncate']]), 'validation_rules' => 'required|in:round,round_up,round_down,truncate', 'sort_order' => 3, 'is_public' => 0, 'is_readonly' => 0, 'description' => '全局舍入模式，各模块可单独覆盖', 'created_at' => $now, 'updated_at' => $now],
+            ['config_key' => 'money.order_round_mode', 'config_value' => 'round', 'default_value' => 'round', 'config_type' => 'enum', 'config_group' => 'money', 'label' => '订单模块舍入', 'hint' => '消费者标准四舍五入', 'options' => json_encode([['label' => '四舍五入', 'value' => 'round'], ['label' => '向上取整', 'value' => 'round_up'], ['label' => '向下取整', 'value' => 'round_down'], ['label' => '截断抹零', 'value' => 'truncate']]), 'validation_rules' => 'required|in:round,round_up,round_down,truncate', 'sort_order' => 4, 'is_public' => 0, 'is_readonly' => 0, 'description' => '订单模块金额舍入方式，推荐四舍五入', 'created_at' => $now, 'updated_at' => $now],
+            ['config_key' => 'money.purchase_round_mode', 'config_value' => 'truncate', 'default_value' => 'truncate', 'config_type' => 'enum', 'config_group' => 'money', 'label' => '采购模块舍入', 'hint' => '采购方不利零头，默认截断', 'options' => json_encode([['label' => '四舍五入', 'value' => 'round'], ['label' => '向上取整', 'value' => 'round_up'], ['label' => '向下取整', 'value' => 'round_down'], ['label' => '截断抹零', 'value' => 'truncate']]), 'validation_rules' => 'required|in:round,round_up,round_down,truncate', 'sort_order' => 5, 'is_public' => 0, 'is_readonly' => 0, 'description' => '采购模块金额舍入方式，推荐截断抹零', 'created_at' => $now, 'updated_at' => $now],
+            ['config_key' => 'money.recharge_round_mode', 'config_value' => 'round_up', 'default_value' => 'round_up', 'config_type' => 'enum', 'config_group' => 'money', 'label' => '充值模块舍入', 'hint' => '充值向上取整，保护平台', 'options' => json_encode([['label' => '四舍五入', 'value' => 'round'], ['label' => '向上取整', 'value' => 'round_up'], ['label' => '向下取整', 'value' => 'round_down'], ['label' => '截断抹零', 'value' => 'truncate']]), 'validation_rules' => 'required|in:round,round_up,round_down,truncate', 'sort_order' => 6, 'is_public' => 0, 'is_readonly' => 0, 'description' => '充值模块金额舍入方式，推荐向上取整', 'created_at' => $now, 'updated_at' => $now],
+            ['config_key' => 'money.settlement_round_mode', 'config_value' => 'round', 'default_value' => 'round', 'config_type' => 'enum', 'config_group' => 'money', 'label' => '结算模块舍入', 'hint' => '财务标准四舍五入', 'options' => json_encode([['label' => '四舍五入', 'value' => 'round'], ['label' => '向上取整', 'value' => 'round_up'], ['label' => '向下取整', 'value' => 'round_down'], ['label' => '截断抹零', 'value' => 'truncate']]), 'validation_rules' => 'required|in:round,round_up,round_down,truncate', 'sort_order' => 7, 'is_public' => 0, 'is_readonly' => 0, 'description' => '供应商结算/应收模块金额舍入方式，推荐四舍五入', 'created_at' => $now, 'updated_at' => $now],
+            ['config_key' => 'money.price_round_mode', 'config_value' => 'round', 'default_value' => 'round', 'config_type' => 'enum', 'config_group' => 'money', 'label' => '取价/促销舍入', 'hint' => '价格展示标准四舍五入', 'options' => json_encode([['label' => '四舍五入', 'value' => 'round'], ['label' => '向上取整', 'value' => 'round_up'], ['label' => '向下取整', 'value' => 'round_down'], ['label' => '截断抹零', 'value' => 'truncate']]), 'validation_rules' => 'required|in:round,round_up,round_down,truncate', 'sort_order' => 8, 'is_public' => 0, 'is_readonly' => 0, 'description' => '取价/促销模块金额舍入方式，推荐四舍五入', 'created_at' => $now, 'updated_at' => $now],
+            ['config_key' => 'money.inventory_round_mode', 'config_value' => 'truncate', 'default_value' => 'truncate', 'config_type' => 'enum', 'config_group' => 'money', 'label' => '库存损耗舍入', 'hint' => '损耗截断抹零，避免虚增', 'options' => json_encode([['label' => '四舍五入', 'value' => 'round'], ['label' => '向上取整', 'value' => 'round_up'], ['label' => '向下取整', 'value' => 'round_down'], ['label' => '截断抹零', 'value' => 'truncate']]), 'validation_rules' => 'required|in:round,round_up,round_down,truncate', 'sort_order' => 9, 'is_public' => 0, 'is_readonly' => 0, 'description' => '库存/损耗模块金额舍入方式，推荐截断抹零', 'created_at' => $now, 'updated_at' => $now],
+            ['config_key' => 'money.invoice_round_mode', 'config_value' => 'round', 'default_value' => 'round', 'config_type' => 'enum', 'config_group' => 'money', 'label' => '发票模块舍入', 'hint' => '税务合规四舍五入', 'options' => json_encode([['label' => '四舍五入', 'value' => 'round'], ['label' => '向上取整', 'value' => 'round_up'], ['label' => '向下取整', 'value' => 'round_down'], ['label' => '截断抹零', 'value' => 'truncate']]), 'validation_rules' => 'required|in:round,round_up,round_down,truncate', 'sort_order' => 10, 'is_public' => 0, 'is_readonly' => 0, 'description' => '发票模块金额舍入方式，推荐四舍五入', 'created_at' => $now, 'updated_at' => $now],
         ]);
     }
 
@@ -167,7 +191,7 @@ return new class extends Migration
         Schema::dropIfExists('login_logs');
         Schema::dropIfExists('audit_logs');
         Schema::dropIfExists('operation_logs');
-        Schema::dropIfExists('promotions');
+        Schema::dropIfExists('featured_promotions');
         Schema::dropIfExists('banners');
         Schema::dropIfExists('system_configs');
     }

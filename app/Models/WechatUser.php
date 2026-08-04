@@ -18,6 +18,13 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class WechatUser extends Model
 {
+    // 类型常量
+    public const TYPE_MERCHANT = 1;
+    public const TYPE_DRIVER = 2;
+
+    // 状态常量
+    public const STATUS_DISABLED = 0;
+    public const STATUS_ENABLED = 1;
 
     protected $fillable = [
         'user_id',
@@ -38,4 +45,51 @@ class WechatUser extends Model
         ];
     }
 
+    /**
+     * 类型映射
+     */
+    public static function typeMap(): array
+    {
+        return [
+            self::TYPE_MERCHANT => '商家端',
+            self::TYPE_DRIVER => '司机端',
+        ];
+    }
+
+    /**
+     * 状态映射
+     */
+    public static function statusMap(): array
+    {
+        return [
+            self::STATUS_ENABLED => '启用',
+            self::STATUS_DISABLED => '禁用',
+        ];
+    }
+
+    public function getTypeLabelAttribute(): string
+    {
+        return self::typeMap()[$this->type] ?? '未知';
+    }
+
+    public function getStatusLabelAttribute(): string
+    {
+        return self::statusMap()[$this->status] ?? '未知';
+    }
+
+    /**
+     * 关联系统用户
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * 作用域：启用
+     */
+    public function scopeEnabled($query)
+    {
+        return $query->where('status', self::STATUS_ENABLED);
+    }
 }
