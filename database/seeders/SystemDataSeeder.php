@@ -282,12 +282,142 @@ class SystemDataSeeder extends Seeder
             $superAdminRole->syncPermissions(Permission::all());
         }
 
-        // 所有非超管角色默认分配 dashboard 权限（确保权限界面显示一致）
-        $dashboardPermission = Permission::where('name', 'dashboard')->first();
-        if ($dashboardPermission) {
-            Role::where('name', '!=', 'super_admin')->get()->each(
-                fn($role) => $role->givePermissionTo($dashboardPermission)
-            );
+        // 为各角色分配合适的权限
+        $rolePermissions = [
+            // 运营专员：组织/商品/订单/采购查看/库存查看/配送查看/损耗查看/促销查看/轮播
+            'operator' => [
+                'dashboard',
+                'user.user', 'user.user.view',
+                'org.supplier', 'org.supplier.view', 'org.supplier.create', 'org.supplier.edit',
+                'org.merchant', 'org.merchant.view', 'org.merchant.create', 'org.merchant.edit',
+                'org.route', 'org.route.view', 'org.route.create', 'org.route.edit',
+                'org.driver', 'org.driver.view', 'org.driver.create', 'org.driver.edit',
+                'org.vehicle', 'org.vehicle.view', 'org.vehicle.create', 'org.vehicle.edit',
+                'product.product', 'product.product.view', 'product.product.create', 'product.product.edit',
+                'product.category', 'product.category.view', 'product.category.create', 'product.category.edit',
+                'product.tag', 'product.tag.view', 'product.tag.create', 'product.tag.edit',
+                'product.keyword', 'product.keyword.view', 'product.keyword.create', 'product.keyword.edit',
+                'product.visibility', 'product.visibility.view',
+                'purchase.purchase-order', 'purchase.purchase-order.view',
+                'purchase.purchase-return', 'purchase.purchase-return.view',
+                'purchase.restock-reminder', 'purchase.restock-reminder.view',
+                'order.order', 'order.order.view', 'order.order.create', 'order.order.edit', 'order.order.cancel', 'order.order.lock', 'order.order.change-price',
+                'order.cart',
+                'order.order-return', 'order.order-return.view', 'order.order-return.create', 'order.order-return.edit',
+                'inventory.warehouse', 'inventory.warehouse.view',
+                'inventory.inventory', 'inventory.inventory.view',
+                'inventory.inventory-log', 'inventory.inventory-log.view',
+                'delivery.delivery-task', 'delivery.delivery-task.view',
+                'delivery.signature', 'delivery.signature.view',
+                'delivery.discrepancy', 'delivery.discrepancy.view',
+                'delivery.temperature', 'delivery.temperature.view',
+                'loss.loss-order', 'loss.loss-order.view', 'loss.loss-order.create',
+                'price.promotion', 'price.promotion.view', 'price.promotion.create', 'price.promotion.edit',
+                'price.price-change-log', 'price.price-change-log.view',
+                'system.banner', 'system.banner.view', 'system.banner.create', 'system.banner.edit',
+            ],
+            // 运营经理：运营专员权限 + 审核权限
+            'operator_manager' => [
+                'dashboard',
+                'user.user', 'user.user.view',
+                'org.supplier', 'org.supplier.view', 'org.supplier.create', 'org.supplier.edit',
+                'org.merchant', 'org.merchant.view', 'org.merchant.create', 'org.merchant.edit',
+                'org.route', 'org.route.view', 'org.route.create', 'org.route.edit',
+                'org.driver', 'org.driver.view', 'org.driver.create', 'org.driver.edit',
+                'org.vehicle', 'org.vehicle.view', 'org.vehicle.create', 'org.vehicle.edit',
+                'product.product', 'product.product.view', 'product.product.create', 'product.product.edit',
+                'product.category', 'product.category.view', 'product.category.create', 'product.category.edit',
+                'product.tag', 'product.tag.view', 'product.tag.create', 'product.tag.edit',
+                'product.keyword', 'product.keyword.view', 'product.keyword.create', 'product.keyword.edit',
+                'product.visibility', 'product.visibility.view',
+                'purchase.purchase-order', 'purchase.purchase-order.view', 'purchase.purchase-order.approve',
+                'purchase.purchase-return', 'purchase.purchase-return.view',
+                'purchase.restock-reminder', 'purchase.restock-reminder.view',
+                'order.order', 'order.order.view', 'order.order.create', 'order.order.edit', 'order.order.cancel', 'order.order.lock', 'order.order.change-price',
+                'order.cart',
+                'order.order-return', 'order.order-return.view', 'order.order-return.create', 'order.order-return.edit',
+                'inventory.warehouse', 'inventory.warehouse.view',
+                'inventory.inventory', 'inventory.inventory.view',
+                'inventory.inventory-log', 'inventory.inventory-log.view',
+                'delivery.delivery-task', 'delivery.delivery-task.view', 'delivery.delivery-task.assign', 'delivery.delivery-task.update',
+                'delivery.signature', 'delivery.signature.view',
+                'delivery.discrepancy', 'delivery.discrepancy.view', 'delivery.discrepancy.restock', 'delivery.discrepancy.refund', 'delivery.discrepancy.writeoff',
+                'delivery.temperature', 'delivery.temperature.view',
+                'loss.loss-order', 'loss.loss-order.view', 'loss.loss-order.create', 'loss.loss-order.approve', 'loss.loss-order.execute', 'loss.loss-order.close',
+                'price.promotion', 'price.promotion.view', 'price.promotion.create', 'price.promotion.edit', 'price.promotion.approve',
+                'price.pricing-config', 'price.pricing-config.view',
+                'price.price-change-log', 'price.price-change-log.view',
+                'price.price-apportionment', 'price.price-apportionment.view',
+                'system.banner', 'system.banner.view', 'system.banner.create', 'system.banner.edit',
+                'system.audit-log', 'system.audit-log.view',
+            ],
+            // 财务专员：财务/价格记录/审计日志
+            'finance' => [
+                'dashboard',
+                'finance.recharge', 'finance.recharge.view', 'finance.recharge.create',
+                'finance.supplier-settlement', 'finance.supplier-settlement.view', 'finance.supplier-settlement.create',
+                'finance.receivable', 'finance.receivable.view', 'finance.receivable.collect',
+                'finance.invoice', 'finance.invoice.view', 'finance.invoice.create', 'finance.invoice.issue',
+                'price.price-change-log', 'price.price-change-log.view',
+                'price.price-apportionment', 'price.price-apportionment.view',
+                'system.audit-log', 'system.audit-log.view',
+            ],
+            // 出纳：付款/收款/资金操作执行
+            'cashier' => [
+                'dashboard',
+                'finance.recharge', 'finance.recharge.view', 'finance.recharge.create',
+                'finance.supplier-settlement', 'finance.supplier-settlement.view', 'finance.supplier-settlement.pay',
+                'finance.receivable', 'finance.receivable.view', 'finance.receivable.collect',
+                'finance.invoice', 'finance.invoice.view',
+            ],
+            // 财务经理：财务全部 + 审核权限
+            'finance_manager' => [
+                'dashboard',
+                'finance.recharge', 'finance.recharge.view', 'finance.recharge.create', 'finance.recharge.approve',
+                'finance.supplier-settlement', 'finance.supplier-settlement.view', 'finance.supplier-settlement.create', 'finance.supplier-settlement.pay',
+                'finance.receivable', 'finance.receivable.view', 'finance.receivable.collect', 'finance.receivable.approve',
+                'finance.invoice', 'finance.invoice.view', 'finance.invoice.create', 'finance.invoice.issue', 'finance.invoice.send',
+                'price.price-change-log', 'price.price-change-log.view',
+                'price.price-apportionment', 'price.price-apportionment.view',
+                'system.audit-log', 'system.audit-log.view',
+                'system.login-log', 'system.login-log.view',
+            ],
+            // 拣货员：库存/采购查看/损耗查看
+            'picker' => [
+                'dashboard',
+                'inventory.warehouse', 'inventory.warehouse.view',
+                'inventory.inventory', 'inventory.inventory.view',
+                'inventory.inventory-log', 'inventory.inventory-log.view',
+                'purchase.purchase-order', 'purchase.purchase-order.view',
+                'loss.loss-order', 'loss.loss-order.view',
+            ],
+            // 配送司机：配送任务/签收/温度/订单查看
+            'driver' => [
+                'dashboard',
+                'delivery.delivery-task', 'delivery.delivery-task.view', 'delivery.delivery-task.update',
+                'delivery.signature', 'delivery.signature.view',
+                'delivery.discrepancy', 'delivery.discrepancy.view',
+                'delivery.temperature', 'delivery.temperature.view',
+                'order.order', 'order.order.view',
+            ],
+            // 商家：订单/购物车/签收查看/充值查看
+            'merchant' => [
+                'dashboard',
+                'order.order', 'order.order.view',
+                'order.cart',
+                'order.order-return', 'order.order-return.view',
+                'delivery.signature', 'delivery.signature.view',
+                'finance.recharge', 'finance.recharge.view',
+                'finance.invoice', 'finance.invoice.view',
+            ],
+        ];
+
+        foreach ($rolePermissions as $roleName => $permissionNames) {
+            $role = Role::where('name', $roleName)->first();
+            if ($role) {
+                $permissions = Permission::whereIn('name', $permissionNames)->get();
+                $role->syncPermissions($permissions);
+            }
         }
 
         $seeding = \App\Models\User::where('username', 'seeding')->first();
