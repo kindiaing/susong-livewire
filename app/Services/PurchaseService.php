@@ -33,7 +33,7 @@ class PurchaseService
      */
     public function createFromItems(array $purchaseItemIds): array
     {
-        $items = PurchaseItem::with('sku.suppliers')
+        $items = PurchaseItem::with('sku.suppliers', 'supplier')
             ->whereIn('id', $purchaseItemIds)
             ->where('status', PurchaseItem::STATUS_PENDING)
             ->get();
@@ -42,16 +42,20 @@ class PurchaseService
             throw new \Exception('没有可用的待采项');
         }
 
-        // 按供应商分组：sku_id → supplier_id
+        // 按供应商分组：优先使用待采项指定的 supplier_id，否则回退到 SKU 默认供应商
         $grouped = [];
         foreach ($items as $item) {
-            $defaultSupplier = $item->sku?->suppliers()
-                ->wherePivot('is_default', true)
-                ->wherePivot('status', 1)
-                ->first();
-            $supplierId = $defaultSupplier?->id ?? $item->sku?->suppliers()->wherePivot('status', 1)->first()?->id;
+            // 优先级：待采项指定供应商 > SKU 默认供应商 > SKU 首个可用供应商
+            $supplierId = $item->supplier_id;
             if (!$supplierId) {
-                throw new \Exception("SKU {$item->sku_id} 没有可用供应商");
+                $defaultSupplier = $item->sku?->suppliers()
+                    ->wherePivot('is_default', true)
+                    ->wherePivot('status', 1)
+                    ->first();
+                $supplierId = $defaultSupplier?->id ?? $item->sku?->suppliers()->wherePivot('status', 1)->first()?->id;
+            }
+            if (!$supplierId) {
+                throw new \Exception("SKU {$item->sku_id} 没有可用供应商，请指定供应商");
             }
             $grouped[$supplierId][] = $item;
         }

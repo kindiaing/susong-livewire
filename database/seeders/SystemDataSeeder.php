@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Permission;
 use App\Models\Role;
+use App\Models\Supplier;
 use Illuminate\Database\Seeder;
 
 /**
@@ -207,6 +208,7 @@ class SystemDataSeeder extends Seeder
 
         $this->createPermissionTree();
         $this->assignSeedingSuperAdmin();
+        $this->ensureDefaultSupplier();
 
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
     }
@@ -425,5 +427,21 @@ class SystemDataSeeder extends Seeder
             $seeding->assignRole('super_admin');
             $seeding->syncPermissions(Permission::all());
         }
+    }
+
+    /**
+     * 创建默认供应商（核心数据，确保采购流程可用）
+     */
+    protected function ensureDefaultSupplier(): void
+    {
+        Supplier::firstOrCreate(
+            ['name' => '默认供应商'],
+            [
+                'contact_name' => '-',
+                'contact_phone' => '-',
+                'settlement_cycle' => Supplier::CYCLE_MONTHLY,
+                'status' => Supplier::STATUS_ENABLED,
+            ]
+        );
     }
 }

@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('purchase_items', function (Blueprint $table) {
             $table->id()->comment('主键');
             $table->unsignedBigInteger('sku_id')->comment('SKU ID');
+            $table->unsignedBigInteger('supplier_id')->nullable()->comment('供应商ID');
             $table->bigInteger('quantity')->default(0)->comment('待采数量');
             $table->bigInteger('expected_price')->default(0)->comment('预估成本价（厘）');
             $table->tinyInteger('source_type')->unsigned()->default(1)->comment('来源：1订单汇总，2手工添加');

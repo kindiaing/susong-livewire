@@ -43,6 +43,7 @@
                     <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAllPage" class="rounded" /></th>
                     <th class="px-4 py-2 text-left">SKU编码</th>
                     <th class="px-4 py-2 text-left">商品名称</th>
+                    <th class="px-4 py-2 text-left">供应商</th>
                     <th class="px-4 py-2 text-left">待采数量</th>
                     <th class="px-4 py-2 text-left">来源</th>
                     <th class="px-4 py-2 text-left">状态</th>
@@ -55,6 +56,7 @@
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></td>
                     <td class="px-4 py-2 font-mono text-foreground">{{ $item->sku?->sku_code ?? '-' }}</td>
                     <td class="px-4 py-2 text-foreground truncate">{{ $item->sku?->product?->name ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $item->supplier?->name ?? '-' }}</td>
                     <td class="px-4 py-2 text-foreground">{{ $item->quantity }}</td>
                     <td class="px-4 py-2 text-foreground">{{ \App\Models\PurchaseItem::sourceTypeMap()[$item->source_type] ?? '-' }}</td>
                     <td class="px-4 py-2">
@@ -72,7 +74,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="7" class="px-6 py-12 text-center text-muted-foreground">暂无待采数据</td></tr>
+                <tr><td colspan="8" class="px-6 py-12 text-center text-muted-foreground">暂无待采数据</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -86,9 +88,28 @@
             <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <x-ui.searchable-select label="SKU *" wire-model="formSkuId" :options="$skuOptions" placeholder="搜索SKU..." wireModel="formSkuId" />
+                        <x-ui.searchable-select label="SKU *" wire:model="formSkuId" :options="$skuOptions" placeholder="搜索SKU..." wireModel="formSkuId" />
                         @error('formSkuId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
+                    <div>
+                        <x-ui.searchable-select label="供应商" wire:model="formSupplierId" :options="$supplierOptions" placeholder="选择供应商..." wireModel="formSupplierId" />
+                        @error('formSupplierId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">数量 <span class="text-red-500">*</span></label>
+                        <input type="number" wire:model="formQuantity" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="1" />
+                        @error('formQuantity') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">来源</label>
+                        <select wire:model="formSourceType" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                            <option value="1">订单汇总</option>
+                            <option value="2">手工添加</option>
+                        </select>
+                    </div>
+                </div>
                     <div>
                         <label class="block text-sm font-medium text-foreground mb-1">数量 <span class="text-red-500">*</span></label>
                         <input type="number" wire:model="formQuantity" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="1" />
