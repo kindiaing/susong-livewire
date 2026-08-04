@@ -96,12 +96,49 @@ class SkuSupplierList extends Component
         $this->resetForm();
     }
 
+    public function confirmDelete(int $id): void
+    {
+        $skuSupplier = SkuSupplier::findOrFail($id);
+        $warnings = [];
+
+        // 检查是否为默认供应商
+        if ($skuSupplier->is_default) {
+            // 检查该SKU是否有其他供应商可切换
+            $otherCount = SkuSupplier::where('sku_id', $skuSupplier->sku_id)
+                ->where('id', '!=', $id)
+                ->count();
+            if ($otherCount === 0) {
+                $warnings[] = '这是该SKU的唯一供应商，删除后SKU将无供应商';
+            } else {
+                $warnings[] = '这是默认供应商，请先指定其他供应商为默认后再删除';
+            }
+        }
+
+        if (count($warnings) > 0) {
+            $this->deleteWarning = implode('，', $warnings) . '。';
+            $this->canDelete = false;
+        } else {
+            $this->deleteWarning = '确定要删除该供应商关联吗？此操作不可恢复。';
+            $this->canDelete = true;
+        }
+
+        $this->deletingId = $id;
+        $this->showDeleteConfirm = true;
+    }
+
     public function delete(): void
     {
+        if (!$this->canDelete) {
+            $this->toastWarning('无法删除，请先处理关联问题');
+            return;
+        }
+
         SkuSupplier::findOrFail($this->deletingId)->delete();
         $this->toastSuccess('供应商关联已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
+        $this->deleteWarning = '';
+        $this->canDelete = true;
     }
 
     public function resetFilters(): void

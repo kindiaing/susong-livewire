@@ -23,6 +23,8 @@ trait WithListCrud
     public bool $showDeleteConfirm = false;
     public ?int $editingId = null;
     public ?int $deletingId = null;
+    public string $deleteWarning = '';
+    public bool $canDelete = true;
 
     /**
      * 获取弹窗属性名（组件可覆盖）
@@ -78,6 +80,8 @@ trait WithListCrud
     {
         $this->{$this->getDeletePropertyName()} = false;
         $this->deletingId = null;
+        $this->deleteWarning = '';
+        $this->canDelete = true;
         $this->resetErrorBag();
     }
 

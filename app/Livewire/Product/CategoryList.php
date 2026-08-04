@@ -164,9 +164,11 @@ class CategoryList extends Component
         }
 
         if (count($warnings) > 0) {
-            $this->deleteWarning = implode('，', $warnings) . '，删除后子分类将变为根分类，商品分类将变为空。';
+            $this->deleteWarning = implode('，', $warnings) . '。请先移除或转移关联数据后再删除。';
+            $this->canDelete = false;
         } else {
             $this->deleteWarning = '确定要删除该分类吗？此操作不可恢复。';
+            $this->canDelete = true;
         }
 
         $this->deletingId = $id;
@@ -175,17 +177,20 @@ class CategoryList extends Component
 
     public function delete(): void
     {
+        if (!$this->canDelete) {
+            $this->toastWarning('无法删除，请先移除或转移关联数据');
+            return;
+        }
+
         $category = Category::findOrFail($this->deletingId);
         $deletedId = (string) $this->deletingId;
-
-        // 子分类提升为根分类
-        $category->children()->update(['parent_id' => 0]);
 
         $category->delete();
         $this->toastSuccess('分类已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
         $this->deleteWarning = '';
+        $this->canDelete = true;
 
         // 从展开列表中移除
         $this->expandedIds = array_values(array_diff($this->expandedIds, [$deletedId]));
@@ -233,6 +238,7 @@ class CategoryList extends Component
         $this->showDeleteConfirm = false;
         $this->resetErrorBag();
         $this->deleteWarning = '';
+        $this->canDelete = true;
     }
 
     private function resetForm(): void

@@ -11,6 +11,9 @@ use App\Livewire\Traits\WithToast;
 use App\Livewire\Traits\WithListCrud;
 use App\Models\Product;
 use App\Models\Sku;
+use App\Services\ApprovalService;
+use App\Services\PricingService;
+use App\Models\PriceChangeLog;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -91,7 +94,59 @@ class SkuList extends Component
         ];
 
         if ($this->editingId) {
-            Sku::findOrFail($this->editingId)->update($data);
+            $sku = Sku::findOrFail($this->editingId);
+
+            // 批发价变动幅度检测
+            $newWholesaleCents = $data['wholesale_price'];
+            $oldWholesaleCents = $sku->wholesale_price;
+
+            if ($oldWholesaleCents > 0 && $newWholesaleCents !== $oldWholesaleCents) {
+                $changeRatio = abs($newWholesaleCents - $oldWholesaleCents) / $oldWholesaleCents;
+
+                if ($changeRatio > 0.15) {
+                    // 变动幅度 >15%，触发审核
+                    $approval = ApprovalService::createRequest(
+                        typeCode: 'sku_price_change',
+                        targetType: 'sku',
+                        targetId: $sku->id,
+                        beforeData: [
+                            'wholesale_price' => $oldWholesaleCents,
+                            'wholesale_price_display' => money_format($oldWholesaleCents),
+                        ],
+                        afterData: [
+                            'wholesale_price' => $newWholesaleCents,
+                            'wholesale_price_display' => money_format($newWholesaleCents),
+                            'change_ratio' => round($changeRatio * 100, 2) . '%',
+                        ],
+                    );
+
+                    if ($approval !== null) {
+                        // 审核已开启且审核单已创建，暂不写库，等审核通过
+                        $this->toastInfo('批发价变动幅度超过15%，已提交审核，审核通过后生效');
+                        $this->showModal = false;
+                        $this->resetForm();
+                        return;
+                    }
+
+                    // 审核已关闭（ApprovalService 返回 null），直接执行但写日志
+                }
+            }
+
+            // 执行更新
+            $sku->update($data);
+
+            // 写改价日志（编辑且批发价有变动时）
+            if ($oldWholesaleCents > 0 && $newWholesaleCents !== $oldWholesaleCents) {
+                $pricingService = new PricingService();
+                $pricingService->logPriceChange(
+                    sku: $sku,
+                    originalPrice: $oldWholesaleCents,
+                    newPrice: $newWholesaleCents,
+                    sourceType: PriceChangeLog::SOURCE_MANUAL,
+                    targetType: PriceChangeLog::TARGET_ORDER,
+                );
+            }
+
             $this->toastSuccess('SKU已更新');
         } else {
             Sku::create($data);
@@ -102,12 +157,46 @@ class SkuList extends Component
         $this->resetForm();
     }
 
+    public function confirmDelete(int $id): void
+    {
+        $sku = Sku::findOrFail($id);
+        $warnings = [];
+
+        if ($sku->barcodes()->exists()) {
+            $warnings[] = "该SKU关联有 {$sku->barcodes()->count()} 个条码";
+        }
+        if ($sku->skuSuppliers()->exists()) {
+            $warnings[] = "该SKU关联有 {$sku->skuSuppliers()->count()} 个供应商";
+        }
+        if ($sku->merchantVisibilities()->exists()) {
+            $warnings[] = "该SKU关联有 {$sku->merchantVisibilities()->count()} 条可见性配置";
+        }
+
+        if (count($warnings) > 0) {
+            $this->deleteWarning = implode('，', $warnings) . '。请先移除关联数据后再删除。';
+            $this->canDelete = false;
+        } else {
+            $this->deleteWarning = '确定要删除该SKU吗？此操作不可恢复。';
+            $this->canDelete = true;
+        }
+
+        $this->deletingId = $id;
+        $this->showDeleteConfirm = true;
+    }
+
     public function delete(): void
     {
+        if (!$this->canDelete) {
+            $this->toastWarning('无法删除，请先移除关联数据');
+            return;
+        }
+
         Sku::findOrFail($this->deletingId)->delete();
         $this->toastSuccess('SKU已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
+        $this->deleteWarning = '';
+        $this->canDelete = true;
     }
 
     public function resetFilters(): void
