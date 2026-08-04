@@ -70,7 +70,23 @@
                         {!! status_badge($item->status, 'purchase_return') !!}
                     </td>
                     <td class="px-4 py-2">
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1">
+                            {{-- 详情 --}}
+                            @can('purchase.purchase-return.view')
+                            <a href="{{ route('purchase-returns.detail', $item->id) }}" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="详情"><x-ui.icon name="eye" class="w-3.5 h-3.5" /></a>
+                            @endcan
+                            {{-- 状态流转 --}}
+                            @if($item->status === 1)
+                                <button type="button" wire:click="approveReturn({{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="审核"><x-ui.icon name="check" class="w-3.5 h-3.5" /></button>
+                            @elseif($item->status === 2)
+                                <button type="button" wire:click="shipReturn({{ $item->id }})" class="p-1 rounded text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors" title="出库"><x-ui.icon name="truck" class="w-3.5 h-3.5" /></button>
+                            @elseif($item->status === 3)
+                                <button type="button" wire:click="completeReturn({{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="完成"><x-ui.icon name="check-circle" class="w-3.5 h-3.5" /></button>
+                            @endif
+                            @if(in_array($item->status, [1, 2]))
+                                <button type="button" wire:click="cancelReturn({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="取消"><x-ui.icon name="x-circle" class="w-3.5 h-3.5" /></button>
+                            @endif
+                            {{-- 编辑 --}}
                             @can('purchase.purchase-return.edit')
                             <button type="button" wire:click="openEditModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil" class="w-3.5 h-3.5" /></button>
                             @endcan

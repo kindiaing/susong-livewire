@@ -3,6 +3,7 @@
 namespace App\Livewire\Purchase;
 
 use App\Models\PurchaseItem;
+use App\Models\Sku;
 use App\Services\PurchaseService;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;

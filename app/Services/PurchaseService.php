@@ -91,8 +91,12 @@ class PurchaseService
                         'strategy_amount' => 0,
                     ]);
 
-                    // 标记待采项为已生成
-                    $item->update(['status' => PurchaseItem::STATUS_ORDERED]);
+                    // 标记待采项为已生成，回写采购单ID和预估成本价
+                    $item->update([
+                        'status' => PurchaseItem::STATUS_ORDERED,
+                        'purchase_order_id' => $order->id,
+                        'expected_price' => $price,
+                    ]);
                 }
 
                 $order->recalculateAmounts();
@@ -230,6 +234,7 @@ class PurchaseService
 
         $order->update([
             'status' => PurchaseOrder::STATUS_COMPLETED,
+            'completed_at' => now(),
         ]);
 
         return $order->fresh();
@@ -252,6 +257,7 @@ class PurchaseService
 
         $order->update([
             'status' => PurchaseOrder::STATUS_CANCELLED,
+            'cancelled_at' => now(),
         ]);
 
         return $order->fresh();

@@ -49,6 +49,9 @@ class PurchaseReturn extends Model
         'operator_id',
         'audited_by',
         'audited_at',
+        'shipped_at',
+        'completed_at',
+        'cancelled_at',
         'remark',
     ];
 
@@ -64,6 +67,9 @@ class PurchaseReturn extends Model
             'operator_id' => 'integer',
             'audited_by' => 'integer',
             'audited_at' => 'datetime',
+            'shipped_at' => 'datetime',
+            'completed_at' => 'datetime',
+            'cancelled_at' => 'datetime',
         ];
     }
 
@@ -100,6 +106,22 @@ class PurchaseReturn extends Model
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    /**
+     * 关联经办人
+     */
+    public function operator()
+    {
+        return $this->belongsTo(User::class, 'operator_id');
+    }
+
+    /**
+     * 关联审核人
+     */
+    public function auditor()
+    {
+        return $this->belongsTo(User::class, 'audited_by');
     }
 
     /**

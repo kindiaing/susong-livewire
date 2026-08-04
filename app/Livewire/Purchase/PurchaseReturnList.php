@@ -102,7 +102,7 @@ class PurchaseReturnList extends Component
         $this->resetPage();
     }
 
-    private function resetForm(): void
+    public function resetForm(): void
     {
         $this->editingId = null;
         $this->formPurchaseOrderId = 0;
@@ -112,9 +112,59 @@ class PurchaseReturnList extends Component
         $this->formRemark = '';
     }
 
+    // ── 状态流转 ──
+
+    public function approveReturn(int $id): void
+    {
+        try {
+            $return = PurchaseReturn::findOrFail($id);
+            $service = app(\App\Services\PurchaseReturnService::class);
+            $service->approve($return);
+            $this->toastSuccess('退货单已审核');
+        } catch (\Exception $e) {
+            $this->toastError($e->getMessage());
+        }
+    }
+
+    public function shipReturn(int $id): void
+    {
+        try {
+            $return = PurchaseReturn::findOrFail($id);
+            $service = app(\App\Services\PurchaseReturnService::class);
+            $service->ship($return);
+            $this->toastSuccess('退货单已出库');
+        } catch (\Exception $e) {
+            $this->toastError($e->getMessage());
+        }
+    }
+
+    public function completeReturn(int $id): void
+    {
+        try {
+            $return = PurchaseReturn::findOrFail($id);
+            $service = app(\App\Services\PurchaseReturnService::class);
+            $service->complete($return);
+            $this->toastSuccess('退货单已完成');
+        } catch (\Exception $e) {
+            $this->toastError($e->getMessage());
+        }
+    }
+
+    public function cancelReturn(int $id): void
+    {
+        try {
+            $return = PurchaseReturn::findOrFail($id);
+            $service = app(\App\Services\PurchaseReturnService::class);
+            $service->cancel($return);
+            $this->toastSuccess('退货单已取消');
+        } catch (\Exception $e) {
+            $this->toastError($e->getMessage());
+        }
+    }
+
     public function getDefaultColumns(): array
     {
-        return ['return_no', 'purchase_order_id', 'supplier_id', 'warehouse_id', 'status', 'total_amount', 'reason', 'created_at'];
+        return ['return_no', 'supplier_id', 'warehouse_id', 'status', 'total_amount'];
     }
 
     public function getExportRowCallback(): callable

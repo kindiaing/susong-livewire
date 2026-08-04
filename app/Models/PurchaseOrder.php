@@ -49,9 +49,14 @@ class PurchaseOrder extends Model
         'total_amount',
         'actual_amount',
         'operator_id',
+        'approved_by',
+        'approved_at',
         'ordered_at',
         'shipped_at',
         'stocked_at',
+        'completed_at',
+        'cancelled_at',
+        'cancel_reason',
         'remark',
         'return_status',
     ];
@@ -65,9 +70,13 @@ class PurchaseOrder extends Model
             'total_amount' => 'integer',
             'actual_amount' => 'integer',
             'operator_id' => 'integer',
+            'approved_by' => 'integer',
+            'approved_at' => 'datetime',
             'ordered_at' => 'datetime',
             'shipped_at' => 'datetime',
             'stocked_at' => 'datetime',
+            'completed_at' => 'datetime',
+            'cancelled_at' => 'datetime',
             'return_status' => 'integer',
         ];
     }
@@ -119,6 +128,11 @@ class PurchaseOrder extends Model
     public function operator()
     {
         return $this->belongsTo(User::class, 'operator_id');
+    }
+
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
     public function items()

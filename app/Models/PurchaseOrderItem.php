@@ -42,6 +42,8 @@ class PurchaseOrderItem extends Model
         'price_strategy_item_id',
         'discrepancy_reason',
         'discrepancy_quantity',
+        'returned_quantity',
+        'remark',
         'loss_order_id',
     ];
 
@@ -61,6 +63,7 @@ class PurchaseOrderItem extends Model
             'price_strategy_id' => 'integer',
             'price_strategy_item_id' => 'integer',
             'discrepancy_quantity' => 'integer',
+            'returned_quantity' => 'integer',
             'loss_order_id' => 'integer',
         ];
     }

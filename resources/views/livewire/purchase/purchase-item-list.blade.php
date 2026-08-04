@@ -128,7 +128,3 @@
     @include('partials.import-modal')
     @include('partials.delete-confirm')
 </div>
-        </div>
-    </div>
-    @endif
-</div>

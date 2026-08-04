@@ -44,6 +44,7 @@ use App\Livewire\Product\TagList;
 use App\Livewire\Purchase\PurchaseItemList;
 use App\Livewire\Purchase\PurchaseOrderDetail;
 use App\Livewire\Purchase\PurchaseOrderList;
+use App\Livewire\Purchase\PurchaseReturnDetail;
 use App\Livewire\Purchase\PurchaseReturnList;
 use App\Livewire\System\ApprovalConfig;
 use App\Livewire\System\Approvals;
@@ -109,6 +110,7 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::get('/purchase-orders', PurchaseOrderList::class)->name('purchase-orders');
     Route::get('/purchase-orders/{id}', PurchaseOrderDetail::class)->name('purchase-orders.detail');
     Route::get('/purchase-returns', PurchaseReturnList::class)->name('purchase-returns');
+    Route::get('/purchase-returns/{id}', PurchaseReturnDetail::class)->name('purchase-returns.detail');
 
     // ── 订单配送 ──
     Route::get('/orders', OrderList::class)->name('orders');

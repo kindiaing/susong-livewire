@@ -155,6 +155,7 @@ class PurchaseReturnService
 
             $return->update([
                 'status' => PurchaseReturn::STATUS_SHIPPED,
+                'shipped_at' => now(),
             ]);
 
             $this->recalculateAmounts($return);
@@ -175,6 +176,7 @@ class PurchaseReturnService
         return DB::transaction(function () use ($return) {
             $return->update([
                 'status' => PurchaseReturn::STATUS_COMPLETED,
+                'completed_at' => now(),
             ]);
 
             // 更新采购单的退货状态
@@ -196,6 +198,7 @@ class PurchaseReturnService
         return DB::transaction(function () use ($return) {
             $return->update([
                 'status' => PurchaseReturn::STATUS_CANCELLED,
+                'cancelled_at' => now(),
             ]);
 
             // 更新采购单的退货状态
