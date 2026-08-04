@@ -49,6 +49,7 @@ use App\Livewire\Purchase\PurchaseReturnList;
 use App\Livewire\System\ApprovalConfig;
 use App\Livewire\System\Approvals;
 use App\Livewire\System\AuditLogs;
+use App\Livewire\System\AuditSettings;
 use App\Livewire\System\BannerList;
 use App\Livewire\System\LoginLogList;
 use App\Livewire\System\OperationLogs;
@@ -156,6 +157,7 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::get('/approval-config', ApprovalConfig::class)->name('approval-config');
     Route::get('/approvals', Approvals::class)->name('approvals');
     Route::get('/operation-logs', OperationLogs::class)->name('operation-logs');
+    Route::get('/audit-settings', AuditSettings::class)->name('audit-settings');
     Route::get('/audit-logs', AuditLogs::class)->name('audit-logs');
     Route::get('/login-logs', LoginLogList::class)->name('login-logs');
     Route::get('/wechat-users', WechatUserList::class)->name('wechat-users');
