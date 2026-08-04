@@ -26,6 +26,7 @@ return new class extends Migration
 
         Schema::create('purchase_orders', function (Blueprint $table) {
             $table->id()->comment('主键');
+            $table->date('purchase_date')->nullable()->comment('采购日期');
             $table->string('order_no', 50)->unique()->comment('采购单号');
             $table->unsignedBigInteger('supplier_id')->comment('供应商ID');
             $table->unsignedBigInteger('warehouse_id')->nullable()->comment('入库目标仓库');

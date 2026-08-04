@@ -164,7 +164,7 @@ class PurchaseReturnList extends Component
 
     public function getDefaultColumns(): array
     {
-        return ['return_no', 'supplier_id', 'warehouse_id', 'status', 'total_amount'];
+        return ['return_no', 'supplier_id', 'warehouse_id', 'status', 'total_amount', 'actual_amount'];
     }
 
     public function getExportRowCallback(): callable
@@ -209,6 +209,7 @@ class PurchaseReturnList extends Component
             ['key' => 'warehouse_id', 'label' => '仓库', 'sortable' => true, 'exportable' => true],
             ['key' => 'status', 'label' => '状态', 'sortable' => true, 'exportable' => true],
             ['key' => 'total_amount', 'label' => '总金额', 'sortable' => true, 'exportable' => true],
+            ['key' => 'actual_amount', 'label' => '实际金额', 'sortable' => true, 'exportable' => true],
             ['key' => 'reason', 'label' => '退货原因', 'sortable' => false, 'exportable' => true],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
         ];
@@ -252,7 +253,7 @@ class PurchaseReturnList extends Component
             $query->where('return_no', 'like', "%{$this->search}%");
         }
 
-        if ($this->filterStatus >= 0) {
+        if ($this->filterStatus > 0) {
             $query->where('status', $this->filterStatus);
         }
 

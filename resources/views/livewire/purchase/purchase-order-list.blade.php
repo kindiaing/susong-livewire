@@ -44,16 +44,17 @@
     </div>
 
     {{-- 采购单列表 --}}
+    @php
+        $visibleCols = collect($this->getAllColumns())->filter(fn($col) => $this->isColumnVisible($col['key']));
+    @endphp
     <div class="rounded-lg border bg-card overflow-hidden">
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     <th class="px-4 py-2.5 text-left w-10"><input type="checkbox" wire:model.live="selectAllPage" class="rounded" /></th>
-                    <th class="px-4 py-2.5 text-left">采购单号</th>
-                    <th class="px-4 py-2.5 text-left">供应商</th>
-                    <th class="px-4 py-2.5 text-right w-24">总金额</th>
-                    <th class="px-4 py-2.5 text-right w-24">实际金额</th>
-                    <th class="px-4 py-2.5 text-left w-20">状态</th>
+                    @foreach($visibleCols as $col)
+                        <th class="px-4 py-2.5 text-left">{{ $col['label'] }}</th>
+                    @endforeach
                     <th class="px-4 py-2.5 text-right w-24">操作</th>
                 </tr>
             </thead>
@@ -61,15 +62,35 @@
             @forelse($orders as $order)
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="po-{{ $order->id }}">
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $order->id }}" wire:model.live="selectedIds" class="rounded" /></td>
-                    <td class="px-4 py-2">
-                        <a href="{{ route('purchase-orders.detail', $order->id) }}" class="font-mono text-blue-600 hover:text-blue-700">{{ $order->order_no }}</a>
-                    </td>
-                    <td class="px-4 py-2">{{ $order->supplier?->name ?? '-' }}</td>
-                    <td class="px-4 py-2 text-right">{{ money_format($order->total_amount) }}</td>
-                    <td class="px-4 py-2 text-right">{{ money_format($order->actual_amount) }}</td>
-                    <td class="px-4 py-2">
-                        {!! status_badge($order->status, 'purchase_order') !!}
-                    </td>
+                    @foreach($visibleCols as $col)
+                        @switch($col['key'])
+                            @case('order_no')
+                                <td class="px-4 py-2">
+                                    <a href="{{ route('purchase-orders.detail', $order->id) }}" class="font-mono text-blue-600 hover:text-blue-700">{{ $order->order_no }}</a>
+                                </td>
+                                @break
+                            @case('supplier_id')
+                                <td class="px-4 py-2">{{ $order->supplier?->name ?? '-' }}</td>
+                                @break
+                            @case('purchase_date')
+                                <td class="px-4 py-2 text-foreground">{{ $order->purchase_date?->format('Y-m-d') ?? '-' }}</td>
+                                @break
+                            @case('status')
+                                <td class="px-4 py-2">{!! status_badge($order->status, 'purchase_order') !!}</td>
+                                @break
+                            @case('total_amount')
+                                <td class="px-4 py-2 text-right">{{ money_format($order->total_amount) }}</td>
+                                @break
+                            @case('actual_amount')
+                                <td class="px-4 py-2 text-right">{{ money_format($order->actual_amount) }}</td>
+                                @break
+                            @case('created_at')
+                                <td class="px-4 py-2 text-muted-foreground">{{ $order->created_at?->format('Y-m-d H:i') ?? '-' }}</td>
+                                @break
+                            @default
+                                <td class="px-4 py-2 text-foreground">{{ $order->{$col['key']} ?? '-' }}</td>
+                        @endswitch
+                    @endforeach
                     <td class="px-4 py-2 text-right">
                         <div class="inline-flex items-center gap-0.5">
                             {{-- 详情 --}}
@@ -90,7 +111,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="7" class="px-4 py-10 text-center text-muted-foreground">暂无采购单数据</td></tr>
+                <tr><td colspan="{{ $visibleCols->count() + 2 }}" class="px-4 py-10 text-center text-muted-foreground">暂无采购单数据</td></tr>
             @endforelse
             </tbody>
         </table>
@@ -112,6 +133,10 @@
                         @foreach($suppliers as $s)<option value="{{ $s->id }}">{{ $s->name }}</option>@endforeach
                     </select>
                     @error('formSupplierId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">采购日期</label>
+                    <input type="date" wire:model="formPurchaseDate" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">备注</label>

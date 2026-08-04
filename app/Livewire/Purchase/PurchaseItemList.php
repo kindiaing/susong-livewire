@@ -26,6 +26,8 @@ class PurchaseItemList extends Component
 
     public string $search = '';
     public int $filterStatus = -1;
+    public string $filterDateStart = '';
+    public string $filterDateEnd = '';
 
     public int $formSkuId = 0;
     public int $formSupplierId = 0;
@@ -90,6 +92,8 @@ class PurchaseItemList extends Component
     {
         $this->search = '';
         $this->filterStatus = -1;
+        $this->filterDateStart = '';
+        $this->filterDateEnd = '';
         $this->resetPage();
     }
 
@@ -137,7 +141,7 @@ class PurchaseItemList extends Component
 
     public function getDefaultColumns(): array
     {
-        return ['sku_id', 'supplier_id', 'quantity', 'source_type', 'status'];
+        return ['sku_id', 'product_name', 'supplier_id', 'quantity', 'status'];
     }
 
     public function getExportRowCallback(): callable
@@ -173,9 +177,10 @@ class PurchaseItemList extends Component
     {
         return [
             ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
-            ['key' => 'sku_id', 'label' => 'SKU', 'sortable' => true, 'exportable' => true],
+            ['key' => 'sku_id', 'label' => 'SKU编码', 'sortable' => true, 'exportable' => true],
+            ['key' => 'product_name', 'label' => '商品名称', 'sortable' => false, 'exportable' => true],
             ['key' => 'supplier_id', 'label' => '供应商', 'sortable' => true, 'exportable' => true],
-            ['key' => 'quantity', 'label' => '数量', 'sortable' => true, 'exportable' => true],
+            ['key' => 'quantity', 'label' => '待采数量', 'sortable' => true, 'exportable' => true],
             ['key' => 'expected_price', 'label' => '预估成本价', 'sortable' => true, 'exportable' => true],
             ['key' => 'source_type', 'label' => '来源类型', 'sortable' => true, 'exportable' => true],
             ['key' => 'status', 'label' => '状态', 'sortable' => true, 'exportable' => true],
@@ -224,6 +229,13 @@ class PurchaseItemList extends Component
 
         if ($this->filterStatus > 0) {
             $query->where('status', $this->filterStatus);
+        }
+
+        if ($this->filterDateStart) {
+            $query->whereDate('created_at', '>=', $this->filterDateStart);
+        }
+        if ($this->filterDateEnd) {
+            $query->whereDate('created_at', '<=', $this->filterDateEnd);
         }
 
         $items = $query->paginate(setting('per_page', 10));

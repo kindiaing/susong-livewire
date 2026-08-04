@@ -70,7 +70,7 @@ class PurchaseOrderDetail extends Component
 
     public function loadOrder(int $id): void
     {
-        $this->order = PurchaseOrder::with(['supplier', 'warehouse', 'operator', 'items.sku.product'])->findOrFail($id);
+        $this->order = PurchaseOrder::with(['supplier', 'warehouse', 'operator', 'items.sku.product', 'auditLogs.operator'])->findOrFail($id);
         $this->items = $this->order->items;
     }
 

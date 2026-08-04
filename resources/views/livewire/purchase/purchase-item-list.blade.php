@@ -26,6 +26,11 @@
             <option value="1">待生成</option>
             <option value="2">已生成</option>
         </select>
+        <div class="flex items-center gap-1">
+            <input type="date" wire:model.live="filterDateStart" class="flex h-9 rounded-md border border-input bg-background px-2 text-sm" />
+            <span class="text-muted-foreground text-sm">~</span>
+            <input type="date" wire:model.live="filterDateEnd" class="flex h-9 rounded-md border border-input bg-background px-2 text-sm" />
+        </div>
         <div class="flex-1"></div>
         <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="adjustments" class="w-4 h-4" />列配置</button>
         <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="arrow-up-tray" class="w-4 h-4" />导入</button>
@@ -36,17 +41,17 @@
                 <button type="button" wire:click="clearSelection" class="text-sm text-muted-foreground hover:text-foreground transition-colors">取消选择</button>
             @endif
     </div>
+    @php
+        $visibleCols = collect($this->getAllColumns())->filter(fn($col) => $this->isColumnVisible($col['key']));
+    @endphp
     <div class="rounded-lg border bg-card">
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAllPage" class="rounded" /></th>
-                    <th class="px-4 py-2 text-left">SKU编码</th>
-                    <th class="px-4 py-2 text-left">商品名称</th>
-                    <th class="px-4 py-2 text-left">供应商</th>
-                    <th class="px-4 py-2 text-left">待采数量</th>
-                    <th class="px-4 py-2 text-left">来源</th>
-                    <th class="px-4 py-2 text-left">状态</th>
+                    @foreach($visibleCols as $col)
+                        <th class="px-4 py-2 text-left">{{ $col['label'] }}</th>
+                    @endforeach
                     <th class="px-4 py-2 text-left w-24">操作</th>
                 </tr>
             </thead>
@@ -54,14 +59,33 @@
                 @forelse($items as $item)
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="pi-{{ $item->id }}">
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></td>
-                    <td class="px-4 py-2 font-mono text-foreground">{{ $item->sku?->sku_code ?? '-' }}</td>
-                    <td class="px-4 py-2 text-foreground truncate">{{ $item->sku?->product?->name ?? '-' }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $item->supplier?->name ?? '-' }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $item->quantity }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ \App\Models\PurchaseItem::sourceTypeMap()[$item->source_type] ?? '-' }}</td>
-                    <td class="px-4 py-2">
-                        {!! status_badge($item->status, 'purchase_item') !!}
-                    </td>
+                    @foreach($visibleCols as $col)
+                        @switch($col['key'])
+                            @case('sku_id')
+                                <td class="px-4 py-2 font-mono text-foreground">{{ $item->sku?->sku_code ?? '-' }}</td>
+                                @break
+                            @case('product_name')
+                                <td class="px-4 py-2 text-foreground truncate">{{ $item->sku?->product?->name ?? '-' }}</td>
+                                @break
+                            @case('supplier_id')
+                                <td class="px-4 py-2 text-foreground">{{ $item->supplier?->name ?? '-' }}</td>
+                                @break
+                            @case('expected_price')
+                                <td class="px-4 py-2 text-foreground">{{ money_format($item->expected_price) }}</td>
+                                @break
+                            @case('source_type')
+                                <td class="px-4 py-2 text-foreground">{{ \App\Models\PurchaseItem::sourceTypeMap()[$item->source_type] ?? '-' }}</td>
+                                @break
+                            @case('status')
+                                <td class="px-4 py-2">{!! status_badge($item->status, 'purchase_item') !!}</td>
+                                @break
+                            @case('created_at')
+                                <td class="px-4 py-2 text-muted-foreground">{{ $item->created_at?->format('Y-m-d') ?? '-' }}</td>
+                                @break
+                            @default
+                                <td class="px-4 py-2 text-foreground">{{ $item->{$col['key']} ?? '-' }}</td>
+                        @endswitch
+                    @endforeach
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-2">
                             @can('purchase.restock-reminder.edit')
@@ -74,7 +98,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="8" class="px-6 py-12 text-center text-muted-foreground">暂无待采数据</td></tr>
+                <tr><td colspan="{{ $visibleCols->count() + 2 }}" class="px-6 py-12 text-center text-muted-foreground">暂无待采数据</td></tr>
                 @endforelse
             </tbody>
         </table>

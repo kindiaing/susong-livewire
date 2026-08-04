@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\PurchaseItem;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
+use App\Models\AuditLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -120,9 +121,13 @@ class PurchaseService
             throw new \Exception('当前状态不允许提交');
         }
 
+        $oldStatus = $order->status;
+
         $order->update([
             'status' => PurchaseOrder::STATUS_PREPARING,
         ]);
+
+        $this->auditStatusChange($order, 'submit', $oldStatus, PurchaseOrder::STATUS_PREPARING);
 
         return $order->fresh();
     }
@@ -136,10 +141,14 @@ class PurchaseService
             throw new \Exception('当前状态不允许发货');
         }
 
+        $oldStatus = $order->status;
+
         $order->update([
             'status' => PurchaseOrder::STATUS_SHIPPED,
             'shipped_at' => now(),
         ]);
+
+        $this->auditStatusChange($order, 'ship', $oldStatus, PurchaseOrder::STATUS_SHIPPED);
 
         return $order->fresh();
     }
@@ -205,6 +214,9 @@ class PurchaseService
             // 重算实际入库金额
             $order->recalculateAmounts();
 
+            // 审计日志
+            $this->auditStatusChange($order, 'stock_in', PurchaseOrder::STATUS_SHIPPED, PurchaseOrder::STATUS_STOCKED);
+
             // 断链修复：当存在入库差异且系统配置开启时，自动创建损耗单
             $autoCreateLoss = (bool) setting('stockin_auto_create_loss', true);
             if ($autoCreateLoss) {
@@ -241,6 +253,8 @@ class PurchaseService
             'completed_at' => now(),
         ]);
 
+        $this->auditStatusChange($order, 'complete', PurchaseOrder::STATUS_STOCKED, PurchaseOrder::STATUS_COMPLETED);
+
         return $order->fresh();
     }
 
@@ -259,10 +273,14 @@ class PurchaseService
             throw new \Exception('当前状态不允许作废');
         }
 
+        $oldStatus = $order->status;
+
         $order->update([
             'status' => PurchaseOrder::STATUS_CANCELLED,
             'cancelled_at' => now(),
         ]);
+
+        $this->auditStatusChange($order, 'cancel', $oldStatus, PurchaseOrder::STATUS_CANCELLED);
 
         return $order->fresh();
     }
@@ -371,7 +389,11 @@ class PurchaseService
             throw new \Exception('目标状态与当前状态相同');
         }
 
+        $oldStatus = $order->status;
+
         $order->update(['status' => $toStatus]);
+
+        $this->auditStatusChange($order, 'rollback', $oldStatus, $toStatus, '超管强制回退');
 
         return $order->fresh();
     }
@@ -396,5 +418,26 @@ class PurchaseService
 
         $item->delete();
         $order->recalculateAmounts();
+    }
+
+    /**
+     * 记录采购单状态变更审计日志
+     */
+    private function auditStatusChange(PurchaseOrder $order, string $action, int $oldStatus, int $newStatus, ?string $reason = null): void
+    {
+        if (!setting('audit_purchase_order', true)) {
+            return;
+        }
+
+        AuditLog::log(
+            modelType: PurchaseOrder::class,
+            modelId: $order->id,
+            action: $action,
+            beforeData: ['status' => $oldStatus, 'status_label' => PurchaseOrder::statusMap()[$oldStatus] ?? '未知'],
+            afterData: ['status' => $newStatus, 'status_label' => PurchaseOrder::statusMap()[$newStatus] ?? '未知'],
+            reason: $reason,
+            relationType: 'purchase_order',
+            relationId: $order->id,
+        );
     }
 }

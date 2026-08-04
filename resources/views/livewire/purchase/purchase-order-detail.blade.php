@@ -41,6 +41,7 @@
     {{-- 单据摘要信息：一行横排 --}}
     <div class="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-muted-foreground mb-4">
         <span>供应商：<b class="text-foreground">{{ $order->supplier?->name ?? '-' }}</b></span>
+        @if($order->purchase_date)<span>采购日期：<b class="text-foreground">{{ $order->purchase_date->format('Y-m-d') }}</b></span>@endif
         @if($order->warehouse)<span>仓库：<b class="text-foreground">{{ $order->warehouse->name }}</b></span>@endif
         @if($order->operator)<span>经办人：<b class="text-foreground">{{ $order->operator->name }}</b></span>@endif
         <span>总金额：<b class="text-foreground">{{ money_format($order->total_amount) }}</b></span>
@@ -126,6 +127,31 @@
             </tbody>
         </table>
     </div>
+
+    {{-- 审计日志 --}}
+    @if($order->auditLogs->isNotEmpty())
+    <div class="rounded-lg border bg-card mt-4">
+        <div class="px-4 py-2 border-b">
+            <h2 class="text-sm font-semibold text-foreground">状态变更记录</h2>
+        </div>
+        <div class="divide-y">
+            @foreach($order->auditLogs->sortByDesc('created_at') as $log)
+            <div class="flex items-center gap-3 px-4 py-2 text-sm">
+                <span class="text-muted-foreground text-xs w-32 shrink-0">{{ $log->created_at?->format('Y-m-d H:i') }}</span>
+                <span class="font-medium text-foreground">{{ $log->action_label }}</span>
+                @if($log->before_data && isset($log->before_data['status_label']))
+                    <span class="text-muted-foreground">{{ $log->before_data['status_label'] }}</span>
+                    <x-ui.icon name="arrow-right" class="w-3 h-3 text-muted-foreground" />
+                    <span class="text-foreground font-medium">{{ $log->after_data['status_label'] ?? '-' }}</span>
+                @endif
+                @if($log->operator)
+                    <span class="text-muted-foreground ml-auto">操作人：{{ $log->operator->name }}</span>
+                @endif
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
 
     {{-- 导出弹窗 --}}
     @if($showExportModal)

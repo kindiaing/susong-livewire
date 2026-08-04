@@ -43,17 +43,17 @@
     </div>
 
     {{-- 列表 --}}
+    @php
+        $visibleCols = collect($this->getAllColumns())->filter(fn($col) => $this->isColumnVisible($col['key']));
+    @endphp
     <div class="rounded-lg border bg-card overflow-x-auto">
         <table class="w-full text-sm min-w-[900px]">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAllPage" class="rounded" /></th>
-                    <th class="px-4 py-2 text-left">退货单号</th>
-                    <th class="px-4 py-2 text-left">供应商</th>
-                    <th class="px-4 py-2 text-left">仓库</th>
-                    <th class="px-4 py-2 text-left">退货金额</th>
-                    <th class="px-4 py-2 text-left">实际金额</th>
-                    <th class="px-4 py-2 text-left">状态</th>
+                    @foreach($visibleCols as $col)
+                        <th class="px-4 py-2 text-left">{{ $col['label'] }}</th>
+                    @endforeach
                     <th class="px-4 py-2 text-left w-24">操作</th>
                 </tr>
             </thead>
@@ -61,14 +61,36 @@
                 @forelse($items as $item)
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="preturn-{{ $item->id }}">
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></td>
-                    <td class="px-4 py-2 font-medium text-foreground">{{ $item->return_no }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $item->supplier?->name ?? '-' }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $item->warehouse?->name ?? '-' }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ money_format($item->total_amount) }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ money_format($item->actual_amount) }}</td>
-                    <td class="px-4 py-2">
-                        {!! status_badge($item->status, 'purchase_return') !!}
-                    </td>
+                    @foreach($visibleCols as $col)
+                        @switch($col['key'])
+                            @case('return_no')
+                                <td class="px-4 py-2 font-medium text-foreground">{{ $item->return_no }}</td>
+                                @break
+                            @case('purchase_order_id')
+                                <td class="px-4 py-2 text-foreground">{{ $item->purchaseOrder?->order_no ?? '-' }}</td>
+                                @break
+                            @case('supplier_id')
+                                <td class="px-4 py-2 text-foreground">{{ $item->supplier?->name ?? '-' }}</td>
+                                @break
+                            @case('warehouse_id')
+                                <td class="px-4 py-2 text-foreground">{{ $item->warehouse?->name ?? '-' }}</td>
+                                @break
+                            @case('status')
+                                <td class="px-4 py-2">{!! status_badge($item->status, 'purchase_return') !!}</td>
+                                @break
+                            @case('total_amount')
+                                <td class="px-4 py-2 text-foreground">{{ money_format($item->total_amount) }}</td>
+                                @break
+                            @case('actual_amount')
+                                <td class="px-4 py-2 text-foreground">{{ money_format($item->actual_amount) }}</td>
+                                @break
+                            @case('created_at')
+                                <td class="px-4 py-2 text-muted-foreground">{{ $item->created_at?->format('Y-m-d H:i') ?? '-' }}</td>
+                                @break
+                            @default
+                                <td class="px-4 py-2 text-foreground">{{ $item->{$col['key']} ?? '-' }}</td>
+                        @endswitch
+                    @endforeach
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-1">
                             {{-- 详情 --}}
@@ -97,7 +119,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="8" class="px-6 py-12 text-center text-muted-foreground">暂无退货单数据</td></tr>
+                <tr><td colspan="{{ $visibleCols->count() + 2 }}" class="px-6 py-12 text-center text-muted-foreground">暂无退货单数据</td></tr>
                 @endforelse
             </tbody>
         </table>

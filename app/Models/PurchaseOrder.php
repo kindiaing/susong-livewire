@@ -57,6 +57,7 @@ class PurchaseOrder extends Model
         'completed_at',
         'cancelled_at',
         'cancel_reason',
+        'purchase_date',
         'remark',
         'return_status',
     ];
@@ -77,6 +78,7 @@ class PurchaseOrder extends Model
             'stocked_at' => 'datetime',
             'completed_at' => 'datetime',
             'cancelled_at' => 'datetime',
+            'purchase_date' => 'date',
             'return_status' => 'integer',
         ];
     }
@@ -146,6 +148,14 @@ class PurchaseOrder extends Model
     public function purchaseReturns()
     {
         return $this->hasMany(PurchaseReturn::class);
+    }
+
+    /**
+     * 关联审计日志
+     */
+    public function auditLogs()
+    {
+        return $this->morphMany(AuditLog::class, 'model', 'model_type', 'model_id');
     }
 
     /**

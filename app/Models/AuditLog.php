@@ -72,6 +72,13 @@ class AuditLog extends Model
             'reject' => '审核拒绝',
             'export' => '导出',
             'import' => '导入',
+            'submit' => '提交',
+            'ship' => '发货',
+            'stock_in' => '入库',
+            'complete' => '完成',
+            'cancel' => '作废',
+            'rollback' => '状态回退',
+            'status_change' => '状态变更',
         ];
     }
 
