@@ -83,8 +83,13 @@
     @if($showModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
-        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
-            <h2 class="text-lg font-semibold text-foreground mb-4">{{ $editingId ? '编辑待采项' : '新增待采项' }}</h2>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">{{ $editingId ? '编辑待采项' : '新增待采项' }}</h2>
+                <button type="button" wire:click="closeModal" class="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
             <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -109,19 +114,6 @@
                             <option value="2">手工添加</option>
                         </select>
                     </div>
-                </div>
-                    <div>
-                        <label class="block text-sm font-medium text-foreground mb-1">数量 <span class="text-red-500">*</span></label>
-                        <input type="number" wire:model="formQuantity" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="1" />
-                        @error('formQuantity') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">来源</label>
-                    <select wire:model="formSourceType" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                        <option value="1">订单汇总</option>
-                        <option value="2">手工添加</option>
-                    </select>
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">
