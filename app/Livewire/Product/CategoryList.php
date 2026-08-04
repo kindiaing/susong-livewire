@@ -345,7 +345,7 @@ class CategoryList extends Component
         $flatTree = $this->getFlatTree();
 
         // 父级分类选项（供弹窗选择）
-        $parentOptions = Category::ordered()->get();
+        $parentOptions = Category::toSelectOptions();
 
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);

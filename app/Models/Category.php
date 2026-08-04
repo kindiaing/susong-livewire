@@ -159,4 +159,32 @@ class Category extends Model
 
         return $buildTree(0);
     }
+
+    /**
+     * 获取扁平化的分类选择项（用于 searchable-select 下拉）
+     * 一级分类无前缀，二级/三级分类前加缩进前缀（全角空格）
+     *
+     * @return array<array{value: string, label: string}>
+     */
+    public static function toSelectOptions(): array
+    {
+        $tree = static::getTree();
+        $options = [];
+
+        $flatten = function ($nodes, int $depth) use (&$flatten, &$options) {
+            foreach ($nodes as $node) {
+                $prefix = str_repeat('　　', $depth); // 全角空格缩进
+                $options[] = [
+                    'value' => (string) $node->id,
+                    'label' => $prefix . $node->name,
+                ];
+                if ($node->children->isNotEmpty()) {
+                    $flatten($node->children, $depth + 1);
+                }
+            }
+        };
+
+        $flatten($tree, 0);
+        return $options;
+    }
 }

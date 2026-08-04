@@ -140,7 +140,7 @@
                         :wireModel="'formParentId'"
                         :clearable="true"
                         placeholder="根节点"
-                        :options="$parentOptions->map(fn($opt) => ['value' => (string) $opt->id, 'label' => $opt->name])->values()->toArray()"
+                        :options="$parentOptions"
                         :value="$formParentId"
                         :error="$errors->first('formParentId')"
                     />

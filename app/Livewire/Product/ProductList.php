@@ -213,12 +213,12 @@ class ProductList extends Component
         }
 
         $products = $query->paginate(setting('per_page', 10));
-        $categories = Category::orderBy('sort')->orderBy('id')->get();
+        $categoryOptions = Category::toSelectOptions();
         $suppliers = Supplier::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 
-        return view('livewire.product.product-list', compact('products', 'categories', 'suppliers', 'allColumns', 'selectedCount'))
+        return view('livewire.product.product-list', compact('products', 'categoryOptions', 'suppliers', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('商品管理');
     }

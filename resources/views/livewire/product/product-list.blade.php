@@ -20,12 +20,15 @@
                 </button>
             @endif
         </div>
-        <select wire:model.live="filterCategoryId" class="flex h-9 rounded-md border border-input bg-background px-3 text-sm">
-            <option value="0">全部分类</option>
-            @foreach($categories as $cat)
-                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-            @endforeach
-        </select>
+        <div class="w-48">
+            <x-ui.searchable-select
+                placeholder="全部分类"
+                :options="$categoryOptions"
+                :clearable="true"
+                :wireModel="'filterCategoryId'"
+                :value="$filterCategoryId"
+            />
+        </div>
         <select wire:model.live="filterStatus" class="flex h-9 rounded-md border border-input bg-background px-3 text-sm">
             <option value="-1">全部状态</option>
             <option value="1">上架</option>
@@ -109,14 +112,15 @@
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-foreground mb-1">分类 <span class="text-red-500">*</span></label>
-                        <select wire:model="formCategoryId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                            <option value="0">请选择分类</option>
-                            @foreach($categories as $cat)
-                                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('formCategoryId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        <x-ui.searchable-select
+                            label="分类"
+                            placeholder="请选择分类"
+                            :options="$categoryOptions"
+                            :clearable="true"
+                            :wireModel="'formCategoryId'"
+                            :value="$formCategoryId"
+                            :error="$errors->first('formCategoryId')"
+                        />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-foreground mb-1">默认供应商</label>
