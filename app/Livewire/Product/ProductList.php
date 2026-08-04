@@ -48,6 +48,8 @@ class ProductList extends Component
 
     public string $formDescription = '';
 
+    public string $formCover = '';
+
     public function mount(): void
     {
         $this->initColumnVisibility();
@@ -65,6 +67,7 @@ class ProductList extends Component
         $this->formStockWarningValue = $product->stock_warning_value;
         $this->formStatus = $product->status;
         $this->formDescription = $product->description ?? '';
+        $this->formCover = $product->cover ?? '';
         $this->showModal = true;
     }
 
@@ -74,6 +77,7 @@ class ProductList extends Component
             'formSupplierId' => 'nullable|integer|min:0',
             'formCategoryId' => 'required|integer|min:1',
             'formName' => 'required|string|max:100',
+            'formCover' => 'nullable|string|max:255',
             'formUnit' => 'required|string|max:20',
             'formIsWeightPriced' => 'required|in:0,1',
             'formStockWarningValue' => 'required|integer|min:0',
@@ -85,6 +89,7 @@ class ProductList extends Component
             'supplier_id' => $validated['formSupplierId'] ?: null,
             'category_id' => $validated['formCategoryId'],
             'name' => $validated['formName'],
+            'cover' => $validated['formCover'] ?: null,
             'unit' => $validated['formUnit'],
             'is_weight_priced' => $validated['formIsWeightPriced'],
             'stock_warning_value' => $validated['formStockWarningValue'],
@@ -132,6 +137,7 @@ class ProductList extends Component
         $this->formStockWarningValue = 0;
         $this->formStatus = 1;
         $this->formDescription = '';
+        $this->formCover = '';
     }
 
     public function getAllColumns(): array

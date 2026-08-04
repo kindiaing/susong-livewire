@@ -103,6 +103,10 @@
                     <input type="text" wire:model="formName" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="请输入商品名称" />
                     @error('formName') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">封面图</label>
+                    <input type="text" wire:model="formCover" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="图片URL或路径" />
+                </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-foreground mb-1">分类 <span class="text-red-500">*</span></label>

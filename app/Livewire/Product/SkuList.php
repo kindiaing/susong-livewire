@@ -48,6 +48,24 @@ class SkuList extends Component
 
     public string $formCostPrice = '';
 
+    public string $formMinPurchasePrice = '';
+
+    public string $formListPrice = '';
+
+    public string $formRetailPrice = '';
+
+    public string $formEmployeePrice = '';
+
+    public string $formOfflinePrice = '';
+
+    public string $formMiniappPrice = '';
+
+    public string $formDeliveryPrice = '';
+
+    public string $formMinSalePrice = '';
+
+    public string $formMaxSalePrice = '';
+
     public int $formStatus = 1;
 
     public function mount(): void
@@ -65,6 +83,15 @@ class SkuList extends Component
         $this->formPurchasePrice = $this->centsToYuan($sku->purchase_price);
         $this->formWholesalePrice = $this->centsToYuan($sku->wholesale_price);
         $this->formCostPrice = $this->centsToYuan($sku->cost_price);
+        $this->formMinPurchasePrice = $this->centsToYuan($sku->min_purchase_price);
+        $this->formListPrice = $this->centsToYuan($sku->list_price);
+        $this->formRetailPrice = $this->centsToYuan($sku->retail_price);
+        $this->formEmployeePrice = $this->centsToYuan($sku->employee_price);
+        $this->formOfflinePrice = $this->centsToYuan($sku->offline_price);
+        $this->formMiniappPrice = $this->centsToYuan($sku->miniapp_price);
+        $this->formDeliveryPrice = $this->centsToYuan($sku->delivery_price);
+        $this->formMinSalePrice = $this->centsToYuan($sku->min_sale_price);
+        $this->formMaxSalePrice = $this->centsToYuan($sku->max_sale_price);
         $this->formStatus = $sku->status;
         $this->showModal = true;
     }
@@ -78,6 +105,15 @@ class SkuList extends Component
             'formPurchasePrice' => 'required|numeric|min:0',
             'formWholesalePrice' => 'required|numeric|min:0',
             'formCostPrice' => 'required|numeric|min:0',
+            'formMinPurchasePrice' => 'nullable|numeric|min:0',
+            'formListPrice' => 'nullable|numeric|min:0',
+            'formRetailPrice' => 'nullable|numeric|min:0',
+            'formEmployeePrice' => 'nullable|numeric|min:0',
+            'formOfflinePrice' => 'nullable|numeric|min:0',
+            'formMiniappPrice' => 'nullable|numeric|min:0',
+            'formDeliveryPrice' => 'nullable|numeric|min:0',
+            'formMinSalePrice' => 'nullable|numeric|min:0',
+            'formMaxSalePrice' => 'nullable|numeric|min:0',
             'formStatus' => 'required|in:0,1',
         ]);
 
@@ -90,6 +126,15 @@ class SkuList extends Component
             'purchase_price' => money_to_cents($validated['formPurchasePrice']),
             'wholesale_price' => money_to_cents($validated['formWholesalePrice']),
             'cost_price' => money_to_cents($validated['formCostPrice']),
+            'min_purchase_price' => money_to_cents($validated['formMinPurchasePrice'] ?: 0),
+            'list_price' => money_to_cents($validated['formListPrice'] ?: 0),
+            'retail_price' => money_to_cents($validated['formRetailPrice'] ?: 0),
+            'employee_price' => money_to_cents($validated['formEmployeePrice'] ?: 0),
+            'offline_price' => money_to_cents($validated['formOfflinePrice'] ?: 0),
+            'miniapp_price' => money_to_cents($validated['formMiniappPrice'] ?: 0),
+            'delivery_price' => money_to_cents($validated['formDeliveryPrice'] ?: 0),
+            'min_sale_price' => money_to_cents($validated['formMinSalePrice'] ?: 0),
+            'max_sale_price' => money_to_cents($validated['formMaxSalePrice'] ?: 0),
             'status' => $validated['formStatus'],
         ];
 
@@ -217,6 +262,15 @@ class SkuList extends Component
         $this->formPurchasePrice = '';
         $this->formWholesalePrice = '';
         $this->formCostPrice = '';
+        $this->formMinPurchasePrice = '';
+        $this->formListPrice = '';
+        $this->formRetailPrice = '';
+        $this->formEmployeePrice = '';
+        $this->formOfflinePrice = '';
+        $this->formMiniappPrice = '';
+        $this->formDeliveryPrice = '';
+        $this->formMinSalePrice = '';
+        $this->formMaxSalePrice = '';
         $this->formStatus = 1;
     }
 
@@ -227,8 +281,17 @@ class SkuList extends Component
             ['key' => 'product_id', 'label' => '商品', 'sortable' => false, 'exportable' => true],
             ['key' => 'sku_code', 'label' => 'SKU编码', 'sortable' => true, 'exportable' => true],
             ['key' => 'purchase_price', 'label' => '采购价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
-            ['key' => 'wholesale_price', 'label' => '批发价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
             ['key' => 'cost_price', 'label' => '成本价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
+            ['key' => 'min_purchase_price', 'label' => '最低采购限价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
+            ['key' => 'list_price', 'label' => '吊牌价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
+            ['key' => 'retail_price', 'label' => '零售价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
+            ['key' => 'wholesale_price', 'label' => '批发价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
+            ['key' => 'employee_price', 'label' => '员工价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
+            ['key' => 'offline_price', 'label' => '门店价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
+            ['key' => 'miniapp_price', 'label' => '小程序价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
+            ['key' => 'delivery_price', 'label' => '配送价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
+            ['key' => 'min_sale_price', 'label' => '最低销售限价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
+            ['key' => 'max_sale_price', 'label' => '最高销售限价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
             ['key' => 'stock', 'label' => '库存', 'sortable' => true, 'exportable' => true],
             ['key' => 'approval_status', 'label' => '审核状态', 'sortable' => false, 'exportable' => true],
             ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
@@ -271,8 +334,17 @@ class SkuList extends Component
             '商品ID' => 'product_id',
             'SKU编码' => 'sku_code',
             '采购价(元)' => 'purchase_price',
-            '批发价(元)' => 'wholesale_price',
             '成本价(元)' => 'cost_price',
+            '最低采购限价(元)' => 'min_purchase_price',
+            '吊牌价(元)' => 'list_price',
+            '零售价(元)' => 'retail_price',
+            '批发价(元)' => 'wholesale_price',
+            '员工价(元)' => 'employee_price',
+            '门店价(元)' => 'offline_price',
+            '小程序价(元)' => 'miniapp_price',
+            '配送价(元)' => 'delivery_price',
+            '最低销售限价(元)' => 'min_sale_price',
+            '最高销售限价(元)' => 'max_sale_price',
             '状态' => 'status',
         ];
     }
@@ -284,7 +356,12 @@ class SkuList extends Component
 
     public function getImportMoneyFields(): array
     {
-        return ['purchase_price', 'wholesale_price', 'cost_price'];
+        return [
+            'purchase_price', 'cost_price', 'min_purchase_price',
+            'list_price', 'retail_price', 'wholesale_price', 'employee_price',
+            'offline_price', 'miniapp_price', 'delivery_price',
+            'min_sale_price', 'max_sale_price',
+        ];
     }
 
     public function render()

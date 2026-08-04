@@ -108,8 +108,8 @@ return [
         'label' => '系统管理',
         'icon'  => 'adjustments-horizontal',
         'children' => [
-            ['key' => 'system.finance-settings', 'label' => '财务配置', 'route' => 'finance-settings', 'permission' => 'system.system-config.view', 'description' => '取价配置/财务风控/金额精度/费用均摊'],
             ['key' => 'system.config',   'label' => '系统配置', 'route' => 'settings',       'permission' => 'system.system-config.view', 'description' => '基础/订单/配送/库存等系统配置'],
+            ['key' => 'system.finance-settings', 'label' => '财务配置', 'route' => 'finance-settings', 'permission' => 'system.system-config.view', 'description' => '取价配置/财务风控/金额精度/费用均摊'],
             ['key' => 'system.banner',   'label' => '轮播广告', 'route' => 'banners',        'permission' => 'system.banner.view',        'description' => '首页轮播图管理'],
             ['key' => 'system.operation','label' => '操作日志', 'route' => 'operation-logs',  'permission' => 'system.audit-log.view',     'description' => '按操作人/时间/模块筛选'],
             ['key' => 'system.audit',    'label' => '审计日志', 'route' => 'audit-logs',      'permission' => 'system.audit-log.view',     'description' => '敏感操作审计记录'],

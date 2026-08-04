@@ -131,6 +131,10 @@
                     @error('formName') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">图标</label>
+                    <input type="text" wire:model="formIcon" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="图标名称（如：folder）" />
+                </div>
+                <div>
                     <x-ui.searchable-select
                         label="父级分类"
                         :wireModel="'formParentId'"

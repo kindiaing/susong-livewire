@@ -30,7 +30,7 @@ class SkuBarcodeList extends Component
     public int $filterBarcodeType = -1;
 
     public int $formSkuId = 0;
-    public int $formSupplierId = 0;
+    public ?int $formSupplierId = null;
     public int $formBarcodeType = 1;
     public string $formBarcodeCode = '';
     public int $formIsDefault = 0;
@@ -47,7 +47,7 @@ class SkuBarcodeList extends Component
         $barcode = SkuBarcode::findOrFail($id);
         $this->editingId = $id;
         $this->formSkuId = $barcode->sku_id;
-        $this->formSupplierId = $barcode->supplier_id ?? 0;
+        $this->formSupplierId = $barcode->supplier_id;
         $this->formBarcodeType = $barcode->barcode_type;
         $this->formBarcodeCode = $barcode->barcode_code;
         $this->formIsDefault = $barcode->is_default;
@@ -58,6 +58,11 @@ class SkuBarcodeList extends Component
 
     public function save(): void
     {
+        // searchable-select clearValue sends 0, convert to null before validation
+        if ($this->formSupplierId === 0 || $this->formSupplierId === '0') {
+            $this->formSupplierId = null;
+        }
+
         $validated = $this->validate([
             'formSkuId' => 'required|integer|min:1|exists:skus,id',
             'formSupplierId' => 'nullable|integer|exists:suppliers,id',
@@ -70,7 +75,7 @@ class SkuBarcodeList extends Component
 
         $data = [
             'sku_id' => $validated['formSkuId'],
-            'supplier_id' => $validated['formSupplierId'] ?: null,
+            'supplier_id' => $validated['formSupplierId'],
             'barcode_type' => $validated['formBarcodeType'],
             'barcode_code' => $validated['formBarcodeCode'],
             'is_default' => $validated['formIsDefault'],
@@ -110,7 +115,7 @@ class SkuBarcodeList extends Component
     {
         $this->editingId = null;
         $this->formSkuId = 0;
-        $this->formSupplierId = 0;
+        $this->formSupplierId = null;
         $this->formBarcodeType = 1;
         $this->formBarcodeCode = '';
         $this->formIsDefault = 0;
