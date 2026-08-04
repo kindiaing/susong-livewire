@@ -7,6 +7,7 @@
         </div>
         @can('org.supplier.create')
         <button type="button" wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+            <x-ui.icon name="plus" class="w-4 h-4" />
             新增供应商
         </button>
         @endcan
@@ -40,9 +41,9 @@
             <option value="3">不定期</option>
         </select>
         <div class="flex-1"></div>
-        <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">列配置</button>
-        <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导入</button>
-        <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">导出</button>
+        <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="adjustments" class="w-4 h-4" />列配置</button>
+        <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="arrow-up-tray" class="w-4 h-4" />导入</button>
+        <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="arrow-down-tray" class="w-4 h-4" />导出</button>
             @if($selectedCount > 0)
                 <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
                 @can('org.supplier.delete')
@@ -104,7 +105,7 @@
                 @endforeach
                 <div class="flex items-center gap-2">
                     @can('org.supplier.edit')
-                    <button type="button" wire:click="openEditModal({{ $supplier->id }})" class="text-blue-600 hover:text-blue-700 text-sm">编辑</button>
+                    <button type="button" wire:click="openEditModal({{ $supplier->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil" class="w-3.5 h-3.5" /></button>
                     @endcan
                     @can('org.supplier.edit')
                     <button type="button" wire:click="toggleStatus({{ $supplier->id }})" class="text-sm {{ $supplier->status === 1 ? 'text-orange-600 hover:text-orange-700' : 'text-green-600 hover:text-green-700' }}">
@@ -112,7 +113,7 @@
                     </button>
                     @endcan
                     @can('org.supplier.delete')
-                    <button type="button" wire:click="confirmDelete({{ $supplier->id }})" class="text-red-600 hover:text-red-700 text-sm">删除</button>
+                    <button type="button" wire:click="confirmDelete({{ $supplier->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
                     @endcan
                 </div>
             </div>
