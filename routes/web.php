@@ -51,6 +51,7 @@ use App\Livewire\System\AuditLogs;
 use App\Livewire\System\BannerList;
 use App\Livewire\System\LoginLogList;
 use App\Livewire\System\OperationLogs;
+use App\Livewire\System\FinanceSettings;
 use App\Livewire\System\Settings;
 use App\Livewire\System\WechatUserList;
 use App\Livewire\User\PermissionList;
@@ -139,7 +140,6 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::get('/invoices', InvoiceList::class)->name('invoices');
     Route::get('/correction-authorizations', CorrectionAuthorizationList::class)->name('correction-authorizations');
     Route::get('/promotion-activities', PromotionActivityList::class)->name('promotion-activities');
-    Route::get('/pricing-config', PricingConfig::class)->name('pricing-config');
     Route::get('/price-apportionments', PriceApportionmentList::class)->name('price-apportionments');
     Route::get('/price-change-logs', PriceChangeLogList::class)->name('price-change-logs');
 
@@ -148,6 +148,7 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::get('/merchant-favorites', MerchantFavoriteList::class)->name('merchant-favorites');
 
     // ── 系统管理 ──
+    Route::get('/finance-settings', FinanceSettings::class)->name('finance-settings');
     Route::get('/settings', Settings::class)->name('settings');
     Route::get('/banners', BannerList::class)->name('banners');
     Route::get('/approval-config', ApprovalConfig::class)->name('approval-config');

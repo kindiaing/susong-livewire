@@ -78,8 +78,6 @@ return [
             ['key' => 'finance.invoice',       'label' => '发票管理',   'route' => 'invoices',                'permission' => 'finance.invoice.view',             'description' => '开票记录与审核'],
             ['key' => 'finance.correction',    'label' => '授权更正',   'route' => 'correction-authorizations','permission' => 'finance.recharge.view',            'description' => '账目更正审批'],
             ['key' => 'finance.price-strategy','label' => '促销活动',   'route' => 'promotion-activities',   'permission' => 'price.promotion.view',             'description' => '促销活动与优惠规则'],
-            ['key' => 'finance.pricing-config', 'label' => '取价配置',   'route' => 'pricing-config',       'permission' => 'price.pricing-config.view',       'description' => '取价模式与优先级配置'],
-            ['key' => 'finance.apportionment', 'label' => '费用均摊',   'route' => 'price-apportionments',    'permission' => 'price.price-apportionment.view',  'description' => '费用分摊配置'],
             ['key' => 'finance.loss',          'label' => '损耗管理',   'route' => 'loss-orders',             'permission' => 'loss.loss-order.view',             'description' => '损耗记录与审核'],
         ],
     ],
@@ -110,7 +108,8 @@ return [
         'label' => '系统管理',
         'icon'  => 'adjustments-horizontal',
         'children' => [
-            ['key' => 'system.config',   'label' => '系统配置', 'route' => 'settings',       'permission' => 'system.system-config.view', 'description' => '6组17项系统配置'],
+            ['key' => 'system.finance-settings', 'label' => '财务配置', 'route' => 'finance-settings', 'permission' => 'system.system-config.view', 'description' => '取价配置/财务风控/金额精度/费用均摊'],
+            ['key' => 'system.config',   'label' => '系统配置', 'route' => 'settings',       'permission' => 'system.system-config.view', 'description' => '基础/订单/配送/库存等系统配置'],
             ['key' => 'system.banner',   'label' => '轮播广告', 'route' => 'banners',        'permission' => 'system.banner.view',        'description' => '首页轮播图管理'],
             ['key' => 'system.operation','label' => '操作日志', 'route' => 'operation-logs',  'permission' => 'system.audit-log.view',     'description' => '按操作人/时间/模块筛选'],
             ['key' => 'system.audit',    'label' => '审计日志', 'route' => 'audit-logs',      'permission' => 'system.audit-log.view',     'description' => '敏感操作审计记录'],

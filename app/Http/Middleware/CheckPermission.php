@@ -97,6 +97,7 @@ class CheckPermission
         'merchant-favorites'  => 'org.merchant.view',
 
         // ── 系统管理 ──
+        'finance-settings'    => 'system.system-config.view',
         'settings'            => 'system.system-config.view',
         'banners'             => 'system.banner.view',
         'approval-config'     => 'system.system-config.view',
