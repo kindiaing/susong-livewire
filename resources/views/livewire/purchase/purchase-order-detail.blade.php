@@ -20,7 +20,7 @@
             @endif
 
             @if(in_array($order->status, [1, 2, 3]))
-                <button type="button" wire:click="confirmCancel" class="rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">取消</button>
+                <button type="button" wire:click="confirmCancel" class="rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">作废</button>
             @endif
         </div>
     </div>
@@ -34,6 +34,8 @@
         <span>实际金额：<b class="text-foreground">{{ money_format($order->actual_amount) }}</b></span>
         <span>下单：<b class="text-foreground">{{ $order->ordered_at?->format('Y-m-d H:i') ?? '-' }}</b></span>
         <span>入库：<b class="text-foreground">{{ $order->stocked_at?->format('Y-m-d H:i') ?? '-' }}</b></span>
+        @if($order->cancelled_at)<span>作废：<b class="text-foreground">{{ $order->cancelled_at->format('Y-m-d H:i') }}</b></span>@endif
+        @if($order->cancel_reason)<span>作废原因：<b class="text-foreground">{{ $order->cancel_reason }}</b></span>@endif
         @if($order->remark)<span>备注：<b class="text-foreground">{{ $order->remark }}</b></span>@endif
     </div>
 

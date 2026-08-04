@@ -29,7 +29,7 @@
             <option value="2">已审核</option>
             <option value="3">已出库</option>
             <option value="4">完成</option>
-            <option value="9">取消</option>
+            <option value="9">已作废</option>
         </select>
         <div class="flex-1"></div>
         <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="adjustments" class="w-4 h-4" />列配置</button>
@@ -84,7 +84,7 @@
                                 <button type="button" wire:click="completeReturn({{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="完成"><x-ui.icon name="check-circle" class="w-3.5 h-3.5" /></button>
                             @endif
                             @if(in_array($item->status, [1, 2]))
-                                <button type="button" wire:click="cancelReturn({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="取消"><x-ui.icon name="x-circle" class="w-3.5 h-3.5" /></button>
+                                <button type="button" wire:click="cancelReturn({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="作废"><x-ui.icon name="x-circle" class="w-3.5 h-3.5" /></button>
                             @endif
                             {{-- 编辑 --}}
                             @can('purchase.purchase-return.edit')

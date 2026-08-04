@@ -14,7 +14,7 @@ use Illuminate\Support\Carbon;
  * @property int $warehouse_id 仓库ID
  * @property int $total_amount 损耗总金额（厘）
  * @property int $loss_type 主要损耗类型：1存储腐坏，2称重失水，3过期报废，4加工损耗，5盘点差异，6其他
- * @property int $status 状态：1待审核，2已通过，3已执行，4已关闭，9已取消
+ * @property int $status 状态：1待审核，2已通过，3已执行，4已关闭，9已作废
  * @property int $approval_status 审核状态：1待审核，2已通过，3已拒绝
  * @property int|null $applicant_id 申请人ID
  * @property int|null $reviewer_id 审核人ID
@@ -130,7 +130,7 @@ class LossOrder extends Model
             self::STATUS_APPROVED => '已通过',
             self::STATUS_EXECUTED => '已执行',
             self::STATUS_CLOSED => '已关闭',
-            self::STATUS_CANCELLED => '已取消',
+            self::STATUS_CANCELLED => '已作废',
         ];
     }
 

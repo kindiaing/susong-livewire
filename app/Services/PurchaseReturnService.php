@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 /**
  * 采购退货服务
  *
- * 封装采购退货的完整生命周期：创建→审核→出库→完成/取消
+ * 封装采购退货的完整生命周期：创建→审核→出库→完成/作废
  * 出库操作联动 InventoryService 扣减库存和写入日志。
  *
  * 核心断链修复：退货出库时调用 InventoryService::stockOut()
@@ -187,12 +187,12 @@ class PurchaseReturnService
     }
 
     /**
-     * 取消退货
+     * 作废退货
      */
     public function cancel(PurchaseReturn $return): PurchaseReturn
     {
         if (in_array($return->status, [PurchaseReturn::STATUS_SHIPPED, PurchaseReturn::STATUS_COMPLETED])) {
-            throw new \Exception('已出库/完成的退货单不可取消');
+            throw new \Exception('已出库/完成的退货单不可作废');
         }
 
         return DB::transaction(function () use ($return) {

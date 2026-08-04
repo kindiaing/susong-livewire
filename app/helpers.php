@@ -165,7 +165,7 @@ function status_badge(int $status, string $type = 'default', string $label = '')
             2 => ['处理中', 'bg-yellow-100 text-yellow-700'],
             3 => ['已入库', 'bg-blue-100 text-blue-700'],
             4 => ['已出库', 'bg-blue-100 text-blue-700'],
-            9 => ['已关闭', 'bg-gray-100 text-gray-600'],
+            9 => ['已作废', 'bg-gray-100 text-gray-600'],
         ],
         'purchase_item' => [1 => ['待生成', 'bg-yellow-100 text-yellow-700'], 2 => ['已生成', 'bg-green-100 text-green-700']],
         'purchase_order' => [
@@ -174,14 +174,14 @@ function status_badge(int $status, string $type = 'default', string $label = '')
             3 => ['已发货', 'bg-orange-100 text-orange-700'],
             4 => ['已入库', 'bg-green-100 text-green-700'],
             5 => ['完成', 'bg-green-100 text-green-700'],
-            9 => ['取消', 'bg-gray-100 text-gray-600'],
+            9 => ['已作废', 'bg-gray-100 text-gray-600'],
         ],
         'purchase_return' => [
             1 => ['待审核', 'bg-yellow-100 text-yellow-700'],
             2 => ['已审核', 'bg-blue-100 text-blue-700'],
             3 => ['已出库', 'bg-orange-100 text-orange-700'],
             4 => ['完成', 'bg-green-100 text-green-700'],
-            9 => ['取消', 'bg-gray-100 text-gray-600'],
+            9 => ['已作废', 'bg-gray-100 text-gray-600'],
         ],
         'sku_approval' => [
             1 => ['待审核', 'bg-yellow-100 text-yellow-700'],

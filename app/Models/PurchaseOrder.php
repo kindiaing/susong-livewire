@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
  * @property string $order_no 采购单号
  * @property int $supplier_id 供应商ID
  * @property int|null $warehouse_id 入库目标仓库
- * @property int $status 状态：1待接单，2备货中，3已发货，4已入库，5完成，9取消
+ * @property int $status 状态：1待接单，2备货中，3已发货，4已入库，5完成，9已作废
  * @property int $total_amount 总金额（厘）
  * @property int $actual_amount 实际入库金额（厘）
  * @property int|null $operator_id 经办人
@@ -89,7 +89,7 @@ class PurchaseOrder extends Model
             self::STATUS_SHIPPED => '已发货',
             self::STATUS_STOCKED => '已入库',
             self::STATUS_COMPLETED => '完成',
-            self::STATUS_CANCELLED => '取消',
+            self::STATUS_CANCELLED => '已作废',
         ];
     }
 
@@ -159,8 +159,8 @@ class PurchaseOrder extends Model
     /**
      * 是否可流转到下一状态
      *
-     * 核心规则：已入库(4)只能→完成(5)，禁止直接取消
-     * 已入库的采购单如需取消，必须走退货流程
+     * 核心规则：已入库(4)只能→完成(5)，禁止直接作废
+     * 已入库的采购单如需作废，必须走退货流程
      */
     public function canTransitionTo(int $status): bool
     {

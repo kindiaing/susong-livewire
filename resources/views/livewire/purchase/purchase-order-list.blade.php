@@ -30,7 +30,7 @@
             <option value="3">已发货</option>
             <option value="4">已入库</option>
             <option value="5">完成</option>
-            <option value="9">取消</option>
+            <option value="9">已作废</option>
         </select>
         <div class="flex-1"></div>
         <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="adjustments" class="w-4 h-4" />列配置</button>

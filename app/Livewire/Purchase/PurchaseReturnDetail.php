@@ -56,7 +56,7 @@ class PurchaseReturnDetail extends Component
     public function confirmCancel(): void
     {
         $this->confirmAction = 'cancel';
-        $this->confirmTitle = '确认取消此退货单？此操作不可撤销。';
+        $this->confirmTitle = '确认作废此退货单？此操作不可撤销。';
         $this->showConfirmModal = true;
     }
 

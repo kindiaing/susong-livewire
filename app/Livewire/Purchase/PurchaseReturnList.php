@@ -156,7 +156,7 @@ class PurchaseReturnList extends Component
             $return = PurchaseReturn::findOrFail($id);
             $service = app(\App\Services\PurchaseReturnService::class);
             $service->cancel($return);
-            $this->toastSuccess('退货单已取消');
+            $this->toastSuccess('退货单已作废');
         } catch (\Exception $e) {
             $this->toastError($e->getMessage());
         }

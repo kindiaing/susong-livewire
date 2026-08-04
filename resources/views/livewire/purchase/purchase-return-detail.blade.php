@@ -18,7 +18,7 @@
             @endif
 
             @if(in_array($return->status, [1, 2]))
-                <button type="button" wire:click="confirmCancel" class="rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">取消</button>
+                <button type="button" wire:click="confirmCancel" class="rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">作废</button>
             @endif
         </div>
     </div>
@@ -81,7 +81,7 @@
             @if($return->audited_at)<span>审核时间：{{ $return->audited_at->format('Y-m-d H:i') }}</span>@endif
             @if($return->shipped_at)<span>出库时间：{{ $return->shipped_at->format('Y-m-d H:i') }}</span>@endif
             @if($return->completed_at)<span>完成时间：{{ $return->completed_at->format('Y-m-d H:i') }}</span>@endif
-            @if($return->cancelled_at)<span>取消时间：{{ $return->cancelled_at->format('Y-m-d H:i') }}</span>@endif
+            @if($return->cancelled_at)<span>作废时间：{{ $return->cancelled_at->format('Y-m-d H:i') }}</span>@endif
         </div>
     </div>
 

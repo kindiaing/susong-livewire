@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 /**
  * 采购单服务
  *
- * 封装采购单的完整生命周期：创建→提交→接单→发货→入库→完成/取消
+ * 封装采购单的完整生命周期：创建→提交→接单→发货→入库→完成/作废
  * 入库操作联动 InventoryService 更新库存和写入日志。
  */
 class PurchaseService
@@ -245,18 +245,18 @@ class PurchaseService
     }
 
     /**
-     * 取消
+     * 作废
      *
-     * 断链修复：已入库/完成状态的采购单禁止直接取消，必须走退货流程
+     * 断链修复：已入库/完成状态的采购单禁止直接作废，必须走退货流程
      */
     public function cancel(PurchaseOrder $order): PurchaseOrder
     {
         if (!$order->canTransitionTo(PurchaseOrder::STATUS_CANCELLED)) {
             // 给出更明确的错误提示
             if (in_array($order->status, [PurchaseOrder::STATUS_STOCKED, PurchaseOrder::STATUS_COMPLETED])) {
-                throw new \Exception('已入库/完成的采购单禁止直接取消，请走退货流程');
+                throw new \Exception('已入库/完成的采购单禁止直接作废，请走退货流程');
             }
-            throw new \Exception('当前状态不允许取消');
+            throw new \Exception('当前状态不允许作废');
         }
 
         $order->update([

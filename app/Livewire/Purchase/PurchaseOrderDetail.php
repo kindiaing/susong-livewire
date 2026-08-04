@@ -87,7 +87,7 @@ class PurchaseOrderDetail extends Component
     public function confirmCancel(): void
     {
         $this->confirmAction = 'cancel';
-        $this->confirmTitle = '确认取消此采购单？此操作不可撤销。';
+        $this->confirmTitle = '确认作废此采购单？此操作不可撤销。';
         $this->showConfirmModal = true;
     }
 

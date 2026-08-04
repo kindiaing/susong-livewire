@@ -14,7 +14,7 @@ use Illuminate\Support\Carbon;
  * @property int $purchase_order_id 关联采购单ID
  * @property int $supplier_id 供应商ID
  * @property int $warehouse_id 出库仓库ID
- * @property int $status 状态：1待审核，2已审核，3已出库，4完成，9取消
+ * @property int $status 状态：1待审核，2已审核，3已出库，4完成，9已作废
  * @property int $total_amount 退货总金额（厘）
  * @property int $actual_amount 实际出库金额（厘）
  * @property string|null $reason 退货原因
@@ -83,7 +83,7 @@ class PurchaseReturn extends Model
             self::STATUS_APPROVED => '已审核',
             self::STATUS_SHIPPED => '已出库',
             self::STATUS_COMPLETED => '完成',
-            self::STATUS_CANCELLED => '取消',
+            self::STATUS_CANCELLED => '已作废',
         ];
     }
 
