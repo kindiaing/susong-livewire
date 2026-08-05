@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseReturn;
 use App\Models\PurchaseReturnItem;
+use App\Models\AuditLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 /**
  * 采购退货服务
  *
- * 封装采购退货的完整生命周期：创建→审核→出库→完成/取消
+ * 封装采购退货的完整生命周期：创建→审核→出库→完成/作废
  * 出库操作联动 InventoryService 扣减库存和写入日志。
  *
  * 核心断链修复：退货出库时调用 InventoryService::stockOut()
@@ -99,11 +100,15 @@ class PurchaseReturnService
             throw new \Exception('仅待审核状态的退货单可审核');
         }
 
+        $oldStatus = $return->status;
+
         $return->update([
             'status' => PurchaseReturn::STATUS_APPROVED,
             'audited_by' => Auth::id(),
             'audited_at' => now(),
         ]);
+
+        $this->auditStatusChange($return, 'approve', $oldStatus, PurchaseReturn::STATUS_APPROVED);
 
         return $return->fresh();
     }
@@ -155,7 +160,10 @@ class PurchaseReturnService
 
             $return->update([
                 'status' => PurchaseReturn::STATUS_SHIPPED,
+                'shipped_at' => now(),
             ]);
+
+            $this->auditStatusChange($return, 'ship', PurchaseReturn::STATUS_APPROVED, PurchaseReturn::STATUS_SHIPPED);
 
             $this->recalculateAmounts($return);
 
@@ -175,7 +183,11 @@ class PurchaseReturnService
         return DB::transaction(function () use ($return) {
             $return->update([
                 'status' => PurchaseReturn::STATUS_COMPLETED,
+                'completed_at' => now(),
             ]);
+
+            // 审计日志
+            $this->auditStatusChange($return, 'complete', PurchaseReturn::STATUS_SHIPPED, PurchaseReturn::STATUS_COMPLETED);
 
             // 更新采购单的退货状态
             $return->purchaseOrder->updateReturnStatus();
@@ -185,18 +197,24 @@ class PurchaseReturnService
     }
 
     /**
-     * 取消退货
+     * 作废退货
      */
     public function cancel(PurchaseReturn $return): PurchaseReturn
     {
         if (in_array($return->status, [PurchaseReturn::STATUS_SHIPPED, PurchaseReturn::STATUS_COMPLETED])) {
-            throw new \Exception('已出库/完成的退货单不可取消');
+            throw new \Exception('已出库/完成的退货单不可作废');
         }
 
         return DB::transaction(function () use ($return) {
+            $oldStatus = $return->status;
+
             $return->update([
                 'status' => PurchaseReturn::STATUS_CANCELLED,
+                'cancelled_at' => now(),
             ]);
+
+            // 审计日志
+            $this->auditStatusChange($return, 'cancel', $oldStatus, PurchaseReturn::STATUS_CANCELLED);
 
             // 更新采购单的退货状态
             $return->purchaseOrder->updateReturnStatus();
@@ -221,5 +239,26 @@ class PurchaseReturnService
         $return->total_amount = $return->items()->sum('amount');
         $return->actual_amount = $return->items()->sum('actual_amount');
         $return->save();
+    }
+
+    /**
+     * 记录退货单状态变更审计日志
+     */
+    private function auditStatusChange(PurchaseReturn $return, string $action, int $oldStatus, int $newStatus, ?string $reason = null): void
+    {
+        if (!setting('audit_purchase_return', true)) {
+            return;
+        }
+
+        AuditLog::log(
+            modelType: PurchaseReturn::class,
+            modelId: $return->id,
+            action: $action,
+            beforeData: ['status' => $oldStatus, 'status_label' => PurchaseReturn::statusMap()[$oldStatus] ?? '未知'],
+            afterData: ['status' => $newStatus, 'status_label' => PurchaseReturn::statusMap()[$newStatus] ?? '未知'],
+            reason: $reason,
+            relationType: 'purchase_return',
+            relationId: $return->id,
+        );
     }
 }

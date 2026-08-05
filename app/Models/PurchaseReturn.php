@@ -14,7 +14,7 @@ use Illuminate\Support\Carbon;
  * @property int $purchase_order_id 关联采购单ID
  * @property int $supplier_id 供应商ID
  * @property int $warehouse_id 出库仓库ID
- * @property int $status 状态：1待审核，2已审核，3已出库，4完成，9取消
+ * @property int $status 状态：1待审核，2已审核，3已出库，4完成，9已作废
  * @property int $total_amount 退货总金额（厘）
  * @property int $actual_amount 实际出库金额（厘）
  * @property string|null $reason 退货原因
@@ -49,6 +49,9 @@ class PurchaseReturn extends Model
         'operator_id',
         'audited_by',
         'audited_at',
+        'shipped_at',
+        'completed_at',
+        'cancelled_at',
         'remark',
     ];
 
@@ -64,6 +67,9 @@ class PurchaseReturn extends Model
             'operator_id' => 'integer',
             'audited_by' => 'integer',
             'audited_at' => 'datetime',
+            'shipped_at' => 'datetime',
+            'completed_at' => 'datetime',
+            'cancelled_at' => 'datetime',
         ];
     }
 
@@ -77,7 +83,7 @@ class PurchaseReturn extends Model
             self::STATUS_APPROVED => '已审核',
             self::STATUS_SHIPPED => '已出库',
             self::STATUS_COMPLETED => '完成',
-            self::STATUS_CANCELLED => '取消',
+            self::STATUS_CANCELLED => '已作废',
         ];
     }
 
@@ -100,6 +106,22 @@ class PurchaseReturn extends Model
     public function supplier()
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    /**
+     * 关联经办人
+     */
+    public function operator()
+    {
+        return $this->belongsTo(User::class, 'operator_id');
+    }
+
+    /**
+     * 关联审核人
+     */
+    public function auditor()
+    {
+        return $this->belongsTo(User::class, 'audited_by');
     }
 
     /**

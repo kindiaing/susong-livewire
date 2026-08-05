@@ -3,6 +3,8 @@
 namespace App\Livewire\Purchase;
 
 use App\Models\PurchaseItem;
+use App\Models\Sku;
+use App\Models\Supplier;
 use App\Services\PurchaseService;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;
@@ -24,8 +26,11 @@ class PurchaseItemList extends Component
 
     public string $search = '';
     public int $filterStatus = -1;
+    public string $filterDateStart = '';
+    public string $filterDateEnd = '';
 
     public int $formSkuId = 0;
+    public int $formSupplierId = 0;
     public int $formQuantity = 0;
     public int $formSourceType = 1;
     public bool $showGenerateConfirm = false;
@@ -40,6 +45,7 @@ class PurchaseItemList extends Component
         $item = PurchaseItem::findOrFail($id);
         $this->editingId = $id;
         $this->formSkuId = $item->sku_id;
+        $this->formSupplierId = $item->supplier_id ?? 0;
         $this->formQuantity = $item->quantity;
         $this->formSourceType = $item->source_type;
         $this->showModal = true;
@@ -49,12 +55,14 @@ class PurchaseItemList extends Component
     {
         $validated = $this->validate([
             'formSkuId' => 'required|integer|min:1|exists:skus,id',
+            'formSupplierId' => 'nullable|integer|min:0|exists:suppliers,id',
             'formQuantity' => 'required|integer|min:1',
             'formSourceType' => 'required|in:1,2',
         ]);
 
         $data = [
             'sku_id' => $validated['formSkuId'],
+            'supplier_id' => $validated['formSupplierId'] > 0 ? $validated['formSupplierId'] : null,
             'quantity' => $validated['formQuantity'],
             'source_type' => $validated['formSourceType'],
         ];
@@ -84,6 +92,8 @@ class PurchaseItemList extends Component
     {
         $this->search = '';
         $this->filterStatus = -1;
+        $this->filterDateStart = '';
+        $this->filterDateEnd = '';
         $this->resetPage();
     }
 
@@ -120,25 +130,18 @@ class PurchaseItemList extends Component
         $this->resetErrorBag();
     }
 
-    /**
-     * 获取选中ID
-     */
-    private function getSelectedIds(): array
-    {
-        return array_keys(array_filter($this->selectedRows ?? []));
-    }
-
     private function resetForm(): void
     {
         $this->editingId = null;
         $this->formSkuId = 0;
+        $this->formSupplierId = 0;
         $this->formQuantity = 0;
         $this->formSourceType = 1;
     }
 
     public function getDefaultColumns(): array
     {
-        return ['sku_id', 'quantity', 'source_type', 'status', 'created_at'];
+        return ['sku_id', 'product_name', 'supplier_id', 'quantity', 'status'];
     }
 
     public function getExportRowCallback(): callable
@@ -174,8 +177,11 @@ class PurchaseItemList extends Component
     {
         return [
             ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
-            ['key' => 'sku_id', 'label' => 'SKU', 'sortable' => true, 'exportable' => true],
-            ['key' => 'quantity', 'label' => '数量', 'sortable' => true, 'exportable' => true],
+            ['key' => 'sku_id', 'label' => 'SKU编码', 'sortable' => true, 'exportable' => true],
+            ['key' => 'product_name', 'label' => '商品名称', 'sortable' => false, 'exportable' => true],
+            ['key' => 'supplier_id', 'label' => '供应商', 'sortable' => true, 'exportable' => true],
+            ['key' => 'quantity', 'label' => '待采数量', 'sortable' => true, 'exportable' => true],
+            ['key' => 'expected_price', 'label' => '预估成本价', 'sortable' => true, 'exportable' => true],
             ['key' => 'source_type', 'label' => '来源类型', 'sortable' => true, 'exportable' => true],
             ['key' => 'status', 'label' => '状态', 'sortable' => true, 'exportable' => true],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
@@ -225,13 +231,21 @@ class PurchaseItemList extends Component
             $query->where('status', $this->filterStatus);
         }
 
+        if ($this->filterDateStart) {
+            $query->whereDate('created_at', '>=', $this->filterDateStart);
+        }
+        if ($this->filterDateEnd) {
+            $query->whereDate('created_at', '<=', $this->filterDateEnd);
+        }
+
         $items = $query->paginate(setting('per_page', 10));
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
 
         $skuOptions = Sku::with('product')->orderBy('sku_code')->get()->map(fn($s) => ['value' => $s->id, 'label' => $s->sku_code . ' - ' . ($s->product?->name ?? '')])->toArray();
+        $supplierOptions = Supplier::where('status', 1)->orderBy('name')->get()->map(fn($s) => ['value' => $s->id, 'label' => $s->name])->toArray();
 
-        return view('livewire.purchase.purchase-item-list', compact('items', 'allColumns', 'selectedCount', 'skuOptions'))
+        return view('livewire.purchase.purchase-item-list', compact('items', 'allColumns', 'selectedCount', 'skuOptions', 'supplierOptions'))
             ->layout('components.app-layout')
             ->title('待采清单');
     }

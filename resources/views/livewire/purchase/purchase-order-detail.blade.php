@@ -6,22 +6,34 @@
                 <x-ui.icon name="arrow-left" class="w-5 h-5" />
             </a>
             <h1 class="text-xl font-bold text-foreground">{{ $order->order_no }}</h1>
-            @php $sc = ['1'=>'yellow','2'=>'blue','3'=>'orange','4'=>'green','5'=>'green','9'=>'gray']; $c = $sc[$order->status] ?? 'gray'; @endphp
-            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $c }}-100 text-{{ $c }}-700">{{ $order->status_label }}</span>
+            {!! status_badge($order->status, 'purchase_order') !!}
         </div>
         <div class="flex items-center gap-2">
             @if($order->status === 1)
-                <button type="button" wire:click="confirmSubmit" type="button" class="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">提交</button>
+                <button type="button" wire:click="confirmSubmit" class="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">提交</button>
             @elseif($order->status === 2)
-                <button type="button" wire:click="confirmShip" type="button" class="rounded-md bg-orange-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-orange-700 transition-colors">发货</button>
+                <button type="button" wire:click="confirmShip" class="rounded-md bg-orange-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-orange-700 transition-colors">发货</button>
             @elseif($order->status === 3)
-                <button type="button" wire:click="openStockInModal" type="button" class="rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 transition-colors">入库</button>
+                <button type="button" wire:click="openStockInModal" class="rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 transition-colors">入库</button>
             @elseif($order->status === 4)
-                <button type="button" wire:click="confirmComplete" type="button" class="rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 transition-colors">完成</button>
+                <button type="button" wire:click="confirmComplete" class="rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 transition-colors">完成</button>
             @endif
 
             @if(in_array($order->status, [1, 2, 3]))
-                <button type="button" wire:click="confirmCancel" type="button" class="rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">取消</button>
+                <button type="button" wire:click="confirmCancel" class="rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">作废</button>
+            @endif
+
+            {{-- 超管状态回退 --}}
+            @if($isSuperAdmin && !in_array($order->status, [1, 9]))
+                <div class="relative" x-data="{open: false}">
+                    <button type="button" @click="open = !open" class="rounded-md border border-purple-300 px-3 py-1.5 text-sm font-medium text-purple-600 hover:bg-purple-50 transition-colors">回退</button>
+                    <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 mt-1 w-36 rounded-md border bg-background shadow-lg z-10 py-1">
+                        @if($order->status > 1)<button type="button" wire:click="confirmRollback(1)" class="block w-full text-left px-3 py-1.5 text-sm hover:bg-accent transition-colors" @click="open = false">回退到待接单</button>@endif
+                        @if($order->status > 2)<button type="button" wire:click="confirmRollback(2)" class="block w-full text-left px-3 py-1.5 text-sm hover:bg-accent transition-colors" @click="open = false">回退到备货中</button>@endif
+                        @if($order->status > 3)<button type="button" wire:click="confirmRollback(3)" class="block w-full text-left px-3 py-1.5 text-sm hover:bg-accent transition-colors" @click="open = false">回退到已发货</button>@endif
+                        @if($order->status > 4)<button type="button" wire:click="confirmRollback(4)" class="block w-full text-left px-3 py-1.5 text-sm hover:bg-accent transition-colors" @click="open = false">回退到已入库</button>@endif
+                    </div>
+                </div>
             @endif
         </div>
     </div>
@@ -29,12 +41,15 @@
     {{-- 单据摘要信息：一行横排 --}}
     <div class="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-muted-foreground mb-4">
         <span>供应商：<b class="text-foreground">{{ $order->supplier?->name ?? '-' }}</b></span>
+        @if($order->purchase_date)<span>采购日期：<b class="text-foreground">{{ $order->purchase_date->format('Y-m-d') }}</b></span>@endif
         @if($order->warehouse)<span>仓库：<b class="text-foreground">{{ $order->warehouse->name }}</b></span>@endif
         @if($order->operator)<span>经办人：<b class="text-foreground">{{ $order->operator->name }}</b></span>@endif
         <span>总金额：<b class="text-foreground">{{ money_format($order->total_amount) }}</b></span>
         <span>实际金额：<b class="text-foreground">{{ money_format($order->actual_amount) }}</b></span>
         <span>下单：<b class="text-foreground">{{ $order->ordered_at?->format('Y-m-d H:i') ?? '-' }}</b></span>
         <span>入库：<b class="text-foreground">{{ $order->stocked_at?->format('Y-m-d H:i') ?? '-' }}</b></span>
+        @if($order->cancelled_at)<span>作废：<b class="text-foreground">{{ $order->cancelled_at->format('Y-m-d H:i') }}</b></span>@endif
+        @if($order->cancel_reason)<span>作废原因：<b class="text-foreground">{{ $order->cancel_reason }}</b></span>@endif
         @if($order->remark)<span>备注：<b class="text-foreground">{{ $order->remark }}</b></span>@endif
     </div>
 
@@ -43,16 +58,16 @@
         <div class="flex items-center justify-between px-4 py-2 border-b">
             <h2 class="text-sm font-semibold text-foreground">采购明细</h2>
             <div class="flex items-center gap-2">
-                @if(in_array($order->status, [1, 2]))
-                    <button type="button" wire:click="openImportModal" type="button" class="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1 text-xs hover:bg-accent transition-colors">
+                @if(in_array($order->status, [1, 2]) || $isSuperAdmin && !in_array($order->status, [9]))
+                    <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1 text-xs hover:bg-accent transition-colors">
                         <x-ui.icon name="arrow-up-tray" class="w-3.5 h-3.5" /> 导入
                     </button>
                 @endif
-                <button type="button" wire:click="openExportModal" type="button" class="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1 text-xs hover:bg-accent transition-colors">
+                <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1 text-xs hover:bg-accent transition-colors">
                     <x-ui.icon name="arrow-down-tray" class="w-3.5 h-3.5" /> 导出
                 </button>
-                @if(in_array($order->status, [1, 2]))
-                    <button type="button" wire:click="openAddItemModal" type="button" class="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-blue-700 transition-colors">
+                @if(in_array($order->status, [1, 2]) || $isSuperAdmin && !in_array($order->status, [9]))
+                    <button type="button" wire:click="openAddItemModal" class="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-blue-700 transition-colors">
                         <x-ui.icon name="plus" class="w-3.5 h-3.5" /> 添加
                     </button>
                 @endif
@@ -66,10 +81,11 @@
                     <th class="px-3 py-1.5 text-left">SKU</th>
                     <th class="px-3 py-1.5 text-right w-[70px]">数量</th>
                     <th class="px-3 py-1.5 text-right w-[80px]">单价</th>
+                    <th class="px-3 py-1.5 text-right w-[80px]">改价</th>
                     <th class="px-3 py-1.5 text-right w-[80px]">金额</th>
                     <th class="px-3 py-1.5 text-right w-[70px]">实际数量</th>
                     <th class="px-3 py-1.5 text-right w-[80px]">实际金额</th>
-                    <th class="px-3 py-1.5 w-[30px]"></th>
+                    <th class="px-3 py-1.5 w-[60px]"></th>
                 </tr>
             </thead>
             <tbody>
@@ -81,30 +97,61 @@
                     </td>
                     <td class="px-3 py-1.5 text-right tabular-nums">{{ $item->quantity }}</td>
                     <td class="px-3 py-1.5 text-right tabular-nums">{{ money_format($item->price) }}</td>
+                    <td class="px-3 py-1.5 text-right tabular-nums {{ $item->strategy_price ? 'text-blue-600 font-medium' : 'text-muted-foreground' }}">{{ $item->strategy_price ? money_format($item->strategy_price) : '-' }}</td>
                     <td class="px-3 py-1.5 text-right tabular-nums font-medium">{{ money_format($item->amount) }}</td>
                     <td class="px-3 py-1.5 text-right tabular-nums {{ $item->actual_quantity && $item->actual_quantity != $item->quantity ? 'text-orange-600 font-medium' : '' }}">{{ $item->actual_quantity ?: '-' }}</td>
                     <td class="px-3 py-1.5 text-right tabular-nums">{{ $item->actual_amount ? money_format($item->actual_amount) : '-' }}</td>
                     <td class="px-3 py-1.5">
-                        @if(in_array($order->status, [1, 2]))
-                            <button type="button" wire:click="removeItem({{ $item->id }})" type="button" class="text-red-500 hover:text-red-700">
-                                <x-ui.icon name="trash" class="w-3.5 h-3.5" />
-                            </button>
-                        @endif
+                        <div class="flex items-center gap-1">
+                            @if(in_array($order->status, [1, 2]) || $isSuperAdmin && !in_array($order->status, [9]))
+                                <button type="button" wire:click="openEditItemModal({{ $item->id }})" class="text-blue-500 hover:text-blue-700" title="编辑">
+                                    <x-ui.icon name="pencil" class="w-3.5 h-3.5" />
+                                </button>
+                                <button type="button" wire:click="confirmDeleteItem({{ $item->id }})" class="text-red-500 hover:text-red-700" title="删除">
+                                    <x-ui.icon name="trash" class="w-3.5 h-3.5" />
+                                </button>
+                            @endif
+                        </div>
                     </td>
                 </tr>
                 @if($item->discrepancy_reason)
                 <tr>
-                    <td colspan="7" class="px-3 py-0.5 bg-orange-50 text-[11px] text-orange-700">
+                    <td colspan="8" class="px-3 py-0.5 bg-orange-50 text-[11px] text-orange-700">
                         差异：{{ $item->discrepancy_reason }}
                     </td>
                 </tr>
                 @endif
                 @empty
-                <tr><td colspan="7" class="px-3 py-6 text-center text-muted-foreground">暂无明细</td></tr>
+                <tr><td colspan="8" class="px-3 py-6 text-center text-muted-foreground">暂无明细</td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
+
+    {{-- 审计日志 --}}
+    @if($order->auditLogs->isNotEmpty())
+    <div class="rounded-lg border bg-card mt-4">
+        <div class="px-4 py-2 border-b">
+            <h2 class="text-sm font-semibold text-foreground">状态变更记录</h2>
+        </div>
+        <div class="divide-y">
+            @foreach($order->auditLogs->sortByDesc('created_at') as $log)
+            <div class="flex items-center gap-3 px-4 py-2 text-sm">
+                <span class="text-muted-foreground text-xs w-32 shrink-0">{{ $log->created_at?->format('Y-m-d H:i') }}</span>
+                <span class="font-medium text-foreground">{{ $log->action_label }}</span>
+                @if($log->before_data && isset($log->before_data['status_label']))
+                    <span class="text-muted-foreground">{{ $log->before_data['status_label'] }}</span>
+                    <x-ui.icon name="arrow-right" class="w-3 h-3 text-muted-foreground" />
+                    <span class="text-foreground font-medium">{{ $log->after_data['status_label'] ?? '-' }}</span>
+                @endif
+                @if($log->operator)
+                    <span class="text-muted-foreground ml-auto">操作人：{{ $log->operator->name }}</span>
+                @endif
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
 
     {{-- 导出弹窗 --}}
     @if($showExportModal)
@@ -139,8 +186,8 @@
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">
-                <button type="button" wire:click="closeExportModal" type="button" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button type="button" wire:click="executeExport" type="button" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">导出 Excel</button>
+                <button type="button" wire:click="closeExportModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="executeExport" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">导出 Excel</button>
             </div>
         </div>
     </div>
@@ -166,19 +213,31 @@
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">
-                <button type="button" wire:click="closeImportModal" type="button" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button type="button" wire:click="executeImport" type="button" class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors">导入</button>
+                <button type="button" wire:click="closeImportModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="executeImport" class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors">导入</button>
             </div>
         </div>
     </div>
     @endif
 
-    {{-- 添加明细弹窗 --}}
+    {{-- 添加/编辑明细弹窗 --}}
     @if($showAddItemModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
-            <h2 class="text-lg font-semibold text-foreground mb-4">添加采购明细</h2>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">{{ $editingItemId ? '编辑采购明细' : '添加采购明细' }}</h2>
+                <div class="flex items-center gap-2">
+                    @if($editingItemId)
+                        <button type="button" wire:click="confirmDeleteItem({{ $editingItemId }})" class="text-red-500 hover:text-red-700 text-xs inline-flex items-center gap-1 border border-red-300 rounded px-2 py-1 hover:bg-red-50 transition-colors">
+                            <x-ui.icon name="trash" class="w-3 h-3" /> 删除
+                        </button>
+                    @endif
+                    <button type="button" wire:click="closeAddItemModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                        <x-ui.icon name="x-mark" class="w-5 h-5" />
+                    </button>
+                </div>
+            </div>
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">SKU <span class="text-red-500">*</span></label>
@@ -200,10 +259,20 @@
                     <input type="number" wire:model="formPrice" min="0" step="0.01" placeholder="0.00" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
                     @error('formPrice') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">改价/促销单价（元）</label>
+                    <input type="number" wire:model="formStrategyPrice" min="0" step="0.01" placeholder="可选，留空表示无改价" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                    @error('formStrategyPrice') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">备注</label>
+                    <input type="text" wire:model="formRemark" placeholder="可选" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                    @error('formRemark') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">
-                <button type="button" wire:click="closeAddItemModal" type="button" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button type="button" wire:click="saveItem" type="button" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">添加</button>
+                <button type="button" wire:click="closeAddItemModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="saveItem" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">{{ $editingItemId ? '保存' : '添加' }}</button>
             </div>
         </div>
     </div>
@@ -260,8 +329,38 @@
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">
-                <button type="button" wire:click="closeStockInModal" type="button" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button type="button" wire:click="executeStockIn" type="button" class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors">确认入库</button>
+                <button type="button" wire:click="closeStockInModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="executeStockIn" class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors">确认入库</button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- 删除明细确认弹窗 --}}
+    @if($showDeleteItemConfirm)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
+            <h2 class="text-lg font-semibold text-foreground mb-2">确认删除</h2>
+            <p class="text-sm text-muted-foreground mb-6">确认删除此采购明细？此操作不可撤销。</p>
+            <div class="flex justify-end gap-3">
+                <button type="button" wire:click="closeDeleteItemConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="deleteItem" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">删除</button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- 提交后返回列表页选择弹窗 --}}
+    @if($showPostSubmitChoice)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
+            <h2 class="text-lg font-semibold text-foreground mb-2">提交成功</h2>
+            <p class="text-sm text-muted-foreground mb-6">采购单已提交，是否返回列表页？</p>
+            <div class="flex justify-end gap-3">
+                <button type="button" wire:click="stayOnDetail" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">留在当前页</button>
+                <button type="button" wire:click="goBackToList" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">返回列表</button>
             </div>
         </div>
     </div>
@@ -275,8 +374,8 @@
             <h2 class="text-lg font-semibold text-foreground mb-2">确认操作</h2>
             <p class="text-sm text-muted-foreground mb-6">{{ $confirmTitle }}</p>
             <div class="flex justify-end gap-3">
-                <button type="button" wire:click="closeConfirmModal" type="button" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button type="button" wire:click="executeConfirm" type="button" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">确认</button>
+                <button type="button" wire:click="closeConfirmModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="executeConfirm" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">确认</button>
             </div>
         </div>
     </div>

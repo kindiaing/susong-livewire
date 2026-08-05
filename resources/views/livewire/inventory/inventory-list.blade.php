@@ -29,6 +29,26 @@
                 <option value="{{ $w->id }}">{{ $w->name }}</option>
             @endforeach
         </select>
+        {{-- 分类多选筛选 --}}
+        <div x-data="{ catOpen: false }" class="relative">
+            <button type="button" @click="catOpen = !catOpen" class="flex h-9 items-center gap-1 rounded-md border border-input bg-background px-3 text-sm hover:bg-accent transition-colors">
+                <span class="text-muted-foreground">分类</span>
+                @if(count($filterCategoryIds) > 0)
+                    <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-medium">{{ count($filterCategoryIds) }}</span>
+                @endif
+                <svg class="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div x-show="catOpen" @click.away="catOpen = false" x-transition class="absolute left-0 mt-1 w-56 rounded-md border bg-background shadow-lg z-30 py-1 max-h-72 overflow-y-auto">
+                @foreach($categoryTree as $cat)
+                    @include('livewire.inventory.inventory-list-category-option', ['cat' => $cat, 'depth' => 0])
+                @endforeach
+                @if(count($filterCategoryIds) > 0)
+                    <div class="border-t mt-1 px-3 py-1.5">
+                        <button type="button" wire:click="$set('filterCategoryIds', [])" class="text-xs text-blue-600 hover:text-blue-700">清除分类筛选</button>
+                    </div>
+                @endif
+            </div>
+        </div>
         <div class="flex-1"></div>
         <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="adjustments" class="w-4 h-4" />列配置</button>
         <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="arrow-up-tray" class="w-4 h-4" />导入</button>

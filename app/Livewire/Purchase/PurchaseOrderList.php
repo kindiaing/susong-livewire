@@ -27,6 +27,7 @@ class PurchaseOrderList extends Component
     public int $filterStatus = -1;
 
     public int $formSupplierId = 0;
+    public string $formPurchaseDate = '';
     public string $formRemark = '';
 
     public function mount(): void
@@ -39,6 +40,7 @@ class PurchaseOrderList extends Component
         $order = PurchaseOrder::findOrFail($id);
         $this->editingId = $id;
         $this->formSupplierId = $order->supplier_id;
+        $this->formPurchaseDate = $order->purchase_date?->format('Y-m-d') ?? '';
         $this->formRemark = $order->remark ?? '';
         $this->showModal = true;
     }
@@ -47,11 +49,13 @@ class PurchaseOrderList extends Component
     {
         $validated = $this->validate([
             'formSupplierId' => 'required|integer|min:1',
+            'formPurchaseDate' => 'nullable|date',
             'formRemark' => 'nullable|string|max:500',
         ]);
 
         $data = [
             'supplier_id' => $validated['formSupplierId'],
+            'purchase_date' => $validated['formPurchaseDate'] ?: null,
             'remark' => $validated['formRemark'] ?: null,
         ];
 
@@ -90,12 +94,13 @@ class PurchaseOrderList extends Component
     {
         $this->editingId = null;
         $this->formSupplierId = 0;
+        $this->formPurchaseDate = '';
         $this->formRemark = '';
     }
 
     public function getDefaultColumns(): array
     {
-        return ['order_no', 'supplier_id', 'status', 'total_amount', 'remark', 'created_at'];
+        return ['order_no', 'supplier_id', 'purchase_date', 'status', 'total_amount'];
     }
 
     public function getExportRowCallback(): callable
@@ -134,8 +139,10 @@ class PurchaseOrderList extends Component
             ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
             ['key' => 'order_no', 'label' => '采购单号', 'sortable' => true, 'exportable' => true],
             ['key' => 'supplier_id', 'label' => '供应商', 'sortable' => true, 'exportable' => true],
+            ['key' => 'purchase_date', 'label' => '采购日期', 'sortable' => true, 'exportable' => true],
             ['key' => 'status', 'label' => '状态', 'sortable' => true, 'exportable' => true],
             ['key' => 'total_amount', 'label' => '总金额', 'sortable' => true, 'exportable' => true, 'type' => 'money'],
+            ['key' => 'actual_amount', 'label' => '实际金额', 'sortable' => true, 'exportable' => true, 'type' => 'money'],
             ['key' => 'remark', 'label' => '备注', 'sortable' => false, 'exportable' => true],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
         ];

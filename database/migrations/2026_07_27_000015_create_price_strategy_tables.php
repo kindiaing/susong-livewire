@@ -101,12 +101,14 @@ return new class extends Migration
             $table->timestamp('start_at')->nullable()->comment('开始时间');
             $table->timestamp('end_at')->nullable()->comment('结束时间');
             $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：0禁用，1启用');
+            $table->tinyInteger('approval_status')->unsigned()->default(1)->comment('审核状态：1待审核，2已通过，3已拒绝');
             $table->unsignedBigInteger('created_by')->nullable()->comment('创建人ID');
             $table->timestamps();
             $table->softDeletes();
 
             $table->index('promo_type');
             $table->index('status');
+            $table->index('approval_status');
             $table->index(['start_at', 'end_at']);
             $table->comment('促销活动主表');
         });

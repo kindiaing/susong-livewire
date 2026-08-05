@@ -38,7 +38,7 @@
             <option value="2">已通过</option>
             <option value="3">已执行</option>
             <option value="4">已关闭</option>
-            <option value="9">已取消</option>
+            <option value="9">已作废</option>
         </select>
         <div class="flex-1"></div>
         <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="adjustments" class="w-4 h-4" />列配置</button>

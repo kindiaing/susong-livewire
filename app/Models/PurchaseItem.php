@@ -29,9 +29,12 @@ class PurchaseItem extends Model
 
     protected $fillable = [
         'sku_id',
+        'supplier_id',
         'quantity',
         'source_type',
         'source_id',
+        'purchase_order_id',
+        'expected_price',
         'status',
     ];
 
@@ -39,9 +42,12 @@ class PurchaseItem extends Model
     {
         return [
             'sku_id' => 'integer',
+            'supplier_id' => 'integer',
             'quantity' => 'integer',
             'source_type' => 'integer',
             'source_id' => 'integer',
+            'purchase_order_id' => 'integer',
+            'expected_price' => 'integer',
             'status' => 'integer',
         ];
     }
@@ -70,6 +76,16 @@ class PurchaseItem extends Model
     public function sku()
     {
         return $this->belongsTo(Sku::class);
+    }
+
+    public function supplier()
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
+    public function purchaseOrder()
+    {
+        return $this->belongsTo(PurchaseOrder::class);
     }
 
     public function scopePending($query)

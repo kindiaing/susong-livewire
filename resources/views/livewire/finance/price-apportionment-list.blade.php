@@ -32,7 +32,7 @@
 
     {{-- 列表 --}}
     @php
-        $statusMap = [1 => '待生效', 2 => '已生效', 3 => '已取消'];
+        $statusMap = [1 => '待生效', 2 => '已生效', 3 => '已作废'];
         $statusColorMap = [1 => 'yellow', 2 => 'green', 3 => 'gray'];
         $typeMap = ['logistics' => '物流均摊', 'cold_chain' => '冷链均摊', 'packaging' => '包装均摊', 'other' => '其他'];
         $allCols = collect($this->getAllColumns())

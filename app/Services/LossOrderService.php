@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * 损耗单服务
  *
- * 封装损耗单的完整生命周期：创建（含入库差异自动创建）→审核→执行→关闭/取消
+ * 封装损耗单的完整生命周期：创建（含入库差异自动创建）→审核→执行→关闭/作废
  * 执行时联动 InventoryService 扣减库存和写入日志。
  *
  * 核心断链修复：入库差异自动生成损耗单，执行时调用 InventoryService::stockOut()
@@ -232,12 +232,12 @@ class LossOrderService
     }
 
     /**
-     * 取消损耗单（仅待审核状态可取消）
+     * 作废损耗单（仅待审核状态可作废）
      */
     public function cancel(LossOrder $lossOrder): LossOrder
     {
         if ($lossOrder->status !== LossOrder::STATUS_PENDING) {
-            throw new \Exception('仅待审核状态的损耗单可取消');
+            throw new \Exception('仅待审核状态的损耗单可作废');
         }
 
         $lossOrder->update([

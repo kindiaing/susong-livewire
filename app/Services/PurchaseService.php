@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\PurchaseItem;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
+use App\Models\AuditLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 /**
  * 采购单服务
  *
- * 封装采购单的完整生命周期：创建→提交→接单→发货→入库→完成/取消
+ * 封装采购单的完整生命周期：创建→提交→接单→发货→入库→完成/作废
  * 入库操作联动 InventoryService 更新库存和写入日志。
  */
 class PurchaseService
@@ -33,7 +34,7 @@ class PurchaseService
      */
     public function createFromItems(array $purchaseItemIds): array
     {
-        $items = PurchaseItem::with('sku.suppliers')
+        $items = PurchaseItem::with('sku.suppliers', 'supplier')
             ->whereIn('id', $purchaseItemIds)
             ->where('status', PurchaseItem::STATUS_PENDING)
             ->get();
@@ -42,16 +43,20 @@ class PurchaseService
             throw new \Exception('没有可用的待采项');
         }
 
-        // 按供应商分组：sku_id → supplier_id
+        // 按供应商分组：优先使用待采项指定的 supplier_id，否则回退到 SKU 默认供应商
         $grouped = [];
         foreach ($items as $item) {
-            $defaultSupplier = $item->sku?->suppliers()
-                ->wherePivot('is_default', true)
-                ->wherePivot('status', 1)
-                ->first();
-            $supplierId = $defaultSupplier?->id ?? $item->sku?->suppliers()->wherePivot('status', 1)->first()?->id;
+            // 优先级：待采项指定供应商 > SKU 默认供应商 > SKU 首个可用供应商
+            $supplierId = $item->supplier_id;
             if (!$supplierId) {
-                throw new \Exception("SKU {$item->sku_id} 没有可用供应商");
+                $defaultSupplier = $item->sku?->suppliers()
+                    ->wherePivot('is_default', true)
+                    ->wherePivot('status', 1)
+                    ->first();
+                $supplierId = $defaultSupplier?->id ?? $item->sku?->suppliers()->wherePivot('status', 1)->first()?->id;
+            }
+            if (!$supplierId) {
+                throw new \Exception("SKU {$item->sku_id} 没有可用供应商，请指定供应商");
             }
             $grouped[$supplierId][] = $item;
         }
@@ -91,8 +96,12 @@ class PurchaseService
                         'strategy_amount' => 0,
                     ]);
 
-                    // 标记待采项为已生成
-                    $item->update(['status' => PurchaseItem::STATUS_ORDERED]);
+                    // 标记待采项为已生成，回写采购单ID和预估成本价
+                    $item->update([
+                        'status' => PurchaseItem::STATUS_ORDERED,
+                        'purchase_order_id' => $order->id,
+                        'expected_price' => $price,
+                    ]);
                 }
 
                 $order->recalculateAmounts();
@@ -112,9 +121,13 @@ class PurchaseService
             throw new \Exception('当前状态不允许提交');
         }
 
+        $oldStatus = $order->status;
+
         $order->update([
             'status' => PurchaseOrder::STATUS_PREPARING,
         ]);
+
+        $this->auditStatusChange($order, 'submit', $oldStatus, PurchaseOrder::STATUS_PREPARING);
 
         return $order->fresh();
     }
@@ -128,10 +141,14 @@ class PurchaseService
             throw new \Exception('当前状态不允许发货');
         }
 
+        $oldStatus = $order->status;
+
         $order->update([
             'status' => PurchaseOrder::STATUS_SHIPPED,
             'shipped_at' => now(),
         ]);
+
+        $this->auditStatusChange($order, 'ship', $oldStatus, PurchaseOrder::STATUS_SHIPPED);
 
         return $order->fresh();
     }
@@ -197,6 +214,9 @@ class PurchaseService
             // 重算实际入库金额
             $order->recalculateAmounts();
 
+            // 审计日志
+            $this->auditStatusChange($order, 'stock_in', PurchaseOrder::STATUS_SHIPPED, PurchaseOrder::STATUS_STOCKED);
+
             // 断链修复：当存在入库差异且系统配置开启时，自动创建损耗单
             $autoCreateLoss = (bool) setting('stockin_auto_create_loss', true);
             if ($autoCreateLoss) {
@@ -230,41 +250,61 @@ class PurchaseService
 
         $order->update([
             'status' => PurchaseOrder::STATUS_COMPLETED,
+            'completed_at' => now(),
         ]);
+
+        $this->auditStatusChange($order, 'complete', PurchaseOrder::STATUS_STOCKED, PurchaseOrder::STATUS_COMPLETED);
 
         return $order->fresh();
     }
 
     /**
-     * 取消
+     * 作废
      *
-     * 断链修复：已入库/完成状态的采购单禁止直接取消，必须走退货流程
+     * 断链修复：已入库/完成状态的采购单禁止直接作废，必须走退货流程
      */
     public function cancel(PurchaseOrder $order): PurchaseOrder
     {
         if (!$order->canTransitionTo(PurchaseOrder::STATUS_CANCELLED)) {
             // 给出更明确的错误提示
             if (in_array($order->status, [PurchaseOrder::STATUS_STOCKED, PurchaseOrder::STATUS_COMPLETED])) {
-                throw new \Exception('已入库/完成的采购单禁止直接取消，请走退货流程');
+                throw new \Exception('已入库/完成的采购单禁止直接作废，请走退货流程');
             }
-            throw new \Exception('当前状态不允许取消');
+            throw new \Exception('当前状态不允许作废');
         }
+
+        $oldStatus = $order->status;
 
         $order->update([
             'status' => PurchaseOrder::STATUS_CANCELLED,
+            'cancelled_at' => now(),
         ]);
+
+        $this->auditStatusChange($order, 'cancel', $oldStatus, PurchaseOrder::STATUS_CANCELLED);
 
         return $order->fresh();
     }
 
     /**
      * 添加采购单明细
+     *
+     * @param array $extra 额外字段（strategy_price, remark 等）
      */
-    public function addItem(PurchaseOrder $order, int $skuId, int $quantity, int $price): PurchaseOrderItem
+    public function addItem(PurchaseOrder $order, int $skuId, int $quantity, int $price, array $extra = []): PurchaseOrderItem
     {
-        if ($order->status !== PurchaseOrder::STATUS_PENDING && $order->status !== PurchaseOrder::STATUS_PREPARING) {
+        $editableStatuses = [PurchaseOrder::STATUS_PENDING, PurchaseOrder::STATUS_PREPARING];
+        $isSuperAdmin = Auth::check() && Auth::user()->hasRole('super_admin');
+
+        if (!$isSuperAdmin && !in_array($order->status, $editableStatuses)) {
             throw new \Exception('仅待接单/备货中状态可添加明细');
         }
+
+        if ($isSuperAdmin && in_array($order->status, [PurchaseOrder::STATUS_CANCELLED])) {
+            throw new \Exception('已作废的采购单不可添加明细');
+        }
+
+        $strategyPrice = $extra['strategy_price'] ?? 0;
+        $strategyAmount = $strategyPrice > 0 ? intdiv($quantity * $strategyPrice, 1000) : 0;
 
         $item = PurchaseOrderItem::create([
             'purchase_order_id' => $order->id,
@@ -275,13 +315,87 @@ class PurchaseService
             'actual_quantity' => 0,
             'actual_price' => 0,
             'actual_amount' => 0,
-            'strategy_price' => 0,
-            'strategy_amount' => 0,
+            'strategy_price' => $strategyPrice,
+            'strategy_amount' => $strategyAmount,
+            'price_strategy_id' => $extra['price_strategy_id'] ?? null,
+            'price_strategy_item_id' => $extra['price_strategy_item_id'] ?? null,
+            'remark' => $extra['remark'] ?? null,
         ]);
 
         $order->recalculateAmounts();
 
         return $item;
+    }
+
+    /**
+     * 更新采购单明细
+     */
+    public function updateItem(int $itemId, array $data): PurchaseOrderItem
+    {
+        $item = PurchaseOrderItem::findOrFail($itemId);
+        $order = $item->purchaseOrder;
+
+        $editableStatuses = [PurchaseOrder::STATUS_PENDING, PurchaseOrder::STATUS_PREPARING];
+        $isSuperAdmin = Auth::check() && Auth::user()->hasRole('super_admin');
+
+        if (!$isSuperAdmin && !in_array($order->status, $editableStatuses)) {
+            throw new \Exception('仅待接单/备货中状态可编辑明细');
+        }
+
+        if ($isSuperAdmin && in_array($order->status, [PurchaseOrder::STATUS_CANCELLED])) {
+            throw new \Exception('已作废的采购单不可编辑明细');
+        }
+
+        $updateData = [];
+
+        if (isset($data['sku_id'])) $updateData['sku_id'] = $data['sku_id'];
+        if (isset($data['quantity'])) $updateData['quantity'] = $data['quantity'];
+        if (isset($data['price'])) {
+            $updateData['price'] = $data['price'];
+            $updateData['amount'] = intdiv(($updateData['quantity'] ?? $item->quantity) * $data['price'], 1000);
+        }
+        if (array_key_exists('strategy_price', $data)) {
+            $updateData['strategy_price'] = $data['strategy_price'];
+            $qty = $updateData['quantity'] ?? $item->quantity;
+            $updateData['strategy_amount'] = $data['strategy_price'] > 0 ? intdiv($qty * $data['strategy_price'], 1000) : 0;
+        }
+        if (array_key_exists('remark', $data)) $updateData['remark'] = $data['remark'];
+
+        $item->update($updateData);
+        $order->recalculateAmounts();
+
+        return $item->fresh();
+    }
+
+    /**
+     * 超管强制状态回退
+     *
+     * 仅 super_admin 可调用，允许跳过正常流转规则。
+     * 但已作废的采购单不可回退。
+     */
+    public function forceTransition(PurchaseOrder $order, int $toStatus): PurchaseOrder
+    {
+        $isSuperAdmin = Auth::check() && Auth::user()->hasRole('super_admin');
+
+        if (!$isSuperAdmin) {
+            throw new \Exception('仅超级管理员可执行状态回退');
+        }
+
+        if ($order->status === PurchaseOrder::STATUS_CANCELLED) {
+            throw new \Exception('已作废的采购单不可回退');
+        }
+
+        if ($toStatus === $order->status) {
+            throw new \Exception('目标状态与当前状态相同');
+        }
+
+        $oldStatus = $order->status;
+
+        $order->update(['status' => $toStatus]);
+
+        $this->auditStatusChange($order, 'rollback', $oldStatus, $toStatus, '超管强制回退');
+
+        return $order->fresh();
     }
 
     /**
@@ -291,11 +405,39 @@ class PurchaseService
     {
         $order = $item->purchaseOrder;
 
-        if ($order->status !== PurchaseOrder::STATUS_PENDING && $order->status !== PurchaseOrder::STATUS_PREPARING) {
+        $editableStatuses = [PurchaseOrder::STATUS_PENDING, PurchaseOrder::STATUS_PREPARING];
+        $isSuperAdmin = Auth::check() && Auth::user()->hasRole('super_admin');
+
+        if (!$isSuperAdmin && !in_array($order->status, $editableStatuses)) {
             throw new \Exception('仅待接单/备货中状态可删除明细');
+        }
+
+        if ($isSuperAdmin && in_array($order->status, [PurchaseOrder::STATUS_CANCELLED])) {
+            throw new \Exception('已作废的采购单不可删除明细');
         }
 
         $item->delete();
         $order->recalculateAmounts();
+    }
+
+    /**
+     * 记录采购单状态变更审计日志
+     */
+    private function auditStatusChange(PurchaseOrder $order, string $action, int $oldStatus, int $newStatus, ?string $reason = null): void
+    {
+        if (!setting('audit_purchase_order', true)) {
+            return;
+        }
+
+        AuditLog::log(
+            modelType: PurchaseOrder::class,
+            modelId: $order->id,
+            action: $action,
+            beforeData: ['status' => $oldStatus, 'status_label' => PurchaseOrder::statusMap()[$oldStatus] ?? '未知'],
+            afterData: ['status' => $newStatus, 'status_label' => PurchaseOrder::statusMap()[$newStatus] ?? '未知'],
+            reason: $reason,
+            relationType: 'purchase_order',
+            relationId: $order->id,
+        );
     }
 }

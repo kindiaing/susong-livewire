@@ -32,6 +32,7 @@ use App\Livewire\Order\RepurchaseTemplateList;
 use App\Livewire\Picking\PickingTaskList;
 use App\Livewire\Price\PriceChangeLogList;
 use App\Livewire\Price\PricingConfig;
+use App\Livewire\Price\PromotionSettings;
 use App\Livewire\Product\CategoryList;
 use App\Livewire\Product\KeywordList;
 use App\Livewire\Product\ProductList;
@@ -44,10 +45,12 @@ use App\Livewire\Product\TagList;
 use App\Livewire\Purchase\PurchaseItemList;
 use App\Livewire\Purchase\PurchaseOrderDetail;
 use App\Livewire\Purchase\PurchaseOrderList;
+use App\Livewire\Purchase\PurchaseReturnDetail;
 use App\Livewire\Purchase\PurchaseReturnList;
 use App\Livewire\System\ApprovalConfig;
 use App\Livewire\System\Approvals;
 use App\Livewire\System\AuditLogs;
+use App\Livewire\System\AuditSettings;
 use App\Livewire\System\BannerList;
 use App\Livewire\System\LoginLogList;
 use App\Livewire\System\OperationLogs;
@@ -109,6 +112,7 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::get('/purchase-orders', PurchaseOrderList::class)->name('purchase-orders');
     Route::get('/purchase-orders/{id}', PurchaseOrderDetail::class)->name('purchase-orders.detail');
     Route::get('/purchase-returns', PurchaseReturnList::class)->name('purchase-returns');
+    Route::get('/purchase-returns/{id}', PurchaseReturnDetail::class)->name('purchase-returns.detail');
 
     // ── 订单配送 ──
     Route::get('/orders', OrderList::class)->name('orders');
@@ -141,6 +145,7 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::get('/correction-authorizations', CorrectionAuthorizationList::class)->name('correction-authorizations');
     Route::get('/promotion-activities', PromotionActivityList::class)->name('promotion-activities');
     Route::get('/price-apportionments', PriceApportionmentList::class)->name('price-apportionments');
+    Route::get('/promotion-settings', PromotionSettings::class)->name('promotion-settings');
     Route::get('/price-change-logs', PriceChangeLogList::class)->name('price-change-logs');
 
     // ── 商家扩展 ──
@@ -154,6 +159,7 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::get('/approval-config', ApprovalConfig::class)->name('approval-config');
     Route::get('/approvals', Approvals::class)->name('approvals');
     Route::get('/operation-logs', OperationLogs::class)->name('operation-logs');
+    Route::get('/audit-settings', AuditSettings::class)->name('audit-settings');
     Route::get('/audit-logs', AuditLogs::class)->name('audit-logs');
     Route::get('/login-logs', LoginLogList::class)->name('login-logs');
     Route::get('/wechat-users', WechatUserList::class)->name('wechat-users');
