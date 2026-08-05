@@ -98,20 +98,23 @@
                                 <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $c }}-100 text-{{ $c }}-700">{{ \App\Livewire\Order\OrderList::$statusMap[$order->status] ?? '-' }}</span>
                             </div>
                             @break
-                        @case('payment_method')
-                            <div class="text-sm text-foreground">{{ \App\Livewire\Order\OrderList::$paymentMethodMap[$order->payment_method] ?? $order->payment_method ?? '-' }}</div>
-                            @break
                         @case('payment_status')
                             <div>
                                 @php $pc = \App\Livewire\Order\OrderList::$paymentStatusColorMap; $cp = $pc[$order->payment_status] ?? 'gray'; @endphp
                                 <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $cp }}-100 text-{{ $cp }}-700">{{ \App\Livewire\Order\OrderList::$paymentStatusMap[$order->payment_status] ?? '-' }}</span>
                             </div>
                             @break
-                        @case('delivery_type')
-                            <div class="text-sm text-foreground">{{ \App\Livewire\Order\OrderList::$deliveryTypeMap[$order->delivery_type] ?? $order->delivery_type ?? '-' }}</div>
+                        @case('order_date')
+                            <div class="text-sm text-foreground">{{ $order->order_date?->format('Y-m-d') ?? '-' }}</div>
                             @break
-                        @case('note')
-                            <div class="text-sm text-foreground truncate max-w-[200px]">{{ $order->note ?: '-' }}</div>
+                        @case('delivery_date')
+                            <div class="text-sm text-foreground">{{ $order->delivery_date?->format('Y-m-d') ?? '-' }}</div>
+                            @break
+                        @case('settlement_type')
+                            <div class="text-sm text-foreground">{{ \App\Livewire\Order\OrderList::$settlementTypeMap[$order->settlement_type] ?? '-' }}</div>
+                            @break
+                        @case('remark')
+                            <div class="text-sm text-foreground truncate max-w-[200px]">{{ $order->remark ?: '-' }}</div>
                             @break
                         @case('created_at')
                             <div class="text-sm text-foreground">{{ $order->created_at?->format('Y-m-d H:i') }}</div>
@@ -121,6 +124,7 @@
                     @endswitch
                 @endforeach
                 <div class="flex items-center gap-2">
+                    <a href="{{ route('orders.detail', $order->id) }}" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="明细"><x-ui.icon name="clipboard-document-list" class="w-3.5 h-3.5" /></a>
                     @can('order.order.edit')
                     <button type="button" wire:click="openEditModal({{ $order->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil" class="w-3.5 h-3.5" /></button>
                     @endcan
@@ -169,11 +173,21 @@
                     </select>
                     @error('formMerchantId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">单据日期</label>
+                    <input type="date" wire:model="formOrderDate" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                    @error('formOrderDate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">收货日期</label>
+                    <input type="date" wire:model="formDeliveryDate" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                    @error('formDeliveryDate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
                 @endif
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">备注</label>
-                    <textarea wire:model="formNote" rows="2" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="可选"></textarea>
-                    @error('formNote') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    <textarea wire:model="formRemark" rows="2" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="可选"></textarea>
+                    @error('formRemark') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">

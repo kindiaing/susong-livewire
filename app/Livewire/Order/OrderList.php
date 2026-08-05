@@ -30,7 +30,9 @@ class OrderList extends Component
     public int $filterPaymentStatus = 0;
 
     public int $formMerchantId = 0;
-    public string $formNote = '';
+    public string $formOrderDate = '';
+    public string $formDeliveryDate = '';
+    public string $formRemark = '';
 
     public static array $statusMap = [
         1 => '待拣货', 2 => '拣货中', 3 => '配送中',
@@ -50,13 +52,12 @@ class OrderList extends Component
         1 => 'yellow', 2 => 'green', 3 => 'blue',
     ];
 
-    public static array $paymentMethodMap = [
-        'wechat' => '微信支付', 'alipay' => '支付宝',
-        'cash' => '现金', 'credit' => '账期',
+    public static array $settlementTypeMap = [
+        1 => '现结', 2 => '账期', 3 => '预付款',
     ];
 
-    public static array $deliveryTypeMap = [
-        'standard' => '标准配送', 'express' => '加急配送', 'self_pickup' => '自提',
+    public static array $settlementTypeColorMap = [
+        1 => 'blue', 2 => 'purple', 3 => 'green',
     ];
 
     public function mount(): void
@@ -72,10 +73,10 @@ class OrderList extends Component
             ['key' => 'merchant_id', 'label' => '商家', 'sortable' => false, 'exportable' => true],
             ['key' => 'total_amount', 'label' => '总金额', 'sortable' => true, 'exportable' => true],
             ['key' => 'status', 'label' => '订单状态', 'sortable' => true, 'exportable' => true],
-            ['key' => 'payment_method', 'label' => '支付方式', 'sortable' => false, 'exportable' => true],
-            ['key' => 'payment_status', 'label' => '支付状态', 'sortable' => true, 'exportable' => true],
-            ['key' => 'delivery_type', 'label' => '配送类型', 'sortable' => false, 'exportable' => true],
-            ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => false],
+            ['key' => 'order_date', 'label' => '单据日期', 'sortable' => true, 'exportable' => true],
+            ['key' => 'delivery_date', 'label' => '收货日期', 'sortable' => true, 'exportable' => true],
+            ['key' => 'settlement_type', 'label' => '结算方式', 'sortable' => false, 'exportable' => true],
+            ['key' => 'remark', 'label' => '备注', 'sortable' => false, 'exportable' => false],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
         ];
     }
@@ -101,10 +102,8 @@ class OrderList extends Component
             '订单号' => 'order_no',
             '商家ID' => 'merchant_id',
             '总金额(分)' => 'total_amount',
-            '支付方式' => 'payment_method',
-            '支付状态' => 'payment_status',
-            '配送类型' => 'delivery_type',
-            '备注' => 'note',
+            '结算方式' => 'settlement_type',
+            '备注' => 'remark',
         ];
     }
 
@@ -122,10 +121,8 @@ class OrderList extends Component
                 'merchant_id' => $row->merchant?->name ?? '',
                 'total_amount' => money_format($row->total_amount, false),
                 'status' => self::$statusMap[$row->status] ?? '',
-                'payment_method' => self::$paymentMethodMap[$row->payment_method] ?? $row->payment_method ?? '',
-                'payment_status' => self::$paymentStatusMap[$row->payment_status] ?? '',
-                'delivery_type' => self::$deliveryTypeMap[$row->delivery_type] ?? $row->delivery_type ?? '',
-                'note' => $row->note ?? '',
+                'settlement_type' => self::$settlementTypeMap[$row->settlement_type] ?? '',
+                'remark' => $row->remark ?? '',
                 'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
             ];
         };
@@ -140,7 +137,7 @@ class OrderList extends Component
     {
         $order = Order::findOrFail($id);
         $this->editingId = $id;
-        $this->formNote = $order->note ?? '';
+        $this->formRemark = $order->remark ?? '';
         $this->showModal = true;
     }
 
@@ -148,19 +145,23 @@ class OrderList extends Component
     {
         if ($this->editingId) {
             $validated = $this->validate([
-                'formNote' => 'nullable|string|max:500',
+                'formRemark' => 'nullable|string|max:500',
             ]);
-            Order::findOrFail($this->editingId)->update(['note' => $validated['formNote']]);
+            Order::findOrFail($this->editingId)->update(['remark' => $validated['formRemark']]);
             $this->toastSuccess('订单已更新');
         } else {
             $validated = $this->validate([
                 'formMerchantId' => 'required|integer|exists:merchants,id',
-                'formNote' => 'nullable|string|max:500',
+                'formOrderDate' => 'nullable|date',
+                'formDeliveryDate' => 'nullable|date',
+                'formRemark' => 'nullable|string|max:500',
             ]);
             Order::create([
                 'order_no' => 'ORD' . date('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT),
                 'merchant_id' => $validated['formMerchantId'],
-                'note' => $validated['formNote'],
+                'order_date' => $validated['formOrderDate'] ?? null,
+                'delivery_date' => $validated['formDeliveryDate'] ?? null,
+                'remark' => $validated['formRemark'],
                 'status' => 1,
                 'total_amount' => 0,
                 'payment_status' => 1,
@@ -232,7 +233,9 @@ class OrderList extends Component
     {
         $this->editingId = null;
         $this->formMerchantId = 0;
-        $this->formNote = '';
+        $this->formOrderDate = '';
+        $this->formDeliveryDate = '';
+        $this->formRemark = '';
     }
 
     private function buildQuery()

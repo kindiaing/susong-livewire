@@ -26,6 +26,7 @@ use App\Livewire\Org\SupplierList;
 use App\Livewire\Org\VehicleList;
 use App\Livewire\Order\CartList;
 use App\Livewire\Order\FrequentlyBoughtList;
+use App\Livewire\Order\OrderDetail;
 use App\Livewire\Order\OrderList;
 use App\Livewire\Order\OrderReturnList;
 use App\Livewire\Order\RepurchaseTemplateList;
@@ -116,6 +117,7 @@ Route::middleware(['auth', 'permission'])->group(function () {
 
     // ── 订单配送 ──
     Route::get('/orders', OrderList::class)->name('orders');
+    Route::get('/orders/{id}', OrderDetail::class)->name('orders.detail');
     Route::get('/carts', CartList::class)->name('carts');
     Route::get('/frequently-bought', FrequentlyBoughtList::class)->name('frequently-bought');
     Route::get('/repurchase-templates', RepurchaseTemplateList::class)->name('repurchase-templates');

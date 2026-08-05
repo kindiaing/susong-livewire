@@ -25,6 +25,8 @@ use Illuminate\Support\Carbon;
  * @property int $settlement_type 结算方式：1现结，2账期，3预付款
  * @property int $is_locked 是否锁定：0否，1是
  * @property string|null $remark 备注
+ * @property \Carbon\Carbon|null $order_date 单据日期
+ * @property \Carbon\Carbon|null $delivery_date 收货日期
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
@@ -67,6 +69,8 @@ class Order extends Model
         'settlement_type',
         'is_locked',
         'remark',
+        'order_date',
+        'delivery_date',
     ];
 
     protected function casts(): array
@@ -82,6 +86,8 @@ class Order extends Model
             'payment_status' => 'integer',
             'settlement_type' => 'integer',
             'is_locked' => 'integer',
+            'order_date' => 'date',
+            'delivery_date' => 'date',
         ];
     }
 

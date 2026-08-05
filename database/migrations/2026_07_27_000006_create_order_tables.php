@@ -43,6 +43,8 @@ return new class extends Migration
             $table->tinyInteger('payment_status')->unsigned()->default(1)->comment('支付状态：1未支付，2已支付，3账期');
             $table->tinyInteger('settlement_type')->unsigned()->default(1)->comment('结算方式：1现结，2账期，3预付款');
             $table->tinyInteger('is_locked')->unsigned()->default(0)->comment('是否锁定：0否，1是');
+            $table->date('order_date')->nullable()->comment('单据日期');
+            $table->date('delivery_date')->nullable()->comment('收货日期');
             $table->text('remark')->nullable()->comment('备注');
             $table->timestamps();
             $table->softDeletes();
@@ -50,6 +52,8 @@ return new class extends Migration
             $table->index('delivery_route_id');
             $table->index('status');
             $table->index('batch');
+            $table->index('order_date');
+            $table->index('delivery_date');
             $table->comment('订单表');
         });
 
