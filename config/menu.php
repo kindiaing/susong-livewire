@@ -78,6 +78,7 @@ return [
             ['key' => 'finance.invoice',       'label' => '发票管理',   'route' => 'invoices',                'permission' => 'finance.invoice.view',             'description' => '开票记录与审核'],
             ['key' => 'finance.correction',    'label' => '授权更正',   'route' => 'correction-authorizations','permission' => 'finance.recharge.view',            'description' => '账目更正审批'],
             ['key' => 'finance.price-strategy','label' => '促销活动',   'route' => 'promotion-activities',   'permission' => 'price.promotion.view',             'description' => '促销活动与优惠规则'],
+            ['key' => 'finance.promotion-settings','label' => '促销设置',   'route' => 'promotion-settings',   'permission' => 'price.promotion.view',             'description' => '促销/商家价格/会员折扣配置'],
             ['key' => 'finance.loss',          'label' => '损耗管理',   'route' => 'loss-orders',             'permission' => 'loss.loss-order.view',             'description' => '损耗记录与审核'],
         ],
     ],

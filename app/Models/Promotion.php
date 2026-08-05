@@ -33,6 +33,11 @@ class Promotion extends Model
     public const TYPE_FLASH_SALE = 7;
     public const TYPE_MEMBER_DISCOUNT = 8;
 
+    // 审核状态常量
+    public const APPROVAL_PENDING = 1;
+    public const APPROVAL_APPROVED = 2;
+    public const APPROVAL_REJECTED = 3;
+
     // 状态常量
     public const STATUS_DISABLED = 0;
     public const STATUS_ENABLED = 1;
@@ -46,6 +51,7 @@ class Promotion extends Model
         'start_at',
         'end_at',
         'status',
+        'approval_status',
         'created_by',
     ];
 
@@ -55,6 +61,7 @@ class Promotion extends Model
             'promo_type' => 'integer',
             'scope_type' => 'integer',
             'status' => 'integer',
+            'approval_status' => 'integer',
             'start_at' => 'datetime',
             'end_at' => 'datetime',
         ];
@@ -85,6 +92,18 @@ class Promotion extends Model
         return [
             self::STATUS_ENABLED => '启用',
             self::STATUS_DISABLED => '禁用',
+        ];
+    }
+
+    /**
+     * 审核状态映射
+     */
+    public static function approvalStatusMap(): array
+    {
+        return [
+            self::APPROVAL_PENDING => '待审核',
+            self::APPROVAL_APPROVED => '已通过',
+            self::APPROVAL_REJECTED => '已拒绝',
         ];
     }
 

@@ -90,6 +90,14 @@ class StoreSkuPrice extends Model
         return $this->belongsTo(Sku::class);
     }
 
+    /**
+     * 关联商家（store_id 对应 merchant_id）
+     */
+    public function merchant()
+    {
+        return $this->belongsTo(Merchant::class, 'store_id');
+    }
+
     public function scopeEnabled($query)
     {
         return $query->where('status', self::STATUS_ENABLED);

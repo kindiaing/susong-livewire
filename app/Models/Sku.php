@@ -165,6 +165,36 @@ class Sku extends Model
     }
 
     /**
+     * 关联促销SKU明细
+     */
+    public function promotionSkus()
+    {
+        return $this->hasMany(PromotionSku::class);
+    }
+
+    /**
+     * 关联门店差异化价格
+     */
+    public function storeSkuPrices()
+    {
+        return $this->hasMany(StoreSkuPrice::class);
+    }
+
+    /**
+     * 获取渠道基准价
+     * offline → offline_price, miniapp → miniapp_price, delivery → delivery_price
+     */
+    public function getChannelPrice(string $channel = 'miniapp'): int
+    {
+        return match ($channel) {
+            'offline'  => $this->offline_price ?: $this->retail_price,
+            'miniapp'  => $this->miniapp_price ?: $this->retail_price,
+            'delivery' => $this->delivery_price ?: $this->retail_price,
+            default    => $this->retail_price,
+        };
+    }
+
+    /**
      * 作用域：启用
      */
     public function scopeEnabled($query)

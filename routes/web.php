@@ -32,6 +32,7 @@ use App\Livewire\Order\RepurchaseTemplateList;
 use App\Livewire\Picking\PickingTaskList;
 use App\Livewire\Price\PriceChangeLogList;
 use App\Livewire\Price\PricingConfig;
+use App\Livewire\Price\PromotionSettings;
 use App\Livewire\Product\CategoryList;
 use App\Livewire\Product\KeywordList;
 use App\Livewire\Product\ProductList;
@@ -144,6 +145,7 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::get('/correction-authorizations', CorrectionAuthorizationList::class)->name('correction-authorizations');
     Route::get('/promotion-activities', PromotionActivityList::class)->name('promotion-activities');
     Route::get('/price-apportionments', PriceApportionmentList::class)->name('price-apportionments');
+    Route::get('/promotion-settings', PromotionSettings::class)->name('promotion-settings');
     Route::get('/price-change-logs', PriceChangeLogList::class)->name('price-change-logs');
 
     // ── 商家扩展 ──
