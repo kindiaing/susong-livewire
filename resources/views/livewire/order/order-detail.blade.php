@@ -55,7 +55,15 @@
         <div class="flex items-center justify-between px-4 py-2 border-b">
             <h2 class="text-sm font-semibold text-foreground">订单明细</h2>
             <div class="flex items-center gap-2">
-                @if($order->status === 1 || $isSuperAdmin && !in_array($order->status, [9]))
+                @if($canEditItems)
+                    <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1 text-xs hover:bg-accent transition-colors">
+                        <x-ui.icon name="arrow-up-tray" class="w-3.5 h-3.5" /> 导入
+                    </button>
+                @endif
+                <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1 text-xs hover:bg-accent transition-colors">
+                    <x-ui.icon name="arrow-down-tray" class="w-3.5 h-3.5" /> 导出
+                </button>
+                @if($canEditItems)
                     <button type="button" wire:click="openAddItemModal" class="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-blue-700 transition-colors">
                         <x-ui.icon name="plus" class="w-3.5 h-3.5" /> 添加
                     </button>
@@ -101,7 +109,7 @@
                     </td>
                     <td class="px-3 py-1.5">
                         <div class="flex items-center gap-1">
-                            @if($order->status === 1 || $isSuperAdmin && !in_array($order->status, [9]))
+                            @if($canEditItems)
                                 <button type="button" wire:click="openEditItemModal({{ $item->id }})" class="text-blue-500 hover:text-blue-700" title="编辑">
                                     <x-ui.icon name="pencil" class="w-3.5 h-3.5" />
                                 </button>
@@ -140,7 +148,7 @@
                             <x-ui.icon name="trash" class="w-3 h-3" /> 删除
                         </button>
                     @endif
-                    <button type="button" wire:click="closeAddItemModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <button type="button" wire:click="cancelAddItem" class="text-muted-foreground hover:text-foreground transition-colors">
                         <x-ui.icon name="x-mark" class="w-5 h-5" />
                     </button>
                 </div>
@@ -173,8 +181,38 @@
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">
-                <button type="button" wire:click="closeAddItemModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="cancelAddItem" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
                 <button type="button" wire:click="saveItem" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">{{ $editingItemId ? '保存' : '添加' }}</button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- 保存确认弹窗 --}}
+    @if($showSaveConfirm)
+    <div class="fixed inset-0 z-[60] flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
+            <h2 class="text-lg font-semibold text-foreground mb-2">{{ $editingItemId ? '确认保存修改？' : '确认添加明细？' }}</h2>
+            <div class="rounded-md bg-muted p-3 mb-6 text-sm text-foreground whitespace-pre-line">{{ $saveConfirmTitle }}</div>
+            <div class="flex justify-end gap-3">
+                <button type="button" wire:click="closeSaveConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">返回修改</button>
+                <button type="button" wire:click="executeSaveItem" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">确认</button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- 取消编辑确认弹窗 --}}
+    @if($showCancelConfirm)
+    <div class="fixed inset-0 z-[60] flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
+            <h2 class="text-lg font-semibold text-foreground mb-2">放弃编辑？</h2>
+            <p class="text-sm text-muted-foreground mb-6">您已填写部分数据，确认放弃编辑？未保存的内容将丢失。</p>
+            <div class="flex justify-end gap-3">
+                <button type="button" wire:click="closeCancelConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">继续编辑</button>
+                <button type="button" wire:click="confirmCancelEdit" class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">放弃</button>
             </div>
         </div>
     </div>
@@ -205,6 +243,66 @@
             <div class="flex justify-end gap-3">
                 <button type="button" wire:click="closeConfirmModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
                 <button type="button" wire:click="executeConfirm" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">确认</button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- 导出弹窗 --}}
+    @if($showExportModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
+            <h2 class="text-lg font-semibold text-foreground mb-4">导出订单明细</h2>
+            <div class="space-y-3">
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="exp-sku" checked disabled class="rounded border-input" />
+                    <label for="exp-sku" class="text-sm">SKU编码 / 商品名称 / 规格</label>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="exp-qty" checked disabled class="rounded border-input" />
+                    <label for="exp-qty" class="text-sm">数量 / 单价 / 小计</label>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="exp-strategy" wire:model="exportStrategy" class="rounded border-input" />
+                    <label for="exp-strategy" class="text-sm">促销价</label>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="exp-actual" wire:model="exportActual" class="rounded border-input" />
+                    <label for="exp-actual" class="text-sm">实际数量 / 实际小计</label>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" wire:click="closeExportModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="executeExport" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">导出 Excel</button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- 导入弹窗 --}}
+    @if($showImportModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
+            <h2 class="text-lg font-semibold text-foreground mb-4">导入订单明细</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">选择 Excel 文件</label>
+                    <input type="file" wire:model="importFile" accept=".xlsx,.xls,.csv" class="block w-full text-sm text-muted-foreground
+                        file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium
+                        file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                    @error('importFile') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div class="rounded-md bg-muted p-3 text-xs text-muted-foreground">
+                    <p class="font-medium mb-1">导入模板列：</p>
+                    <p>SKU编码 | 数量 | 单价（元）</p>
+                    <p class="mt-1 text-[11px]">注：已存在的 SKU 将被跳过，不会重复添加</p>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" wire:click="closeImportModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="executeImport" class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors">导入</button>
             </div>
         </div>
     </div>
