@@ -129,7 +129,7 @@ function setting(string $key, mixed $default = null): mixed
  * @param string     $label  自定义文字（覆盖映射中的默认文字）
  * @return string
  */
-function status_badge(int $status, string $type = 'default', string $label = ''): string
+function status_badge(int|string $status, string $type = 'default', string $label = ''): string
 {
     $map = match ($type) {
         'active' => [1 => ['启用', 'bg-green-100 text-green-700'], 0 => ['禁用', 'bg-gray-100 text-gray-600']],

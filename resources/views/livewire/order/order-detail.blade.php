@@ -57,11 +57,11 @@
             <div class="flex items-center gap-2">
                 @if($canEditItems)
                     <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1 text-xs hover:bg-accent transition-colors">
-                        <x-ui.icon name="arrow-up-tray" class="w-3.5 h-3.5" /> 导入
+                        <x-ui.icon name="arrow-down-tray" class="w-3.5 h-3.5" /> 导入
                     </button>
                 @endif
                 <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1 text-xs hover:bg-accent transition-colors">
-                    <x-ui.icon name="arrow-down-tray" class="w-3.5 h-3.5" /> 导出
+                    <x-ui.icon name="arrow-up-tray" class="w-3.5 h-3.5" /> 导出
                 </button>
                 @if($canEditItems)
                     <button type="button" wire:click="openAddItemModal" class="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-blue-700 transition-colors">
@@ -111,7 +111,7 @@
                         <div class="flex items-center gap-1">
                             @if($canEditItems)
                                 <button type="button" wire:click="openEditItemModal({{ $item->id }})" class="text-blue-500 hover:text-blue-700" title="编辑">
-                                    <x-ui.icon name="pencil" class="w-3.5 h-3.5" />
+                                    <x-ui.icon name="pencil-square" class="w-3.5 h-3.5" />
                                 </button>
                                 <button type="button" wire:click="confirmDeleteItem({{ $item->id }})" class="text-red-500 hover:text-red-700" title="删除">
                                     <x-ui.icon name="trash" class="w-3.5 h-3.5" />

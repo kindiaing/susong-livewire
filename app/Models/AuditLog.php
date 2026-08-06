@@ -24,11 +24,12 @@ use Illuminate\Support\Carbon;
  */
 class AuditLog extends Model
 {
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $table = 'audit_logs';
 
     const CREATED_AT = 'created_at';
+    const UPDATED_AT = null;
 
     protected $fillable = [
         'model_type',
@@ -144,7 +145,6 @@ class AuditLog extends Model
             'reason' => $reason,
             'relation_type' => $relationType,
             'relation_id' => $relationId,
-            'created_at' => now(),
         ]);
     }
 }

@@ -76,7 +76,7 @@
                                 <div class="flex items-center gap-1 mt-0.5">
                                     <p class="text-xs text-muted-foreground">{{ $config->description ?? '暂无说明' }}</p>
                                     <button type="button" wire:click="startEdit({{ $config->id }})" class="text-xs text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100">
-                                        <x-ui.icon name="pencil" class="w-3 h-3" />
+                                        <x-ui.icon name="pencil-square" class="w-3 h-3" />
                                     </button>
                                 </div>
                             @endif

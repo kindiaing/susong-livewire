@@ -70,7 +70,7 @@
                         <div class="flex items-center gap-1">
                             {{-- 编辑 --}}
                             @can('user.permission.edit')
-                            <button type="button" wire:click="openEditModal({{ $perm->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil" class="w-3.5 h-3.5" /></button>
+                            <button type="button" wire:click="openEditModal({{ $perm->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
                             @endcan
                             {{-- 角色分配 --}}
                             @can('user.permission.edit')

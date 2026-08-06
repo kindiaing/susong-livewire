@@ -36,6 +36,12 @@ class MerchantSkuVisibilityList extends Component
 
     public string $filterTargetType = '';
 
+    public string $filterDateStart = '';
+
+    public string $filterDateEnd = '';
+
+    public ?int $editingId = null;
+
     // 弹窗属性名覆盖
     public bool $showCreateModal = false;
 
@@ -63,6 +69,19 @@ class MerchantSkuVisibilityList extends Component
     public function openCreateModal(): void
     {
         $this->resetForm();
+        $this->editingId = null;
+        $this->showCreateModal = true;
+    }
+
+    public function openEditModal(int $id): void
+    {
+        $record = MerchantSkuVisibility::findOrFail($id);
+        $this->editingId = $id;
+        $this->formMerchantId = $record->merchant_id;
+        $this->formTargetType = $record->target_type;
+        $this->formProductId = $record->product_id;
+        $this->formSkuId = $record->sku_id ?? 0;
+        $this->formIsVisible = $record->is_visible;
         $this->showCreateModal = true;
     }
 
@@ -74,39 +93,63 @@ class MerchantSkuVisibilityList extends Component
             'formIsVisible' => 'required|in:0,1',
         ];
 
-        if ($this->formTargetType === 'product') {
-            $rules['formProductId'] = 'required|integer|exists:products,id';
-            $validated = $this->validate($rules);
-            MerchantSkuVisibility::updateOrCreate(
-                [
+        if ($this->editingId) {
+            // 编辑模式
+            $record = MerchantSkuVisibility::findOrFail($this->editingId);
+            if ($this->formTargetType === 'product') {
+                $record->update([
                     'merchant_id' => $validated['formMerchantId'],
                     'target_type' => 'product',
                     'product_id' => $validated['formProductId'],
                     'sku_id' => null,
-                ],
-                [
                     'is_visible' => $validated['formIsVisible'],
-                ]
-            );
-        } else {
-            $rules['formSkuId'] = 'required|integer|exists:skus,id';
-            $validated = $this->validate($rules);
-            // 获取SKU对应的product_id
-            $sku = Sku::find($validated['formSkuId']);
-            MerchantSkuVisibility::updateOrCreate(
-                [
+                ]);
+            } else {
+                $sku = Sku::find($validated['formSkuId']);
+                $record->update([
                     'merchant_id' => $validated['formMerchantId'],
                     'target_type' => 'sku',
                     'product_id' => $sku->product_id,
                     'sku_id' => $validated['formSkuId'],
-                ],
-                [
                     'is_visible' => $validated['formIsVisible'],
-                ]
-            );
-        }
+                ]);
+            }
+            $this->toastSuccess('可见性配置已更新');
+        } else {
+            if ($this->formTargetType === 'product') {
+                $rules['formProductId'] = 'required|integer|exists:products,id';
+                $validated = $this->validate($rules);
+                MerchantSkuVisibility::updateOrCreate(
+                    [
+                        'merchant_id' => $validated['formMerchantId'],
+                        'target_type' => 'product',
+                        'product_id' => $validated['formProductId'],
+                        'sku_id' => null,
+                    ],
+                    [
+                        'is_visible' => $validated['formIsVisible'],
+                    ]
+                );
+            } else {
+                $rules['formSkuId'] = 'required|integer|exists:skus,id';
+                $validated = $this->validate($rules);
+                // 获取SKU对应的product_id
+                $sku = Sku::find($validated['formSkuId']);
+                MerchantSkuVisibility::updateOrCreate(
+                    [
+                        'merchant_id' => $validated['formMerchantId'],
+                        'target_type' => 'sku',
+                        'product_id' => $sku->product_id,
+                        'sku_id' => $validated['formSkuId'],
+                    ],
+                    [
+                        'is_visible' => $validated['formIsVisible'],
+                    ]
+                );
+            }
 
-        $this->toastSuccess('可见性配置已保存');
+            $this->toastSuccess('可见性配置已保存');
+        }
         $this->showCreateModal = false;
         $this->resetForm();
     }
@@ -161,8 +204,9 @@ class MerchantSkuVisibilityList extends Component
         $this->clearSelection();
     }
 
-    private function resetForm(): void
+    public function resetForm(): void
     {
+        $this->editingId = null;
         $this->formMerchantId = 0;
         $this->formTargetType = 'product';
         $this->formProductId = 0;
@@ -251,6 +295,12 @@ class MerchantSkuVisibilityList extends Component
                             });
                     });
                 });
+            })
+            ->when($this->filterDateStart, function ($q) {
+                $q->whereDate('created_at', '>=', $this->filterDateStart);
+            })
+            ->when($this->filterDateEnd, function ($q) {
+                $q->whereDate('created_at', '<=', $this->filterDateEnd);
             });
     }
 
@@ -267,7 +317,11 @@ class MerchantSkuVisibilityList extends Component
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 
-        return view('livewire.product.merchant-sku-visibility-list', compact('records', 'merchants', 'products', 'skuOptions', 'allColumns', 'selectedCount'))
+        $filterDateStart = $this->filterDateStart;
+        $filterDateEnd = $this->filterDateEnd;
+        $editingId = $this->editingId;
+
+        return view('livewire.product.merchant-sku-visibility-list', compact('records', 'merchants', 'products', 'skuOptions', 'allColumns', 'selectedCount', 'filterDateStart', 'filterDateEnd', 'editingId'))
             ->layout('components.app-layout')
             ->title('可见性配置');
     }

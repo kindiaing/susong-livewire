@@ -77,10 +77,41 @@ class PurchaseOrderList extends Component
 
     public function delete(): void
     {
-        PurchaseOrder::findOrFail($this->deletingId)->delete();
+        $order = PurchaseOrder::findOrFail($this->deletingId);
+
+        if (in_array($order->status, [PurchaseOrder::STATUS_STOCKED, PurchaseOrder::STATUS_COMPLETED, PurchaseOrder::STATUS_CANCELLED])) {
+            $this->toastError('已入库/已完成/已作废的采购单不可删除');
+            $this->showDeleteConfirm = false;
+            $this->deletingId = null;
+            return;
+        }
+
+        $order->delete();
         $this->toastSuccess('采购单已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
+    }
+
+    public function batchDelete(): void
+    {
+        $count = count($this->selectedIds);
+        if ($count === 0) {
+            $this->toastWarning('请先选择要删除的采购单');
+            return;
+        }
+        $deletable = PurchaseOrder::whereIn('id', $this->selectedIds)
+            ->whereNotIn('status', [PurchaseOrder::STATUS_STOCKED, PurchaseOrder::STATUS_COMPLETED, PurchaseOrder::STATUS_CANCELLED])
+            ->pluck('id')
+            ->toArray();
+
+        if (empty($deletable)) {
+            $this->toastError('所选采购单均为已入库/已完成/已作废状态，不可删除');
+            return;
+        }
+
+        PurchaseOrder::whereIn('id', $deletable)->delete();
+        $this->toastSuccess('已删除 ' . count($deletable) . ' 条采购单');
+        $this->clearSelection();
     }
 
     public function resetFilters(): void
@@ -90,7 +121,7 @@ class PurchaseOrderList extends Component
         $this->resetPage();
     }
 
-    private function resetForm(): void
+    public function resetForm(): void
     {
         $this->editingId = null;
         $this->formSupplierId = 0;

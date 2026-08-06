@@ -53,18 +53,27 @@
         @if($order->remark)<span>备注：<b class="text-foreground">{{ $order->remark }}</b></span>@endif
     </div>
 
-    {{-- 明细区：工具栏 + 表格 --}}
-    <div class="rounded-lg border bg-card">
-        <div class="flex items-center justify-between px-4 py-2 border-b">
-            <h2 class="text-sm font-semibold text-foreground">采购明细</h2>
-            <div class="flex items-center gap-2">
+    {{-- 明细区 + 状态变更记录：Tab 切换 --}}
+    <div class="rounded-lg border bg-card" x-data="{ activeTab: 'items' }">
+        {{-- Tab 导航 + 工具栏 --}}
+        <div class="flex items-center border-b">
+            <button type="button" @click="activeTab = 'items'" :class="activeTab === 'items' ? 'border-b-2 border-blue-600 text-foreground font-medium' : 'text-muted-foreground hover:text-foreground'" class="px-4 py-2 text-sm transition-colors">
+                采购明细
+            </button>
+            <button type="button" @click="activeTab = 'logs'" :class="activeTab === 'logs' ? 'border-b-2 border-blue-600 text-foreground font-medium' : 'text-muted-foreground hover:text-foreground'" class="px-4 py-2 text-sm transition-colors">
+                状态变更记录
+                @if($order->auditLogs->isNotEmpty())
+                    <span class="ml-1 inline-flex items-center justify-center rounded-full bg-blue-100 text-blue-700 px-1.5 py-0.5 text-[10px] font-medium leading-none">{{ $order->auditLogs->count() }}</span>
+                @endif
+            </button>
+            <div class="ml-auto flex items-center gap-2 pr-4" x-show="activeTab === 'items'">
                 @if(in_array($order->status, [1, 2]) || $isSuperAdmin && !in_array($order->status, [9]))
                     <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1 text-xs hover:bg-accent transition-colors">
-                        <x-ui.icon name="arrow-up-tray" class="w-3.5 h-3.5" /> 导入
+                        <x-ui.icon name="arrow-down-tray" class="w-3.5 h-3.5" /> 导入
                     </button>
                 @endif
                 <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1 text-xs hover:bg-accent transition-colors">
-                    <x-ui.icon name="arrow-down-tray" class="w-3.5 h-3.5" /> 导出
+                    <x-ui.icon name="arrow-up-tray" class="w-3.5 h-3.5" /> 导出
                 </button>
                 @if(in_array($order->status, [1, 2]) || $isSuperAdmin && !in_array($order->status, [9]))
                     <button type="button" wire:click="openAddItemModal" class="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-blue-700 transition-colors">
@@ -74,7 +83,8 @@
             </div>
         </div>
 
-        {{-- 表头 + 表体 --}}
+        {{-- 采购明细 Tab --}}
+        <div x-show="activeTab === 'items'">
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b text-[11px] font-medium text-muted-foreground bg-muted/30">
@@ -105,7 +115,7 @@
                         <div class="flex items-center gap-1">
                             @if(in_array($order->status, [1, 2]) || $isSuperAdmin && !in_array($order->status, [9]))
                                 <button type="button" wire:click="openEditItemModal({{ $item->id }})" class="text-blue-500 hover:text-blue-700" title="编辑">
-                                    <x-ui.icon name="pencil" class="w-3.5 h-3.5" />
+                                    <x-ui.icon name="pencil-square" class="w-3.5 h-3.5" />
                                 </button>
                                 <button type="button" wire:click="confirmDeleteItem({{ $item->id }})" class="text-red-500 hover:text-red-700" title="删除">
                                     <x-ui.icon name="trash" class="w-3.5 h-3.5" />
@@ -126,32 +136,32 @@
                 @endforelse
             </tbody>
         </table>
-    </div>
+        </div>
 
-    {{-- 审计日志 --}}
-    @if($order->auditLogs->isNotEmpty())
-    <div class="rounded-lg border bg-card mt-4">
-        <div class="px-4 py-2 border-b">
-            <h2 class="text-sm font-semibold text-foreground">状态变更记录</h2>
-        </div>
-        <div class="divide-y">
-            @foreach($order->auditLogs->sortByDesc('created_at') as $log)
-            <div class="flex items-center gap-3 px-4 py-2 text-sm">
-                <span class="text-muted-foreground text-xs w-32 shrink-0">{{ $log->created_at?->format('Y-m-d H:i') }}</span>
-                <span class="font-medium text-foreground">{{ $log->action_label }}</span>
-                @if($log->before_data && isset($log->before_data['status_label']))
-                    <span class="text-muted-foreground">{{ $log->before_data['status_label'] }}</span>
-                    <x-ui.icon name="arrow-right" class="w-3 h-3 text-muted-foreground" />
-                    <span class="text-foreground font-medium">{{ $log->after_data['status_label'] ?? '-' }}</span>
-                @endif
-                @if($log->operator)
-                    <span class="text-muted-foreground ml-auto">操作人：{{ $log->operator->name }}</span>
-                @endif
+        {{-- 状态变更记录 Tab --}}
+        <div x-show="activeTab === 'logs'">
+            @if($order->auditLogs->isNotEmpty())
+            <div class="divide-y">
+                @foreach($order->auditLogs->sortByDesc('created_at') as $log)
+                <div class="flex items-center gap-3 px-4 py-2 text-sm">
+                    <span class="text-muted-foreground text-xs w-32 shrink-0">{{ $log->created_at?->format('Y-m-d H:i:s') }}</span>
+                    <span class="font-medium text-foreground">{{ $log->action_label }}</span>
+                    @if($log->before_data && isset($log->before_data['status_label']))
+                        <span class="text-muted-foreground">{{ $log->before_data['status_label'] }}</span>
+                        <x-ui.icon name="arrow-right" class="w-3 h-3 text-muted-foreground" />
+                        <span class="text-foreground font-medium">{{ $log->after_data['status_label'] ?? '-' }}</span>
+                    @endif
+                    @if($log->operator)
+                        <span class="text-muted-foreground ml-auto">操作人：{{ $log->operator->name }}</span>
+                    @endif
+                </div>
+                @endforeach
             </div>
-            @endforeach
+            @else
+            <div class="px-4 py-8 text-center text-muted-foreground text-sm">暂无状态变更记录</div>
+            @endif
         </div>
     </div>
-    @endif
 
     {{-- 导出弹窗 --}}
     @if($showExportModal)

@@ -113,7 +113,7 @@
                     <td class="px-4 py-2 text-muted-foreground font-mono truncate">{{ $log->ip ?? '-' }}</td>
 
                     {{-- 时间 --}}
-                    <td class="px-4 py-2 text-muted-foreground">{{ $log->created_at?->format('Y-m-d H:i') }}</td>
+                    <td class="px-4 py-2 text-muted-foreground">{{ $log->created_at?->format('Y-m-d H:i:s') }}</td>
 
                     {{-- 详情按钮 --}}
                     <td class="px-4 py-2 text-right">

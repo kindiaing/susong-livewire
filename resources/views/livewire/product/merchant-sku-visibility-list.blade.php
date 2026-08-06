@@ -13,7 +13,7 @@
     </div>
 
     {{-- 筛选区 --}}
-    <div class="flex items-center gap-3 mb-4">
+    <div class="flex flex-wrap items-center gap-3 mb-4">
         <div x-data class="relative">
             <input type="text" wire:model.live="searchMerchant" class="flex h-9 w-48 rounded-md border border-input bg-background pl-3 pr-8 text-sm" placeholder="搜索商家名称..." />
             @if($searchMerchant)
@@ -41,10 +41,19 @@
             <option value="product">商品级</option>
             <option value="sku">SKU级</option>
         </select>
+        {{-- 日期范围筛选 --}}
+        <input type="date" wire:model.live="filterDateStart" class="flex h-9 rounded-md border border-input bg-background px-3 text-sm" title="开始日期" />
+        <span class="text-muted-foreground text-sm">~</span>
+        <input type="date" wire:model.live="filterDateEnd" class="flex h-9 rounded-md border border-input bg-background px-3 text-sm" title="结束日期" />
+        @if($filterDateStart || $filterDateEnd)
+            <button type="button" wire:click="$set('filterDateStart',''); $set('filterDateEnd','')" class="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors" title="清除日期">
+                <x-ui.icon name="x-mark" class="w-3.5 h-3.5" />
+            </button>
+        @endif
         <div class="flex-1"></div>
         <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="adjustments" class="w-4 h-4" />列配置</button>
-        <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="arrow-down-tray" class="w-4 h-4" />导出</button>
-        <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="arrow-up-tray" class="w-4 h-4" />导入</button>
+        <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="arrow-up-tray" class="w-4 h-4" />导出</button>
+        <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="arrow-down-tray" class="w-4 h-4" />导入</button>
         @if($selectedCount > 0)
             <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
             @can('product.visibility.delete')
@@ -65,7 +74,8 @@
                     <th class="px-4 py-2 text-left">商品</th>
                     <th class="px-4 py-2 text-left">SKU编码</th>
                     <th class="px-4 py-2 text-left w-24">是否可见</th>
-                    <th class="px-4 py-2 text-left w-24">操作</th>
+                    <th class="px-4 py-2 text-left w-36">创建时间</th>
+                    <th class="px-4 py-2 text-left w-28">操作</th>
                 </tr>
             </thead>
             <tbody>
@@ -89,15 +99,21 @@
                             @endif
                         </button>
                     </td>
+                    <td class="px-4 py-2 text-muted-foreground text-xs">{{ $record->created_at?->format('Y-m-d H:i') }}</td>
                     <td class="px-4 py-2">
-                        @can('product.visibility.delete')
-                        <button type="button" wire:click="confirmDelete({{ $record->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
-                        @endcan
+                        <div class="inline-flex items-center gap-0.5">
+                            @can('product.visibility.edit')
+                            <button type="button" wire:click="openEditModal({{ $record->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
+                            @endcan
+                            @can('product.visibility.delete')
+                            <button type="button" wire:click="confirmDelete({{ $record->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
+                            @endcan
+                        </div>
                     </td>
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="px-6 py-12 text-center text-muted-foreground">暂无可见性配置数据</td>
+                    <td colspan="8" class="px-6 py-12 text-center text-muted-foreground">暂无可见性配置数据</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -106,12 +122,17 @@
 
     <div class="mt-4">{{ $records->links() }}</div>
 
-    {{-- 新增弹窗 --}}
+    {{-- 新增/编辑弹窗 --}}
     @if($showCreateModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
-            <h2 class="text-lg font-semibold text-foreground mb-4">新增可见性配置</h2>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">{{ $editingId ? '编辑可见性配置' : '新增可见性配置' }}</h2>
+                <button type="button" wire:click="closeCreateModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
             <div class="space-y-4">
                 {{-- 商家选择 --}}
                 <div>
@@ -157,7 +178,7 @@
                 {{-- SKU级：选择SKU --}}
                 @if($formTargetType === 'sku')
                 <div>
-                    <x-ui.searchable-select label="SKU *" wire-model="formSkuId" :options="$skuOptions" placeholder="搜索SKU..." wireModel="formSkuId" />
+                    <x-ui.searchable-select label="SKU *" wire-model="formSkuId" :options="$skuOptions" placeholder="搜索SKU..." wireModel="formSkuId" :value="$formSkuId" />
                     @error('formSkuId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 @endif
@@ -173,7 +194,7 @@
             </div>
             <div class="flex justify-end gap-3 mt-6">
                 <button type="button" wire:click="closeCreateModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button type="button" wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
+                <button type="button" wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">{{ $editingId ? '保存' : '添加' }}</button>
             </div>
         </div>
     </div>

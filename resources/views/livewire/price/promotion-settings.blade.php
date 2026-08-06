@@ -230,7 +230,7 @@
                                     <div class="flex justify-end gap-1">
                                         <button type="button" wire:click="editStorePrice({{ $sp->id }})"
                                             class="inline-flex items-center justify-center rounded p-1 text-blue-600 hover:bg-blue-50 transition-colors">
-                                            <x-ui.icon name="pencil" class="w-4 h-4" />
+                                            <x-ui.icon name="pencil-square" class="w-4 h-4" />
                                         </button>
                                         <button type="button" wire:click="deleteStorePrice({{ $sp->id }})"
                                             onclick="return confirm('确认删除？')"
@@ -399,7 +399,7 @@
                                     <div class="flex justify-end gap-1">
                                         <button type="button" wire:click="editMemberDiscount({{ $md->id }})"
                                             class="inline-flex items-center justify-center rounded p-1 text-blue-600 hover:bg-blue-50 transition-colors">
-                                            <x-ui.icon name="pencil" class="w-4 h-4" />
+                                            <x-ui.icon name="pencil-square" class="w-4 h-4" />
                                         </button>
                                         <button type="button" wire:click="deleteMemberDiscount({{ $md->id }})"
                                             onclick="return confirm('确认删除？')"

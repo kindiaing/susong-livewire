@@ -94,7 +94,7 @@
 
                     {{-- 时间 --}}
                     <td class="px-4 py-3 text-muted-foreground">
-                        {{ $approval->created_at?->format('Y-m-d H:i') }}
+                        {{ $approval->created_at?->format('Y-m-d H:i:s') }}
                     </td>
 
                     {{-- 状态 --}}
