@@ -3,7 +3,12 @@
 <div class="fixed inset-0 z-50 flex items-center justify-center">
     <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
     <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6">
-        <h2 class="text-lg font-semibold text-foreground mb-4">导出 Excel</h2>
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-foreground">导出 Excel</h2>
+            <button type="button" wire:click="closeExportModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                <x-ui.icon name="x-mark" class="w-5 h-5" />
+            </button>
+        </div>
         <div class="space-y-4">
             {{-- 格式选择 --}}
             <div>

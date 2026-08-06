@@ -119,7 +119,12 @@
     <div class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
-            <h2 class="text-lg font-semibold text-foreground mb-4">新增应收</h2>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">新增应收</h2>
+                <button type="button" wire:click="closeModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">订单 <span class="text-red-500">*</span></label>

@@ -3,7 +3,10 @@
 <div class="fixed inset-0 z-50 flex items-center justify-center">
     <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
     <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6">
-        <h2 class="text-lg font-semibold text-foreground mb-4">批量导入</h2>
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-foreground">批量导入</h2>
+            <button type="button" wire:click="closeImportModal" class="text-muted-foreground hover:text-foreground transition-colors"><x-ui.icon name="x-mark" class="w-5 h-5" /></button>
+        </div>
         <div class="space-y-4">
             {{-- 说明区域 --}}
             <div class="rounded-md bg-muted/40 px-3 py-2.5 space-y-1">

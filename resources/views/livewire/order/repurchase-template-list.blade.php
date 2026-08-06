@@ -76,7 +76,12 @@
     <div class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
-            <h2 class="text-lg font-semibold text-foreground mb-4">{{ $editingId ? '编辑模板' : '新增模板' }}</h2>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">{{ $editingId ? '编辑模板' : '新增模板' }}</h2>
+                <button type="button" wire:click="closeModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
             <div class="space-y-4">
                 <div>
                     <x-ui.searchable-select label="商家 *" wire-model="formMerchantId" :options="$merchantOptions" placeholder="搜索商家..." wireModel="formMerchantId" />

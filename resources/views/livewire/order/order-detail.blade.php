@@ -143,11 +143,6 @@
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-foreground">{{ $editingItemId ? '编辑订单明细' : '添加订单明细' }}</h2>
                 <div class="flex items-center gap-2">
-                    @if($editingItemId)
-                        <button type="button" wire:click="confirmDeleteItem({{ $editingItemId }})" class="text-red-500 hover:text-red-700 text-xs inline-flex items-center gap-1 border border-red-300 rounded px-2 py-1 hover:bg-red-50 transition-colors">
-                            <x-ui.icon name="trash" class="w-3 h-3" /> 删除
-                        </button>
-                    @endif
                     <button type="button" wire:click="cancelAddItem" class="text-muted-foreground hover:text-foreground transition-colors">
                         <x-ui.icon name="x-mark" class="w-5 h-5" />
                     </button>
@@ -193,7 +188,12 @@
     <div class="fixed inset-0 z-[60] flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
-            <h2 class="text-lg font-semibold text-foreground mb-2">{{ $editingItemId ? '确认保存修改？' : '确认添加明细？' }}</h2>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">{{ $editingItemId ? '确认保存修改？' : '确认添加明细？' }}</h2>
+                <button type="button" wire:click="closeDeleteItemConfirm" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
             <div class="rounded-md bg-muted p-3 mb-6 text-sm text-foreground whitespace-pre-line">{{ $saveConfirmTitle }}</div>
             <div class="flex justify-end gap-3">
                 <button type="button" wire:click="closeSaveConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">返回修改</button>
@@ -208,7 +208,12 @@
     <div class="fixed inset-0 z-[60] flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
-            <h2 class="text-lg font-semibold text-foreground mb-2">放弃编辑？</h2>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">放弃编辑？</h2>
+                <button type="button" wire:click="closeDeleteItemConfirm" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
             <p class="text-sm text-muted-foreground mb-6">您已填写部分数据，确认放弃编辑？未保存的内容将丢失。</p>
             <div class="flex justify-end gap-3">
                 <button type="button" wire:click="closeCancelConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">继续编辑</button>
@@ -223,7 +228,12 @@
     <div class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
-            <h2 class="text-lg font-semibold text-foreground mb-2">确认删除</h2>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">确认删除</h2>
+                <button type="button" wire:click="closeDeleteItemConfirm" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
             <p class="text-sm text-muted-foreground mb-6">确认删除此订单明细？此操作不可撤销。</p>
             <div class="flex justify-end gap-3">
                 <button type="button" wire:click="closeDeleteItemConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
@@ -238,7 +248,12 @@
     <div class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
-            <h2 class="text-lg font-semibold text-foreground mb-2">确认操作</h2>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">确认操作</h2>
+                <button type="button" wire:click="closeConfirmModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
             <p class="text-sm text-muted-foreground mb-6">{{ $confirmTitle }}</p>
             <div class="flex justify-end gap-3">
                 <button type="button" wire:click="closeConfirmModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
@@ -253,7 +268,12 @@
     <div class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
-            <h2 class="text-lg font-semibold text-foreground mb-4">导出订单明细</h2>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">导出订单明细</h2>
+                <button type="button" wire:click="closeExportModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
             <div class="space-y-3">
                 <div class="flex items-center gap-2">
                     <input type="checkbox" id="exp-sku" checked disabled class="rounded border-input" />
@@ -285,7 +305,12 @@
     <div class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
-            <h2 class="text-lg font-semibold text-foreground mb-4">导入订单明细</h2>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">导入订单明细</h2>
+                <button type="button" wire:click="closeImportModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">选择 Excel 文件</label>

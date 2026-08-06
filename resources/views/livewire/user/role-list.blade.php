@@ -92,7 +92,12 @@
     <div class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
-            <h2 class="text-lg font-semibold text-foreground mb-4">{{ $editingId ? '编辑角色' : '新增角色' }}</h2>
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">{{ $editingId ? '编辑角色' : '新增角色' }}</h2>
+                <button type="button" wire:click="closeModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">角色标识 <span class="text-red-500">*</span></label>
@@ -130,8 +135,13 @@
     <div class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-4xl mx-4 p-6">
-            <h2 class="text-lg font-semibold text-foreground mb-1">分配权限</h2>
-            <p class="text-sm text-muted-foreground mb-4">角色：{{ $permissionRoleName }}</p>
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-lg font-semibold text-foreground">分配权限</h2>
+                    <p class="text-sm text-muted-foreground mt-1">角色：{{ $permissionRoleName }}</p>
+                </div>
+                <button type="button" wire:click="closePermissionModal" class="text-muted-foreground hover:text-foreground transition-colors"><x-ui.icon name="x-mark" class="w-5 h-5" /></button>
+            </div>
 
             <div class="max-h-[480px] overflow-y-auto border rounded-lg">
                 <table class="w-full text-sm">

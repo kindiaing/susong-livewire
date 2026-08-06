@@ -146,8 +146,8 @@
                  wire:click.stop>
                 <div class="flex items-center justify-between border-b px-6 py-4">
                     <h2 class="text-lg font-semibold text-foreground">审计详情</h2>
-                    <button type="button" wire:click="closeDetail" class="p-1 rounded-md hover:bg-muted text-muted-foreground">
-                        <x-ui.icon name="x" class="w-5 h-5" />
+                    <button type="button" wire:click="closeDetail" class="text-muted-foreground hover:text-foreground transition-colors">
+                        <x-ui.icon name="x-mark" class="w-5 h-5" />
                     </button>
                 </div>
                 <div class="px-6 py-4 space-y-4">

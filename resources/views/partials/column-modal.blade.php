@@ -5,8 +5,8 @@
     <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6">
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-semibold text-foreground">自定义显示列</h2>
-            <button type="button" wire:click="closeColumnModal" class="rounded-md p-1 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            <button type="button" wire:click="closeColumnModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                <x-ui.icon name="x-mark" class="w-5 h-5" />
             </button>
         </div>
         <div class="space-y-1 max-h-96 overflow-y-auto border rounded-md p-3">

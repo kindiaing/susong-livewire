@@ -192,8 +192,7 @@
                     </select>
                 </div>
             </div>
-            <div class="flex justify-end gap-3 mt-6">
-                <button type="button" wire:click="closeCreateModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+            <div class="flex justify-end mt-6">
                 <button type="button" wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">{{ $editingId ? '保存' : '添加' }}</button>
             </div>
         </div>
