@@ -9,9 +9,12 @@ use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
 use App\Livewire\Traits\WithListCrud;
+use App\Models\AuditLog;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Merchant;
+use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Sku;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -39,6 +42,13 @@ class CartList extends Component
     public int $formSkuId = 0;
     public int $formQuantity = 1;
     public string $formUnitPrice = '';
+
+    // 生成订单确认弹窗
+    public bool $showCreateOrderConfirm = false;
+    public ?int $createOrderMerchantId = null;
+    public string $createOrderMerchantName = '';
+    public int $createOrderItemCount = 0;
+    public int $createOrderTotalAmount = 0;
 
     public function mount(): void
     {
@@ -161,7 +171,7 @@ class CartList extends Component
                 ['merchant_id' => $validated['formMerchantId']]
             );
 
-            // 检查是否已存在同一SKU，累加数量
+            // 同 SKU 累加数量
             $existing = CartItem::where('cart_id', $cart->id)
                 ->where('sku_id', $validated['formSkuId'])
                 ->first();
@@ -221,6 +231,133 @@ class CartList extends Component
         $this->formUnitPrice = '';
     }
 
+    // ── 生成订单 ──
+
+    /**
+     * 弹出确认弹窗：将指定商户的购物车明细生成订单
+     */
+    public function confirmCreateOrder(int $merchantId): void
+    {
+        $merchant = Merchant::find($merchantId);
+        if (!$merchant) {
+            $this->toastError('商家不存在');
+            return;
+        }
+
+        $cart = Cart::where('merchant_id', $merchantId)->first();
+        if (!$cart) {
+            $this->toastError('该商家无购物车数据');
+            return;
+        }
+
+        $items = CartItem::where('cart_id', $cart->id)->with('sku.product')->get();
+        if ($items->isEmpty()) {
+            $this->toastError('该商家购物车为空');
+            return;
+        }
+
+        $totalAmount = $items->sum(fn($item) => $item->quantity * $item->price);
+
+        $this->createOrderMerchantId = $merchantId;
+        $this->createOrderMerchantName = $merchant->name;
+        $this->createOrderItemCount = $items->count();
+        $this->createOrderTotalAmount = $totalAmount;
+        $this->showCreateOrderConfirm = true;
+    }
+
+    /**
+     * 执行生成订单：按商户创建订单 + 明细，清空已下单的购物车项
+     */
+    public function executeCreateOrder(): void
+    {
+        if (!$this->createOrderMerchantId) {
+            $this->toastError('商家ID无效');
+            return;
+        }
+
+        $merchant = Merchant::find($this->createOrderMerchantId);
+        $cart = Cart::where('merchant_id', $this->createOrderMerchantId)->first();
+
+        if (!$cart) {
+            $this->toastError('购物车不存在');
+            $this->showCreateOrderConfirm = false;
+            return;
+        }
+
+        $cartItems = CartItem::where('cart_id', $cart->id)->with('sku.product')->get();
+        if ($cartItems->isEmpty()) {
+            $this->toastError('购物车为空，无法生成订单');
+            $this->showCreateOrderConfirm = false;
+            return;
+        }
+
+        try {
+            $totalAmount = $cartItems->sum(fn($item) => $item->quantity * $item->price);
+
+            // 创建订单
+            $order = Order::create([
+                'order_no' => Order::generateOrderNo(),
+                'merchant_id' => $this->createOrderMerchantId,
+                'status' => Order::STATUS_PICKING_WAIT,
+                'total_amount' => $totalAmount,
+                'adjusted_amount' => $totalAmount,
+                'final_amount' => $totalAmount,
+                'payment_status' => Order::PAYMENT_UNPAID,
+                'settlement_type' => $merchant->settlement_type ?: Order::SETTLEMENT_CASH,
+                'delivery_route_id' => $merchant->delivery_route_id ?: null,
+                'delivery_address' => $merchant->address ?: null,
+                'contact_name' => $merchant->contact_name ?: null,
+                'contact_phone' => $merchant->contact_phone ?: null,
+                'order_date' => now()->toDateString(),
+                'delivery_date' => now()->addDay()->toDateString(),
+                'is_locked' => 0,
+                'remark' => null,
+            ]);
+
+            // 创建订单明细
+            foreach ($cartItems as $cartItem) {
+                $subtotal = $cartItem->quantity * $cartItem->price;
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'sku_id' => $cartItem->sku_id,
+                    'product_name' => $cartItem->sku?->product?->name ?? '',
+                    'sku_specs' => $cartItem->sku?->specs ?? null,
+                    'quantity' => $cartItem->quantity,
+                    'price' => $cartItem->price,
+                    'actual_quantity' => $cartItem->quantity,
+                    'actual_price' => $cartItem->price,
+                    'subtotal' => $subtotal,
+                    'actual_subtotal' => $subtotal,
+                    'strategy_price' => 0,
+                    'strategy_amount' => 0,
+                    'discrepancy_amount' => 0,
+                    'status' => OrderItem::STATUS_NORMAL,
+                ]);
+            }
+
+            // 审计日志
+            AuditLog::log(
+                modelType: Order::class,
+                modelId: $order->id,
+                action: 'create',
+                afterData: $order->toArray(),
+            );
+
+            // 清空该商户的购物车项
+            CartItem::where('cart_id', $cart->id)->delete();
+
+            $this->showCreateOrderConfirm = false;
+            $this->toastSuccess("订单 {$order->order_no} 已生成，共 {$cartItems->count()} 条明细");
+        } catch (\Exception $e) {
+            $this->toastError('生成订单失败：' . $e->getMessage());
+        }
+    }
+
+    public function closeCreateOrderConfirm(): void
+    {
+        $this->showCreateOrderConfirm = false;
+    }
+
     private function buildQuery()
     {
         $query = CartItem::with(['cart.merchant', 'sku.product'])->orderBy('id', 'desc');
@@ -247,6 +384,26 @@ class CartList extends Component
         return $query;
     }
 
+    /**
+     * 按商户分组获取购物车数据（用于分组展示）
+     */
+    private function getGroupedByMerchant($cartItems)
+    {
+        return $cartItems->groupBy(function ($item) {
+            return $item->cart?->merchant_id ?? 0;
+        })->map(function ($items, $merchantId) {
+            $merchant = $items->first()->cart?->merchant;
+            $totalAmount = $items->sum(fn($item) => $item->quantity * $item->price);
+            return [
+                'merchant_id' => $merchantId,
+                'merchant_name' => $merchant?->name ?? '未知商家',
+                'items' => $items,
+                'item_count' => $items->count(),
+                'total_amount' => $totalAmount,
+            ];
+        })->sortBy('merchant_name');
+    }
+
     public function render()
     {
         $items = $this->buildQuery()->paginate(setting('per_page', 10));
@@ -255,7 +412,10 @@ class CartList extends Component
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 
-        return view('livewire.order.cart-list', compact('items', 'merchants', 'skus', 'allColumns', 'selectedCount'))
+        // 按商户分组
+        $groupedItems = $this->getGroupedByMerchant($items->getCollection());
+
+        return view('livewire.order.cart-list', compact('items', 'merchants', 'skus', 'allColumns', 'selectedCount', 'groupedItems'))
             ->layout('components.app-layout')
             ->title('购物车');
     }

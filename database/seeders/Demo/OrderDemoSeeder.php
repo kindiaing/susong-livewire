@@ -80,11 +80,15 @@ class OrderDemoSeeder extends Seeder
         $merchant3 = DB::table('merchants')->where('name', '鲜之味快餐店')->first();
         $route1 = DB::table('delivery_routes')->where('name', '城区北线')->first();
 
+        $today = $now->toDateString();
+        $yesterday = $now->copy()->subDay()->toDateString();
+
         $orders = [
             [
                 'order_no' => 'ORD-20260728-001', 'merchant' => $merchant1, 'route' => $route1, 'batch' => 1,
                 'delivery_address' => '安徽省宿州市埇桥区人民路88号', 'contact_name' => '吴老板', 'contact_phone' => '15800000001',
                 'status' => 4, 'total_amount' => 23000, 'adjusted_amount' => 23000, 'final_amount' => 23000, 'payment_status' => 2, 'settlement_type' => 1,
+                'order_date' => $yesterday, 'delivery_date' => $today,
                 'items' => [
                     ['product' => '大白菜', 'quantity' => 2000, 'price' => 9200, 'actual_quantity' => 2100, 'actual_price' => 9200],
                     ['product' => '土豆',   'quantity' => 500,  'price' => 13800, 'actual_quantity' => 480, 'actual_price' => 13800],
@@ -94,6 +98,7 @@ class OrderDemoSeeder extends Seeder
                 'order_no' => 'ORD-20260728-002', 'merchant' => $merchant2, 'route' => $route1, 'batch' => 1,
                 'delivery_address' => '安徽省宿州市埇桥区汴河路56号', 'contact_name' => '冯老板', 'contact_phone' => '15800000003',
                 'status' => 2, 'total_amount' => 74500, 'adjusted_amount' => 74500, 'final_amount' => 0, 'payment_status' => 1, 'settlement_type' => 2,
+                'order_date' => $yesterday, 'delivery_date' => $today,
                 'items' => [
                     ['product' => '五花肉', 'quantity' => 500, 'price' => 149000, 'actual_quantity' => 0, 'actual_price' => 0],
                 ],
@@ -102,6 +107,7 @@ class OrderDemoSeeder extends Seeder
                 'order_no' => 'ORD-20260729-001', 'merchant' => $merchant3, 'route' => $route1, 'batch' => 2,
                 'delivery_address' => '安徽省宿州市埇桥区淮海路120号', 'contact_name' => '郑老板', 'contact_phone' => '15800000002',
                 'status' => 1, 'total_amount' => 4025000, 'adjusted_amount' => 4025000, 'final_amount' => 0, 'payment_status' => 1, 'settlement_type' => 3,
+                'order_date' => $today, 'delivery_date' => $now->copy()->addDay()->toDateString(),
                 'items' => [
                     ['product' => '鲜虾', 'quantity' => 1000, 'price' => 4025000, 'actual_quantity' => 0, 'actual_price' => 0],
                 ],
@@ -119,6 +125,7 @@ class OrderDemoSeeder extends Seeder
                 'status' => $orderData['status'], 'total_amount' => $orderData['total_amount'],
                 'adjusted_amount' => $orderData['adjusted_amount'], 'final_amount' => $orderData['final_amount'],
                 'payment_status' => $orderData['payment_status'], 'settlement_type' => $orderData['settlement_type'],
+                'order_date' => $orderData['order_date'] ?? null, 'delivery_date' => $orderData['delivery_date'] ?? null,
                 'is_locked' => 0, 'remark' => null, 'created_at' => $now, 'updated_at' => $now,
             ]);
 
