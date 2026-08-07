@@ -150,7 +150,7 @@ class Category extends Model
         $byParent = $all->groupBy('parent_id');
 
         $buildTree = function ($parentId) use (&$buildTree, &$byParent) {
-            $nodes = $byParent->get($parentId, collect());
+            $nodes = $byParent->get($parentId, static::newCollection());
             foreach ($nodes as $node) {
                 $node->setRelation('children', $buildTree($node->id));
             }
