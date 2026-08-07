@@ -227,51 +227,55 @@ class SystemDataSeeder extends Seeder
     {
         foreach ($this->permissionTree as $moduleName => $moduleDef) {
             // 创建模块级权限
-            $module = Permission::create([
-                'name' => $moduleName,
-                'guard_name' => 'web',
-                'display_name' => $moduleDef['display_name'],
-                'type' => Permission::TYPE_MODULE,
-                'parent_id' => 0,
-                'route' => $moduleName === 'dashboard' ? 'dashboard' : null,
-                'sort' => array_search($moduleName, array_keys($this->permissionTree)),
-                'icon' => $moduleDef['icon'] ?? null,
-            ]);
+            $module = Permission::firstOrCreate(
+                ['name' => $moduleName, 'guard_name' => 'web'],
+                [
+                    'display_name' => $moduleDef['display_name'],
+                    'type' => Permission::TYPE_MODULE,
+                    'parent_id' => 0,
+                    'route' => $moduleName === 'dashboard' ? 'dashboard' : null,
+                    'sort' => array_search($moduleName, array_keys($this->permissionTree)),
+                    'icon' => $moduleDef['icon'] ?? null,
+                ]
+            );
 
             // 创建页面级 + .view + 按钮级权限
             $pageSort = 0;
             foreach ($moduleDef['pages'] as $pageName => $pageDef) {
                 // 创建页面级权限
-                $page = Permission::create([
-                    'name' => $pageName,
-                    'guard_name' => 'web',
-                    'display_name' => $pageDef['display_name'],
-                    'type' => Permission::TYPE_PAGE,
-                    'parent_id' => $module->id,
-                    'sort' => $pageSort++,
-                ]);
+                $page = Permission::firstOrCreate(
+                    ['name' => $pageName, 'guard_name' => 'web'],
+                    [
+                        'display_name' => $pageDef['display_name'],
+                        'type' => Permission::TYPE_PAGE,
+                        'parent_id' => $module->id,
+                        'sort' => $pageSort++,
+                    ]
+                );
 
                 // 创建 .view 页面访问权限（sort=0，挂在页面下方）
-                Permission::create([
-                    'name' => $pageName . '.view',
-                    'guard_name' => 'web',
-                    'display_name' => $pageDef['display_name'] . '（查看）',
-                    'type' => Permission::TYPE_BUTTON,
-                    'parent_id' => $page->id,
-                    'sort' => 0,
-                ]);
+                Permission::firstOrCreate(
+                    ['name' => $pageName . '.view', 'guard_name' => 'web'],
+                    [
+                        'display_name' => $pageDef['display_name'] . '（查看）',
+                        'type' => Permission::TYPE_BUTTON,
+                        'parent_id' => $page->id,
+                        'sort' => 0,
+                    ]
+                );
 
                 // 创建按钮级权限（sort 从1开始）
                 $btnSort = 1;
                 foreach ($pageDef['buttons'] as $btnName) {
-                    Permission::create([
-                        'name' => $btnName,
-                        'guard_name' => 'web',
-                        'display_name' => $this->buttonDisplayNames[$btnName] ?? $btnName,
-                        'type' => Permission::TYPE_BUTTON,
-                        'parent_id' => $page->id,
-                        'sort' => $btnSort++,
-                    ]);
+                    Permission::firstOrCreate(
+                        ['name' => $btnName, 'guard_name' => 'web'],
+                        [
+                            'display_name' => $this->buttonDisplayNames[$btnName] ?? $btnName,
+                            'type' => Permission::TYPE_BUTTON,
+                            'parent_id' => $page->id,
+                            'sort' => $btnSort++,
+                        ]
+                    );
                 }
             }
         }
