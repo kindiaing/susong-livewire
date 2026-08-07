@@ -3,6 +3,7 @@
 namespace App\Livewire\Order;
 
 use App\Exports\GenericExport;
+use App\Models\AuditLog;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Sku;
@@ -53,6 +54,9 @@ class OrderDetail extends Component
     public bool $showImportModal = false;
     public $importFile = null;
 
+    // 状态变更记录
+    public $auditLogs;
+
     public function mount(int $id): void
     {
         $this->loadOrder($id);
@@ -71,8 +75,9 @@ class OrderDetail extends Component
 
     public function loadOrder(int $id): void
     {
-        $this->order = Order::with(['merchant', 'deliveryRoute', 'items.sku.product'])->findOrFail($id);
+        $this->order = Order::with(['merchant', 'deliveryRoute', 'items.sku.product', 'auditLogs.operator'])->findOrFail($id);
         $this->items = $this->order->items;
+        $this->auditLogs = $this->order->auditLogs()->with('operator')->orderBy('created_at', 'desc')->get();
     }
 
     // ── 状态流转 ──
@@ -125,23 +130,49 @@ class OrderDetail extends Component
     public function executeConfirm(): void
     {
         try {
+            $oldStatus = $this->order->status;
+
             if (str_starts_with($this->confirmAction, 'rollback_')) {
                 $toStatus = (int) substr($this->confirmAction, 9);
                 $this->order->update(['status' => $toStatus]);
+
+                AuditLog::log(
+                    modelType: Order::class,
+                    modelId: $this->order->id,
+                    action: 'rollback',
+                    beforeData: ['status' => $oldStatus],
+                    afterData: ['status' => $toStatus],
+                );
+
                 $this->loadOrder($this->order->id);
                 $this->showConfirmModal = false;
                 $this->toastSuccess('状态已回退');
                 return;
             }
 
-            match ($this->confirmAction) {
-                'submit' => $this->order->update(['status' => Order::STATUS_PICKING]),
-                'pick' => $this->order->update(['status' => Order::STATUS_PICKING]),
-                'deliver' => $this->order->update(['status' => Order::STATUS_DELIVERING]),
-                'sign' => $this->order->update(['status' => Order::STATUS_SIGNED]),
-                'cancel' => $this->order->update(['status' => Order::STATUS_CANCELLED]),
+            $newStatus = match ($this->confirmAction) {
+                'submit' => Order::STATUS_PICKING,
+                'pick' => Order::STATUS_PICKING,
+                'deliver' => Order::STATUS_DELIVERING,
+                'sign' => Order::STATUS_SIGNED,
+                'cancel' => Order::STATUS_CANCELLED,
                 default => null,
             };
+
+            if ($newStatus === null) {
+                $this->showConfirmModal = false;
+                return;
+            }
+
+            $this->order->update(['status' => $newStatus]);
+
+            AuditLog::log(
+                modelType: Order::class,
+                modelId: $this->order->id,
+                action: $this->confirmAction === 'cancel' ? 'cancel' : 'status_change',
+                beforeData: ['status' => $oldStatus],
+                afterData: ['status' => $newStatus],
+            );
 
             $this->loadOrder($this->order->id);
             $this->showConfirmModal = false;
@@ -228,23 +259,42 @@ class OrderDetail extends Component
                 ]);
                 $this->toastSuccess('明细已更新');
             } else {
-                OrderItem::create([
-                    'order_id' => $this->order->id,
-                    'sku_id' => $this->formSkuId,
-                    'product_name' => $sku->product?->name ?? '',
-                    'sku_specs' => $sku->specs ?? null,
-                    'quantity' => $this->formQuantity,
-                    'price' => $price,
-                    'actual_quantity' => $this->formQuantity,
-                    'actual_price' => $price,
-                    'subtotal' => $subtotal,
-                    'actual_subtotal' => $subtotal,
-                    'strategy_price' => 0,
-                    'strategy_amount' => 0,
-                    'discrepancy_amount' => 0,
-                    'status' => OrderItem::STATUS_NORMAL,
-                ]);
-                $this->toastSuccess('明细已添加');
+                // 同 SKU 累加数量
+                $existingItem = OrderItem::where('order_id', $this->order->id)
+                    ->where('sku_id', $this->formSkuId)
+                    ->first();
+
+                if ($existingItem) {
+                    $newQuantity = $existingItem->quantity + $this->formQuantity;
+                    $newSubtotal = $price * $newQuantity;
+                    $existingItem->update([
+                        'quantity' => $newQuantity,
+                        'price' => $price,
+                        'subtotal' => $newSubtotal,
+                        'actual_quantity' => $newQuantity,
+                        'actual_price' => $price,
+                        'actual_subtotal' => $newSubtotal,
+                    ]);
+                    $this->toastSuccess('已累加到已有明细');
+                } else {
+                    OrderItem::create([
+                        'order_id' => $this->order->id,
+                        'sku_id' => $this->formSkuId,
+                        'product_name' => $sku->product?->name ?? '',
+                        'sku_specs' => $sku->specs ?? null,
+                        'quantity' => $this->formQuantity,
+                        'price' => $price,
+                        'actual_quantity' => $this->formQuantity,
+                        'actual_price' => $price,
+                        'subtotal' => $subtotal,
+                        'actual_subtotal' => $subtotal,
+                        'strategy_price' => 0,
+                        'strategy_amount' => 0,
+                        'discrepancy_amount' => 0,
+                        'status' => OrderItem::STATUS_NORMAL,
+                    ]);
+                    $this->toastSuccess('明细已添加');
+                }
             }
 
             $this->recalculateTotal();
@@ -444,6 +494,7 @@ class OrderDetail extends Component
             $rows = Excel::toCollection(null, $this->importFile)->first();
             $imported = 0;
             $skipped = 0;
+            $merged = 0;
 
             foreach ($rows as $index => $row) {
                 if ($index === 0) continue; // 跳过标题行
@@ -463,13 +514,23 @@ class OrderDetail extends Component
                     continue;
                 }
 
-                // 检查是否已存在同一SKU
-                $exists = OrderItem::where('order_id', $this->order->id)
+                // 同 SKU 累加数量
+                $existingItem = OrderItem::where('order_id', $this->order->id)
                     ->where('sku_id', $sku->id)
-                    ->exists();
+                    ->first();
 
-                if ($exists) {
-                    $skipped++;
+                if ($existingItem) {
+                    $newQuantity = $existingItem->quantity + $quantity;
+                    $newSubtotal = $price * $newQuantity;
+                    $existingItem->update([
+                        'quantity' => $newQuantity,
+                        'price' => $price,
+                        'subtotal' => $newSubtotal,
+                        'actual_quantity' => $newQuantity,
+                        'actual_price' => $price,
+                        'actual_subtotal' => $newSubtotal,
+                    ]);
+                    $merged++;
                     continue;
                 }
 
@@ -503,8 +564,11 @@ class OrderDetail extends Component
             $this->showImportModal = false;
 
             $msg = "成功导入 {$imported} 条明细";
+            if ($merged > 0) {
+                $msg .= "，累加 {$merged} 条已有明细";
+            }
             if ($skipped > 0) {
-                $msg .= "，跳过 {$skipped} 条（SKU不存在/已存在/数据无效）";
+                $msg .= "，跳过 {$skipped} 条（SKU不存在/数据无效）";
             }
             $this->toastSuccess($msg);
         } catch (\Exception $e) {

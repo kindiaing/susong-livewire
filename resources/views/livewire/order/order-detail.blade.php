@@ -1,4 +1,4 @@
-<div class="">
+<div class="" x-data="{ activeTab: 'items' }">
     {{-- 顶部：返回 + 单号 + 状态 + 操作按钮 --}}
     <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
@@ -50,88 +50,161 @@
         @if($order->remark)<span>备注：<b class="text-foreground">{{ $order->remark }}</b></span>@endif
     </div>
 
-    {{-- 明细区：工具栏 + 表格 --}}
-    <div class="rounded-lg border bg-card">
-        <div class="flex items-center justify-between px-4 py-2 border-b">
-            <h2 class="text-sm font-semibold text-foreground">订单明细</h2>
-            <div class="flex items-center gap-2">
-                @if($canEditItems)
-                    <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1 text-xs hover:bg-accent transition-colors">
-                        <x-ui.icon name="arrow-down-tray" class="w-3.5 h-3.5" /> 导入
-                    </button>
+    {{-- Tab 切换 --}}
+    <div class="border-b mb-4">
+        <nav class="flex gap-6">
+            <button type="button" @click="activeTab = 'items'" :class="activeTab === 'items' ? 'border-blue-600 text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'" class="pb-2 text-sm font-medium border-b-2 transition-colors">
+                订单明细
+                @if($order->items->count() > 0)
+                    <span class="ml-1.5 inline-flex items-center justify-center rounded-full bg-blue-100 text-blue-700 text-[10px] font-medium px-1.5 py-0.5 leading-none">{{ $order->items->count() }}</span>
                 @endif
-                <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1 text-xs hover:bg-accent transition-colors">
-                    <x-ui.icon name="arrow-up-tray" class="w-3.5 h-3.5" /> 导出
-                </button>
-                @if($canEditItems)
-                    <button type="button" wire:click="openAddItemModal" class="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-blue-700 transition-colors">
-                        <x-ui.icon name="plus" class="w-3.5 h-3.5" /> 添加
-                    </button>
+            </button>
+            <button type="button" @click="activeTab = 'logs'" :class="activeTab === 'logs' ? 'border-blue-600 text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'" class="pb-2 text-sm font-medium border-b-2 transition-colors">
+                状态变更记录
+                @if($auditLogs->count() > 0)
+                    <span class="ml-1.5 inline-flex items-center justify-center rounded-full bg-muted text-muted-foreground text-[10px] font-medium px-1.5 py-0.5 leading-none">{{ $auditLogs->count() }}</span>
                 @endif
+            </button>
+        </nav>
+    </div>
+
+    {{-- Tab 内容：订单明细 --}}
+    <div x-show="activeTab === 'items'">
+        <div class="rounded-lg border bg-card">
+            <div class="flex items-center justify-between px-4 py-2 border-b">
+                <h2 class="text-sm font-semibold text-foreground">订单明细</h2>
+                <div class="flex items-center gap-2">
+                    @if($canEditItems)
+                        <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1 text-xs hover:bg-accent transition-colors">
+                            <x-ui.icon name="arrow-down-tray" class="w-3.5 h-3.5" /> 导入
+                        </button>
+                    @endif
+                    <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1 text-xs hover:bg-accent transition-colors">
+                        <x-ui.icon name="arrow-up-tray" class="w-3.5 h-3.5" /> 导出
+                    </button>
+                    @if($canEditItems)
+                        <button type="button" wire:click="openAddItemModal" class="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-blue-700 transition-colors">
+                            <x-ui.icon name="plus" class="w-3.5 h-3.5" /> 添加
+                        </button>
+                    @endif
+                </div>
             </div>
-        </div>
 
-        {{-- 表头 + 表体 --}}
-        <table class="w-full text-sm">
-            <thead>
-                <tr class="border-b text-[11px] font-medium text-muted-foreground bg-muted/30">
-                    <th class="px-3 py-1.5 text-left">商品</th>
-                    <th class="px-3 py-1.5 text-left">规格</th>
-                    <th class="px-3 py-1.5 text-right w-[70px]">数量</th>
-                    <th class="px-3 py-1.5 text-right w-[90px]">单价</th>
-                    <th class="px-3 py-1.5 text-right w-[90px]">小计</th>
-                    <th class="px-3 py-1.5 text-right w-[90px]">促销价</th>
-                    <th class="px-3 py-1.5 text-right w-[80px]">实际数量</th>
-                    <th class="px-3 py-1.5 text-right w-[90px]">实际小计</th>
-                    <th class="px-3 py-1.5 w-[60px]"></th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($order->items as $item)
-                <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="item-{{ $item->id }}">
-                    <td class="px-3 py-1.5 truncate">
-                        <span class="text-foreground">{{ $item->product_name }}</span>
-                    </td>
-                    <td class="px-3 py-1.5 text-muted-foreground truncate">
-                        @if(is_array($item->sku_specs)){{ implode(', ', $item->sku_specs) }}@else{{ $item->sku_specs ?? '-' }}@endif
-                    </td>
-                    <td class="px-3 py-1.5 text-right tabular-nums">{{ $item->quantity }}</td>
-                    <td class="px-3 py-1.5 text-right tabular-nums">{{ money_format($item->price) }}</td>
-                    <td class="px-3 py-1.5 text-right tabular-nums font-medium">{{ money_format($item->subtotal) }}</td>
-                    <td class="px-3 py-1.5 text-right tabular-nums {{ $item->strategy_price ? 'text-blue-600 font-medium' : 'text-muted-foreground' }}">
-                        {{ $item->strategy_price ? money_format($item->strategy_price) : '-' }}
-                    </td>
-                    <td class="px-3 py-1.5 text-right tabular-nums {{ $item->actual_quantity && $item->actual_quantity != $item->quantity ? 'text-orange-600 font-medium' : '' }}">
-                        {{ $item->actual_quantity ?: '-' }}
-                    </td>
-                    <td class="px-3 py-1.5 text-right tabular-nums">
-                        {{ $item->actual_subtotal ? money_format($item->actual_subtotal) : '-' }}
-                    </td>
-                    <td class="px-3 py-1.5">
-                        <div class="flex items-center gap-1">
-                            @if($canEditItems)
-                                <button type="button" wire:click="openEditItemModal({{ $item->id }})" class="text-blue-500 hover:text-blue-700" title="编辑">
-                                    <x-ui.icon name="pencil-square" class="w-3.5 h-3.5" />
-                                </button>
-                                <button type="button" wire:click="confirmDeleteItem({{ $item->id }})" class="text-red-500 hover:text-red-700" title="删除">
-                                    <x-ui.icon name="trash" class="w-3.5 h-3.5" />
-                                </button>
+            {{-- 表头 + 表体 --}}
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b text-[11px] font-medium text-muted-foreground bg-muted/30">
+                        <th class="px-3 py-1.5 text-left">商品</th>
+                        <th class="px-3 py-1.5 text-left">规格</th>
+                        <th class="px-3 py-1.5 text-right w-[70px]">数量</th>
+                        <th class="px-3 py-1.5 text-right w-[90px]">单价</th>
+                        <th class="px-3 py-1.5 text-right w-[90px]">小计</th>
+                        <th class="px-3 py-1.5 text-right w-[90px]">促销价</th>
+                        <th class="px-3 py-1.5 text-right w-[80px]">实际数量</th>
+                        <th class="px-3 py-1.5 text-right w-[90px]">实际小计</th>
+                        <th class="px-3 py-1.5 w-[60px]"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($order->items as $item)
+                    <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="item-{{ $item->id }}">
+                        <td class="px-3 py-1.5 truncate">
+                            <span class="text-foreground">{{ $item->product_name }}</span>
+                        </td>
+                        <td class="px-3 py-1.5 text-muted-foreground truncate">
+                            @if(is_array($item->sku_specs)){{ implode(', ', $item->sku_specs) }}@else{{ $item->sku_specs ?? '-' }}@endif
+                        </td>
+                        <td class="px-3 py-1.5 text-right tabular-nums">{{ $item->quantity }}</td>
+                        <td class="px-3 py-1.5 text-right tabular-nums">{{ money_format($item->price) }}</td>
+                        <td class="px-3 py-1.5 text-right tabular-nums font-medium">{{ money_format($item->subtotal) }}</td>
+                        <td class="px-3 py-1.5 text-right tabular-nums {{ $item->strategy_price ? 'text-blue-600 font-medium' : 'text-muted-foreground' }}">
+                            {{ $item->strategy_price ? money_format($item->strategy_price) : '-' }}
+                        </td>
+                        <td class="px-3 py-1.5 text-right tabular-nums {{ $item->actual_quantity && $item->actual_quantity != $item->quantity ? 'text-orange-600 font-medium' : '' }}">
+                            {{ $item->actual_quantity ?: '-' }}
+                        </td>
+                        <td class="px-3 py-1.5 text-right tabular-nums">
+                            {{ $item->actual_subtotal ? money_format($item->actual_subtotal) : '-' }}
+                        </td>
+                        <td class="px-3 py-1.5">
+                            <div class="flex items-center gap-1">
+                                @if($canEditItems)
+                                    <button type="button" wire:click="openEditItemModal({{ $item->id }})" class="text-blue-500 hover:text-blue-700" title="编辑">
+                                        <x-ui.icon name="pencil-square" class="w-3.5 h-3.5" />
+                                    </button>
+                                    <button type="button" wire:click="confirmDeleteItem({{ $item->id }})" class="text-red-500 hover:text-red-700" title="删除">
+                                        <x-ui.icon name="trash" class="w-3.5 h-3.5" />
+                                    </button>
+                                @endif
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="9" class="px-3 py-6 text-center text-muted-foreground">暂无明细</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+
+            {{-- 合计行 --}}
+            @if($order->items->isNotEmpty())
+            <div class="flex items-center justify-end gap-6 px-4 py-2 border-t bg-muted/20 text-sm">
+                <span class="text-muted-foreground">合计数量：<b class="text-foreground">{{ $order->items->sum('quantity') }}</b></span>
+                <span class="text-muted-foreground">合计金额：<b class="text-foreground">{{ money_format($order->total_amount) }}</b></span>
+            </div>
+            @endif
+        </div>
+    </div>
+
+    {{-- Tab 内容：状态变更记录 --}}
+    <div x-show="activeTab === 'logs'" x-transition>
+        @if($auditLogs->isNotEmpty())
+        <div class="rounded-lg border bg-card">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b text-[11px] font-medium text-muted-foreground bg-muted/30">
+                        <th class="px-4 py-2 text-left w-[180px]">时间</th>
+                        <th class="px-4 py-2 text-left w-[120px]">操作</th>
+                        <th class="px-4 py-2 text-left">状态变更</th>
+                        <th class="px-4 py-2 text-left w-[120px]">操作人</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($auditLogs as $log)
+                    <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors">
+                        <td class="px-4 py-2 text-muted-foreground tabular-nums">{{ $log->created_at?->format('Y-m-d H:i:s') }}</td>
+                        <td class="px-4 py-2">
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium
+                                @if($log->action === 'cancel') bg-red-100 text-red-700
+                                @elseif($log->action === 'rollback') bg-purple-100 text-purple-700
+                                @elseif($log->action === 'status_change') bg-blue-100 text-blue-700
+                                @elseif($log->action === 'create') bg-green-100 text-green-700
+                                @else bg-muted text-muted-foreground
+                                @endif
+                            ">{{ $log->action_label }}</span>
+                        </td>
+                        <td class="px-4 py-2">
+                            @php
+                                $before = $log->before_data ?? [];
+                                $after = $log->after_data ?? [];
+                                $beforeStatus = $before['status'] ?? null;
+                                $afterStatus = $after['status'] ?? null;
+                            @endphp
+                            @if($beforeStatus && $afterStatus)
+                                {!! status_badge($beforeStatus, 'order') !!}
+                                <x-ui.icon name="arrow-right" class="w-3.5 h-3.5 inline text-muted-foreground mx-1" />
+                                {!! status_badge($afterStatus, 'order') !!}
+                            @else
+                                <span class="text-muted-foreground">-</span>
                             @endif
-                        </div>
-                    </td>
-                </tr>
-                @empty
-                <tr><td colspan="9" class="px-3 py-6 text-center text-muted-foreground">暂无明细</td></tr>
-                @endforelse
-            </tbody>
-        </table>
-
-        {{-- 合计行 --}}
-        @if($order->items->isNotEmpty())
-        <div class="flex items-center justify-end gap-6 px-4 py-2 border-t bg-muted/20 text-sm">
-            <span class="text-muted-foreground">合计数量：<b class="text-foreground">{{ $order->items->sum('quantity') }}</b></span>
-            <span class="text-muted-foreground">合计金额：<b class="text-foreground">{{ money_format($order->total_amount) }}</b></span>
+                        </td>
+                        <td class="px-4 py-2 text-foreground">{{ $log->operator?->name ?? '系统' }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
+        @else
+        <div class="rounded-lg border bg-card px-6 py-12 text-center text-sm text-muted-foreground">暂无状态变更记录</div>
         @endif
     </div>
 
@@ -142,11 +215,9 @@
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-foreground">{{ $editingItemId ? '编辑订单明细' : '添加订单明细' }}</h2>
-                <div class="flex items-center gap-2">
-                    <button type="button" wire:click="cancelAddItem" class="text-muted-foreground hover:text-foreground transition-colors">
-                        <x-ui.icon name="x-mark" class="w-5 h-5" />
-                    </button>
-                </div>
+                <button type="button" wire:click="cancelAddItem" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
             </div>
             <div class="space-y-4">
                 <div>
@@ -190,7 +261,7 @@
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-foreground">{{ $editingItemId ? '确认保存修改？' : '确认添加明细？' }}</h2>
-                <button type="button" wire:click="closeDeleteItemConfirm" class="text-muted-foreground hover:text-foreground transition-colors">
+                <button type="button" wire:click="closeSaveConfirm" class="text-muted-foreground hover:text-foreground transition-colors">
                     <x-ui.icon name="x-mark" class="w-5 h-5" />
                 </button>
             </div>
@@ -210,7 +281,7 @@
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-foreground">放弃编辑？</h2>
-                <button type="button" wire:click="closeDeleteItemConfirm" class="text-muted-foreground hover:text-foreground transition-colors">
+                <button type="button" wire:click="closeCancelConfirm" class="text-muted-foreground hover:text-foreground transition-colors">
                     <x-ui.icon name="x-mark" class="w-5 h-5" />
                 </button>
             </div>
@@ -322,7 +393,7 @@
                 <div class="rounded-md bg-muted p-3 text-xs text-muted-foreground">
                     <p class="font-medium mb-1">导入模板列：</p>
                     <p>SKU编码 | 数量 | 单价（元）</p>
-                    <p class="mt-1 text-[11px]">注：已存在的 SKU 将被跳过，不会重复添加</p>
+                    <p class="mt-1 text-[11px]">注：已存在的 SKU 将累加数量，不会重复添加</p>
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">

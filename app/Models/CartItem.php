@@ -44,4 +44,12 @@ class CartItem extends Model
     {
         return $this->belongsTo(Sku::class);
     }
+
+    /**
+     * 关联商品（通过 SKU）
+     */
+    public function product()
+    {
+        return $this->hasOneThrough(Product::class, Sku::class, 'id', 'id', 'sku_id', 'product_id');
+    }
 }

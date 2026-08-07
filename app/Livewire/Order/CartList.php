@@ -10,6 +10,7 @@ use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
 use App\Livewire\Traits\WithListCrud;
 use App\Models\Cart;
+use App\Models\CartItem;
 use App\Models\Merchant;
 use App\Models\Sku;
 use Livewire\Component;
@@ -26,10 +27,14 @@ class CartList extends Component
     use WithToast;
     use WithListCrud;
 
-    protected string $modelClass = Cart::class;
+    protected string $modelClass = CartItem::class;
 
     public string $search = '';
 
+    // 筛选
+    public ?int $filterMerchantId = null;
+
+    // 表单
     public int $formMerchantId = 0;
     public int $formSkuId = 0;
     public int $formQuantity = 1;
@@ -46,10 +51,17 @@ class CartList extends Component
             ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
             ['key' => 'merchant_id', 'label' => '商家', 'sortable' => false, 'exportable' => true],
             ['key' => 'sku_id', 'label' => 'SKU', 'sortable' => false, 'exportable' => true],
+            ['key' => 'product_name', 'label' => '商品', 'sortable' => false, 'exportable' => true],
             ['key' => 'quantity', 'label' => '数量', 'sortable' => true, 'exportable' => true],
-            ['key' => 'unit_price', 'label' => '单价', 'sortable' => true, 'exportable' => true],
+            ['key' => 'price', 'label' => '单价', 'sortable' => true, 'exportable' => true, 'type' => 'money'],
+            ['key' => 'subtotal', 'label' => '金额', 'sortable' => true, 'exportable' => true, 'type' => 'money'],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
         ];
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['merchant_id', 'sku_id', 'product_name', 'quantity', 'price', 'subtotal'];
     }
 
     public function getExportQuery()
@@ -62,56 +74,66 @@ class CartList extends Component
         return '购物车_' . now()->format('Ymd_His');
     }
 
-    public function getImportModelClass(): string
-    {
-        return Cart::class;
-    }
-
-    public function getImportColumnMap(): array
-    {
-        return [
-            '商家ID' => 'merchant_id',
-            'SKU ID' => 'sku_id',
-            '数量' => 'quantity',
-            '单价(元)' => 'unit_price',
-        ];
-    }
-
-    public function getImportUniqueBy(): array
-    {
-        return ['merchant_id', 'sku_id'];
-    }
-
-    public function getImportMoneyFields(): array
-    {
-        return ['unit_price'];
-    }
-
     public function getExportRowCallback(): callable
     {
-        return function (Cart $row) {
+        return function (CartItem $row) {
             return [
                 'id' => $row->id,
-                'merchant_id' => $row->merchant?->name ?? '',
+                'merchant_id' => $row->cart?->merchant?->name ?? '',
                 'sku_id' => $row->sku?->sku_code ?? '',
+                'product_name' => $row->sku?->product?->name ?? '',
                 'quantity' => $row->quantity,
-                'unit_price' => money_format($row->unit_price, false),
+                'price' => money_format($row->price, false),
+                'subtotal' => money_format($row->quantity * $row->price, false),
                 'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
             ];
         };
     }
 
+    public function getImportModelClass(): string
+    {
+        return CartItem::class;
+    }
+
+    public function getImportColumnMap(): array
+    {
+        return [
+            '购物车ID' => 'cart_id',
+            'SKU ID' => 'sku_id',
+            '数量' => 'quantity',
+            '单价(厘)' => 'price',
+        ];
+    }
+
+    public function getImportUniqueBy(): array
+    {
+        return ['cart_id', 'sku_id'];
+    }
+
+    public function getImportMoneyFields(): array
+    {
+        return ['price'];
+    }
+
     public function getPageIds(): array
     {
-        return $this->buildQuery()->forPage($this->page, 20)->pluck('id')->toArray();
+        return $this->buildQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
+    }
+
+    public function openCreateModal(): void
+    {
+        $this->resetForm();
+        $this->showModal = true;
     }
 
     public function openEditModal(int $id): void
     {
-        $cart = Cart::findOrFail($id);
+        $item = CartItem::findOrFail($id);
         $this->editingId = $id;
-        $this->formQuantity = $cart->quantity;
-        $this->formUnitPrice = $this->centsToYuan($cart->unit_price);
+        $this->formMerchantId = $item->cart?->merchant_id ?? 0;
+        $this->formSkuId = $item->sku_id;
+        $this->formQuantity = $item->quantity;
+        $this->formUnitPrice = $this->centsToYuan($item->price);
         $this->showModal = true;
     }
 
@@ -121,7 +143,7 @@ class CartList extends Component
             $validated = $this->validate([
                 'formQuantity' => 'required|integer|min:1',
             ]);
-            Cart::findOrFail($this->editingId)->update([
+            CartItem::findOrFail($this->editingId)->update([
                 'quantity' => $validated['formQuantity'],
             ]);
             $this->toastSuccess('购物车已更新');
@@ -132,13 +154,30 @@ class CartList extends Component
                 'formQuantity' => 'required|integer|min:1',
                 'formUnitPrice' => 'required|numeric|min:0',
             ]);
-            Cart::create([
-                'merchant_id' => $validated['formMerchantId'],
-                'sku_id' => $validated['formSkuId'],
-                'quantity' => $validated['formQuantity'],
-                'unit_price' => money_to_cents($validated['formUnitPrice']),
-            ]);
-            $this->toastSuccess('购物车已创建');
+
+            // 获取或创建商家的购物车
+            $cart = Cart::firstOrCreate(
+                ['merchant_id' => $validated['formMerchantId']],
+                ['merchant_id' => $validated['formMerchantId']]
+            );
+
+            // 检查是否已存在同一SKU，累加数量
+            $existing = CartItem::where('cart_id', $cart->id)
+                ->where('sku_id', $validated['formSkuId'])
+                ->first();
+
+            if ($existing) {
+                $existing->increment('quantity', $validated['formQuantity']);
+                $this->toastSuccess('购物车数量已累加');
+            } else {
+                CartItem::create([
+                    'cart_id' => $cart->id,
+                    'sku_id' => $validated['formSkuId'],
+                    'quantity' => $validated['formQuantity'],
+                    'price' => money_to_cents($validated['formUnitPrice']),
+                ]);
+                $this->toastSuccess('购物车已创建');
+            }
         }
 
         $this->showModal = false;
@@ -147,20 +186,33 @@ class CartList extends Component
 
     public function delete(): void
     {
-        Cart::findOrFail($this->deletingId)->delete();
+        CartItem::findOrFail($this->deletingId)->delete();
         $this->toastSuccess('购物车项已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }
 
-    public function getBatchActions(): array
+    public function batchDelete(): void
     {
-        return [
-            ['label' => '批量删除', 'method' => 'batchDelete', 'color' => 'bg-red-600 hover:bg-red-700'],
-        ];
+        $count = count($this->selectedIds);
+        if ($count === 0) {
+            $this->toastWarning('请先选择要删除的记录');
+            return;
+        }
+        CartItem::whereIn('id', $this->selectedIds)->delete();
+        $this->toastSuccess("已删除 {$count} 条记录");
+        $this->clearSelection();
     }
 
-    private function resetForm(): void
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->filterMerchantId = null;
+        $this->resetPage();
+        $this->clearSelection();
+    }
+
+    public function resetForm(): void
     {
         $this->editingId = null;
         $this->formMerchantId = 0;
@@ -171,14 +223,23 @@ class CartList extends Component
 
     private function buildQuery()
     {
-        $query = Cart::with(['merchant', 'sku'])->orderBy('id', 'desc');
+        $query = CartItem::with(['cart.merchant', 'sku.product'])->orderBy('id', 'desc');
+
+        if ($this->filterMerchantId) {
+            $query->whereHas('cart', function ($q) {
+                $q->where('merchant_id', $this->filterMerchantId);
+            });
+        }
 
         if ($this->search) {
             $query->where(function ($q) {
-                $q->whereHas('merchant', function ($mq) {
+                $q->whereHas('cart.merchant', function ($mq) {
                     $mq->where('name', 'like', "%{$this->search}%");
                 })->orWhereHas('sku', function ($sq) {
-                    $sq->where('sku_code', 'like', "%{$this->search}%");
+                    $sq->where('sku_code', 'like', "%{$this->search}%")
+                        ->orWhereHas('product', function ($pq) {
+                            $pq->where('name', 'like', "%{$this->search}%");
+                        });
                 });
             });
         }
@@ -188,18 +249,13 @@ class CartList extends Component
 
     public function render()
     {
-        $carts = $this->buildQuery()->paginate(setting('per_page', 10));
-        $merchants = Merchant::orderBy('name')->get();
+        $items = $this->buildQuery()->paginate(setting('per_page', 10));
+        $merchants = Merchant::where('status', 1)->orderBy('name')->get();
         $skus = Sku::with('product')->orderBy('sku_code')->get();
+        $allColumns = $this->getAllColumns();
+        $selectedCount = count($this->selectedIds);
 
-        return view('livewire.order.cart-list', [
-            'carts' => $carts,
-            'merchants' => $merchants,
-            'skus' => $skus,
-            'allColumns' => $this->getAllColumns(),
-            'selectedCount' => $this->getSelectedCount(),
-            'batchActions' => $this->getBatchActions(),
-        ])
+        return view('livewire.order.cart-list', compact('items', 'merchants', 'skus', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('购物车');
     }

@@ -181,6 +181,38 @@ class Order extends Model
     }
 
     /**
+     * 关联审计日志
+     */
+    public function auditLogs()
+    {
+        return $this->morphMany(AuditLog::class, 'model', 'model_type', 'model_id');
+    }
+
+    /**
+     * 订单号生成
+     */
+    public static function generateOrderNo(): string
+    {
+        return 'ORD' . date('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * 是否可流转到指定状态
+     *
+     * 核心规则：已签收(4)和已锁定(5)不可手动变更
+     */
+    public function canTransitionTo(int $status): bool
+    {
+        $flow = [
+            self::STATUS_PICKING_WAIT => [self::STATUS_PICKING, self::STATUS_CANCELLED],
+            self::STATUS_PICKING => [self::STATUS_DELIVERING, self::STATUS_CANCELLED],
+            self::STATUS_DELIVERING => [self::STATUS_SIGNED, self::STATUS_CANCELLED],
+        ];
+
+        return in_array($status, $flow[$this->status] ?? []);
+    }
+
+    /**
      * 作用域：按状态
      */
     public function scopeByStatus($query, int $status)

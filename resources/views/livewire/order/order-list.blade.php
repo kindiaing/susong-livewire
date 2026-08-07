@@ -24,7 +24,7 @@
             @endif
         </div>
         <select wire:model.live="filterStatus" class="flex h-9 w-32 rounded-md border border-input bg-background px-3 text-sm">
-            <option value="0">全部状态</option>
+            <option value="-1">全部状态</option>
             <option value="1">待拣货</option>
             <option value="2">拣货中</option>
             <option value="3">配送中</option>
@@ -33,7 +33,7 @@
             <option value="9">已取消</option>
         </select>
         <select wire:model.live="filterPaymentStatus" class="flex h-9 w-32 rounded-md border border-input bg-background px-3 text-sm">
-            <option value="0">全部支付</option>
+            <option value="-1">全部支付</option>
             <option value="1">未支付</option>
             <option value="2">已支付</option>
             <option value="3">账期</option>
@@ -93,22 +93,19 @@
                             <div class="text-sm text-foreground">{{ money_format($order->total_amount) }}</div>
                             @break
                         @case('status')
-                            <div>
-                                @php $sc = \App\Livewire\Order\OrderList::$statusColorMap; $c = $sc[$order->status] ?? 'gray'; @endphp
-                                <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $c }}-100 text-{{ $c }}-700">{{ \App\Livewire\Order\OrderList::$statusMap[$order->status] ?? '-' }}</span>
-                            </div>
+                            <div>{!! status_badge($order->status, 'order') !!}</div>
                             @break
                         @case('payment_status')
-                            <div>
-                                @php $pc = \App\Livewire\Order\OrderList::$paymentStatusColorMap; $cp = $pc[$order->payment_status] ?? 'gray'; @endphp
-                                <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $cp }}-100 text-{{ $cp }}-700">{{ \App\Livewire\Order\OrderList::$paymentStatusMap[$order->payment_status] ?? '-' }}</span>
-                            </div>
+                            <div>{!! status_badge($order->payment_status, 'order_payment') !!}</div>
                             @break
                         @case('order_date')
                             <div class="text-sm text-foreground">{{ $order->order_date?->format('Y-m-d') ?? '-' }}</div>
                             @break
                         @case('delivery_date')
                             <div class="text-sm text-foreground">{{ $order->delivery_date?->format('Y-m-d') ?? '-' }}</div>
+                            @break
+                        @case('contact_name')
+                            <div class="text-sm text-foreground truncate">{{ $order->contact_name ?? '-' }}</div>
                             @break
                         @case('settlement_type')
                             <div class="text-sm text-foreground">{{ \App\Livewire\Order\OrderList::$settlementTypeMap[$order->settlement_type] ?? '-' }}</div>
@@ -117,7 +114,7 @@
                             <div class="text-sm text-foreground truncate max-w-[200px]">{{ $order->remark ?: '-' }}</div>
                             @break
                         @case('created_at')
-                            <div class="text-sm text-foreground">{{ $order->created_at?->format('Y-m-d H:i') }}</div>
+                            <div class="text-sm text-foreground">{{ $order->created_at?->format('Y-m-d H:i:s') }}</div>
                             @break
                         @default
                             <div class="text-sm text-foreground truncate">{{ $order->{$col['key']} ?? '-' }}</div>
@@ -168,6 +165,7 @@
             </div>
             <div class="space-y-4">
                 @if(!$editingId)
+                {{-- 创建模式：完整表单 --}}
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">商家 <span class="text-red-500">*</span></label>
                     <select wire:model="formMerchantId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
@@ -178,15 +176,63 @@
                     </select>
                     @error('formMerchantId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">单据日期</label>
-                    <input type="date" wire:model="formOrderDate" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
-                    @error('formOrderDate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">结算方式 <span class="text-red-500">*</span></label>
+                        <select wire:model="formSettlementType" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                            <option value="1">现结</option>
+                            <option value="2">账期</option>
+                            <option value="3">预付款</option>
+                        </select>
+                        @error('formSettlementType') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">配送批次 <span class="text-red-500">*</span></label>
+                        <select wire:model="formBatch" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                            <option value="1">上午</option>
+                            <option value="2">下午</option>
+                        </select>
+                        @error('formBatch') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">收货日期</label>
-                    <input type="date" wire:model="formDeliveryDate" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
-                    @error('formDeliveryDate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    <label class="block text-sm font-medium text-foreground mb-1">配送线路</label>
+                    <select wire:model="formDeliveryRouteId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        <option value="0">请选择配送线路</option>
+                        @foreach($routes as $r)
+                        <option value="{{ $r->id }}">{{ $r->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('formDeliveryRouteId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">单据日期</label>
+                        <input type="date" wire:model="formOrderDate" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                        @error('formOrderDate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">收货日期</label>
+                        <input type="date" wire:model="formDeliveryDate" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                        @error('formDeliveryDate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">联系人</label>
+                        <input type="text" wire:model="formContactName" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="收货联系人" />
+                        @error('formContactName') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">联系电话</label>
+                        <input type="text" wire:model="formContactPhone" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="联系电话" />
+                        @error('formContactPhone') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">配送地址</label>
+                    <input type="text" wire:model="formDeliveryAddress" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="配送地址" />
+                    @error('formDeliveryAddress') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 @endif
                 <div>

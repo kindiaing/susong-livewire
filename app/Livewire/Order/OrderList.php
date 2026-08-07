@@ -8,6 +8,8 @@ use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
 use App\Livewire\Traits\WithListCrud;
+use App\Models\AuditLog;
+use App\Models\DeliveryRoute;
 use App\Models\Merchant;
 use App\Models\Order;
 use Livewire\Component;
@@ -26,13 +28,22 @@ class OrderList extends Component
     protected string $modelClass = Order::class;
 
     public string $search = '';
-    public int $filterStatus = 0;
-    public int $filterPaymentStatus = 0;
+    public int $filterStatus = -1;
+    public int $filterPaymentStatus = -1;
 
+    // 创建表单：基础字段
     public int $formMerchantId = 0;
     public string $formOrderDate = '';
     public string $formDeliveryDate = '';
     public string $formRemark = '';
+
+    // 创建表单：配送字段
+    public int $formSettlementType = 1;
+    public int $formDeliveryRouteId = 0;
+    public int $formBatch = 1;
+    public string $formContactName = '';
+    public string $formContactPhone = '';
+    public string $formDeliveryAddress = '';
 
     public static array $statusMap = [
         1 => '待拣货', 2 => '拣货中', 3 => '配送中',
@@ -65,6 +76,11 @@ class OrderList extends Component
         $this->initColumnVisibility();
     }
 
+    public function getDefaultColumns(): array
+    {
+        return ['order_no', 'merchant_id', 'status', 'total_amount', 'order_date'];
+    }
+
     public function getAllColumns(): array
     {
         return [
@@ -73,9 +89,11 @@ class OrderList extends Component
             ['key' => 'merchant_id', 'label' => '商家', 'sortable' => false, 'exportable' => true],
             ['key' => 'total_amount', 'label' => '总金额', 'sortable' => true, 'exportable' => true],
             ['key' => 'status', 'label' => '订单状态', 'sortable' => true, 'exportable' => true],
+            ['key' => 'payment_status', 'label' => '支付状态', 'sortable' => true, 'exportable' => true],
+            ['key' => 'settlement_type', 'label' => '结算方式', 'sortable' => false, 'exportable' => true],
             ['key' => 'order_date', 'label' => '单据日期', 'sortable' => true, 'exportable' => true],
             ['key' => 'delivery_date', 'label' => '收货日期', 'sortable' => true, 'exportable' => true],
-            ['key' => 'settlement_type', 'label' => '结算方式', 'sortable' => false, 'exportable' => true],
+            ['key' => 'contact_name', 'label' => '联系人', 'sortable' => false, 'exportable' => true],
             ['key' => 'remark', 'label' => '备注', 'sortable' => false, 'exportable' => false],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
         ];
@@ -121,7 +139,11 @@ class OrderList extends Component
                 'merchant_id' => $row->merchant?->name ?? '',
                 'total_amount' => money_format($row->total_amount, false),
                 'status' => self::$statusMap[$row->status] ?? '',
+                'payment_status' => self::$paymentStatusMap[$row->payment_status] ?? '',
                 'settlement_type' => self::$settlementTypeMap[$row->settlement_type] ?? '',
+                'order_date' => $row->order_date?->format('Y-m-d'),
+                'delivery_date' => $row->delivery_date?->format('Y-m-d'),
+                'contact_name' => $row->contact_name ?? '',
                 'remark' => $row->remark ?? '',
                 'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
             ];
@@ -152,20 +174,43 @@ class OrderList extends Component
         } else {
             $validated = $this->validate([
                 'formMerchantId' => 'required|integer|exists:merchants,id',
+                'formSettlementType' => 'required|integer|in:1,2,3',
+                'formDeliveryRouteId' => 'nullable|integer|exists:delivery_routes,id',
+                'formBatch' => 'required|integer|in:1,2',
+                'formContactName' => 'nullable|string|max:50',
+                'formContactPhone' => 'nullable|string|max:20',
+                'formDeliveryAddress' => 'nullable|string|max:255',
                 'formOrderDate' => 'nullable|date',
                 'formDeliveryDate' => 'nullable|date',
                 'formRemark' => 'nullable|string|max:500',
             ]);
-            Order::create([
-                'order_no' => 'ORD' . date('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT),
+
+            $order = Order::create([
+                'order_no' => Order::generateOrderNo(),
                 'merchant_id' => $validated['formMerchantId'],
+                'settlement_type' => $validated['formSettlementType'],
+                'delivery_route_id' => $validated['formDeliveryRouteId'] ?: null,
+                'batch' => $validated['formBatch'],
+                'contact_name' => $validated['formContactName'] ?: null,
+                'contact_phone' => $validated['formContactPhone'] ?: null,
+                'delivery_address' => $validated['formDeliveryAddress'] ?: null,
                 'order_date' => $validated['formOrderDate'] ?? null,
                 'delivery_date' => $validated['formDeliveryDate'] ?? null,
                 'remark' => $validated['formRemark'],
-                'status' => 1,
+                'status' => Order::STATUS_PICKING_WAIT,
                 'total_amount' => 0,
-                'payment_status' => 1,
+                'adjusted_amount' => 0,
+                'final_amount' => 0,
+                'payment_status' => Order::PAYMENT_UNPAID,
             ]);
+
+            AuditLog::log(
+                modelType: Order::class,
+                modelId: $order->id,
+                action: 'create',
+                afterData: $order->toArray(),
+            );
+
             $this->toastSuccess('订单已创建');
         }
 
@@ -176,49 +221,109 @@ class OrderList extends Component
     public function confirmOrder(int $id): void
     {
         $order = Order::findOrFail($id);
-        if ($order->status != 1) {
+        if ($order->status != Order::STATUS_PICKING_WAIT) {
             $this->toastError('只有待拣货订单可确认');
             return;
         }
-        $order->update(['status' => 2]);
+        $oldStatus = $order->status;
+        $order->update(['status' => Order::STATUS_PICKING]);
+
+        AuditLog::log(
+            modelType: Order::class,
+            modelId: $order->id,
+            action: 'status_change',
+            beforeData: ['status' => $oldStatus],
+            afterData: ['status' => Order::STATUS_PICKING],
+        );
+
         $this->toastSuccess('订单已确认');
     }
 
     public function cancelOrder(int $id): void
     {
         $order = Order::findOrFail($id);
-        if (in_array($order->status, [4, 5, 9])) {
+        if (in_array($order->status, [Order::STATUS_SIGNED, Order::STATUS_LOCKED, Order::STATUS_CANCELLED])) {
             $this->toastError('当前状态不可取消');
             return;
         }
-        $order->update(['status' => 9]);
+        $oldStatus = $order->status;
+        $order->update(['status' => Order::STATUS_CANCELLED]);
+
+        AuditLog::log(
+            modelType: Order::class,
+            modelId: $order->id,
+            action: 'cancel',
+            beforeData: ['status' => $oldStatus],
+            afterData: ['status' => Order::STATUS_CANCELLED],
+        );
+
         $this->toastSuccess('订单已取消');
     }
 
     public function completeOrder(int $id): void
     {
         $order = Order::findOrFail($id);
-        if ($order->status != 3) {
+        if ($order->status != Order::STATUS_DELIVERING) {
             $this->toastError('只有配送中订单可完成');
             return;
         }
-        $order->update(['status' => 4]);
+        $oldStatus = $order->status;
+        $order->update(['status' => Order::STATUS_SIGNED]);
+
+        AuditLog::log(
+            modelType: Order::class,
+            modelId: $order->id,
+            action: 'status_change',
+            beforeData: ['status' => $oldStatus],
+            afterData: ['status' => Order::STATUS_SIGNED],
+        );
+
         $this->toastSuccess('订单已完成');
     }
 
     public function delete(): void
     {
-        Order::findOrFail($this->deletingId)->delete();
+        $order = Order::findOrFail($this->deletingId);
+        if (in_array($order->status, [Order::STATUS_SIGNED, Order::STATUS_LOCKED])) {
+            $this->toastError('已签收或已锁定订单不可删除');
+            $this->showDeleteConfirm = false;
+            return;
+        }
+        $order->delete();
         $this->toastSuccess('订单已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
     }
 
+    public function batchDelete(): void
+    {
+        $ids = $this->selectedIds;
+        if (empty($ids)) {
+            $this->toastError('请先选择要删除的订单');
+            return;
+        }
+        $protected = Order::whereIn('id', $ids)
+            ->whereIn('status', [Order::STATUS_SIGNED, Order::STATUS_LOCKED])
+            ->count();
+        if ($protected > 0) {
+            $this->toastError("{$protected} 条已签收/已锁定订单不可删除，已跳过");
+        }
+        $deletableIds = Order::whereIn('id', $ids)
+            ->whereNotIn('status', [Order::STATUS_SIGNED, Order::STATUS_LOCKED])
+            ->pluck('id')
+            ->toArray();
+        if (!empty($deletableIds)) {
+            Order::whereIn('id', $deletableIds)->delete();
+            $this->toastSuccess('已删除 ' . count($deletableIds) . ' 条订单');
+        }
+        $this->clearSelection();
+    }
+
     public function resetFilters(): void
     {
         $this->search = '';
-        $this->filterStatus = 0;
-        $this->filterPaymentStatus = 0;
+        $this->filterStatus = -1;
+        $this->filterPaymentStatus = -1;
         $this->resetPage();
     }
 
@@ -229,13 +334,19 @@ class OrderList extends Component
         ];
     }
 
-    private function resetForm(): void
+    public function resetForm(): void
     {
         $this->editingId = null;
         $this->formMerchantId = 0;
         $this->formOrderDate = '';
         $this->formDeliveryDate = '';
         $this->formRemark = '';
+        $this->formSettlementType = 1;
+        $this->formDeliveryRouteId = 0;
+        $this->formBatch = 1;
+        $this->formContactName = '';
+        $this->formContactPhone = '';
+        $this->formDeliveryAddress = '';
     }
 
     private function buildQuery()
@@ -266,10 +377,12 @@ class OrderList extends Component
     {
         $orders = $this->buildQuery()->paginate(setting('per_page', 10));
         $merchants = Merchant::orderBy('name')->get();
+        $routes = DeliveryRoute::orderBy('name')->get();
 
         return view('livewire.order.order-list', [
             'orders' => $orders,
             'merchants' => $merchants,
+            'routes' => $routes,
             'allColumns' => $this->getAllColumns(),
             'selectedCount' => $this->getSelectedCount(),
             'batchActions' => $this->getBatchActions(),

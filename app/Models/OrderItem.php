@@ -94,6 +94,22 @@ class OrderItem extends Model
     }
 
     /**
+     * 关联价格策略
+     */
+    public function priceStrategy()
+    {
+        return $this->belongsTo(PriceStrategy::class, 'price_strategy_id');
+    }
+
+    /**
+     * 关联价格策略明细
+     */
+    public function priceStrategyItem()
+    {
+        return $this->belongsTo(PriceStrategyItem::class, 'price_strategy_item_id');
+    }
+
+    /**
      * 作用域：正常
      */
     public function scopeNormal($query)
