@@ -84,7 +84,7 @@ class SystemDataSeeder extends Seeder
             'display_name' => '订单管理',
             'icon' => 'shopping-cart',
             'pages' => [
-                'order.order' => ['display_name' => '订单列表', 'buttons' => ['order.order.create', 'order.order.edit', 'order.order.cancel', 'order.order.lock', 'order.order.change-price']],
+                'order.order' => ['display_name' => '订单列表', 'buttons' => ['order.order.create', 'order.order.edit', 'order.order.cancel', 'order.order.lock', 'order.order.change-price', 'order.order.delete']],
                 'order.cart' => ['display_name' => '购物车', 'buttons' => []],
                 'order.order-return' => ['display_name' => '退货管理', 'buttons' => ['order.order-return.create', 'order.order-return.edit', 'order.order-return.delete']],
             ],
@@ -175,7 +175,7 @@ class SystemDataSeeder extends Seeder
         'purchase.purchase-return.create' => '创建退货', 'purchase.purchase-return.edit' => '编辑退货', 'purchase.purchase-return.delete' => '删除退货',
         'purchase.restock-reminder.create' => '创建提醒', 'purchase.restock-reminder.edit' => '编辑提醒', 'purchase.restock-reminder.delete' => '删除提醒',
         // 订单管理
-        'order.order.create' => '创建订单', 'order.order.edit' => '编辑订单', 'order.order.cancel' => '取消订单', 'order.order.lock' => '锁定订单', 'order.order.change-price' => '改价',
+        'order.order.create' => '创建订单', 'order.order.edit' => '编辑订单', 'order.order.cancel' => '取消订单', 'order.order.lock' => '锁定订单', 'order.order.change-price' => '改价', 'order.order.delete' => '删除订单',
         'order.order-return.create' => '创建退货', 'order.order-return.edit' => '编辑退货', 'order.order-return.delete' => '删除退货',
         // 库存管理
         'inventory.warehouse.create' => '创建仓库', 'inventory.warehouse.edit' => '编辑仓库', 'inventory.warehouse.delete' => '删除仓库',
@@ -303,7 +303,7 @@ class SystemDataSeeder extends Seeder
                 'purchase.purchase-order', 'purchase.purchase-order.view',
                 'purchase.purchase-return', 'purchase.purchase-return.view',
                 'purchase.restock-reminder', 'purchase.restock-reminder.view',
-                'order.order', 'order.order.view', 'order.order.create', 'order.order.edit', 'order.order.cancel', 'order.order.lock', 'order.order.change-price',
+                'order.order', 'order.order.view', 'order.order.create', 'order.order.edit', 'order.order.cancel', 'order.order.lock', 'order.order.change-price', 'order.order.delete',
                 'order.cart',
                 'order.order-return', 'order.order-return.view', 'order.order-return.create', 'order.order-return.edit',
                 'inventory.warehouse', 'inventory.warehouse.view',
@@ -335,7 +335,7 @@ class SystemDataSeeder extends Seeder
                 'purchase.purchase-order', 'purchase.purchase-order.view', 'purchase.purchase-order.approve',
                 'purchase.purchase-return', 'purchase.purchase-return.view',
                 'purchase.restock-reminder', 'purchase.restock-reminder.view',
-                'order.order', 'order.order.view', 'order.order.create', 'order.order.edit', 'order.order.cancel', 'order.order.lock', 'order.order.change-price',
+                'order.order', 'order.order.view', 'order.order.create', 'order.order.edit', 'order.order.cancel', 'order.order.lock', 'order.order.change-price', 'order.order.delete',
                 'order.cart',
                 'order.order-return', 'order.order-return.view', 'order.order-return.create', 'order.order-return.edit',
                 'inventory.warehouse', 'inventory.warehouse.view',
