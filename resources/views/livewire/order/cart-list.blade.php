@@ -3,17 +3,19 @@
     <div class="flex items-center justify-between mb-6">
         <div>
             <h1 class="text-2xl font-bold text-foreground">购物车</h1>
-            <p class="text-muted-foreground mt-1">查看各商家购物车数据</p>
+            <p class="text-muted-foreground mt-1">查看各商家购物车数据，按商户生成客户订单</p>
         </div>
-        @can('order.cart.create')
-        <button type="button" wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
-            <x-ui.icon name="plus" class="w-4 h-4" />
-            新增购物车
-        </button>
-        @endcan
+        <div class="flex items-center gap-3">
+            @can('order.cart.create')
+            <button type="button" wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                <x-ui.icon name="plus" class="w-4 h-4" />
+                新增购物车
+            </button>
+            @endcan
+        </div>
     </div>
 
-    {{-- 搜索栏 + 工具按钮 --}}
+    {{-- 搜索栏 + 筛选 + 工具按钮 --}}
     <div class="flex items-center gap-3 mb-4">
         <div x-data class="relative">
             <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background pl-3 pr-8 text-sm" placeholder="搜索商家名称/SKU..." />
@@ -23,6 +25,12 @@
                 </button>
             @endif
         </div>
+        <select wire:model.live="filterMerchantId" class="flex h-9 rounded-md border border-input bg-background px-3 text-sm">
+            <option value="">全部商家</option>
+            @foreach($merchants as $m)
+            <option value="{{ $m->id }}">{{ $m->name }}</option>
+            @endforeach
+        </select>
         <div class="flex-1"></div>
         <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="adjustments" class="w-4 h-4" />列配置</button>
         <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="arrow-down-tray" class="w-4 h-4" />导入</button>
@@ -36,71 +44,64 @@
         @endif
     </div>
 
-    {{-- 列表 --}}
-    @php
-        $allCols = collect($this->getAllColumns())
-            ->filter(fn($col) => !in_array($col['key'], ['merchant_id', 'sku_id']))
-            ->values();
-        $visibleCols = $allCols->filter(fn($col) => $this->isColumnVisible($col['key']));
-        $gridCols = '40px 120px 120px';
-        foreach ($visibleCols as $col) {
-            $width = $col['width'] ?? '120px';
-            $gridCols .= ' ' . $width;
-        }
-        $gridCols .= ' 120px';
-    @endphp
-
-    <div class="rounded-lg border bg-card">
-        <div class="grid gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider" style="grid-template-columns: {{ $gridCols }}">
-            <div><input type="checkbox" wire:model.live="selectAllPage" class="rounded" /></div>
-            <div>商家</div>
-            <div>SKU</div>
-            @foreach($visibleCols as $col)
-                <div>{{ $col['label'] }}</div>
-            @endforeach
-            <div>操作</div>
-        </div>
-
-        @forelse($carts as $cart)
-            <div class="grid gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors"
-                 style="grid-template-columns: {{ $gridCols }}"
-                 wire:key="cart-{{ $cart->id }}">
-                <div><input type="checkbox" value="{{ $cart->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm text-foreground truncate">{{ $cart->merchant?->name ?? '-' }}</div>
-                <div class="text-sm font-mono text-foreground">{{ $cart->sku?->sku_code ?? '-' }}</div>
-                @foreach($visibleCols as $col)
-                    @switch($col['key'])
-                        @case('id')
-                            <div class="text-sm text-muted-foreground">{{ $cart->id }}</div>
-                            @break
-                        @case('quantity')
-                            <div class="text-sm text-foreground">{{ $cart->quantity }}</div>
-                            @break
-                        @case('unit_price')
-                            <div class="text-sm text-foreground">{{ money_format($cart->unit_price) }}</div>
-                            @break
-                        @case('created_at')
-                            <div class="text-sm text-foreground">{{ $cart->created_at?->format('Y-m-d H:i') }}</div>
-                            @break
-                        @default
-                            <div class="text-sm text-foreground truncate">{{ $cart->{$col['key']} ?? '-' }}</div>
-                    @endswitch
-                @endforeach
-                <div class="flex items-center gap-2">
-                    @can('order.cart.edit')
-                    <button type="button" wire:click="openEditModal({{ $cart->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
-                    @endcan
-                    @can('order.cart.delete')
-                    <button type="button" wire:click="confirmDelete({{ $cart->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
-                    @endcan
+    {{-- 按商户分组展示 --}}
+    @forelse($groupedItems as $group)
+        <div class="mb-4 rounded-lg border bg-card overflow-hidden">
+            {{-- 商户分组头 --}}
+            <div class="flex items-center justify-between px-6 py-3 bg-muted/40 border-b">
+                <div class="flex items-center gap-3">
+                    <span class="text-sm font-semibold text-foreground">{{ $group['merchant_name'] }}</span>
+                    <span class="text-xs text-muted-foreground">{{ $group['item_count'] }} 项</span>
+                    <span class="text-xs text-muted-foreground">合计：<span class="font-medium text-foreground">{{ money_format($group['total_amount']) }}</span></span>
                 </div>
+                <button type="button" wire:click="confirmCreateOrder({{ $group['merchant_id'] }})" class="inline-flex items-center gap-1 rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 transition-colors">
+                    <x-ui.icon name="document-plus" class="w-4 h-4" />
+                    生成订单
+                </button>
             </div>
-        @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无购物车数据</div>
-        @endforelse
-    </div>
 
-    <div class="mt-4">{{ $carts->links() }}</div>
+            {{-- 明细表格 --}}
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        <th class="px-4 py-2 text-left w-10"><input type="checkbox" class="rounded" /></th>
+                        <th class="px-4 py-2 text-left">SKU编码</th>
+                        <th class="px-4 py-2 text-left">商品名称</th>
+                        <th class="px-4 py-2 text-right">数量</th>
+                        <th class="px-4 py-2 text-right">单价</th>
+                        <th class="px-4 py-2 text-right">金额</th>
+                        <th class="px-4 py-2 text-right w-24">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($group['items'] as $cart)
+                    <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="cart-{{ $cart->id }}">
+                        <td class="px-4 py-2"><input type="checkbox" value="{{ $cart->id }}" wire:model.live="selectedIds" class="rounded" /></td>
+                        <td class="px-4 py-2 font-mono text-foreground">{{ $cart->sku?->sku_code ?? '-' }}</td>
+                        <td class="px-4 py-2 text-foreground">{{ $cart->sku?->product?->name ?? '-' }}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{{ number_format($cart->quantity) }}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{{ money_format($cart->price) }}</td>
+                        <td class="px-4 py-2 text-right text-foreground font-medium">{{ money_format($cart->quantity * $cart->price) }}</td>
+                        <td class="px-4 py-2 text-right">
+                            <div class="flex items-center justify-end gap-1">
+                                @can('order.cart.edit')
+                                <button type="button" wire:click="openEditModal({{ $cart->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
+                                @endcan
+                                @can('order.cart.delete')
+                                <button type="button" wire:click="confirmDelete({{ $cart->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
+                                @endcan
+                            </div>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @empty
+        <div class="rounded-lg border bg-card px-6 py-12 text-center text-sm text-muted-foreground">暂无购物车数据</div>
+    @endforelse
+
+    <div class="mt-4">{{ $items->links() }}</div>
 
     {{-- 新增/编辑弹窗 --}}
     @if($showModal)
@@ -157,8 +158,35 @@
     </div>
     @endif
 
-    {{-- 删除确认弹窗 --}}
+    {{-- 生成订单确认弹窗 --}}
+    @if($showCreateOrderConfirm)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">确认生成订单</h2>
+                <button type="button" wire:click="closeCreateOrderConfirm" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
+            <div class="space-y-3 text-sm text-foreground">
+                <p>将为以下商家生成客户订单：</p>
+                <div class="rounded-md border bg-muted/30 p-3 space-y-1">
+                    <div class="flex justify-between"><span class="text-muted-foreground">商家</span><span class="font-medium">{{ $createOrderMerchantName }}</span></div>
+                    <div class="flex justify-between"><span class="text-muted-foreground">明细数</span><span class="font-medium">{{ $createOrderItemCount }} 项</span></div>
+                    <div class="flex justify-between"><span class="text-muted-foreground">合计金额</span><span class="font-medium">{{ money_format($createOrderTotalAmount) }}</span></div>
+                </div>
+                <p class="text-muted-foreground text-xs">生成后该商家的购物车数据将被清空，订单状态默认为「待拣货」。</p>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" wire:click="closeCreateOrderConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="executeCreateOrder" class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors">确认生成</button>
+            </div>
+        </div>
+    </div>
+    @endif
 
+    {{-- 列配置 / 导入 / 导出 / 删除确认弹窗 --}}
     @include('partials.column-modal')
     @include('partials.export-modal')
     @include('partials.import-modal')
