@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '411ba0d1-fe7e-4947-9817-f7f0d74a94dd'
-  PropagateID: '411ba0d1-fe7e-4947-9817-f7f0d74a94dd'
-  ReservedCode1: '7d8b1289-0f8a-4440-ae9a-c246149f4b8a'
-  ReservedCode2: '7d8b1289-0f8a-4440-ae9a-c246149f4b8a'
+  ProduceID: 'dad5fd92-59a4-4908-9770-18057ddafe64'
+  PropagateID: 'dad5fd92-59a4-4908-9770-18057ddafe64'
+  ReservedCode1: '9a54ed34-f0aa-4173-989e-3fa6bff4696a'
+  ReservedCode2: '9a54ed34-f0aa-4173-989e-3fa6bff4696a'
 ---
 
 # 开发迭代日志
@@ -1078,3 +1078,65 @@ AIGC:
 | CACHE_STORE | redis | file | Redis 扩展未安装 |
 
 > AI生成
+
+---
+
+## V2.0.0 — 配送模块 v2 改造
+
+### 变更概述
+
+配送模块从 v1（5 张配送表 + 简单三态流转）全面改造为 v2，支持线路固定规划 + 任务按需生成 + 配送顺序表 + 加急/重要标记 + 车辆故障处理。
+
+### 数据库变更
+
+| 操作 | 表名 | 说明 |
+| :--- | :--- | :--- |
+| 改造 | delivery_routes | 新增 8 字段：code(UNIQUE)、warehouse_id、default_driver_id、default_vehicle_id、color、departure_time、estimated_duration、estimated_distance、remark |
+| 改造 | delivery_tasks | 字段大量改名（delivery_route_id→route_id、planned_at→planned_start_time 等）+ 新增 delivery_date、generated_at、has_urgent、has_important、total_stops 等；状态从 3 种扩展为 6 种 |
+| 改造 | vehicles | 新增 name、capacity_kg、capacity_volume、last_maintenance_date、next_maintenance_date、remark；vehicle_type→type；状态改为 3 种（1可用/2维修中/3报废） |
+| 改名重建 | delivery_task_orders → delivery_task_details | 整表重构，新增 merchant_id/merchant_name/merchant_address/product_summary/source_type/delivery_method/delivery_photos 等字段 |
+| 新建 | delivery_route_stops | 线路明细-商家排序表（核心） |
+| 新建 | delivery_task_sequences | 配送顺序表（核心），含加急/重要标记、base_sequence_no/sequence_no 双序号 |
+| 新建 | delivery_arrival_logs | 抵达时间流水，不可变记录 |
+| 新建 | vehicle_issues | 车辆故障记录表 |
+
+### Model 变更
+
+| 操作 | Model | 说明 |
+| :--- | :--- | :--- |
+| 更新 | DeliveryRoute | 新增 warehouse() 关联，8 个新字段 |
+| 更新 | DeliveryTask | 6 状态 + generateTaskNo() + canTransitionTo() |
+| 更新 | Vehicle | 4 类型 + 3 状态 |
+| 更新 | Merchant | 移除 delivery_route_id/delivery_sort，新增 routeStops() |
+| 新建 | DeliveryTaskDetail | 原 DeliveryTaskOrder 改名 |
+| 新建 | DeliveryRouteStop | 含 resequence()/batchReorder() |
+| 新建 | DeliveryTaskSequence | 含 markUrgent()/unmarkUrgent()/markImportant()/unmarkImportant() |
+| 新建 | DeliveryArrivalLog | 抵达时间流水 |
+| 新建 | VehicleIssue | 车辆故障 |
+| 删除 | DeliveryTaskOrder | 已被 DeliveryTaskDetail 替代 |
+
+### Livewire 组件变更
+
+| 操作 | 组件 | 说明 |
+| :--- | :--- | :--- |
+| 新建 | Delivery\DeliveryRouteList | 替代旧 Org\RouteList，v2 全字段 |
+| 新建 | Delivery\DeliveryRouteDetail | 线路详情页（信息卡片 + 商家列表 + HTML5 拖拽排序） |
+| 重写 | Delivery\DeliveryTaskList | 适配 v2 字段名 |
+| 重写 | Delivery\VehicleList | 适配 v2 字段名 |
+| 废弃 | Org\RouteList + Org\RouteSort | 已被 Delivery 组件替代，待清理 |
+
+### 路由/菜单/权限迁移
+
+| 操作 | 说明 |
+| :--- | :--- |
+| 路由 | delivery-routes 改指新组件 + 新增 delivery-routes/{id} 详情路由 |
+| 菜单 | 新建「配送管理」分组，配送线路/任务/签收/差异/温度从「订单配送」移入 |
+| 权限 | org.route → delivery.route（含 stop-manage 子权限），角色分配同步更新 |
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | feature/delivery-task |
+| 提交 | f569d4e（Migration + Model）、aed481a（Livewire + 路由/菜单/权限） |
+| 验证 | migrate:refresh --seed 通过 |

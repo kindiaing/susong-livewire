@@ -1,3 +1,13 @@
+---
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: '108b3b18-2e3e-447e-957c-67ddac284e21'
+  PropagateID: '108b3b18-2e3e-447e-957c-67ddac284e21'
+  ReservedCode1: '74516430-f51b-424a-8757-b9462edd7d05'
+  ReservedCode2: '74516430-f51b-424a-8757-b9462edd7d05'
+---
 
 # API 前后端接口文档
 
@@ -316,23 +326,59 @@
 
 #### GET /api/v1/delivery-routes 线路列表
 
+| 参数 | 类型 | 说明 |
+| :--- | :--- | :--- |
+| code | string | 按编码筛选 |
+| name | string | 按名称筛选 |
+| status | int | 状态筛选 |
+
 #### POST /api/v1/delivery-routes 新增线路
 
 | 字段 | 类型 | 必填 | 说明 |
 | :--- | :--- | :--- | :--- |
 | name | string | 是 | 线路名称 |
+| code | string | 是 | 线路编码（唯一） |
+| warehouse_id | int | 否 | 出发仓库ID |
+| default_driver_id | int | 否 | 默认司机ID |
+| default_vehicle_id | int | 否 | 默认车辆ID |
+| color | string | 否 | 地图显示颜色（默认#3B82F6） |
+| departure_time | string | 否 | 默认出发时间（默认06:00） |
+| estimated_duration | int | 否 | 预计总时长（分钟） |
+| estimated_distance | decimal | 否 | 预计总里程（公里） |
 | description | string | 否 | 描述 |
 | sort | int | 否 | 排序 |
 
 #### PUT /api/v1/delivery-routes/{id} 编辑线路
 
+字段同新增线路。
+
 #### DELETE /api/v1/delivery-routes/{id} 删除线路
 
-#### PUT /api/v1/delivery-routes/{id}/sort-merchants 调整线路下商家配送顺序
+已关联配送任务的线路不可删除。
+
+#### GET /api/v1/delivery-routes/{id} 线路详情
+
+含线路基本信息 + 商家明细列表（含顺序号）。
+
+#### POST /api/v1/delivery-routes/{id}/stops 添加线路商家
 
 | 字段 | 类型 | 必填 | 说明 |
 | :--- | :--- | :--- | :--- |
-| merchant_ids | int[] | 是 | 按配送顺序排列的商家ID数组 |
+| merchant_id | int | 是 | 商家ID |
+| address | string | 否 | 配送地址 |
+| latitude | decimal | 否 | 纬度 |
+| longitude | decimal | 否 | 经度 |
+| default_service_time | int | 否 | 默认停留时间（分钟，默认10） |
+
+#### PUT /api/v1/delivery-routes/{id}/stops/{stopId} 编辑线路商家
+
+#### DELETE /api/v1/delivery-routes/{id}/stops/{stopId} 移除线路商家
+
+#### PUT /api/v1/delivery-routes/{id}/sort-stops 调整线路商家配送顺序
+
+| 字段 | 类型 | 必填 | 说明 |
+| :--- | :--- | :--- | :--- |
+| stops | object[] | 是 | [{stop_id, sequence_no}] |
 
 ### 3.4 司机管理接口
 
@@ -1045,24 +1091,30 @@
 
 | 参数 | 类型 | 说明 |
 | :--- | :--- | :--- |
-| delivery_route_id | int | 按线路筛选 |
+| route_id | int | 按线路筛选 |
 | driver_id | int | 按司机筛选 |
-| status | int | 状态：1待配送，2配送中，3任务完成 |
+| status | int | 状态：1待配送，2已分配，3配送中，4暂停，5已完成，6已取消 |
+| delivery_date | string | 送达日期筛选 |
 | batch | int | 批次筛选 |
-| date | string | 日期筛选 |
+| has_urgent | int | 筛选含加急：1是 |
+| has_important | int | 筛选含重要：1是 |
 
-#### POST /api/v1/delivery-tasks 创建配送任务
+#### POST /api/v1/delivery-tasks 生成配送任务
 
 | 字段 | 类型 | 必填 | 说明 |
 | :--- | :--- | :--- | :--- |
-| delivery_route_id | int | 是 | 线路ID |
-| driver_id | int | 否 | 司机ID |
-| vehicle_id | int | 否 | 车辆ID |
+| route_id | int | 是 | 线路ID |
+| delivery_date | string | 是 | 送达日期 |
+| driver_id | int | 否 | 司机ID（默认从线路带入） |
+| vehicle_id | int | 否 | 车辆ID（默认从线路带入） |
 | batch | int | 否 | 配送批次（默认1） |
-| order_ids | int[] | 是 | 聚合的订单ID数组 |
-| delivery_sort | object | 否 | 配送顺序 {order_id: sort} |
+| detail_ids | int[] | 是 | 从单据池勾选的明细ID数组 |
 
-#### GET /api/v1/delivery-tasks/{id} 配送任务详情（含关联订单、轨迹、签收）
+> 生成任务时自动创建顺序表（delivery_task_sequences），按线路 sequence_no 排列。
+
+#### GET /api/v1/delivery-tasks/{id} 配送任务详情
+
+含任务信息、明细列表、顺序表、司机/车辆信息、配送轨迹。
 
 #### PUT /api/v1/delivery-tasks/{id}/assign 分配司机/车辆
 
@@ -1073,9 +1125,76 @@
 
 #### PUT /api/v1/delivery-tasks/{id}/start 开始配送
 
+状态：1待配送/2已分配 → 3配送中。
+
+#### PUT /api/v1/delivery-tasks/{id}/pause 暂停配送
+
+状态：3配送中 → 4暂停。
+
 #### PUT /api/v1/delivery-tasks/{id}/complete 完成配送任务
 
-### 10.2 配送轨迹接口
+状态：3配送中 → 5已完成。
+
+#### PUT /api/v1/delivery-tasks/{id}/cancel 取消配送任务
+
+状态：1待配送 → 6已取消。
+
+### 10.2 配送顺序表接口
+
+#### GET /api/v1/delivery-tasks/{id}/sequences 获取配送顺序表
+
+#### PUT /api/v1/delivery-task-sequences/{id}/reorder 调整顺序
+
+| 字段 | 类型 | 必填 | 说明 |
+| :--- | :--- | :--- | :--- |
+| sequence_no | int | 是 | 新顺序号 |
+
+#### PUT /api/v1/delivery-task-sequences/{id}/mark-urgent 标记加急
+
+| 字段 | 类型 | 必填 | 说明 |
+| :--- | :--- | :--- | :--- |
+| is_urgent | int | 是 | 0取消，1加急 |
+| urgent_reason | string | 否 | 加急原因 |
+
+#### PUT /api/v1/delivery-task-sequences/{id}/mark-important 标记重要
+
+| 字段 | 类型 | 必填 | 说明 |
+| :--- | :--- | :--- | :--- |
+| is_important | int | 是 | 0取消，1重要 |
+| important_reason | string | 否 | 重要原因 |
+
+#### PUT /api/v1/delivery-task-sequences/{id}/arrive 到达商家
+
+| 字段 | 类型 | 必填 | 说明 |
+| :--- | :--- | :--- | :--- |
+| gps_latitude | decimal | 否 | 到达时纬度 |
+| gps_longitude | decimal | 否 | 到达时经度 |
+
+> 自动写入抵达时间流水（delivery_arrival_logs）。
+
+#### PUT /api/v1/delivery-task-sequences/{id}/deliver 确认送达
+
+| 字段 | 类型 | 必填 | 说明 |
+| :--- | :--- | :--- | :--- |
+| delivery_method | string | 否 | 确认方式：manual/scan/photo/signature |
+| delivery_photos | json | 否 | 配送照片 |
+| signature_image | string | 否 | 签名图片URL |
+| gps_latitude | decimal | 否 | 送达时纬度 |
+| gps_longitude | decimal | 否 | 送达时经度 |
+
+#### PUT /api/v1/delivery-task-sequences/{id}/skip 跳过商家
+
+| 字段 | 类型 | 必填 | 说明 |
+| :--- | :--- | :--- | :--- |
+| skip_reason | string | 是 | 跳过原因 |
+
+#### PUT /api/v1/delivery-task-sequences/{id}/fail 标记配送失败
+
+| 字段 | 类型 | 必填 | 说明 |
+| :--- | :--- | :--- | :--- |
+| fail_reason | string | 是 | 失败原因 |
+
+### 10.3 配送轨迹接口
 
 #### POST /api/v1/delivery-tracks 上报轨迹
 
@@ -1090,7 +1209,7 @@
 
 #### GET /api/v1/delivery-tasks/{id}/tracks/replay 历史轨迹回放
 
-### 10.3 签收存证接口
+### 10.4 签收存证接口
 
 #### POST /api/v1/signatures 签收存证
 
@@ -1110,6 +1229,29 @@
 | :--- | :--- | :--- | :--- |
 | delivery_task_id | int | 是 | 配送任务ID |
 | temperature | decimal | 是 | 温度值 |
+
+### 10.5 车辆故障接口
+
+#### POST /api/v1/vehicle-issues 上报车辆故障
+
+| 字段 | 类型 | 必填 | 说明 |
+| :--- | :--- | :--- | :--- |
+| vehicle_id | int | 是 | 车辆ID |
+| task_id | int | 否 | 关联配送任务ID |
+| issue_type | string | 否 | 故障类型：breakdown/accident/tire/battery/engine/other |
+| description | string | 是 | 描述 |
+| photos | json | 否 | 故障照片 |
+
+#### PUT /api/v1/vehicle-issues/{id}/resolve 解决故障
+
+| 字段 | 类型 | 必填 | 说明 |
+| :--- | :--- | :--- | :--- |
+| impact_type | string | 否 | 影响类型 |
+| impact_desc | string | 否 | 影响描述 |
+
+#### PUT /api/v1/vehicle-issues/{id}/close 关闭故障记录
+
+#### GET /api/v1/vehicles/{id}/issues 车辆故障历史
 
 ---
 
@@ -1745,11 +1887,13 @@
 | :--- | :--- | :--- |
 | batch | int | 批次筛选 |
 
+> 返回结果中包含 has_urgent/has_important 标记，司机端据此突出展示。
+
 #### GET /api/v1/driver/tasks/{id} 任务详情
 
-含订单列表、商家地址、联系方式。
+含顺序表（delivery_task_sequences）、关联明细、商家地址、联系方式。
 
-### 18.3 配送接口
+### 18.3 配送执行接口
 
 #### POST /api/v1/driver/tracks 上报轨迹
 
@@ -1759,9 +1903,30 @@
 | latitude | decimal | 是 | 纬度 |
 | longitude | decimal | 是 | 经度 |
 
-#### PUT /api/v1/driver/task-orders/{id}/arrived 到达确认
+#### PUT /api/v1/driver/sequences/{id}/arrive 到达商家
 
-#### PUT /api/v1/driver/task-orders/{id}/deliver 确认送达
+| 字段 | 类型 | 必填 | 说明 |
+| :--- | :--- | :--- | :--- |
+| gps_latitude | decimal | 否 | 到达时纬度 |
+| gps_longitude | decimal | 否 | 到达时经度 |
+
+> 自动写入抵达时间流水。
+
+#### PUT /api/v1/driver/sequences/{id}/deliver 确认送达
+
+| 字段 | 类型 | 必填 | 说明 |
+| :--- | :--- | :--- | :--- |
+| delivery_method | string | 否 | 确认方式：manual/scan/photo/signature |
+| delivery_photos | json | 否 | 配送照片 |
+| signature_image | string | 否 | 签名图片URL |
+| gps_latitude | decimal | 否 | 送达时纬度 |
+| gps_longitude | decimal | 否 | 送达时经度 |
+
+#### PUT /api/v1/driver/sequences/{id}/skip 跳过商家
+
+| 字段 | 类型 | 必填 | 说明 |
+| :--- | :--- | :--- | :--- |
+| skip_reason | string | 是 | 跳过原因 |
 
 ### 18.4 签收接口
 
@@ -1792,7 +1957,19 @@
 | actual_quantity | decimal | 是 | 实际数量 |
 | reason | string | 否 | 差异原因 |
 
-### 18.5 历史任务接口
+### 18.5 车辆故障接口
+
+#### POST /api/v1/driver/vehicle-issues 上报车辆故障
+
+| 字段 | 类型 | 必填 | 说明 |
+| :--- | :--- | :--- | :--- |
+| vehicle_id | int | 是 | 车辆ID |
+| task_id | int | 否 | 关联配送任务ID |
+| issue_type | string | 否 | 故障类型：breakdown/accident/tire/battery/engine/other |
+| description | string | 是 | 描述 |
+| photos | json | 否 | 故障照片 |
+
+### 18.6 历史任务接口
 
 #### GET /api/v1/driver/history 历史配送任务
 
