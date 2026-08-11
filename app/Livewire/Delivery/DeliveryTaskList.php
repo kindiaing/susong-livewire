@@ -15,6 +15,7 @@ use App\Models\DeliveryRoute;
 use App\Models\DeliveryRouteStop;
 use App\Models\Driver;
 use App\Models\Vehicle;
+use App\Models\DeliveryNote;
 use App\Models\Order;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -388,6 +389,13 @@ class DeliveryTaskList extends Component
             'has_urgent' => $hasUrgent,
             'has_important' => $hasImportant,
         ]);
+
+        // 回填送货单的 task_id（拣货阶段创建的送货单 task_id=0，此处绑定到配送任务）
+        DeliveryNote::where('delivery_date', $validated['genDeliveryDate'])
+            ->where('task_id', 0)
+            ->whereIn('merchant_id', array_keys($detailIdMap))
+            ->where('status', '!=', DeliveryNote::STATUS_CANCELLED)
+            ->update(['task_id' => $task->id]);
 
         // 更新订单状态为配送中
         Order::whereIn('id', $this->genSelectedOrderIds)

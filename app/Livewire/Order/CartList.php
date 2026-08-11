@@ -304,7 +304,6 @@ class CartList extends Component
                 'final_amount' => $totalAmount,
                 'payment_status' => Order::PAYMENT_UNPAID,
                 'settlement_type' => $merchant->settlement_type ?: Order::SETTLEMENT_CASH,
-                'delivery_route_id' => $merchant->delivery_route_id ?: null,
                 'delivery_address' => $merchant->address ?: null,
                 'contact_name' => $merchant->contact_name ?: null,
                 'contact_phone' => $merchant->contact_phone ?: null,

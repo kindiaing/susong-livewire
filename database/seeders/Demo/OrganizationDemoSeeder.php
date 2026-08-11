@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
  *
  * 包含：供应商、配送路线、商家（含商家账户）、司机、车辆（含司机-车辆绑定）
  *
- * 注意：seeder 执行顺序改为先路由再商家，因为商家需要关联 delivery_route_id
+ * 注意：seeder 执行顺序为先路由再商家，商家线路关联通过 delivery_route_stops 表管理
  */
 class OrganizationDemoSeeder extends Seeder
 {
@@ -147,18 +147,12 @@ class OrganizationDemoSeeder extends Seeder
     {
         $now = now();
 
-        // 获取线路ID
-        $routeNorth = DB::table('delivery_routes')->where('name', '城区北线')->first();
-        $routeSouth = DB::table('delivery_routes')->where('name', '城区南线')->first();
-        $routeNorthId = $routeNorth?->id;
-        $routeSouthId = $routeSouth?->id;
-
         $merchants = [
-            ['name' => '味之初餐饮店', 'contact_name' => '吴老板', 'contact_phone' => '15800000001', 'address' => '安徽省宿州市埇桥区人民路88号', 'delivery_route_id' => $routeNorthId, 'delivery_sort' => 1, 'min_order_amount' => 50000, 'settlement_type' => 1, 'credit_limit' => 5000000, 'status' => 1, 'remark' => null, 'created_at' => $now, 'updated_at' => $now],
-            ['name' => '鲜之味快餐店', 'contact_name' => '郑老板', 'contact_phone' => '15800000002', 'address' => '安徽省宿州市埇桥区淮海路120号', 'delivery_route_id' => $routeNorthId, 'delivery_sort' => 2, 'min_order_amount' => 30000, 'settlement_type' => 2, 'credit_limit' => 10000000, 'status' => 1, 'remark' => '账期客户', 'created_at' => $now, 'updated_at' => $now],
-            ['name' => '家常菜馆', 'contact_name' => '冯老板', 'contact_phone' => '15800000003', 'address' => '安徽省宿州市埇桥区汴河路56号', 'delivery_route_id' => $routeNorthId, 'delivery_sort' => 3, 'min_order_amount' => 0, 'settlement_type' => 1, 'credit_limit' => 0, 'status' => 1, 'remark' => null, 'created_at' => $now, 'updated_at' => $now],
-            ['name' => '鑫鑫小吃店', 'contact_name' => '蒋老板', 'contact_phone' => '15800000004', 'address' => '安徽省宿州市埇桥区银河一路32号', 'delivery_route_id' => $routeSouthId, 'delivery_sort' => 1, 'min_order_amount' => 20000, 'settlement_type' => 3, 'credit_limit' => 3000000, 'status' => 1, 'remark' => '预付款客户', 'created_at' => $now, 'updated_at' => $now],
-            ['name' => '老街坊饭店', 'contact_name' => '韩老板', 'contact_phone' => '15800000005', 'address' => '安徽省宿州市埇桥区胜利路18号', 'delivery_route_id' => $routeSouthId, 'delivery_sort' => 2, 'min_order_amount' => 0, 'settlement_type' => 1, 'credit_limit' => 0, 'status' => 1, 'remark' => null, 'created_at' => $now, 'updated_at' => $now],
+            ['name' => '味之初餐饮店', 'contact_name' => '吴老板', 'contact_phone' => '15800000001', 'address' => '安徽省宿州市埇桥区人民路88号', 'min_order_amount' => 50000, 'settlement_type' => 1, 'credit_limit' => 5000000, 'status' => 1, 'remark' => null, 'created_at' => $now, 'updated_at' => $now],
+            ['name' => '鲜之味快餐店', 'contact_name' => '郑老板', 'contact_phone' => '15800000002', 'address' => '安徽省宿州市埇桥区淮海路120号', 'min_order_amount' => 30000, 'settlement_type' => 2, 'credit_limit' => 10000000, 'status' => 1, 'remark' => '账期客户', 'created_at' => $now, 'updated_at' => $now],
+            ['name' => '家常菜馆', 'contact_name' => '冯老板', 'contact_phone' => '15800000003', 'address' => '安徽省宿州市埇桥区汴河路56号', 'min_order_amount' => 0, 'settlement_type' => 1, 'credit_limit' => 0, 'status' => 1, 'remark' => null, 'created_at' => $now, 'updated_at' => $now],
+            ['name' => '鑫鑫小吃店', 'contact_name' => '蒋老板', 'contact_phone' => '15800000004', 'address' => '安徽省宿州市埇桥区银河一路32号', 'min_order_amount' => 20000, 'settlement_type' => 3, 'credit_limit' => 3000000, 'status' => 1, 'remark' => '预付款客户', 'created_at' => $now, 'updated_at' => $now],
+            ['name' => '老街坊饭店', 'contact_name' => '韩老板', 'contact_phone' => '15800000005', 'address' => '安徽省宿州市埇桥区胜利路18号', 'min_order_amount' => 0, 'settlement_type' => 1, 'credit_limit' => 0, 'status' => 1, 'remark' => null, 'created_at' => $now, 'updated_at' => $now],
         ];
 
         foreach ($merchants as $merchant) {

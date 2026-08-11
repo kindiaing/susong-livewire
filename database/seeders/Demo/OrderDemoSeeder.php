@@ -78,14 +78,13 @@ class OrderDemoSeeder extends Seeder
         $merchant1 = DB::table('merchants')->where('name', '味之初餐饮店')->first();
         $merchant2 = DB::table('merchants')->where('name', '家常菜馆')->first();
         $merchant3 = DB::table('merchants')->where('name', '鲜之味快餐店')->first();
-        $route1 = DB::table('delivery_routes')->where('name', '城区北线')->first();
 
         $today = $now->toDateString();
         $yesterday = $now->copy()->subDay()->toDateString();
 
         $orders = [
             [
-                'order_no' => 'ORD-20260728-001', 'merchant' => $merchant1, 'route' => $route1, 'batch' => 1,
+                'order_no' => 'ORD-20260728-001', 'merchant' => $merchant1, 'batch' => 1,
                 'delivery_address' => '安徽省宿州市埇桥区人民路88号', 'contact_name' => '吴老板', 'contact_phone' => '15800000001',
                 'status' => 4, 'total_amount' => 23000, 'adjusted_amount' => 23000, 'final_amount' => 23000, 'payment_status' => 2, 'settlement_type' => 1,
                 'order_date' => $yesterday, 'delivery_date' => $today,
@@ -95,7 +94,7 @@ class OrderDemoSeeder extends Seeder
                 ],
             ],
             [
-                'order_no' => 'ORD-20260728-002', 'merchant' => $merchant2, 'route' => $route1, 'batch' => 1,
+                'order_no' => 'ORD-20260728-002', 'merchant' => $merchant2, 'batch' => 1,
                 'delivery_address' => '安徽省宿州市埇桥区汴河路56号', 'contact_name' => '冯老板', 'contact_phone' => '15800000003',
                 'status' => 2, 'total_amount' => 74500, 'adjusted_amount' => 74500, 'final_amount' => 0, 'payment_status' => 1, 'settlement_type' => 2,
                 'order_date' => $yesterday, 'delivery_date' => $today,
@@ -104,7 +103,7 @@ class OrderDemoSeeder extends Seeder
                 ],
             ],
             [
-                'order_no' => 'ORD-20260729-001', 'merchant' => $merchant3, 'route' => $route1, 'batch' => 2,
+                'order_no' => 'ORD-20260729-001', 'merchant' => $merchant3, 'batch' => 2,
                 'delivery_address' => '安徽省宿州市埇桥区淮海路120号', 'contact_name' => '郑老板', 'contact_phone' => '15800000002',
                 'status' => 1, 'total_amount' => 4025000, 'adjusted_amount' => 4025000, 'final_amount' => 0, 'payment_status' => 1, 'settlement_type' => 3,
                 'order_date' => $today, 'delivery_date' => $now->copy()->addDay()->toDateString(),
@@ -120,7 +119,7 @@ class OrderDemoSeeder extends Seeder
 
             $orderId = DB::table('orders')->insertGetId([
                 'order_no' => $orderData['order_no'], 'merchant_id' => $orderData['merchant']->id,
-                'delivery_route_id' => $orderData['route']?->id, 'batch' => $orderData['batch'],
+                'batch' => $orderData['batch'],
                 'delivery_address' => $orderData['delivery_address'], 'contact_name' => $orderData['contact_name'], 'contact_phone' => $orderData['contact_phone'],
                 'status' => $orderData['status'], 'total_amount' => $orderData['total_amount'],
                 'adjusted_amount' => $orderData['adjusted_amount'], 'final_amount' => $orderData['final_amount'],

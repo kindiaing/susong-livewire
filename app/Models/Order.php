@@ -12,7 +12,6 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property string $order_no 订单号
  * @property int $merchant_id 商家ID
- * @property int|null $delivery_route_id 配送线路ID
  * @property int $batch 配送批次：1上午，2下午
  * @property string|null $delivery_address 配送地址
  * @property string|null $contact_name 收货联系人
@@ -58,7 +57,6 @@ class Order extends Model
     protected $fillable = [
         'order_no',
         'merchant_id',
-        'delivery_route_id',
         'batch',
         'delivery_address',
         'contact_name',
@@ -81,7 +79,6 @@ class Order extends Model
     {
         return [
             'merchant_id' => 'integer',
-            'delivery_route_id' => 'integer',
             'batch' => 'integer',
             'status' => 'integer',
             'total_amount' => 'integer',

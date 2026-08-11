@@ -195,16 +195,6 @@
                         @error('formBatch') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">配送线路</label>
-                    <select wire:model="formDeliveryRouteId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                        <option value="0">请选择配送线路</option>
-                        @foreach($routes as $r)
-                        <option value="{{ $r->id }}">{{ $r->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('formDeliveryRouteId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-foreground mb-1">单据日期</label>

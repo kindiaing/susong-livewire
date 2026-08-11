@@ -9,7 +9,6 @@ use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
 use App\Livewire\Traits\WithListCrud;
 use App\Models\AuditLog;
-use App\Models\DeliveryRoute;
 use App\Models\Merchant;
 use App\Models\Order;
 use Livewire\Component;
@@ -39,7 +38,6 @@ class OrderList extends Component
 
     // 创建表单：配送字段
     public int $formSettlementType = 1;
-    public int $formDeliveryRouteId = 0;
     public int $formBatch = 1;
     public string $formContactName = '';
     public string $formContactPhone = '';
@@ -175,7 +173,6 @@ class OrderList extends Component
             $validated = $this->validate([
                 'formMerchantId' => 'required|integer|exists:merchants,id',
                 'formSettlementType' => 'required|integer|in:1,2,3',
-                'formDeliveryRouteId' => 'nullable|integer|exists:delivery_routes,id',
                 'formBatch' => 'required|integer|in:1,2',
                 'formContactName' => 'nullable|string|max:50',
                 'formContactPhone' => 'nullable|string|max:20',
@@ -189,7 +186,6 @@ class OrderList extends Component
                 'order_no' => Order::generateOrderNo(),
                 'merchant_id' => $validated['formMerchantId'],
                 'settlement_type' => $validated['formSettlementType'],
-                'delivery_route_id' => $validated['formDeliveryRouteId'] ?: null,
                 'batch' => $validated['formBatch'],
                 'contact_name' => $validated['formContactName'] ?: null,
                 'contact_phone' => $validated['formContactPhone'] ?: null,
@@ -342,7 +338,6 @@ class OrderList extends Component
         $this->formDeliveryDate = '';
         $this->formRemark = '';
         $this->formSettlementType = 1;
-        $this->formDeliveryRouteId = 0;
         $this->formBatch = 1;
         $this->formContactName = '';
         $this->formContactPhone = '';
@@ -377,12 +372,10 @@ class OrderList extends Component
     {
         $orders = $this->buildQuery()->paginate(setting('per_page', 10));
         $merchants = Merchant::orderBy('name')->get();
-        $routes = DeliveryRoute::orderBy('name')->get();
 
         return view('livewire.order.order-list', [
             'orders' => $orders,
             'merchants' => $merchants,
-            'routes' => $routes,
             'allColumns' => $this->getAllColumns(),
             'selectedCount' => $this->getSelectedCount(),
             'batchActions' => $this->getBatchActions(),

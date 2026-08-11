@@ -15,8 +15,6 @@ use Illuminate\Support\Carbon;
  * @property string|null $contact_name 联系人
  * @property string|null $contact_phone 联系电话
  * @property string|null $address 地址
- * @property int|null $delivery_route_id 配送线路ID
- * @property int $delivery_sort 配送顺序
  * @property int $min_order_amount 起送金额（厘）
  * @property int $settlement_type 结算方式：1现结，2账期，3预付款
  * @property int $credit_limit 信用额度（厘）
