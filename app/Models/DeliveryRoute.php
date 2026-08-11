@@ -90,19 +90,19 @@ class DeliveryRoute extends Model
     }
 
     /**
-     * 关联商家（旧方式，兼容）
-     */
-    public function merchants()
-    {
-        return $this->hasMany(Merchant::class);
-    }
-
-    /**
      * 关联配送任务
      */
     public function deliveryTasks()
     {
         return $this->hasMany(DeliveryTask::class, 'route_id');
+    }
+
+    /**
+     * 关联出发仓库
+     */
+    public function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class, 'warehouse_id');
     }
 
     /**

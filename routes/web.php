@@ -1,6 +1,8 @@
 <?php
 
 use App\Livewire\Auth\Login;
+use App\Livewire\Delivery\DeliveryRouteDetail;
+use App\Livewire\Delivery\DeliveryRouteList;
 use App\Livewire\Delivery\DeliveryTaskList;
 use App\Livewire\Delivery\DiscrepancyList;
 use App\Livewire\Delivery\SignatureList;
@@ -20,8 +22,6 @@ use App\Livewire\Loss\LossOrderList;
 use App\Livewire\Merchant\MerchantAddressList;
 use App\Livewire\Merchant\MerchantFavoriteList;
 use App\Livewire\Org\DriverList;
-use App\Livewire\Org\MerchantList;
-use App\Livewire\Org\RouteList;
 use App\Livewire\Org\SupplierList;
 use App\Livewire\Org\VehicleList;
 use App\Livewire\Order\CartList;
@@ -92,8 +92,7 @@ Route::middleware(['auth', 'permission'])->group(function () {
 
     // ── 组织主体 ──
     Route::get('/suppliers', SupplierList::class)->name('suppliers');
-    Route::get('/merchants', MerchantList::class)->name('merchants');
-    Route::get('/delivery-routes', RouteList::class)->name('delivery-routes');
+    Route::get('/merchants', \App\Livewire\Org\MerchantList::class)->name('merchants');
     Route::get('/drivers', DriverList::class)->name('drivers');
     Route::get('/vehicles', VehicleList::class)->name('vehicles');
 
@@ -130,6 +129,8 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::get('/picking-tasks', PickingTaskList::class)->name('picking-tasks');
 
     // ── 配送管理 ──
+    Route::get('/delivery-routes', DeliveryRouteList::class)->name('delivery-routes');
+    Route::get('/delivery-routes/{id}', DeliveryRouteDetail::class)->name('delivery-routes.detail');
     Route::get('/delivery-tasks', DeliveryTaskList::class)->name('delivery-tasks');
     Route::get('/signatures', SignatureList::class)->name('signatures');
     Route::get('/temperatures', TemperatureList::class)->name('temperatures');

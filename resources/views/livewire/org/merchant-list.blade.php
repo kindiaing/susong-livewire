@@ -40,15 +40,6 @@
             <option value="2">账期</option>
             <option value="3">预付款</option>
         </select>
-        <select
-            wire:model.live="filterRouteId"
-            class="flex h-9 w-36 rounded-md border border-input bg-background px-3 text-sm"
-        >
-            <option value="">全部线路</option>
-            @foreach($routes as $route)
-                <option value="{{ $route->id }}">{{ $route->name }}</option>
-            @endforeach
-        </select>
         <div class="flex-1"></div>
         <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="adjustments" class="w-4 h-4" />列配置</button>
         <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="arrow-down-tray" class="w-4 h-4" />导入</button>
@@ -171,23 +162,6 @@
                     <label class="block text-sm font-medium text-foreground mb-1">地址 <span class="text-red-500">*</span></label>
                     <input type="text" wire:model="formAddress" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="详细地址" />
                     @error('formAddress') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-foreground mb-1">配送线路</label>
-                        <select wire:model="formDeliveryRouteId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                            <option value="0">请选择</option>
-                            @foreach($routes as $route)
-                                <option value="{{ $route->id }}">{{ $route->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('formDeliveryRouteId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-foreground mb-1">配送顺序</label>
-                        <input type="number" wire:model="formDeliverySort" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" />
-                        @error('formDeliverySort') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>

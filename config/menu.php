@@ -41,18 +41,26 @@ return [
     ],
     [
         'key'   => 'order',
-        'label' => '订单配送',
+        'label' => '订单管理',
         'icon'  => 'clipboard',
         'children' => [
             ['key' => 'order.order',     'label' => '客户订单',   'route' => 'orders',              'permission' => 'order.order.view',       'description' => '商家下单记录'],
             ['key' => 'order.cart',      'label' => '购物车',     'route' => 'carts',               'permission' => 'order.cart.view',        'description' => '商家选购暂存'],
             ['key' => 'order.frequent',  'label' => '常购清单',   'route' => 'frequently-bought',    'permission' => 'order.order.view',       'description' => '商家频繁购买记录'],
             ['key' => 'order.repurchase','label' => '复购模板',   'route' => 'repurchase-templates', 'permission' => 'order.order.view',       'description' => '一键快速复购'],
-            ['key' => 'order.delivery',  'label' => '配送任务',   'route' => 'delivery-tasks',      'permission' => 'delivery.delivery-task.view', 'description' => '司机配送调度'],
-            ['key' => 'order.signature','label' => '签收存证',   'route' => 'signatures',          'permission' => 'delivery.signature.view',    'description' => '签收照片与温度记录'],
-            ['key' => 'order.discrepancy','label' => '差异处理', 'route' => 'discrepancies',        'permission' => 'delivery.discrepancy.view',   'description' => '配送差异与短少处理'],
-            ['key' => 'order.temperature', 'label' => '温度记录',   'route' => 'temperatures',         'permission' => 'delivery.temperature.view',    'description' => '冷链温度监控记录'],
             ['key' => 'order.return',    'label' => '售后退货',   'route' => 'order-returns',        'permission' => 'order.order-return.view',    'description' => '客户退货处理'],
+        ],
+    ],
+    [
+        'key'   => 'delivery',
+        'label' => '配送管理',
+        'icon'  => 'truck',
+        'children' => [
+            ['key' => 'delivery.route',  'label' => '配送线路',   'route' => 'delivery-routes',      'permission' => 'delivery.route.view',      'description' => '线路规划与商家排序'],
+            ['key' => 'delivery.task',   'label' => '配送任务',   'route' => 'delivery-tasks',       'permission' => 'delivery.delivery-task.view', 'description' => '司机配送调度'],
+            ['key' => 'delivery.signature','label' => '签收存证', 'route' => 'signatures',            'permission' => 'delivery.signature.view',    'description' => '签收照片与温度记录'],
+            ['key' => 'delivery.discrepancy','label' => '差异处理', 'route' => 'discrepancies',      'permission' => 'delivery.discrepancy.view',   'description' => '配送差异与短少处理'],
+            ['key' => 'delivery.temperature', 'label' => '温度记录', 'route' => 'temperatures',     'permission' => 'delivery.temperature.view',    'description' => '冷链温度监控记录'],
         ],
     ],
     [
@@ -99,7 +107,6 @@ return [
         'children' => [
             ['key' => 'org.supplier', 'label' => '供应商管理', 'route' => 'suppliers',      'permission' => 'org.supplier.view', 'description' => '供应商信息与资质'],
             ['key' => 'org.merchant', 'label' => '商家管理',   'route' => 'merchants',      'permission' => 'org.merchant.view', 'description' => '商家信息与账户'],
-            ['key' => 'org.route',    'label' => '配送线路',   'route' => 'delivery-routes', 'permission' => 'org.route.view',    'description' => '配送区域与线路'],
             ['key' => 'org.driver',   'label' => '司机管理',   'route' => 'drivers',        'permission' => 'org.driver.view',   'description' => '司机信息与排班'],
             ['key' => 'org.vehicle',  'label' => '车辆管理',   'route' => 'vehicles',        'permission' => 'org.vehicle.view',  'description' => '车辆信息与司机绑定'],
         ],

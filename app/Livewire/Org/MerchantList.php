@@ -9,7 +9,6 @@ use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
 use App\Livewire\Traits\WithListCrud;
-use App\Models\DeliveryRoute;
 use App\Models\Merchant;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -31,14 +30,11 @@ class MerchantList extends Component
 
     public ?int $filterStatus = null;
     public ?int $filterSettlementType = null;
-    public ?int $filterRouteId = null;
 
     public string $formName = '';
     public string $formContactName = '';
     public string $formContactPhone = '';
     public string $formAddress = '';
-    public int $formDeliveryRouteId = 0;
-    public int $formDeliverySort = 0;
     public string $formMinOrderAmount = '';
     public int $formSettlementType = 1;
     public string $formCreditLimit = '';
@@ -58,8 +54,6 @@ class MerchantList extends Component
         $this->formContactName = $merchant->contact_name ?? '';
         $this->formContactPhone = $merchant->contact_phone ?? '';
         $this->formAddress = $merchant->address ?? '';
-        $this->formDeliveryRouteId = $merchant->delivery_route_id ?? 0;
-        $this->formDeliverySort = $merchant->delivery_sort ?? 0;
         $this->formMinOrderAmount = $this->centsToYuan($merchant->min_order_amount);
         $this->formSettlementType = $merchant->settlement_type;
         $this->formCreditLimit = $this->centsToYuan($merchant->credit_limit);
@@ -75,8 +69,6 @@ class MerchantList extends Component
             'formContactName' => 'required|string|max:50',
             'formContactPhone' => 'required|string|max:20',
             'formAddress' => 'required|string|max:255',
-            'formDeliveryRouteId' => 'nullable|integer|exists:delivery_routes,id',
-            'formDeliverySort' => 'nullable|integer|min:0',
             'formMinOrderAmount' => 'required|numeric|min:0',
             'formSettlementType' => 'required|in:1,2,3',
             'formCreditLimit' => 'required|numeric|min:0',
@@ -89,8 +81,6 @@ class MerchantList extends Component
             'contact_name' => $validated['formContactName'],
             'contact_phone' => $validated['formContactPhone'],
             'address' => $validated['formAddress'],
-            'delivery_route_id' => $validated['formDeliveryRouteId'] ?: null,
-            'delivery_sort' => $validated['formDeliverySort'],
             'min_order_amount' => money_to_cents($validated['formMinOrderAmount']),
             'settlement_type' => $validated['formSettlementType'],
             'credit_limit' => money_to_cents($validated['formCreditLimit']),
@@ -125,7 +115,6 @@ class MerchantList extends Component
         $this->search = '';
         $this->filterStatus = null;
         $this->filterSettlementType = null;
-        $this->filterRouteId = null;
         $this->resetPage();
         $this->clearSelection();
     }
@@ -206,15 +195,13 @@ class MerchantList extends Component
         return $this->getExportQuery()->forPage($this->getPage(), 10)->pluck('id')->toArray();
     }
 
-    private function resetForm(): void
+    public function resetForm(): void
     {
         $this->editingId = null;
         $this->formName = '';
         $this->formContactName = '';
         $this->formContactPhone = '';
         $this->formAddress = '';
-        $this->formDeliveryRouteId = 0;
-        $this->formDeliverySort = 0;
         $this->formMinOrderAmount = '';
         $this->formSettlementType = 1;
         $this->formCreditLimit = '';
@@ -234,21 +221,18 @@ class MerchantList extends Component
             $q->where('status', $this->filterStatus);
         })->when($this->filterSettlementType !== null, function ($q) {
             $q->where('settlement_type', $this->filterSettlementType);
-        })->when($this->filterRouteId !== null, function ($q) {
-            $q->where('delivery_route_id', $this->filterRouteId);
         });
     }
 
     public function render()
     {
-        $query = $this->applyFilters(Merchant::with('deliveryRoute'))->orderBy('id', 'desc');
+        $query = $this->applyFilters(Merchant::query())->orderBy('id', 'desc');
 
         $merchants = $query->paginate(setting('per_page', 10));
-        $routes = DeliveryRoute::enabled()->ordered()->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 
-        return view('livewire.org.merchant-list', compact('merchants', 'routes', 'allColumns', 'selectedCount'))
+        return view('livewire.org.merchant-list', compact('merchants', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('商家管理');
     }

@@ -45,8 +45,6 @@ class Merchant extends Model
         'contact_name',
         'contact_phone',
         'address',
-        'delivery_route_id',
-        'delivery_sort',
         'min_order_amount',
         'settlement_type',
         'credit_limit',
@@ -58,8 +56,6 @@ class Merchant extends Model
     {
         return [
             'user_id' => 'integer',
-            'delivery_route_id' => 'integer',
-            'delivery_sort' => 'integer',
             'min_order_amount' => 'integer',
             'settlement_type' => 'integer',
             'credit_limit' => 'integer',
@@ -109,11 +105,11 @@ class Merchant extends Model
     }
 
     /**
-     * 关联配送线路
+     * 关联配送线路停靠点（通过 DeliveryRouteStop）
      */
-    public function deliveryRoute()
+    public function routeStops()
     {
-        return $this->belongsTo(DeliveryRoute::class);
+        return $this->hasMany(DeliveryRouteStop::class, 'merchant_id');
     }
 
     /**

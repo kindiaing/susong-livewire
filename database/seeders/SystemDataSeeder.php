@@ -55,7 +55,6 @@ class SystemDataSeeder extends Seeder
             'pages' => [
                 'org.supplier' => ['display_name' => '供应商管理', 'buttons' => ['org.supplier.create', 'org.supplier.edit', 'org.supplier.delete']],
                 'org.merchant' => ['display_name' => '商家管理', 'buttons' => ['org.merchant.create', 'org.merchant.edit', 'org.merchant.delete']],
-                'org.route' => ['display_name' => '配送路线', 'buttons' => ['org.route.create', 'org.route.edit', 'org.route.delete']],
                 'org.driver' => ['display_name' => '司机管理', 'buttons' => ['org.driver.create', 'org.driver.edit', 'org.driver.delete']],
                 'org.vehicle' => ['display_name' => '车辆管理', 'buttons' => ['org.vehicle.create', 'org.vehicle.edit', 'org.vehicle.delete']],
             ],
@@ -102,6 +101,7 @@ class SystemDataSeeder extends Seeder
             'display_name' => '物流配送',
             'icon' => 'delivery-truck',
             'pages' => [
+                'delivery.route' => ['display_name' => '配送线路', 'buttons' => ['delivery.route.create', 'delivery.route.edit', 'delivery.route.delete', 'delivery.route.stop-manage']],
                 'delivery.delivery-task' => ['display_name' => '配送任务', 'buttons' => ['delivery.delivery-task.assign', 'delivery.delivery-task.update']],
                 'delivery.signature' => ['display_name' => '签收管理', 'buttons' => []],
                 'delivery.discrepancy' => ['display_name' => '差异处理', 'buttons' => ['delivery.discrepancy.restock', 'delivery.discrepancy.refund', 'delivery.discrepancy.writeoff']],
@@ -160,7 +160,6 @@ class SystemDataSeeder extends Seeder
         // 组织管理
         'org.supplier.create' => '创建供应商', 'org.supplier.edit' => '编辑供应商', 'org.supplier.delete' => '删除供应商',
         'org.merchant.create' => '创建商家', 'org.merchant.edit' => '编辑商家', 'org.merchant.delete' => '删除商家',
-        'org.route.create' => '创建路线', 'org.route.edit' => '编辑路线', 'org.route.delete' => '删除路线',
         'org.driver.create' => '创建司机', 'org.driver.edit' => '编辑司机', 'org.driver.delete' => '删除司机',
         'org.vehicle.create' => '创建车辆', 'org.vehicle.edit' => '编辑车辆', 'org.vehicle.delete' => '删除车辆',
         // 商品管理
@@ -180,6 +179,7 @@ class SystemDataSeeder extends Seeder
         // 库存管理
         'inventory.warehouse.create' => '创建仓库', 'inventory.warehouse.edit' => '编辑仓库', 'inventory.warehouse.delete' => '删除仓库',
         // 配送管理
+        'delivery.route.create' => '创建线路', 'delivery.route.edit' => '编辑线路', 'delivery.route.delete' => '删除线路', 'delivery.route.stop-manage' => '管理商家排序',
         'delivery.delivery-task.assign' => '分配任务', 'delivery.delivery-task.update' => '更新状态',
         'delivery.discrepancy.restock' => '补货', 'delivery.discrepancy.refund' => '退款', 'delivery.discrepancy.writeoff' => '报损',
         // 损耗管理
@@ -296,7 +296,7 @@ class SystemDataSeeder extends Seeder
                 'user.user', 'user.user.view',
                 'org.supplier', 'org.supplier.view', 'org.supplier.create', 'org.supplier.edit',
                 'org.merchant', 'org.merchant.view', 'org.merchant.create', 'org.merchant.edit',
-                'org.route', 'org.route.view', 'org.route.create', 'org.route.edit',
+                'delivery.route', 'delivery.route.view', 'delivery.route.create', 'delivery.route.edit', 'delivery.route.stop-manage',
                 'org.driver', 'org.driver.view', 'org.driver.create', 'org.driver.edit',
                 'org.vehicle', 'org.vehicle.view', 'org.vehicle.create', 'org.vehicle.edit',
                 'product.product', 'product.product.view', 'product.product.create', 'product.product.edit',
@@ -328,7 +328,7 @@ class SystemDataSeeder extends Seeder
                 'user.user', 'user.user.view',
                 'org.supplier', 'org.supplier.view', 'org.supplier.create', 'org.supplier.edit',
                 'org.merchant', 'org.merchant.view', 'org.merchant.create', 'org.merchant.edit',
-                'org.route', 'org.route.view', 'org.route.create', 'org.route.edit',
+                'delivery.route', 'delivery.route.view', 'delivery.route.create', 'delivery.route.edit', 'delivery.route.stop-manage',
                 'org.driver', 'org.driver.view', 'org.driver.create', 'org.driver.edit',
                 'org.vehicle', 'org.vehicle.view', 'org.vehicle.create', 'org.vehicle.edit',
                 'product.product', 'product.product.view', 'product.product.create', 'product.product.edit',
@@ -397,9 +397,10 @@ class SystemDataSeeder extends Seeder
                 'purchase.purchase-order', 'purchase.purchase-order.view',
                 'loss.loss-order', 'loss.loss-order.view',
             ],
-            // 配送司机：配送任务/签收/温度/订单查看
+            // 配送司机：配送任务/签收/温度/线路查看/订单查看
             'driver' => [
                 'dashboard',
+                'delivery.route', 'delivery.route.view',
                 'delivery.delivery-task', 'delivery.delivery-task.view', 'delivery.delivery-task.update',
                 'delivery.signature', 'delivery.signature.view',
                 'delivery.discrepancy', 'delivery.discrepancy.view',
