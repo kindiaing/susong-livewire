@@ -16,11 +16,12 @@ class OrganizationDemoSeeder extends Seeder
 {
     public function run(): void
     {
-        $this->seedDeliveryRoutes();
         $this->seedSuppliers();
-        $this->seedMerchants();
         $this->seedDrivers();
         $this->seedVehicles();
+        $this->seedDeliveryRoutes();
+        $this->seedMerchants();
+        $this->seedRouteStops();
         $this->seedMerchantSkuVisibility();
     }
 
@@ -45,14 +46,99 @@ class OrganizationDemoSeeder extends Seeder
     protected function seedDeliveryRoutes(): void
     {
         $now = now();
+
+        // 获取司机/车辆用于默认配置
+        $driver1 = DB::table('drivers')->where('phone', '13700000001')->first();
+        $driver2 = DB::table('drivers')->where('phone', '13700000002')->first();
+        $vehicle1 = DB::table('vehicles')->where('plate_number', '皖LT0001')->first();
+        $vehicle2 = DB::table('vehicles')->where('plate_number', '皖LT0002')->first();
+        $warehouse1 = DB::table('warehouses')->where('name', '总仓-农批市场')->first();
+
         $routes = [
-            ['name' => '城区北线', 'description' => '人民路-淮海路-汴河路北侧', 'sort' => 1, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['name' => '城区南线', 'description' => '银河路-胜利路-宿怀路南侧', 'sort' => 2, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
+            ['name' => '城区北线', 'code' => 'E01', 'warehouse_id' => $warehouse1?->id, 'default_driver_id' => $driver1?->id, 'default_vehicle_id' => $vehicle1?->id, 'color' => '#3B82F6', 'departure_time' => '06:00:00', 'estimated_duration' => 120, 'estimated_distance' => 45.5, 'description' => '人民路-淮海路-汴河路北侧', 'sort' => 1, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
+            ['name' => '城区南线', 'code' => 'E02', 'warehouse_id' => $warehouse1?->id, 'default_driver_id' => $driver2?->id, 'default_vehicle_id' => $vehicle2?->id, 'color' => '#10B981', 'departure_time' => '06:30:00', 'estimated_duration' => 100, 'estimated_distance' => 38.2, 'description' => '银河路-胜利路-宿怀路南侧', 'sort' => 2, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
         ];
 
         foreach ($routes as $route) {
             if (! DB::table('delivery_routes')->where('name', $route['name'])->exists()) {
                 DB::table('delivery_routes')->insert($route);
+            } else {
+                // 更新已有线路的新字段
+                DB::table('delivery_routes')->where('name', $route['name'])->update([
+                    'code' => $route['code'],
+                    'warehouse_id' => $route['warehouse_id'],
+                    'default_driver_id' => $route['default_driver_id'],
+                    'default_vehicle_id' => $route['default_vehicle_id'],
+                    'color' => $route['color'],
+                    'departure_time' => $route['departure_time'],
+                    'estimated_duration' => $route['estimated_duration'],
+                    'estimated_distance' => $route['estimated_distance'],
+                    'updated_at' => $now,
+                ]);
+            }
+        }
+
+        // 线路商家点位（delivery_route_stops）在 seedMerchants 之后单独调用
+    }
+
+    protected function seedRouteStops(): void
+    {
+        $now = now();
+        $routeNorth = DB::table('delivery_routes')->where('code', 'E01')->first();
+        $routeSouth = DB::table('delivery_routes')->where('code', 'E02')->first();
+
+        // 北线商家
+        $northMerchants = [
+            ['name' => '味之初餐饮店', 'seq' => 1, 'address' => '安徽省宿州市埇桥区人民路88号'],
+            ['name' => '鲜之味快餐店', 'seq' => 2, 'address' => '安徽省宿州市埇桥区淮海路120号'],
+            ['name' => '家常菜馆', 'seq' => 3, 'address' => '安徽省宿州市埇桥区汴河路56号'],
+        ];
+
+        // 南线商家
+        $southMerchants = [
+            ['name' => '鑫鑫小吃店', 'seq' => 1, 'address' => '安徽省宿州市埇桥区银河一路32号'],
+            ['name' => '老街坊饭店', 'seq' => 2, 'address' => '安徽省宿州市埇桥区胜利路18号'],
+        ];
+
+        if ($routeNorth) {
+            foreach ($northMerchants as $m) {
+                $merchant = DB::table('merchants')->where('name', $m['name'])->first();
+                if (!$merchant) continue;
+                if (!DB::table('delivery_route_stops')->where('route_id', $routeNorth->id)->where('merchant_id', $merchant->id)->exists()) {
+                    DB::table('delivery_route_stops')->insert([
+                        'route_id' => $routeNorth->id,
+                        'merchant_id' => $merchant->id,
+                        'sequence_no' => $m['seq'],
+                        'address' => $m['address'],
+                        'latitude' => null,
+                        'longitude' => null,
+                        'default_service_time' => 15,
+                        'is_active' => 1,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]);
+                }
+            }
+        }
+
+        if ($routeSouth) {
+            foreach ($southMerchants as $m) {
+                $merchant = DB::table('merchants')->where('name', $m['name'])->first();
+                if (!$merchant) continue;
+                if (!DB::table('delivery_route_stops')->where('route_id', $routeSouth->id)->where('merchant_id', $merchant->id)->exists()) {
+                    DB::table('delivery_route_stops')->insert([
+                        'route_id' => $routeSouth->id,
+                        'merchant_id' => $merchant->id,
+                        'sequence_no' => $m['seq'],
+                        'address' => $m['address'],
+                        'latitude' => null,
+                        'longitude' => null,
+                        'default_service_time' => 15,
+                        'is_active' => 1,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]);
+                }
             }
         }
     }
@@ -117,13 +203,23 @@ class OrganizationDemoSeeder extends Seeder
     {
         $now = now();
         $vehicles = [
-            ['plate_number' => '皖LT0001', 'vehicle_type' => '冷藏车', 'is_cold_chain' => 1, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['plate_number' => '皖LT0002', 'vehicle_type' => '厢式货车', 'is_cold_chain' => 0, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
+            ['plate_number' => '皖LT0001', 'name' => '冷藏车1号', 'type' => 'refrigerated', 'is_cold_chain' => 1, 'capacity_kg' => 2000, 'capacity_volume' => 12.5, 'status' => 1, 'remark' => '北线专用冷藏车', 'created_at' => $now, 'updated_at' => $now],
+            ['plate_number' => '皖LT0002', 'name' => '厢式货车1号', 'type' => 'van', 'is_cold_chain' => 0, 'capacity_kg' => 3000, 'capacity_volume' => 18.0, 'status' => 1, 'remark' => '南线专用厢式货车', 'created_at' => $now, 'updated_at' => $now],
         ];
 
         foreach ($vehicles as $vehicle) {
             if (! DB::table('vehicles')->where('plate_number', $vehicle['plate_number'])->exists()) {
                 DB::table('vehicles')->insert($vehicle);
+            } else {
+                // 更新已有车辆的新字段
+                DB::table('vehicles')->where('plate_number', $vehicle['plate_number'])->update([
+                    'name' => $vehicle['name'],
+                    'type' => $vehicle['type'],
+                    'capacity_kg' => $vehicle['capacity_kg'],
+                    'capacity_volume' => $vehicle['capacity_volume'],
+                    'remark' => $vehicle['remark'],
+                    'updated_at' => $now,
+                ]);
             }
         }
 

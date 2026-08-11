@@ -3,6 +3,7 @@
 use App\Livewire\Auth\Login;
 use App\Livewire\Delivery\DeliveryRouteDetail;
 use App\Livewire\Delivery\DeliveryRouteList;
+use App\Livewire\Delivery\DeliveryTaskDetail;
 use App\Livewire\Delivery\DeliveryTaskList;
 use App\Livewire\Delivery\DiscrepancyList;
 use App\Livewire\Delivery\SignatureList;
@@ -132,6 +133,7 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::get('/delivery-routes', DeliveryRouteList::class)->name('delivery-routes');
     Route::get('/delivery-routes/{id}', DeliveryRouteDetail::class)->name('delivery-routes.detail');
     Route::get('/delivery-tasks', DeliveryTaskList::class)->name('delivery-tasks');
+    Route::get('/delivery-tasks/{id}', DeliveryTaskDetail::class)->name('delivery-tasks.detail');
     Route::get('/signatures', SignatureList::class)->name('signatures');
     Route::get('/temperatures', TemperatureList::class)->name('temperatures');
     Route::get('/discrepancies', DiscrepancyList::class)->name('discrepancies');

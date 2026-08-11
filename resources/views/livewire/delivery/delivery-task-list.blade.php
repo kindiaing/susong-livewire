@@ -6,9 +6,9 @@
             <p class="text-muted-foreground mt-1">管理配送任务及状态流转</p>
         </div>
         @can('delivery.delivery-task.create')
-        <button type="button" wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+        <button type="button" wire:click="openGenerateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
             <x-ui.icon name="plus" class="w-4 h-4" />
-            新增任务
+            生成任务
         </button>
         @endcan
     </div>
@@ -18,7 +18,7 @@
         <div x-data class="relative">
             <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background pl-3 pr-8 text-sm" placeholder="搜索任务编号/线路/司机..." />
             @if($search)
-                <button type="button" wire:click="resetFilters" class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted transition-colors">
+                <button type="button" wire:click="$set('search','')" class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted transition-colors">
                     <x-ui.icon name="x-mark" class="w-3.5 h-3.5" />
                 </button>
             @endif
@@ -84,7 +84,9 @@
                  style="grid-template-columns: {{ $gridCols }}"
                  wire:key="delivery-task-{{ $item->id }}">
                 <div><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm font-mono font-medium text-foreground truncate">{{ $item->task_no }}</div>
+                <div class="text-sm font-mono font-medium text-foreground truncate">
+                    <a href="{{ route('delivery-tasks.detail', $item->id) }}" class="hover:text-blue-600 hover:underline transition-colors">{{ $item->task_no }}</a>
+                </div>
                 @foreach($visibleCols as $col)
                     @switch($col['key'])
                         @case('id')
@@ -170,35 +172,18 @@
 
     <div class="mt-4">{{ $items->links() }}</div>
 
-    {{-- 新增/编辑弹窗 --}}
+    {{-- 编辑弹窗 --}}
     @if($showModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-foreground">{{ $editingId ? '编辑配送任务' : '新增配送任务' }}</h2>
+                <h2 class="text-lg font-semibold text-foreground">编辑配送任务</h2>
                 <button type="button" wire:click="closeModal" class="text-muted-foreground hover:text-foreground transition-colors">
                     <x-ui.icon name="x-mark" class="w-5 h-5" />
                 </button>
             </div>
             <div class="space-y-4">
-                @if(!$editingId)
-                <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">配送线路 <span class="text-red-500">*</span></label>
-                    <select wire:model="formRouteId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                        <option value="0">请选择线路</option>
-                        @foreach($routeOptions as $id => $name)
-                        <option value="{{ $id }}">{{ $name }}</option>
-                        @endforeach
-                    </select>
-                    @error('formRouteId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">送达日期 <span class="text-red-500">*</span></label>
-                    <input type="date" wire:model="formDeliveryDate" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
-                    @error('formDeliveryDate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-                @endif
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">司机</label>
                     <select wire:model="formDriverId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
@@ -241,8 +226,141 @@
     </div>
     @endif
 
-    {{-- 删除确认弹窗 --}}
+    {{-- 生成任务弹窗 --}}
+    @if($showGenerateModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-4xl mx-4 p-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">生成配送任务</h2>
+                <button type="button" wire:click="closeGenerateModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
 
+            {{-- Step 1: 选择线路与日期 --}}
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">配送线路 <span class="text-red-500">*</span></label>
+                    <select wire:model.live="genRouteId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        <option value="0">请选择线路</option>
+                        @foreach($routeOptions as $id => $name)
+                        <option value="{{ $id }}">{{ $name }}</option>
+                        @endforeach
+                    </select>
+                    @error('genRouteId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">送达日期 <span class="text-red-500">*</span></label>
+                    <input type="date" wire:model.live="genDeliveryDate" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                    @error('genDeliveryDate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">司机</label>
+                    <select wire:model="genDriverId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        <option value="0">请选择司机</option>
+                        @foreach($driverOptions as $id => $name)
+                        <option value="{{ $id }}">{{ $name }}</option>
+                        @endforeach
+                    </select>
+                    @error('genDriverId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">车辆</label>
+                    <select wire:model="genVehicleId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        <option value="0">请选择车辆</option>
+                        @foreach($vehicleOptions as $id => $plate)
+                        <option value="{{ $id }}">{{ $plate }}</option>
+                        @endforeach
+                    </select>
+                    @error('genVehicleId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">批次 <span class="text-red-500">*</span></label>
+                    <select wire:model="genBatch" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        <option value="1">上午</option>
+                        <option value="2">下午</option>
+                    </select>
+                    @error('genBatch') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">备注</label>
+                    <input type="text" wire:model="genRemark" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="可选" />
+                    @error('genRemark') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div class="flex items-end">
+                    <div class="text-sm text-muted-foreground">
+                        @if(count($pendingOrders) > 0)
+                            已选 <span class="font-medium text-foreground">{{ count($genSelectedOrderIds) }}</span> / {{ count($pendingOrders) }} 单
+                        @else
+                            请先选择线路和送达日期
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            {{-- Step 2: 待配送订单池 --}}
+            @if(count($pendingOrders) > 0)
+            <div class="border rounded-lg overflow-hidden mb-6">
+                <div class="bg-muted/30 px-4 py-2 flex items-center justify-between">
+                    <span class="text-sm font-medium text-foreground">待配送订单（{{ count($pendingOrders) }} 单）</span>
+                    <div class="flex items-center gap-2">
+                        <button type="button" wire:click="selectAllGenOrders" class="text-xs text-blue-600 hover:text-blue-700 transition-colors">全选</button>
+                        <span class="text-muted-foreground">|</span>
+                        <button type="button" wire:click="deselectAllGenOrders" class="text-xs text-muted-foreground hover:text-foreground transition-colors">取消全选</button>
+                    </div>
+                </div>
+                <div class="max-h-[40vh] overflow-y-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-muted/20 sticky top-0">
+                            <tr class="text-xs text-muted-foreground uppercase tracking-wider">
+                                <th class="w-10 px-3 py-2 text-left"><input type="checkbox" @if(count($genSelectedOrderIds) === count($pendingOrders)) checked @endif wire:click="{{ count($genSelectedOrderIds) === count($pendingOrders) ? 'deselectAllGenOrders' : 'selectAllGenOrders' }}" class="rounded" /></th>
+                                <th class="px-3 py-2 text-left">订单编号</th>
+                                <th class="px-3 py-2 text-left">商户</th>
+                                <th class="px-3 py-2 text-left">送达地址</th>
+                                <th class="px-3 py-2 text-left">商品摘要</th>
+                                <th class="px-3 py-2 text-right">数量</th>
+                                <th class="px-3 py-2 text-right">金额</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y">
+                            @foreach($pendingOrders as $idx => $order)
+                            <tr class="hover:bg-muted/30 transition-colors {{ in_array($order['id'], $genSelectedOrderIds) ? 'bg-blue-50/50' : '' }}">
+                                <td class="px-3 py-2"><input type="checkbox" value="{{ $order['id'] }}" @if(in_array($order['id'], $genSelectedOrderIds)) checked @endif wire:click="toggleGenOrder({{ $order['id'] }})" class="rounded" /></td>
+                                <td class="px-3 py-2 font-mono text-xs text-foreground">{{ $order['order_no'] }}</td>
+                                <td class="px-3 py-2 text-foreground">{{ $order['merchant_name'] }}</td>
+                                <td class="px-3 py-2 text-muted-foreground truncate max-w-[180px]">{{ $order['merchant_address'] ?: '-' }}</td>
+                                <td class="px-3 py-2 text-muted-foreground truncate max-w-[200px]">{{ $order['product_summary'] ?: '-' }}</td>
+                                <td class="px-3 py-2 text-right text-foreground">{{ $order['total_quantity'] }}</td>
+                                <td class="px-3 py-2 text-right text-foreground">{{ money_format($order['total_amount']) }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            @elseif($genRouteId > 0 && $genDeliveryDate)
+            <div class="border rounded-lg p-8 text-center text-muted-foreground mb-6">
+                <x-ui.icon name="inbox" class="w-8 h-8 mx-auto mb-2 text-muted-foreground/50" />
+                <p class="text-sm">该线路在所选日期没有待配送订单</p>
+            </div>
+            @endif
+
+            {{-- 底部按钮 --}}
+            <div class="flex justify-end gap-3">
+                <button type="button" wire:click="closeGenerateModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="generateTask" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors @if(empty($genSelectedOrderIds)) opacity-50 cursor-not-allowed @endif" @if(empty($genSelectedOrderIds)) disabled @endif>
+                    确认生成（{{ count($genSelectedOrderIds) }} 单）
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- 删除确认弹窗 --}}
     @include('partials.column-modal')
     @include('partials.export-modal')
     @include('partials.import-modal')

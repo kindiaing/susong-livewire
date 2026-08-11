@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * 配送管理测试数据 Seeder
  *
- * 包含：配送任务（含配送订单关联+配送轨迹）、签收存证、冷链温度记录、差异单
+ * 包含：拣货任务、配送任务（v2新字段+delivery_task_details+delivery_task_sequences）、签收存证、冷链温度记录、差异单
  */
 class DeliveryDemoSeeder extends Seeder
 {
@@ -46,7 +46,6 @@ class DeliveryDemoSeeder extends Seeder
 
         if (! $pickingTask || ! $order1) return;
 
-        // 拣货明细商品与订单1一致（大白菜、土豆）
         $productNames = ['大白菜', '土豆'];
         foreach ($productNames as $productName) {
             $product = DB::table('products')->where('name', $productName)->first();
@@ -76,26 +75,94 @@ class DeliveryDemoSeeder extends Seeder
     protected function seedDeliveryTasks(): void
     {
         $now = now();
-        $route1 = DB::table('delivery_routes')->where('name', '城区北线')->first();
+        $route1 = DB::table('delivery_routes')->where('code', 'E01')->first();
         $driver1 = DB::table('drivers')->where('phone', '13700000001')->first();
         $vehicle1 = DB::table('vehicles')->where('plate_number', '皖LT0001')->first();
         $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-001')->first();
 
-        if ($route1 && ! DB::table('delivery_tasks')->where('task_no', 'DT-20260728-001')->exists()) {
+        if (!$route1) return;
+
+        $taskNo = 'T-E01-20260728-001';
+
+        if (! DB::table('delivery_tasks')->where('task_no', $taskNo)->exists()) {
             $taskId = DB::table('delivery_tasks')->insertGetId([
-                'task_no' => 'DT-20260728-001', 'delivery_route_id' => $route1->id,
-                'driver_id' => $driver1?->id, 'vehicle_id' => $vehicle1?->id,
-                'batch' => 1, 'status' => 3, 'planned_at' => $now, 'started_at' => $now, 'completed_at' => $now,
-                'created_at' => $now, 'updated_at' => $now,
+                'task_no' => $taskNo,
+                'route_id' => $route1->id,
+                'delivery_date' => '2026-07-28',
+                'generated_at' => $now,
+                'driver_id' => $driver1?->id,
+                'vehicle_id' => $vehicle1?->id,
+                'batch' => 1,
+                'status' => 5, // 已完成
+                'planned_start_time' => $now->copy()->setTime(6, 0, 0),
+                'actual_start_time' => $now->copy()->setTime(6, 5, 0),
+                'actual_complete_time' => $now->copy()->setTime(8, 30, 0),
+                'total_stops' => 1,
+                'completed_stops' => 1,
+                'skipped_stops' => 0,
+                'total_orders' => 1,
+                'has_urgent' => 0,
+                'has_important' => 0,
+                'remark' => null,
+                'created_at' => $now,
+                'updated_at' => $now,
             ]);
 
-            if ($order1 && ! DB::table('delivery_task_orders')->where('delivery_task_id', $taskId)->where('order_id', $order1->id)->exists()) {
-                DB::table('delivery_task_orders')->insert([
-                    'delivery_task_id' => $taskId, 'order_id' => $order1->id,
-                    'delivery_sort' => 1, 'status' => 2, 'created_at' => $now, 'updated_at' => $now,
-                ]);
+            // 创建 delivery_task_details
+            if ($order1) {
+                $merchant = DB::table('merchants')->where('id', $order1->merchant_id)->first();
+
+                if (! DB::table('delivery_task_details')->where('task_id', $taskId)->where('order_id', $order1->id)->exists()) {
+                    $detailId = DB::table('delivery_task_details')->insertGetId([
+                        'task_id' => $taskId,
+                        'order_id' => $order1->id,
+                        'merchant_id' => $order1->merchant_id,
+                        'merchant_name' => $merchant?->name,
+                        'merchant_address' => $merchant?->address,
+                        'order_date' => $order1->order_date,
+                        'delivery_date' => $order1->delivery_date,
+                        'product_summary' => '大白菜、土豆',
+                        'total_quantity' => 10,
+                        'total_weight' => null,
+                        'source_type' => 'order',
+                        'source_id' => $order1->id,
+                        'status' => 3, // 已送达
+                        'delivered_at' => $now,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]);
+
+                    // 创建 delivery_task_sequences
+                    $routeStop = DB::table('delivery_route_stops')
+                        ->where('route_id', $route1->id)
+                        ->where('merchant_id', $order1->merchant_id)
+                        ->first();
+
+                    if (! DB::table('delivery_task_sequences')->where('task_id', $taskId)->where('merchant_id', $order1->merchant_id)->exists()) {
+                        DB::table('delivery_task_sequences')->insert([
+                            'task_id' => $taskId,
+                            'task_detail_ids' => json_encode([$detailId]),
+                            'merchant_id' => $order1->merchant_id,
+                            'merchant_name' => $merchant?->name,
+                            'merchant_address' => $merchant?->address ?? $routeStop?->address,
+                            'latitude' => $routeStop?->latitude,
+                            'longitude' => $routeStop?->longitude,
+                            'base_sequence_no' => $routeStop?->sequence_no ?? 1,
+                            'sequence_no' => 1,
+                            'is_urgent' => 0,
+                            'is_important' => 0,
+                            'status' => 4, // 已送达
+                            'actual_arrival' => $now->copy()->setTime(7, 15, 0),
+                            'actual_departure' => $now->copy()->setTime(7, 30, 0),
+                            'actual_delivered_at' => $now->copy()->setTime(7, 25, 0),
+                            'created_at' => $now,
+                            'updated_at' => $now,
+                        ]);
+                    }
+                }
             }
 
+            // 配送轨迹
             if ($driver1 && ! DB::table('delivery_tracks')->where('delivery_task_id', $taskId)->exists()) {
                 DB::table('delivery_tracks')->insert([
                     ['delivery_task_id' => $taskId, 'driver_id' => $driver1->id, 'latitude' => 33720000, 'longitude' => 116970000, 'location_desc' => '农批市场出发', 'reported_at' => $now, 'created_at' => $now],
@@ -109,7 +176,7 @@ class DeliveryDemoSeeder extends Seeder
     {
         $now = now();
         $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-001')->first();
-        $task = DB::table('delivery_tasks')->where('task_no', 'DT-20260728-001')->first();
+        $task = DB::table('delivery_tasks')->where('task_no', 'T-E01-20260728-001')->first();
 
         if ($order1 && $task && ! DB::table('signatures')->where('order_id', $order1->id)->exists()) {
             DB::table('signatures')->insert([
@@ -123,7 +190,7 @@ class DeliveryDemoSeeder extends Seeder
     protected function seedTemperatures(): void
     {
         $now = now();
-        $task = DB::table('delivery_tasks')->where('task_no', 'DT-20260728-001')->first();
+        $task = DB::table('delivery_tasks')->where('task_no', 'T-E01-20260728-001')->first();
 
         if ($task && ! DB::table('temperatures')->where('delivery_task_id', $task->id)->exists()) {
             DB::table('temperatures')->insert([
