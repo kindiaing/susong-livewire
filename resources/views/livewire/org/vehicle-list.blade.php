@@ -16,7 +16,7 @@
     {{-- 搜索栏 --}}
     <div class="flex items-center gap-3 mb-4">
         <div x-data class="relative">
-            <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background pl-3 pr-8 text-sm" placeholder="搜索车牌号/车辆类型..." />
+            <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background pl-3 pr-8 text-sm" placeholder="搜索车牌号/名称/类型..." />
             @if($search)
                 <button type="button" wire:click="resetFilters" class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted transition-colors">
                     <x-ui.icon name="x-mark" class="w-3.5 h-3.5" />
@@ -28,8 +28,9 @@
             class="flex h-9 w-32 rounded-md border border-input bg-background px-3 text-sm"
         >
             <option value="">全部状态</option>
-            <option value="1">启用</option>
-            <option value="0">禁用</option>
+            <option value="1">可用</option>
+            <option value="2">维修中</option>
+            <option value="3">报废</option>
         </select>
         <select
             wire:model.live="filterIsColdChain"
@@ -77,7 +78,7 @@
         </div>
 
         @forelse($vehicles as $vehicle)
-            <div class="grid gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors"
+            <div class="grid gap-3 border-b last:border-b-0 px-6 py-2 items-center hover:bg-muted/30 transition-colors"
                  style="grid-template-columns: {{ $gridCols }}"
                  wire:key="vehicle-{{ $vehicle->id }}">
                 <div><input type="checkbox" value="{{ $vehicle->id }}" wire:model.live="selectedIds" class="rounded" /></div>
@@ -87,8 +88,14 @@
                         @case('id')
                             <div class="text-sm text-muted-foreground">{{ $vehicle->id }}</div>
                             @break
+                        @case('name')
+                            <div class="text-sm text-foreground">{{ $vehicle->name ?: '-' }}</div>
+                            @break
                         @case('type')
-                            <div class="text-sm text-foreground">{{ $vehicle->vehicle_type ?? '-' }}</div>
+                            <div class="text-sm text-foreground">{{ $typeMap[$vehicle->type] ?? $vehicle->type }}</div>
+                            @break
+                        @case('capacity_kg')
+                            <div class="text-sm text-foreground">{{ $vehicle->capacity_kg ?: '-' }}</div>
                             @break
                         @case('is_cold_chain')
                             <div>
@@ -97,7 +104,7 @@
                             @break
                         @case('status')
                             <div>
-                                {!! status_badge($vehicle->status, 'active') !!}
+                                {!! status_badge($vehicle->status, 'vehicle') !!}
                             </div>
                             @break
                         @case('created_at')
@@ -141,9 +148,30 @@
                     @error('formPlateNumber') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">车辆类型</label>
-                    <input type="text" wire:model="formVehicleType" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="如 冷藏车、厢式货车" />
-                    @error('formVehicleType') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    <label class="block text-sm font-medium text-foreground mb-1">车辆名称</label>
+                    <input type="text" wire:model="formName" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="如 1号冷藏车" />
+                    @error('formName') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">车辆类型 <span class="text-red-500">*</span></label>
+                    <select wire:model="formType" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        @foreach($typeMap as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    @error('formType') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">载重(kg)</label>
+                        <input type="number" step="0.01" wire:model="formCapacityKg" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="可选" />
+                        @error('formCapacityKg') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">容积(m3)</label>
+                        <input type="number" step="0.01" wire:model="formCapacityVolume" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="可选" />
+                        @error('formCapacityVolume') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -157,11 +185,17 @@
                     <div>
                         <label class="block text-sm font-medium text-foreground mb-1">状态 <span class="text-red-500">*</span></label>
                         <select wire:model="formStatus" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                            <option value="1">启用</option>
-                            <option value="0">禁用</option>
+                            <option value="1">可用</option>
+                            <option value="2">维修中</option>
+                            <option value="3">报废</option>
                         </select>
                         @error('formStatus') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">备注</label>
+                    <textarea wire:model="formRemark" rows="2" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="可选"></textarea>
+                    @error('formRemark') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">

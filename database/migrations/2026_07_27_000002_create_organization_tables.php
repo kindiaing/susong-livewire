@@ -27,14 +27,23 @@ return new class extends Migration
 
         Schema::create('delivery_routes', function (Blueprint $table) {
             $table->id()->comment('主键');
-            $table->string('name', 50)->comment('线路名称');
+            $table->string('name', 100)->comment('线路名称，如：城东1号线');
+            $table->string('code', 50)->unique()->comment('线路编码，如：E01');
+            $table->unsignedBigInteger('warehouse_id')->nullable()->comment('出发仓库ID');
+            $table->unsignedBigInteger('default_driver_id')->nullable()->comment('默认司机（用户ID）');
+            $table->unsignedBigInteger('default_vehicle_id')->nullable()->comment('默认车辆ID');
+            $table->string('color', 20)->default('#3B82F6')->comment('地图显示颜色');
+            $table->time('departure_time')->default('06:00:00')->comment('默认出发时间');
+            $table->unsignedInteger('estimated_duration')->nullable()->comment('预计总时长（分钟）');
+            $table->decimal('estimated_distance', 8, 2)->nullable()->comment('预计总里程（公里）');
             $table->string('description', 255)->nullable()->comment('描述');
             $table->unsignedInteger('sort')->default(0)->comment('排序');
-            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态');
+            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：0停用，1启用');
+            $table->string('remark', 500)->nullable()->comment('备注');
             $table->timestamps();
             $table->softDeletes();
             $table->index('status');
-            $table->comment('配送线路表');
+            $table->comment('配送线路定义表');
         });
 
         Schema::create('merchants', function (Blueprint $table) {
@@ -78,9 +87,15 @@ return new class extends Migration
         Schema::create('vehicles', function (Blueprint $table) {
             $table->id()->comment('主键');
             $table->string('plate_number', 20)->unique()->comment('车牌号');
-            $table->string('vehicle_type', 50)->nullable()->comment('车辆类型');
+            $table->string('name', 50)->nullable()->comment('车辆名称');
+            $table->string('type', 20)->default('van')->comment('类型：van=厢式货车 truck=卡车 refrigerated=冷藏车 motorcycle=三轮摩托车');
+            $table->decimal('capacity_kg', 10, 2)->nullable()->comment('载重（公斤）');
+            $table->decimal('capacity_volume', 8, 2)->nullable()->comment('容积（立方米）');
             $table->tinyInteger('is_cold_chain')->unsigned()->default(0)->comment('是否冷链：0否，1是');
-            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：0禁用，1启用');
+            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1可用，2维修中，3报废');
+            $table->date('last_maintenance_date')->nullable()->comment('上次保养日期');
+            $table->date('next_maintenance_date')->nullable()->comment('下次保养日期');
+            $table->string('remark', 500)->nullable()->comment('备注');
             $table->timestamps();
             $table->softDeletes();
             $table->index('status');

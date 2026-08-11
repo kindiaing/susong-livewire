@@ -27,12 +27,29 @@ class VehicleList extends Component
     public string $search = '';
 
     public string $formPlateNumber = '';
-    public string $formVehicleType = '';
+    public string $formName = '';
+    public string $formType = 'van';
+    public string $formCapacityKg = '';
+    public string $formCapacityVolume = '';
     public int $formIsColdChain = 0;
     public int $formStatus = 1;
+    public string $formRemark = '';
 
     public ?int $filterStatus = null;
     public ?int $filterIsColdChain = null;
+
+    public static array $typeMap = [
+        'van' => '厢式货车',
+        'truck' => '卡车',
+        'refrigerated' => '冷藏车',
+        'motorcycle' => '三轮摩托车',
+    ];
+
+    public static array $statusMap = [
+        1 => '可用',
+        2 => '维修中',
+        3 => '报废',
+    ];
 
     public function mount(): void
     {
@@ -44,9 +61,13 @@ class VehicleList extends Component
         $vehicle = Vehicle::findOrFail($id);
         $this->editingId = $id;
         $this->formPlateNumber = $vehicle->plate_number;
-        $this->formVehicleType = $vehicle->vehicle_type ?? '';
+        $this->formName = $vehicle->name ?? '';
+        $this->formType = $vehicle->type ?? 'van';
+        $this->formCapacityKg = $vehicle->capacity_kg ?? '';
+        $this->formCapacityVolume = $vehicle->capacity_volume ?? '';
         $this->formIsColdChain = $vehicle->is_cold_chain;
         $this->formStatus = $vehicle->status;
+        $this->formRemark = $vehicle->remark ?? '';
         $this->showModal = true;
     }
 
@@ -54,9 +75,13 @@ class VehicleList extends Component
     {
         $rules = [
             'formPlateNumber' => 'required|string|max:20|unique:vehicles,plate_number',
-            'formVehicleType' => 'nullable|string|max:50',
+            'formName' => 'nullable|string|max:50',
+            'formType' => 'required|in:van,truck,refrigerated,motorcycle',
+            'formCapacityKg' => 'nullable|numeric',
+            'formCapacityVolume' => 'nullable|numeric',
             'formIsColdChain' => 'required|in:0,1',
-            'formStatus' => 'required|in:0,1',
+            'formStatus' => 'required|in:1,2,3',
+            'formRemark' => 'nullable|string|max:500',
         ];
 
         if ($this->editingId) {
@@ -67,9 +92,13 @@ class VehicleList extends Component
 
         $data = [
             'plate_number' => $validated['formPlateNumber'],
-            'vehicle_type' => $validated['formVehicleType'],
+            'name' => $validated['formName'],
+            'type' => $validated['formType'],
+            'capacity_kg' => $validated['formCapacityKg'] ?: null,
+            'capacity_volume' => $validated['formCapacityVolume'] ?: null,
             'is_cold_chain' => $validated['formIsColdChain'],
             'status' => $validated['formStatus'],
+            'remark' => $validated['formRemark'],
         ];
 
         if ($this->editingId) {
@@ -103,13 +132,17 @@ class VehicleList extends Component
         $this->clearSelection();
     }
 
-    private function resetForm(): void
+    public function resetForm(): void
     {
         $this->editingId = null;
         $this->formPlateNumber = '';
-        $this->formVehicleType = '';
+        $this->formName = '';
+        $this->formType = 'van';
+        $this->formCapacityKg = '';
+        $this->formCapacityVolume = '';
         $this->formIsColdChain = 0;
         $this->formStatus = 1;
+        $this->formRemark = '';
     }
 
     public function getAllColumns(): array
@@ -117,7 +150,9 @@ class VehicleList extends Component
         return [
             ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true, 'width' => '60px'],
             ['key' => 'plate_number', 'label' => '车牌号', 'sortable' => true, 'exportable' => true, 'width' => '120px'],
-            ['key' => 'type', 'label' => '类型', 'sortable' => false, 'exportable' => true, 'width' => '1fr'],
+            ['key' => 'name', 'label' => '车辆名称', 'sortable' => false, 'exportable' => true, 'width' => '1fr'],
+            ['key' => 'type', 'label' => '类型', 'sortable' => false, 'exportable' => true, 'width' => '100px'],
+            ['key' => 'capacity_kg', 'label' => '载重(kg)', 'sortable' => false, 'exportable' => true, 'width' => '90px'],
             ['key' => 'is_cold_chain', 'label' => '冷链', 'sortable' => false, 'exportable' => true, 'width' => '80px'],
             ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true, 'width' => '80px'],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true, 'width' => '150px'],
@@ -126,7 +161,7 @@ class VehicleList extends Component
 
     public function getDefaultColumns(): array
     {
-        return ['plate_number', 'type', 'status', 'created_at'];
+        return ['plate_number', 'name', 'type', 'status', 'created_at'];
     }
 
     public function getExportQuery()
@@ -136,7 +171,7 @@ class VehicleList extends Component
 
     public function getExportFileName(): string
     {
-        return '车辆_'.now()->format('Ymd_His');
+        return '车辆_' . now()->format('Ymd_His');
     }
 
     public function getImportModelClass(): string
@@ -148,7 +183,9 @@ class VehicleList extends Component
     {
         return [
             '车牌号' => 'plate_number',
-            '类型' => 'vehicle_type',
+            '车辆名称' => 'name',
+            '类型' => 'type',
+            '载重' => 'capacity_kg',
             '冷链' => 'is_cold_chain',
             '状态' => 'status',
         ];
@@ -168,10 +205,12 @@ class VehicleList extends Component
     {
         return [
             'status' => [
-                '启用' => 1,
-                '禁用' => 0,
+                '可用' => 1,
+                '维修中' => 2,
+                '报废' => 3,
                 '1' => 1,
-                '0' => 0,
+                '2' => 2,
+                '3' => 3,
             ],
             'is_cold_chain' => [
                 '是' => 1,
@@ -192,7 +231,8 @@ class VehicleList extends Component
         return $query->when($this->search, function ($q) {
             $q->where(function ($q2) {
                 $q2->where('plate_number', 'like', "%{$this->search}%")
-                    ->orWhere('vehicle_type', 'like', "%{$this->search}%");
+                    ->orWhere('name', 'like', "%{$this->search}%")
+                    ->orWhere('type', 'like', "%{$this->search}%");
             });
         })->when($this->filterStatus !== null, function ($q) {
             $q->where('status', $this->filterStatus);
@@ -208,8 +248,10 @@ class VehicleList extends Component
         $vehicles = $query->paginate(setting('per_page', 10));
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
+        $typeMap = self::$typeMap;
+        $statusMap = self::$statusMap;
 
-        return view('livewire.org.vehicle-list', compact('vehicles', 'allColumns', 'selectedCount'))
+        return view('livewire.org.vehicle-list', compact('vehicles', 'allColumns', 'selectedCount', 'typeMap', 'statusMap'))
             ->layout('components.app-layout')
             ->title('车辆管理');
     }

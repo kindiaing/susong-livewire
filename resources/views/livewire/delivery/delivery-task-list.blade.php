@@ -16,7 +16,7 @@
     {{-- 搜索栏 + 筛选 + 工具按钮 --}}
     <div class="flex items-center gap-3 mb-4">
         <div x-data class="relative">
-            <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background pl-3 pr-8 text-sm" placeholder="搜索订单号/司机..." />
+            <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background pl-3 pr-8 text-sm" placeholder="搜索任务编号/线路/司机..." />
             @if($search)
                 <button type="button" wire:click="resetFilters" class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted transition-colors">
                     <x-ui.icon name="x-mark" class="w-3.5 h-3.5" />
@@ -24,11 +24,21 @@
             @endif
         </div>
         <select wire:model.live="filterStatus" class="flex h-9 w-32 rounded-md border border-input bg-background px-3 text-sm">
-            <option value="-1">全部状态</option>
+            <option value="0">全部状态</option>
             <option value="1">待配送</option>
-            <option value="2">配送中</option>
-            <option value="3">任务完成</option>
+            <option value="2">已分配</option>
+            <option value="3">配送中</option>
+            <option value="4">暂停</option>
+            <option value="5">已完成</option>
+            <option value="6">已取消</option>
         </select>
+        <select wire:model.live="filterRouteId" class="flex h-9 w-40 rounded-md border border-input bg-background px-3 text-sm">
+            <option value="0">全部线路</option>
+            @foreach($routeOptions as $id => $name)
+            <option value="{{ $id }}">{{ $name }}</option>
+            @endforeach
+        </select>
+        <input type="date" wire:model.live="filterDeliveryDate" class="flex h-9 w-36 rounded-md border border-input bg-background px-3 text-sm" />
         <div class="flex-1"></div>
         <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="adjustments" class="w-4 h-4" />列配置</button>
         <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="arrow-down-tray" class="w-4 h-4" />导入</button>
@@ -44,13 +54,14 @@
 
     {{-- 列表 --}}
     @php
-        $statusMap = [1 => '待配送', 2 => '配送中', 3 => '任务完成'];
-        $statusColorMap = [1 => 'yellow', 2 => 'orange', 3 => 'green'];
+        $statusMap = \App\Livewire\Delivery\DeliveryTaskList::$statusMap;
+        $statusColorMap = \App\Livewire\Delivery\DeliveryTaskList::$statusColorMap;
+        $batchMap = \App\Livewire\Delivery\DeliveryTaskList::$batchMap;
         $allCols = collect($this->getAllColumns())
-            ->filter(fn($col) => $col['key'] !== 'order_no')
+            ->filter(fn($col) => !in_array($col['key'], ['task_no']))
             ->values();
         $visibleCols = $allCols->filter(fn($col) => $this->isColumnVisible($col['key']));
-        $gridCols = '40px 1fr';
+        $gridCols = '40px 160px';
         foreach ($visibleCols as $col) {
             $width = $col['width'] ?? '120px';
             $gridCols .= ' ' . $width;
@@ -61,7 +72,7 @@
     <div class="rounded-lg border bg-card">
         <div class="grid gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider" style="grid-template-columns: {{ $gridCols }}">
             <div><input type="checkbox" wire:model.live="selectAllPage" class="rounded" /></div>
-            <div>订单号</div>
+            <div>任务编号</div>
             @foreach($visibleCols as $col)
                 <div>{{ $col['label'] }}</div>
             @endforeach
@@ -69,15 +80,18 @@
         </div>
 
         @forelse($items as $item)
-            <div class="grid gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors"
+            <div class="grid gap-3 border-b last:border-b-0 px-6 py-2 items-center hover:bg-muted/30 transition-colors"
                  style="grid-template-columns: {{ $gridCols }}"
                  wire:key="delivery-task-{{ $item->id }}">
                 <div><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm font-mono font-medium text-foreground truncate">{{ $item->order?->order_no ?? '-' }}</div>
+                <div class="text-sm font-mono font-medium text-foreground truncate">{{ $item->task_no }}</div>
                 @foreach($visibleCols as $col)
                     @switch($col['key'])
                         @case('id')
                             <div class="text-sm text-muted-foreground">{{ $item->id }}</div>
+                            @break
+                        @case('route')
+                            <div class="text-sm text-foreground">{{ $item->deliveryRoute?->name ?? '-' }}</div>
                             @break
                         @case('driver')
                             <div class="text-sm text-foreground">{{ $item->driver?->name ?? '-' }}</div>
@@ -85,23 +99,38 @@
                         @case('vehicle')
                             <div class="text-sm text-foreground">{{ $item->vehicle?->plate_number ?? '-' }}</div>
                             @break
+                        @case('delivery_date')
+                            <div class="text-sm text-foreground">{{ $item->delivery_date?->format('Y-m-d') ?? '-' }}</div>
+                            @break
+                        @case('batch')
+                            <div class="text-sm text-foreground">{{ $batchMap[$item->batch] ?? '-' }}</div>
+                            @break
                         @case('status')
                             <div>
                                 @php $c = $statusColorMap[$item->status] ?? 'gray'; @endphp
                                 <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $c }}-100 text-{{ $c }}-700">{{ $statusMap[$item->status] ?? '-' }}</span>
                             </div>
                             @break
-                        @case('delivery_date')
-                            <div class="text-sm text-foreground">{{ $item->planned_at?->format('Y-m-d') ?? '-' }}</div>
+                        @case('total_stops')
+                            <div class="text-sm text-foreground">{{ $item->total_stops }}</div>
                             @break
-                        @case('started_at')
-                            <div class="text-sm text-foreground">{{ $item->started_at?->format('Y-m-d H:i') ?? '-' }}</div>
+                        @case('completed_stops')
+                            <div class="text-sm text-foreground">{{ $item->completed_stops }}/{{ $item->total_stops }}</div>
                             @break
-                        @case('completed_at')
-                            <div class="text-sm text-foreground">{{ $item->completed_at?->format('Y-m-d H:i') ?? '-' }}</div>
+                        @case('has_urgent')
+                            <div>{!! status_badge($item->has_urgent, 'urgent') !!}</div>
                             @break
-                        @case('note')
-                            <div class="text-sm text-foreground truncate max-w-[200px]">{{ $item->note ?: '-' }}</div>
+                        @case('has_important')
+                            <div>{!! status_badge($item->has_important, 'important') !!}</div>
+                            @break
+                        @case('actual_start_time')
+                            <div class="text-sm text-foreground">{{ $item->actual_start_time?->format('Y-m-d H:i') ?? '-' }}</div>
+                            @break
+                        @case('actual_complete_time')
+                            <div class="text-sm text-foreground">{{ $item->actual_complete_time?->format('Y-m-d H:i') ?? '-' }}</div>
+                            @break
+                        @case('remark')
+                            <div class="text-sm text-foreground truncate max-w-[200px]">{{ $item->remark ?: '-' }}</div>
                             @break
                         @case('created_at')
                             <div class="text-sm text-foreground">{{ $item->created_at?->format('Y-m-d H:i') }}</div>
@@ -115,13 +144,18 @@
                     <button type="button" wire:click="openEditModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
                     @endcan
                     @can('delivery.delivery-task.create')
-                    @if($item->status === 1)
+                    @if(in_array($item->status, [1, 2]))
                     <button type="button" wire:click="startDelivery({{ $item->id }})" class="text-green-600 hover:text-green-700 text-sm">开始配送</button>
                     @endif
                     @endcan
                     @can('delivery.delivery-task.create')
-                    @if($item->status === 2)
+                    @if($item->status === 3)
                     <button type="button" wire:click="completeDelivery({{ $item->id }})" class="text-green-600 hover:text-green-700 text-sm">完成</button>
+                    @endif
+                    @endcan
+                    @can('delivery.delivery-task.create')
+                    @if($item->canTransitionTo(\App\Models\DeliveryTask::STATUS_CANCELLED))
+                    <button type="button" wire:click="cancelDelivery({{ $item->id }})" class="text-orange-600 hover:text-orange-700 text-sm">取消</button>
                     @endif
                     @endcan
                     @can('delivery.delivery-task.delete')
@@ -150,17 +184,23 @@
             <div class="space-y-4">
                 @if(!$editingId)
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">订单 <span class="text-red-500">*</span></label>
-                    <select wire:model="formOrderId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                        <option value="0">请选择订单</option>
-                        @foreach($orderOptions as $id => $orderNo)
-                        <option value="{{ $id }}">{{ $orderNo }}</option>
+                    <label class="block text-sm font-medium text-foreground mb-1">配送线路 <span class="text-red-500">*</span></label>
+                    <select wire:model="formRouteId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        <option value="0">请选择线路</option>
+                        @foreach($routeOptions as $id => $name)
+                        <option value="{{ $id }}">{{ $name }}</option>
                         @endforeach
                     </select>
-                    @error('formOrderId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    @error('formRouteId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">司机 <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-foreground mb-1">送达日期 <span class="text-red-500">*</span></label>
+                    <input type="date" wire:model="formDeliveryDate" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                    @error('formDeliveryDate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                @endif
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">司机</label>
                     <select wire:model="formDriverId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
                         <option value="0">请选择司机</option>
                         @foreach($driverOptions as $id => $name)
@@ -170,7 +210,7 @@
                     @error('formDriverId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">车辆 <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-foreground mb-1">车辆</label>
                     <select wire:model="formVehicleId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
                         <option value="0">请选择车辆</option>
                         @foreach($vehicleOptions as $id => $plate)
@@ -180,15 +220,17 @@
                     @error('formVehicleId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">配送日期 <span class="text-red-500">*</span></label>
-                    <input type="date" wire:model="formDeliveryDate" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
-                    @error('formDeliveryDate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    <label class="block text-sm font-medium text-foreground mb-1">批次 <span class="text-red-500">*</span></label>
+                    <select wire:model="formBatch" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        <option value="1">上午</option>
+                        <option value="2">下午</option>
+                    </select>
+                    @error('formBatch') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
-                @endif
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">备注</label>
-                    <textarea wire:model="formNote" rows="2" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="可选"></textarea>
-                    @error('formNote') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    <textarea wire:model="formRemark" rows="2" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="可选"></textarea>
+                    @error('formRemark') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">
