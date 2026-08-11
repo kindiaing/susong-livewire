@@ -235,6 +235,14 @@ class DeliveryTask extends Model
         return $this->hasMany(DeliveryTrack::class);
     }
 
+    /**
+     * 关联送货单
+     */
+    public function deliveryNotes()
+    {
+        return $this->hasMany(DeliveryNote::class, 'task_id');
+    }
+
     // ========== 作用域 ==========
 
     public function scopeByStatus($query, int $status)

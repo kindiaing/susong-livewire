@@ -95,6 +95,7 @@ class SystemDataSeeder extends Seeder
                 'inventory.warehouse' => ['display_name' => '仓库管理', 'buttons' => ['inventory.warehouse.create', 'inventory.warehouse.edit', 'inventory.warehouse.delete']],
                 'inventory.inventory' => ['display_name' => '库存列表', 'buttons' => []],
                 'inventory.inventory-log' => ['display_name' => '库存日志', 'buttons' => []],
+                'inventory.picking-task' => ['display_name' => '拣货任务', 'buttons' => ['inventory.picking-task.create', 'inventory.picking-task.edit', 'inventory.picking-task.delete']],
             ],
         ],
         'delivery' => [
@@ -103,6 +104,7 @@ class SystemDataSeeder extends Seeder
             'pages' => [
                 'delivery.route' => ['display_name' => '配送线路', 'buttons' => ['delivery.route.create', 'delivery.route.edit', 'delivery.route.delete', 'delivery.route.stop-manage']],
                 'delivery.delivery-task' => ['display_name' => '配送任务', 'buttons' => ['delivery.delivery-task.assign', 'delivery.delivery-task.update']],
+                'delivery.delivery-note' => ['display_name' => '送货单', 'buttons' => ['delivery.delivery-note.deliver', 'delivery.delivery-note.sign', 'delivery.delivery-note.cancel']],
                 'delivery.signature' => ['display_name' => '签收管理', 'buttons' => []],
                 'delivery.discrepancy' => ['display_name' => '差异处理', 'buttons' => ['delivery.discrepancy.restock', 'delivery.discrepancy.refund', 'delivery.discrepancy.writeoff']],
                 'delivery.temperature' => ['display_name' => '温度记录', 'buttons' => []],
@@ -179,9 +181,11 @@ class SystemDataSeeder extends Seeder
         'order.order-return.create' => '创建退货', 'order.order-return.edit' => '编辑退货', 'order.order-return.delete' => '删除退货',
         // 库存管理
         'inventory.warehouse.create' => '创建仓库', 'inventory.warehouse.edit' => '编辑仓库', 'inventory.warehouse.delete' => '删除仓库',
+        'inventory.picking-task.create' => '生成拣货单', 'inventory.picking-task.edit' => '编辑拣货任务', 'inventory.picking-task.delete' => '删除拣货任务',
         // 配送管理
         'delivery.route.create' => '创建线路', 'delivery.route.edit' => '编辑线路', 'delivery.route.delete' => '删除线路', 'delivery.route.stop-manage' => '管理商家排序',
         'delivery.delivery-task.assign' => '分配任务', 'delivery.delivery-task.update' => '更新状态',
+        'delivery.delivery-note.deliver' => '确认分货', 'delivery.delivery-note.sign' => '确认签收', 'delivery.delivery-note.cancel' => '取消送货单',
         'delivery.discrepancy.restock' => '补货', 'delivery.discrepancy.refund' => '退款', 'delivery.discrepancy.writeoff' => '报损',
         'delivery.vehicle-issue.create' => '创建故障', 'delivery.vehicle-issue.edit' => '编辑故障', 'delivery.vehicle-issue.delete' => '删除故障',
         // 损耗管理
@@ -316,6 +320,7 @@ class SystemDataSeeder extends Seeder
                 'inventory.inventory', 'inventory.inventory.view',
                 'inventory.inventory-log', 'inventory.inventory-log.view',
                 'delivery.delivery-task', 'delivery.delivery-task.view',
+                'delivery.delivery-note', 'delivery.delivery-note.view',
                 'delivery.signature', 'delivery.signature.view',
                 'delivery.discrepancy', 'delivery.discrepancy.view',
                 'delivery.temperature', 'delivery.temperature.view',
@@ -349,6 +354,8 @@ class SystemDataSeeder extends Seeder
                 'inventory.inventory', 'inventory.inventory.view',
                 'inventory.inventory-log', 'inventory.inventory-log.view',
                 'delivery.delivery-task', 'delivery.delivery-task.view', 'delivery.delivery-task.assign', 'delivery.delivery-task.update',
+                'delivery.delivery-note', 'delivery.delivery-note.view', 'delivery.delivery-note.deliver', 'delivery.delivery-note.sign',
+                'delivery.signature', 'delivery.signature.view',
                 'delivery.signature', 'delivery.signature.view',
                 'delivery.discrepancy', 'delivery.discrepancy.view', 'delivery.discrepancy.restock', 'delivery.discrepancy.refund', 'delivery.discrepancy.writeoff',
                 'delivery.temperature', 'delivery.temperature.view',
@@ -392,20 +399,22 @@ class SystemDataSeeder extends Seeder
                 'system.audit-log', 'system.audit-log.view',
                 'system.login-log', 'system.login-log.view',
             ],
-            // 拣货员：库存/采购查看/损耗查看
+            // 拣货员：库存/拣货任务/采购查看/损耗查看
             'picker' => [
                 'dashboard',
                 'inventory.warehouse', 'inventory.warehouse.view',
                 'inventory.inventory', 'inventory.inventory.view',
                 'inventory.inventory-log', 'inventory.inventory-log.view',
+                'inventory.picking-task', 'inventory.picking-task.view', 'inventory.picking-task.create', 'inventory.picking-task.edit',
                 'purchase.purchase-order', 'purchase.purchase-order.view',
                 'loss.loss-order', 'loss.loss-order.view',
             ],
-            // 配送司机：配送任务/签收/温度/线路查看/订单查看
+            // 配送司机：配送任务/送货单/签收/温度/线路查看/订单查看
             'driver' => [
                 'dashboard',
                 'delivery.route', 'delivery.route.view',
                 'delivery.delivery-task', 'delivery.delivery-task.view', 'delivery.delivery-task.update',
+                'delivery.delivery-note', 'delivery.delivery-note.view', 'delivery.delivery-note.deliver', 'delivery.delivery-note.sign',
                 'delivery.signature', 'delivery.signature.view',
                 'delivery.discrepancy', 'delivery.discrepancy.view',
                 'delivery.temperature', 'delivery.temperature.view',

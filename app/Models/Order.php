@@ -24,6 +24,8 @@ use Illuminate\Support\Carbon;
  * @property int $payment_status 支付状态：1未支付，2已支付，3账期
  * @property int $settlement_type 结算方式：1现结，2账期，3预付款
  * @property int $is_locked 是否锁定：0否，1是
+ * @property int $is_supplement 是否补单：0否，1是
+ * @property int|null $supplement_for 补单关联的原订单ID
  * @property string|null $remark 备注
  * @property \Carbon\Carbon|null $order_date 单据日期
  * @property \Carbon\Carbon|null $delivery_date 收货日期
@@ -68,6 +70,8 @@ class Order extends Model
         'payment_status',
         'settlement_type',
         'is_locked',
+        'is_supplement',
+        'supplement_for',
         'remark',
         'order_date',
         'delivery_date',
@@ -86,6 +90,8 @@ class Order extends Model
             'payment_status' => 'integer',
             'settlement_type' => 'integer',
             'is_locked' => 'integer',
+            'is_supplement' => 'integer',
+            'supplement_for' => 'integer',
             'order_date' => 'date',
             'delivery_date' => 'date',
         ];
@@ -178,6 +184,22 @@ class Order extends Model
             self::BATCH_AFTERNOON => '下午',
             default => '未知',
         };
+    }
+
+    /**
+     * 关联补单原订单
+     */
+    public function supplementFor()
+    {
+        return $this->belongsTo(Order::class, 'supplement_for');
+    }
+
+    /**
+     * 是否可编辑（拣货中不允许商户编辑）
+     */
+    public function isEditableByMerchant(): bool
+    {
+        return !in_array($this->status, [self::STATUS_PICKING, self::STATUS_DELIVERING]);
     }
 
     /**

@@ -46,6 +46,8 @@ return new class extends Migration
             $table->date('order_date')->nullable()->comment('单据日期');
             $table->date('delivery_date')->nullable()->comment('收货日期');
             $table->text('remark')->nullable()->comment('备注');
+            $table->tinyInteger('is_supplement')->unsigned()->default(0)->comment('是否补单：0否，1是');
+            $table->unsignedBigInteger('supplement_for')->nullable()->comment('补单关联的原订单ID');
             $table->timestamps();
             $table->softDeletes();
             $table->index('merchant_id');

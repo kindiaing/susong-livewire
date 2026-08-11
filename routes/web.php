@@ -1,6 +1,8 @@
 <?php
 
 use App\Livewire\Auth\Login;
+use App\Livewire\Delivery\DeliveryNoteDetail;
+use App\Livewire\Delivery\DeliveryNoteList;
 use App\Livewire\Delivery\DeliveryRouteDetail;
 use App\Livewire\Delivery\DeliveryRouteList;
 use App\Livewire\Delivery\DeliveryTaskDetail;
@@ -32,7 +34,8 @@ use App\Livewire\Order\OrderDetail;
 use App\Livewire\Order\OrderList;
 use App\Livewire\Order\OrderReturnList;
 use App\Livewire\Order\RepurchaseTemplateList;
-use App\Livewire\Picking\PickingTaskList;
+use App\Livewire\Inventory\PickingTaskDetail;
+use App\Livewire\Inventory\PickingTaskList;
 use App\Livewire\Price\PriceChangeLogList;
 use App\Livewire\Price\PricingConfig;
 use App\Livewire\Price\PromotionSettings;
@@ -129,12 +132,15 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::get('/inventories', InventoryList::class)->name('inventories');
     Route::get('/inventory-logs', InventoryLogList::class)->name('inventory-logs');
     Route::get('/picking-tasks', PickingTaskList::class)->name('picking-tasks');
+    Route::get('/picking-tasks/{id}', PickingTaskDetail::class)->name('picking-tasks.detail');
 
     // ── 配送管理 ──
     Route::get('/delivery-routes', DeliveryRouteList::class)->name('delivery-routes');
     Route::get('/delivery-routes/{id}', DeliveryRouteDetail::class)->name('delivery-routes.detail');
     Route::get('/delivery-tasks', DeliveryTaskList::class)->name('delivery-tasks');
     Route::get('/delivery-tasks/{id}', DeliveryTaskDetail::class)->name('delivery-tasks.detail');
+    Route::get('/delivery-notes', DeliveryNoteList::class)->name('delivery-notes');
+    Route::get('/delivery-notes/{id}', DeliveryNoteDetail::class)->name('delivery-notes.detail');
     Route::get('/signatures', SignatureList::class)->name('signatures');
     Route::get('/temperatures', TemperatureList::class)->name('temperatures');
     Route::get('/discrepancies', DiscrepancyList::class)->name('discrepancies');

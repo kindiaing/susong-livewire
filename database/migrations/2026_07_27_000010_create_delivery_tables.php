@@ -228,6 +228,72 @@ return new class extends Migration
             $table->comment('车辆故障记录表');
         });
 
+        // ========== 送货单主表（按商户维度，司机分货依据） ==========
+        Schema::create('delivery_notes', function (Blueprint $table) {
+            $table->id()->comment('主键');
+            $table->string('note_no', 50)->unique()->comment('送货单编号，如：DN-E01-20260810-001');
+            $table->unsignedBigInteger('task_id')->comment('所属配送任务ID');
+
+            // 商家信息
+            $table->unsignedBigInteger('merchant_id')->comment('商家ID');
+            $table->string('merchant_name', 100)->nullable()->comment('商家名称（冗余）');
+            $table->string('merchant_address', 255)->nullable()->comment('配送地址（冗余）');
+
+            // 日期
+            $table->date('delivery_date')->comment('送达日期');
+
+            // 关联订单
+            $table->json('order_ids')->nullable()->comment('关联订单ID数组');
+            $table->json('order_nos')->nullable()->comment('关联订单编号数组（识别来源）');
+
+            // 汇总
+            $table->string('product_summary', 500)->nullable()->comment('商品摘要');
+            $table->bigInteger('total_quantity')->default(0)->comment('应送总数量');
+            $table->decimal('total_weight', 10, 2)->nullable()->comment('总重量（kg）');
+
+            // 状态：1待分货 2已分货 3已签收 4已取消
+            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待分货，2已分货，3已签收，4已取消');
+
+            // 分货确认
+            $table->timestamp('delivered_at')->nullable()->comment('实际分货/送达时间');
+            $table->string('delivery_method', 20)->nullable()->comment('确认方式：manual=手工 scan=扫码 signature=签名');
+            $table->string('remark', 500)->nullable()->comment('备注');
+
+            $table->timestamps();
+            $table->softDeletes();
+            $table->index('task_id');
+            $table->index('merchant_id');
+            $table->index('delivery_date');
+            $table->index('status');
+            $table->comment('送货单主表：按商户维度，每商户一张，司机到店分货依据');
+        });
+
+        // ========== 送货单明细表 ==========
+        Schema::create('delivery_note_items', function (Blueprint $table) {
+            $table->id()->comment('主键');
+            $table->unsignedBigInteger('delivery_note_id')->comment('送货单ID');
+            $table->unsignedBigInteger('sku_id')->comment('SKU ID');
+            $table->string('sku_name', 100)->nullable()->comment('SKU名称（冗余）');
+            $table->string('unit', 20)->nullable()->comment('单位');
+
+            // 数量
+            $table->bigInteger('quantity')->default(0)->comment('应送数量');
+            $table->bigInteger('picked_quantity')->default(0)->comment('实际分货数量');
+
+            // 来源订单（方便识别是哪个订单的商品）
+            $table->unsignedBigInteger('order_id')->nullable()->comment('来源订单ID');
+            $table->string('order_no', 50)->nullable()->comment('来源订单编号');
+
+            // 状态：1待分货 2已分货 3差异
+            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待分货，2已分货，3差异');
+
+            $table->timestamps();
+            $table->index('delivery_note_id');
+            $table->index('sku_id');
+            $table->index('order_id');
+            $table->comment('送货单明细表：按SKU拆分，每条带来源订单号');
+        });
+
         // ========== 保留的旧表 ==========
 
         Schema::create('delivery_tracks', function (Blueprint $table) {
@@ -278,6 +344,8 @@ return new class extends Migration
         Schema::dropIfExists('signatures');
         Schema::dropIfExists('delivery_tracks');
         Schema::dropIfExists('vehicle_issues');
+        Schema::dropIfExists('delivery_note_items');
+        Schema::dropIfExists('delivery_notes');
         Schema::dropIfExists('delivery_arrival_logs');
         Schema::dropIfExists('delivery_route_stops');
         Schema::dropIfExists('delivery_task_sequences');
