@@ -17,15 +17,21 @@
             <span class="inline-flex items-center rounded px-2 py-1 text-sm font-medium bg-{{ $c }}-100 text-{{ $c }}-700">
                 {{ $statusMap[$note->status] ?? '-' }}
             </span>
+            @can('delivery.delivery-note.deliver')
             @if($note->status === 1)
             <button type="button" wire:click="markDelivered" class="rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 transition-colors">确认分货</button>
             @endif
+            @endcan
+            @can('delivery.delivery-note.sign')
             @if($note->status === 2)
             <button type="button" wire:click="markSigned" class="rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 transition-colors">确认签收</button>
             @endif
+            @endcan
+            @can('delivery.delivery-note.cancel')
             @if(in_array($note->status, [1, 2]))
             <button type="button" wire:click="cancelNote" class="rounded-md border border-orange-300 px-3 py-1.5 text-sm text-orange-600 hover:bg-orange-50 transition-colors">取消</button>
             @endif
+            @endcan
         </div>
     </div>
 
