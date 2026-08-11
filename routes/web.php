@@ -5,6 +5,7 @@ use App\Livewire\Delivery\DeliveryRouteDetail;
 use App\Livewire\Delivery\DeliveryRouteList;
 use App\Livewire\Delivery\DeliveryTaskDetail;
 use App\Livewire\Delivery\DeliveryTaskList;
+use App\Livewire\Delivery\VehicleIssueList;
 use App\Livewire\Delivery\DiscrepancyList;
 use App\Livewire\Delivery\SignatureList;
 use App\Livewire\Delivery\TemperatureList;
@@ -137,6 +138,7 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::get('/signatures', SignatureList::class)->name('signatures');
     Route::get('/temperatures', TemperatureList::class)->name('temperatures');
     Route::get('/discrepancies', DiscrepancyList::class)->name('discrepancies');
+    Route::get('/vehicle-issues', VehicleIssueList::class)->name('vehicle-issues');
 
     // ── 损耗管理 ──
     Route::get('/loss-orders', LossOrderList::class)->name('loss-orders');

@@ -46,6 +46,7 @@
                         'delivery.signature' => 'check-badge',
                         'delivery.discrepancy' => 'exclamation-triangle',
                         'delivery.temperature' => 'temperature',
+                        'delivery.vehicle-issue' => 'exclamation-triangle',
                         'inventory.warehouse' => 'building-office', 'inventory.stock' => 'chart-bar',
                         'inventory.log' => 'document-text', 'inventory.picking' => 'clipboard-document-list',
                         'finance.account' => 'wallet', 'finance.recharge' => 'bank',

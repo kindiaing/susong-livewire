@@ -31,7 +31,7 @@ return new class extends Migration
             $table->id()->comment('主键');
             $table->string('order_no', 50)->unique()->comment('订单号');
             $table->unsignedBigInteger('merchant_id')->comment('商家ID');
-            $table->unsignedBigInteger('delivery_route_id')->nullable()->comment('配送线路ID');
+            $table->unsignedBigInteger('delivery_route_id')->nullable()->comment('配送线路ID（已废弃，线路信息通过配送任务获取）');
             $table->tinyInteger('batch')->unsigned()->default(1)->comment('配送批次：1上午，2下午');
             $table->string('delivery_address', 255)->nullable()->comment('配送地址');
             $table->string('contact_name', 50)->nullable()->comment('收货联系人');

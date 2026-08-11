@@ -53,8 +53,8 @@ return new class extends Migration
             $table->string('contact_name', 50)->nullable()->comment('联系人');
             $table->string('contact_phone', 20)->nullable()->comment('联系电话');
             $table->string('address', 255)->nullable()->comment('默认配送地址');
-            $table->unsignedBigInteger('delivery_route_id')->nullable()->comment('所属配送线路ID');
-            $table->unsignedInteger('delivery_sort')->default(0)->comment('配送顺序');
+            $table->unsignedBigInteger('delivery_route_id')->nullable()->comment('所属配送线路ID（已废弃，改用 delivery_route_stops）');
+            $table->unsignedInteger('delivery_sort')->default(0)->comment('配送顺序（已废弃，改用 delivery_route_stops.sequence_no）');
             $table->bigInteger('min_order_amount')->default(0)->comment('起送价');
             $table->tinyInteger('settlement_type')->unsigned()->default(1)->comment('结算方式：1现结，2账期，3预付款');
             $table->bigInteger('credit_limit')->default(0)->comment('信用额度');

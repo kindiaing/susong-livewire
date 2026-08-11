@@ -52,6 +52,17 @@ return [
         ],
     ],
     [
+        'key'   => 'inventory',
+        'label' => '库存拣货',
+        'icon'  => 'chart-bar',
+        'children' => [
+            ['key' => 'inventory.warehouse', 'label' => '仓库管理', 'route' => 'warehouses',    'permission' => 'inventory.warehouse.view',    'description' => '仓库信息与分区'],
+            ['key' => 'inventory.stock',     'label' => '实时库存', 'route' => 'inventories',   'permission' => 'inventory.inventory.view',    'description' => '各仓库SKU存量'],
+            ['key' => 'inventory.log',       'label' => '库存日志', 'route' => 'inventory-logs', 'permission' => 'inventory.inventory-log.view', 'description' => '出入库变动记录'],
+            ['key' => 'inventory.picking',  'label' => '拣货任务', 'route' => 'picking-tasks', 'permission' => 'inventory.warehouse.view',     'description' => '拣货分配与执行'],
+        ],
+    ],
+    [
         'key'   => 'delivery',
         'label' => '配送管理',
         'icon'  => 'truck',
@@ -61,17 +72,7 @@ return [
             ['key' => 'delivery.signature','label' => '签收存证', 'route' => 'signatures',            'permission' => 'delivery.signature.view',    'description' => '签收照片与温度记录'],
             ['key' => 'delivery.discrepancy','label' => '差异处理', 'route' => 'discrepancies',      'permission' => 'delivery.discrepancy.view',   'description' => '配送差异与短少处理'],
             ['key' => 'delivery.temperature', 'label' => '温度记录', 'route' => 'temperatures',     'permission' => 'delivery.temperature.view',    'description' => '冷链温度监控记录'],
-        ],
-    ],
-    [
-        'key'   => 'inventory',
-        'label' => '库存拣货',
-        'icon'  => 'chart-bar',
-        'children' => [
-            ['key' => 'inventory.warehouse', 'label' => '仓库管理', 'route' => 'warehouses',    'permission' => 'inventory.warehouse.view',    'description' => '仓库信息与分区'],
-            ['key' => 'inventory.stock',     'label' => '实时库存', 'route' => 'inventories',   'permission' => 'inventory.inventory.view',    'description' => '各仓库SKU存量'],
-            ['key' => 'inventory.log',       'label' => '库存日志', 'route' => 'inventory-logs', 'permission' => 'inventory.inventory-log.view', 'description' => '出入库变动记录'],
-            ['key' => 'inventory.picking',  'label' => '拣货任务', 'route' => 'picking-tasks', 'permission' => 'inventory.warehouse.view',     'description' => '拣货分配与执行'],
+            ['key' => 'delivery.vehicle-issue', 'label' => '车辆故障',   'route' => 'vehicle-issues',        'permission' => 'delivery.vehicle-issue.view',    'description' => '车辆故障记录与处理'],
         ],
     ],
     [

@@ -106,6 +106,7 @@ class SystemDataSeeder extends Seeder
                 'delivery.signature' => ['display_name' => '签收管理', 'buttons' => []],
                 'delivery.discrepancy' => ['display_name' => '差异处理', 'buttons' => ['delivery.discrepancy.restock', 'delivery.discrepancy.refund', 'delivery.discrepancy.writeoff']],
                 'delivery.temperature' => ['display_name' => '温度记录', 'buttons' => []],
+                'delivery.vehicle-issue' => ['display_name' => '车辆故障', 'buttons' => ['delivery.vehicle-issue.create', 'delivery.vehicle-issue.edit', 'delivery.vehicle-issue.delete']],
             ],
         ],
         'loss' => [
@@ -182,6 +183,7 @@ class SystemDataSeeder extends Seeder
         'delivery.route.create' => '创建线路', 'delivery.route.edit' => '编辑线路', 'delivery.route.delete' => '删除线路', 'delivery.route.stop-manage' => '管理商家排序',
         'delivery.delivery-task.assign' => '分配任务', 'delivery.delivery-task.update' => '更新状态',
         'delivery.discrepancy.restock' => '补货', 'delivery.discrepancy.refund' => '退款', 'delivery.discrepancy.writeoff' => '报损',
+        'delivery.vehicle-issue.create' => '创建故障', 'delivery.vehicle-issue.edit' => '编辑故障', 'delivery.vehicle-issue.delete' => '删除故障',
         // 损耗管理
         'loss.loss-order.create' => '创建损耗单', 'loss.loss-order.edit' => '编辑损耗单', 'loss.loss-order.approve' => '审核损耗单',
         'loss.loss-order.execute' => '执行损耗', 'loss.loss-order.close' => '关闭损耗单',
@@ -317,6 +319,7 @@ class SystemDataSeeder extends Seeder
                 'delivery.signature', 'delivery.signature.view',
                 'delivery.discrepancy', 'delivery.discrepancy.view',
                 'delivery.temperature', 'delivery.temperature.view',
+                'delivery.vehicle-issue', 'delivery.vehicle-issue.view', 'delivery.vehicle-issue.create', 'delivery.vehicle-issue.edit',
                 'loss.loss-order', 'loss.loss-order.view', 'loss.loss-order.create',
                 'price.promotion', 'price.promotion.view', 'price.promotion.create', 'price.promotion.edit',
                 'price.price-change-log', 'price.price-change-log.view',
@@ -349,6 +352,7 @@ class SystemDataSeeder extends Seeder
                 'delivery.signature', 'delivery.signature.view',
                 'delivery.discrepancy', 'delivery.discrepancy.view', 'delivery.discrepancy.restock', 'delivery.discrepancy.refund', 'delivery.discrepancy.writeoff',
                 'delivery.temperature', 'delivery.temperature.view',
+                'delivery.vehicle-issue', 'delivery.vehicle-issue.view', 'delivery.vehicle-issue.create', 'delivery.vehicle-issue.edit', 'delivery.vehicle-issue.delete',
                 'loss.loss-order', 'loss.loss-order.view', 'loss.loss-order.create', 'loss.loss-order.approve', 'loss.loss-order.execute', 'loss.loss-order.close',
                 'price.promotion', 'price.promotion.view', 'price.promotion.create', 'price.promotion.edit', 'price.promotion.approve',
                 'price.pricing-config', 'price.pricing-config.view',
@@ -405,6 +409,7 @@ class SystemDataSeeder extends Seeder
                 'delivery.signature', 'delivery.signature.view',
                 'delivery.discrepancy', 'delivery.discrepancy.view',
                 'delivery.temperature', 'delivery.temperature.view',
+                'delivery.vehicle-issue', 'delivery.vehicle-issue.view', 'delivery.vehicle-issue.edit',
                 'order.order', 'order.order.view',
             ],
             // 商家：订单/购物车/签收查看/充值查看
