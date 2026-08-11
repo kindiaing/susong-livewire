@@ -43,9 +43,30 @@ class OrganizationDemoSeeder extends Seeder
         }
     }
 
+    /**
+     * 确保仓库数据已创建（warehouses 原由 InventoryDemoSeeder 创建，但执行顺序在 organization 之后）
+     */
+    protected function ensureWarehouses(): void
+    {
+        $now = now();
+        $warehouses = [
+            ['name' => '总仓-农批市场', 'type' => 1, 'is_cold_chain' => 0, 'address' => '安徽省宿州市埇桥区农批市场内', 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
+            ['name' => '分仓-肉联厂', 'type' => 2, 'is_cold_chain' => 1, 'address' => '安徽省宿州市埇桥区肉联厂内', 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
+        ];
+
+        foreach ($warehouses as $warehouse) {
+            if (! DB::table('warehouses')->where('name', $warehouse['name'])->exists()) {
+                DB::table('warehouses')->insert($warehouse);
+            }
+        }
+    }
+
     protected function seedDeliveryRoutes(): void
     {
         $now = now();
+
+        // 确保仓库数据已创建（warehouses 原由 InventoryDemoSeeder 创建，但执行顺序在 organization 之后）
+        $this->ensureWarehouses();
 
         // 获取司机/车辆用于默认配置
         $driver1 = DB::table('drivers')->where('phone', '13700000001')->first();

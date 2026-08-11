@@ -112,7 +112,22 @@
                             <span class="text-foreground">{{ $item->product_name }}</span>
                         </td>
                         <td class="px-3 py-1.5 text-muted-foreground truncate">
-                            @if(is_array($item->sku_specs)){{ implode(', ', $item->sku_specs) }}@else{{ $item->sku_specs ?? '-' }}@endif
+                            @php
+                                $specs = $item->sku_specs;
+                                if (is_array($specs)) {
+                                    $parts = [];
+                                    foreach ($specs as $spec) {
+                                        if (is_array($spec) && isset($spec['value'])) {
+                                            $parts[] = $spec['value'];
+                                        } elseif (is_scalar($spec)) {
+                                            $parts[] = $spec;
+                                        }
+                                    }
+                                    echo $parts ? implode(' / ', $parts) : '-';
+                                } else {
+                                    echo $specs ?? '-';
+                                }
+                            @endphp
                         </td>
                         <td class="px-3 py-1.5 text-right tabular-nums">{{ $item->quantity }}</td>
                         <td class="px-3 py-1.5 text-right tabular-nums">{{ money_format($item->price) }}</td>

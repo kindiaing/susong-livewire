@@ -45,6 +45,7 @@ class PickingTaskList extends Component
     public bool $showGenerateModal = false;
     public int $genRouteId = 0;
     public string $genDeliveryDate = '';
+    public string $genWarehouseName = '';
     public array $genSelectedOrderIds = [];
     public array $pendingOrders = [];
 
@@ -94,6 +95,7 @@ class PickingTaskList extends Component
         $this->showGenerateModal = true;
         $this->genRouteId = 0;
         $this->genDeliveryDate = now()->format('Y-m-d');
+        $this->genWarehouseName = '';
         $this->genSelectedOrderIds = [];
         $this->pendingOrders = [];
     }
@@ -107,6 +109,11 @@ class PickingTaskList extends Component
 
     public function updatedGenRouteId(): void
     {
+        $this->genWarehouseName = '';
+        if ($this->genRouteId > 0) {
+            $route = DeliveryRoute::with('warehouse')->find($this->genRouteId);
+            $this->genWarehouseName = $route?->warehouse?->name ?? '';
+        }
         $this->loadPendingOrders();
         $this->genSelectedOrderIds = [];
     }

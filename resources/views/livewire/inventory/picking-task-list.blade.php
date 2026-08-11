@@ -216,14 +216,6 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">仓库</label>
-                    @php $genWarehouseName = ''; @endphp
-                    @if($genRouteId > 0)
-                        @foreach($routeOptions as $rid => $rname)
-                            @if($rid == $genRouteId && method_exists(\App\Models\DeliveryRoute::find($genRouteId), 'warehouse'))
-                                @php $genWarehouseName = \App\Models\DeliveryRoute::find($genRouteId)?->warehouse?->name ?? ''; @endphp
-                            @endif
-                        @endforeach
-                    @endif
                     <input type="text" value="{{ $genWarehouseName ?: '-' }}" class="flex h-9 w-full rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground" readonly />
                 </div>
                 <div>
