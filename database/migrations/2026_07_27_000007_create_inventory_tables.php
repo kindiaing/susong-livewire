@@ -14,6 +14,7 @@ return new class extends Migration
             $table->tinyInteger('type')->unsigned()->default(1)->comment('类型：1总仓，2前置仓');
             $table->tinyInteger('is_cold_chain')->unsigned()->default(0)->comment('是否冷链：0否，1是');
             $table->string('address', 255)->nullable()->comment('地址');
+            $table->unsignedInteger('sort')->default(0)->comment('排序号');
             $table->tinyInteger('status')->unsigned()->default(1)->comment('状态');
             $table->timestamps();
             $table->softDeletes();

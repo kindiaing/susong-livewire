@@ -309,7 +309,7 @@ class LossOrderList extends Component
         }
 
         $items = $query->paginate(setting('per_page', 10));
-        $warehouses = Warehouse::enabled()->orderBy('name')->get();
+        $warehouses = Warehouse::enabled()->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
 

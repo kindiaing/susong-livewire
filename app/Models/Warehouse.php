@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
  * @property int $type 类型：1总仓，2前置仓
  * @property int $is_cold_chain 是否冷链：0否，1是
  * @property string|null $address 地址
+ * @property int $sort 排序号
  * @property int $status 状态：0禁用，1启用
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -36,6 +37,7 @@ class Warehouse extends Model
         'type',
         'is_cold_chain',
         'address',
+        'sort',
         'status',
     ];
 
@@ -44,6 +46,7 @@ class Warehouse extends Model
         return [
             'type' => 'integer',
             'is_cold_chain' => 'integer',
+            'sort' => 'integer',
             'status' => 'integer',
         ];
     }
@@ -125,7 +128,7 @@ class Warehouse extends Model
      */
     public function scopeEnabled($query)
     {
-        return $query->where('status', self::STATUS_ENABLED);
+        return $query->where('status', self::STATUS_ENABLED)->orderBy('sort');
     }
 
     /**

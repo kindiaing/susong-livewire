@@ -352,7 +352,7 @@ class InventoryList extends Component
         }
 
         $items = $query->paginate(setting('per_page', 10));
-        $warehouses = Warehouse::enabled()->orderBy('name')->get();
+        $warehouses = Warehouse::enabled()->get();
         $categoryTree = Category::getTree();
         $skus = Sku::with('product')->orderBy('sku_code')->get();
         $allColumns = $this->getAllColumns();

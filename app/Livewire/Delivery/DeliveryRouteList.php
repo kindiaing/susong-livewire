@@ -59,7 +59,6 @@ class DeliveryRouteList extends Component
     private function loadOptions(): void
     {
         $this->warehouseOptions = Warehouse::enabled()
-            ->orderBy('sort')
             ->get(['id', 'name'])
             ->mapWithKeys(fn($w) => [$w->id => $w->name])
             ->toArray();

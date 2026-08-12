@@ -94,10 +94,10 @@
         </div>
     </div>
 
-    {{-- 商家列表（拖拽排序） --}}
+    {{-- 商家列表（列拖拽排序） --}}
     <div class="rounded-lg border bg-card">
         <div class="flex items-center justify-between px-6 py-4 border-b">
-            <h2 class="text-base font-semibold text-foreground">商家点位 <span class="text-muted-foreground font-normal text-sm ml-2">（拖拽行调整排序）</span></h2>
+            <h2 class="text-base font-semibold text-foreground">商家点位 <span class="text-muted-foreground font-normal text-sm ml-2">（拖拽卡片调整配送顺序）</span></h2>
             @can('delivery.route.stop-manage')
             <button type="button" wire:click="openAddMerchantModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
                 <x-ui.icon name="plus" class="w-4 h-4" />
@@ -107,17 +107,17 @@
         </div>
 
         @if($stops->count() > 0)
-        <div x-data="{ dragged: null }" class="divide-y">
+        <div x-data="{ dragged: null }" class="flex gap-3 p-4 overflow-x-auto">
             @foreach($stops as $index => $stop)
-            <div class="grid grid-cols-[40px_50px_1fr_1fr_100px_100px_80px_100px] gap-3 px-6 py-3 items-center hover:bg-muted/30 transition-colors text-sm
-                        {{ ! $stop->is_active ? 'opacity-50' : '' }}"
+            <div class="flex-shrink-0 w-56 rounded-lg border bg-background overflow-hidden {{ ! $stop->is_active ? 'opacity-50' : '' }} hover:shadow-md transition-shadow"
                  draggable="true"
                  x-on:dragstart="dragged = $el; $el.style.opacity = '0.4'"
                  x-on:dragend="dragged = null; $el.style.opacity = '1'"
-                 x-on:dragover.prevent="$el.style.borderTop = '2px solid #3b82f6'"
-                 x-on:dragleave="$el.style.borderTop = ''"
+                 x-on:dragover.prevent="$el.style.borderLeftWidth = '3px'; $el.style.borderLeftColor = '#3b82f6'"
+                 x-on:dragleave="$el.style.borderLeftWidth = '1px'; $el.style.borderLeftColor = ''"
                  x-on:drop.prevent="
-                     $el.style.borderTop = '';
+                     $el.style.borderLeftWidth = '1px';
+                     $el.style.borderLeftColor = '';
                      const from = dragged;
                      const to = $el;
                      const parent = from.parentNode;
@@ -131,25 +131,47 @@
                  data-stop-id="{{ $stop->id }}"
                  wire:key="stop-{{ $stop->id }}"
             >
-                <div class="text-muted-foreground cursor-grab active:cursor-grabbing">
-                    <x-ui.icon name="bars-3" class="w-4 h-4" />
+                {{-- 序号条 --}}
+                <div class="flex items-center justify-between px-3 py-1.5 bg-muted/40 border-b">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold">{{ $stop->sequence_no }}</span>
+                        <span class="text-xs text-muted-foreground">第{{ $stop->sequence_no }}站</span>
+                    </div>
+                    <div class="text-muted-foreground/60 cursor-grab active:cursor-grabbing">
+                        <x-ui.icon name="bars-3" class="w-4 h-4" />
+                    </div>
                 </div>
-                <div class="text-muted-foreground font-mono text-xs">{{ $stop->sequence_no }}</div>
-                <div class="text-foreground font-medium">{{ $stop->merchant?->name ?? '-' }}</div>
-                <div class="text-muted-foreground truncate">{{ $stop->address ?: $stop->merchant?->address ?? '-' }}</div>
-                <div class="text-muted-foreground">{{ $stop->default_service_time }}分钟</div>
-                <div>
-                    {!! status_badge($stop->is_active, 'active') !!}
+                {{-- 内容 --}}
+                <div class="px-3 py-2.5 space-y-2">
+                    <div class="text-sm font-semibold text-foreground truncate">{{ $stop->merchant?->name ?? '-' }}</div>
+                    <div class="text-xs text-muted-foreground flex items-start gap-1.5">
+                        <x-ui.icon name="map-pin" class="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                        <span class="line-clamp-2">{{ $stop->address ?: $stop->merchant?->address ?? '-' }}</span>
+                    </div>
+                    <div class="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <x-ui.icon name="phone" class="w-3.5 h-3.5 flex-shrink-0" />
+                        <span>{{ $stop->merchant?->contact_phone ?? '-' }}</span>
+                    </div>
+                    <div class="text-xs text-muted-foreground flex items-center gap-1.5">
+                        <x-ui.icon name="clock" class="w-3.5 h-3.5 flex-shrink-0" />
+                        <span>停留 {{ $stop->default_service_time }} 分钟</span>
+                    </div>
                 </div>
-                <div class="text-muted-foreground text-xs">{{ $stop->merchant?->contact_phone ?? '-' }}</div>
-                <div class="flex items-center gap-1">
-                    @can('delivery.route.stop-manage')
-                    <button type="button" wire:click="openEditStopModal({{ $stop->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
-                    <button type="button" wire:click="toggleStopActive({{ $stop->id }})" class="p-1 rounded {{ $stop->is_active ? 'text-gray-600 hover:bg-gray-50' : 'text-green-600 hover:bg-green-50' }} transition-colors" title="{{ $stop->is_active ? '停用' : '启用' }}">
-                        <x-ui.icon name="{{ $stop->is_active ? 'eye-slash' : 'eye' }}" class="w-3.5 h-3.5" />
-                    </button>
-                    <button type="button" wire:click="removeStop({{ $stop->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="移除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
-                    @endcan
+                {{-- 状态 + 操作 --}}
+                <div class="flex items-center justify-between px-3 py-2 border-t bg-muted/20">
+                    <span class="inline-flex items-center gap-1 text-xs {{ $stop->is_active ? 'text-green-600' : 'text-gray-400' }}">
+                        <span class="inline-block w-2 h-2 rounded-full {{ $stop->is_active ? 'bg-green-500' : 'bg-gray-300' }}"></span>
+                        {{ $stop->is_active ? '启用' : '停用' }}
+                    </span>
+                    <div class="flex items-center gap-0.5">
+                        @can('delivery.route.stop-manage')
+                        <button type="button" wire:click="openEditStopModal({{ $stop->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
+                        <button type="button" wire:click="toggleStopActive({{ $stop->id }})" class="p-1 rounded {{ $stop->is_active ? 'text-gray-500 hover:bg-gray-50' : 'text-green-600 hover:bg-green-50' }} transition-colors" title="{{ $stop->is_active ? '停用' : '启用' }}">
+                            <x-ui.icon name="{{ $stop->is_active ? 'eye-slash' : 'eye' }}" class="w-3.5 h-3.5" />
+                        </button>
+                        <button type="button" wire:click="removeStop({{ $stop->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="移除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
+                        @endcan
+                    </div>
                 </div>
             </div>
             @endforeach

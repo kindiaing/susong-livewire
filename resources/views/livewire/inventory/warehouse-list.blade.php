@@ -54,6 +54,7 @@
                     <th class="px-4 py-2 text-left">类型</th>
                     <th class="px-4 py-2 text-left">冷链</th>
                     <th class="px-4 py-2 text-left">地址</th>
+                    <th class="px-4 py-2 text-left w-16">排序</th>
                     <th class="px-4 py-2 text-left">状态</th>
                     <th class="px-4 py-2 text-left w-24">操作</th>
                 </tr>
@@ -66,6 +67,7 @@
                     <td class="px-4 py-2 text-foreground">{{ \App\Models\Warehouse::typeMap()[$item->type] ?? '-' }}</td>
                     <td class="px-4 py-2 text-foreground">{{ $item->is_cold_chain ? '是' : '否' }}</td>
                     <td class="px-4 py-2 text-muted-foreground truncate">{{ $item->address ?: '-' }}</td>
+                    <td class="px-4 py-2 text-muted-foreground">{{ $item->sort }}</td>
                     <td class="px-4 py-2">
                         {!! status_badge($item->status, 'active') !!}
                     </td>
@@ -81,7 +83,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="7" class="px-6 py-12 text-center text-muted-foreground">暂无仓库数据</td></tr>
+                <tr><td colspan="8" class="px-6 py-12 text-center text-muted-foreground">暂无仓库数据</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -129,13 +131,20 @@
                     <input type="text" wire:model="formAddress" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="详细地址" />
                     @error('formAddress') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">状态 <span class="text-red-500">*</span></label>
-                    <select wire:model="formStatus" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                        <option value="1">启用</option>
-                        <option value="0">禁用</option>
-                    </select>
-                    @error('formStatus') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">排序号</label>
+                        <input type="number" wire:model="formSort" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" placeholder="数字越小越靠前" />
+                        @error('formSort') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">状态 <span class="text-red-500">*</span></label>
+                        <select wire:model="formStatus" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                            <option value="1">启用</option>
+                            <option value="0">禁用</option>
+                        </select>
+                        @error('formStatus') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">

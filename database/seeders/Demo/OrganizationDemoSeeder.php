@@ -50,8 +50,8 @@ class OrganizationDemoSeeder extends Seeder
     {
         $now = now();
         $warehouses = [
-            ['name' => '总仓-农批市场', 'type' => 1, 'is_cold_chain' => 0, 'address' => '安徽省宿州市埇桥区农批市场内', 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['name' => '分仓-肉联厂', 'type' => 2, 'is_cold_chain' => 1, 'address' => '安徽省宿州市埇桥区肉联厂内', 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
+            ['name' => '总仓-农批市场', 'type' => 1, 'is_cold_chain' => 0, 'address' => '安徽省宿州市埇桥区农批市场内', 'sort' => 1, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
+            ['name' => '分仓-肉联厂', 'type' => 2, 'is_cold_chain' => 1, 'address' => '安徽省宿州市埇桥区肉联厂内', 'sort' => 2, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
         ];
 
         foreach ($warehouses as $warehouse) {

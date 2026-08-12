@@ -260,7 +260,7 @@ class PurchaseReturnList extends Component
         $items = $query->paginate(setting('per_page', 10));
         $purchaseOrders = PurchaseOrder::orderBy('id', 'desc')->limit(50)->get();
         $suppliers = Supplier::enabled()->orderBy('name')->get();
-        $warehouses = Warehouse::enabled()->orderBy('name')->get();
+        $warehouses = Warehouse::enabled()->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
 

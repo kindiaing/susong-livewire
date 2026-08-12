@@ -29,6 +29,7 @@ class WarehouseList extends Component
     public int $formType = 1;
     public int $formIsColdChain = 0;
     public string $formAddress = '';
+    public int $formSort = 0;
     public int $formStatus = 1;
 
     public function mount(): void
@@ -44,6 +45,7 @@ class WarehouseList extends Component
         $this->formType = $item->type;
         $this->formIsColdChain = $item->is_cold_chain;
         $this->formAddress = $item->address ?? '';
+        $this->formSort = $item->sort ?? 0;
         $this->formStatus = $item->status;
         $this->showModal = true;
     }
@@ -55,6 +57,7 @@ class WarehouseList extends Component
             'formType' => 'required|in:1,2',
             'formIsColdChain' => 'required|in:0,1',
             'formAddress' => 'nullable|string|max:255',
+            'formSort' => 'nullable|integer|min:0',
             'formStatus' => 'required|in:0,1',
         ]);
 
@@ -63,6 +66,7 @@ class WarehouseList extends Component
             'type' => $validated['formType'],
             'is_cold_chain' => $validated['formIsColdChain'],
             'address' => $validated['formAddress'],
+            'sort' => $validated['formSort'],
             'status' => $validated['formStatus'],
         ];
 
@@ -103,6 +107,7 @@ class WarehouseList extends Component
         $this->formType = 1;
         $this->formIsColdChain = 0;
         $this->formAddress = '';
+        $this->formSort = 0;
         $this->formStatus = 1;
     }
 
@@ -120,6 +125,7 @@ class WarehouseList extends Component
                 'type' => $row->type,
                 'is_cold_chain' => $row->is_cold_chain,
                 'address' => $row->address ?? '',
+                'sort' => $row->sort,
                 'status' => $row->status,
                 'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
             ];
@@ -153,6 +159,7 @@ class WarehouseList extends Component
             ['key' => 'type', 'label' => '仓库类型', 'sortable' => true, 'exportable' => true],
             ['key' => 'is_cold_chain', 'label' => '冷链', 'sortable' => true, 'exportable' => true],
             ['key' => 'address', 'label' => '地址', 'sortable' => false, 'exportable' => true],
+            ['key' => 'sort', 'label' => '排序', 'sortable' => true, 'exportable' => true],
             ['key' => 'status', 'label' => '状态', 'sortable' => true, 'exportable' => true],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
         ];
@@ -160,7 +167,7 @@ class WarehouseList extends Component
 
     public function getExportQuery()
     {
-        return Warehouse::orderBy('id', 'desc');
+        return Warehouse::orderBy('sort')->orderBy('id', 'desc');
     }
 
     public function getExportFileName(): string
@@ -180,18 +187,19 @@ class WarehouseList extends Component
             '仓库类型' => 'type',
             '冷链' => 'is_cold_chain',
             '地址' => 'address',
+            '排序' => 'sort',
             '状态' => 'status',
         ];
     }
 
     public function getPageIds(): array
     {
-        return Warehouse::orderBy('id', 'desc')->limit(20)->pluck('id')->toArray();
+        return Warehouse::orderBy('sort')->orderBy('id', 'desc')->limit(20)->pluck('id')->toArray();
     }
 
     public function render()
     {
-        $query = Warehouse::orderBy('id', 'desc');
+        $query = Warehouse::orderBy('sort')->orderBy('id', 'desc');
 
         if ($this->search) {
             $query->where('name', 'like', "%{$this->search}%");

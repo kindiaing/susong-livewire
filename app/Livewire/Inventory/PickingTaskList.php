@@ -73,7 +73,6 @@ class PickingTaskList extends Component
             ->toArray();
 
         $this->warehouseOptions = Warehouse::enabled()
-            ->orderBy('name')
             ->get(['id', 'name'])
             ->mapWithKeys(fn($w) => [$w->id => $w->name])
             ->toArray();

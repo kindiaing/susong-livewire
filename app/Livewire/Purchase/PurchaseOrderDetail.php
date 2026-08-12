@@ -436,7 +436,7 @@ class PurchaseOrderDetail extends Component
     public function render()
     {
         $suppliers = Supplier::orderBy('name')->get();
-        $warehouses = Warehouse::enabled()->orderBy('name')->get();
+        $warehouses = Warehouse::enabled()->get();
         $skus = Sku::with('product')->orderBy('sku_code')->get();
 
         $isSuperAdmin = $this->isSuperAdmin;
