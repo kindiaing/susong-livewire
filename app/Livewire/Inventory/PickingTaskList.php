@@ -272,7 +272,14 @@ class PickingTaskList extends Component
 
         // 按商户分组生成送货单
         $merchantGroups = $orders->groupBy('merchant_id');
-        $merchantSeq = 1;
+
+        // 查询当天该线路已有的最大送货单序号，避免唯一约束冲突
+        $dateStr = date('Ymd', strtotime($this->genDeliveryDate));
+        $notePrefix = "DN-{$route->code}-{$dateStr}-";
+        $lastNote = DeliveryNote::where('note_no', 'like', $notePrefix . '%')
+            ->orderBy('id', 'desc')
+            ->first();
+        $merchantSeq = $lastNote ? ((int) substr($lastNote->note_no, -3)) + 1 : 1;
 
         foreach ($merchantGroups as $merchantId => $merchantOrders) {
             $merchant = $merchantOrders->first()->merchant;
