@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '108b3b18-2e3e-447e-957c-67ddac284e21'
-  PropagateID: '108b3b18-2e3e-447e-957c-67ddac284e21'
-  ReservedCode1: '74516430-f51b-424a-8757-b9462edd7d05'
-  ReservedCode2: '74516430-f51b-424a-8757-b9462edd7d05'
+  ProduceID: '46a27e00-5c19-41b3-af3e-3b032cb51019'
+  PropagateID: '46a27e00-5c19-41b3-af3e-3b032cb51019'
+  ReservedCode1: '89d02e6b-5571-4551-bd64-e8e5d531850a'
+  ReservedCode2: '89d02e6b-5571-4551-bd64-e8e5d531850a'
 ---
 
 # API 前后端接口文档
@@ -279,8 +279,6 @@ AIGC:
 | 参数 | 类型 | 说明 |
 | :--- | :--- | :--- |
 | keyword | string | 搜索名称/联系人 |
-| delivery_route_id | int | 按线路筛选 |
-| settlement_type | int | 按结算方式筛选 |
 | status | int | 状态筛选 |
 
 #### POST /api/v1/merchants 新增商家
@@ -291,8 +289,10 @@ AIGC:
 | contact_name | string | 否 | 联系人 |
 | contact_phone | string | 否 | 联系电话 |
 | address | string | 否 | 默认配送地址 |
-| delivery_route_id | int | 否 | 所属配送线路ID |
-| delivery_sort | int | 否 | 配送顺序 |
+| latitude | decimal | 否 | 纬度（GCJ-02坐标系） |
+| longitude | decimal | 否 | 经度（GCJ-02坐标系） |
+| coordinate_type | string | 否 | 坐标系标识（默认gcj02） |
+| geohash | string | 否 | Geohash编码 |
 | min_order_amount | decimal | 否 | 起送价 |
 | settlement_type | int | 否 | 结算方式：1现结，2账期，3预付款 |
 | credit_limit | decimal | 否 | 信用额度 |
@@ -1063,6 +1063,8 @@ AIGC:
 
 #### GET /api/v1/picking-tasks/{id} 拣货任务详情
 
+返回任务基本信息 + SKU汇总列表 + 商家分组列表，支持 `?view=sku|merchant` 切换视图。
+
 #### PUT /api/v1/picking-tasks/{id}/assign 分配拣货员
 
 | 字段 | 类型 | 必填 | 说明 |
@@ -1252,6 +1254,41 @@ AIGC:
 #### PUT /api/v1/vehicle-issues/{id}/close 关闭故障记录
 
 #### GET /api/v1/vehicles/{id}/issues 车辆故障历史
+
+### 10.6 送货单接口
+
+#### GET /api/v1/delivery-notes 送货单列表
+
+| 参数 | 类型 | 说明 |
+| :--- | :--- | :--- |
+| task_id | int | 按配送任务筛选 |
+| merchant_id | int | 按商家筛选 |
+| status | int | 状态：1待分货，2已分货，3已签收，4已取消 |
+| delivery_date | string | 送达日期筛选 |
+
+#### GET /api/v1/delivery-notes/{id} 送货单详情
+
+含送货单基本信息 + 明细列表（SKU级） + 关联配送任务信息。
+
+#### PUT /api/v1/delivery-notes/{id}/deliver 确认分货
+
+状态：1待分货 → 2已分货。所有明细同步更新为已分货。
+
+#### PUT /api/v1/delivery-notes/{id}/sign 确认签收
+
+状态：2已分货 → 3已签收。
+
+#### PUT /api/v1/delivery-notes/{id}/cancel 作废送货单
+
+状态：1待分货/2已分货 → 4已取消。
+
+#### PUT /api/v1/delivery-note-items/{id}/confirm 明细级分货确认
+
+| 字段 | 类型 | 必填 | 说明 |
+| :--- | :--- | :--- | :--- |
+| picked_quantity | int | 是 | 实际分货数量 |
+
+> 实际数量 >= 应送数量 → 已分货，不足 → 差异。
 
 ---
 
@@ -2048,7 +2085,7 @@ AIGC:
 | 库存管理 | warehouses, inventory, inventory_logs |
 | 损耗管理 | loss_orders, loss_order_items |
 | 拣货管理 | picking_tasks, picking_task_items |
-| 物流配送 | delivery_tasks, delivery_task_orders, delivery_tracks, signatures, temperatures |
+| 物流配送 | delivery_tasks, delivery_task_details, delivery_task_sequences, delivery_notes, delivery_note_items, delivery_tracks, signatures, temperatures |
 | 差异处理 | discrepancies |
 | 财务对账 | merchant_accounts, recharges, supplier_settlements, supplier_settlement_items, settlement_payments, receivables, receivable_payments, invoices, correction_authorizations |
 | 价格策略 | price_strategies, price_strategy_items, price_change_logs |

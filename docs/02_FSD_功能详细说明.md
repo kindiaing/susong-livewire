@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'd6757b89-0277-46b8-b61e-c3bb8ae1ded4'
-  PropagateID: 'd6757b89-0277-46b8-b61e-c3bb8ae1ded4'
-  ReservedCode1: '8ff069cb-ac39-41d4-ab49-e1b0d9497cc5'
-  ReservedCode2: '8ff069cb-ac39-41d4-ab49-e1b0d9497cc5'
+  ProduceID: '7e1e3da8-c110-4723-a0c4-1a3b7f304b22'
+  PropagateID: '7e1e3da8-c110-4723-a0c4-1a3b7f304b22'
+  ReservedCode1: 'a6e26abb-268a-48f4-951c-ebb5628d5b63'
+  ReservedCode2: 'a6e26abb-268a-48f4-951c-ebb5628d5b63'
 ---
 
 # FSD 功能详细说明书
@@ -513,9 +513,10 @@ AIGC:
 
 | 功能点 | 说明 |
 | :--- | :--- |
-| 仓库列表 | 展示所有仓库 |
-| 新增仓库 | 名称、类型（总仓/前置仓）、冷链/非冷链 |
-| 编辑仓库 | 修改信息 |
+| 仓库列表 | 展示所有仓库，按 sort 字段排序 |
+| 新增仓库 | 名称、类型（总仓/前置仓）、冷链/非冷链、排序号 |
+| 编辑仓库 | 修改信息、调整排序 |
+| 仓库排序 | sort 字段控制显示顺序，默认 0 |
 
 #### 2.6.2 实时库存
 
@@ -554,6 +555,7 @@ AIGC:
 | 任务分配 | 指派拣货员 |
 | 拣货执行 | 拣货员按清单拣货，录入实际数量 |
 | 状态流转 | 拣货中 → 已完成 |
+| 任务详情 | 双视图切换：SKU 汇总视图（按 SKU 聚合需求/已拣数量）、商家分组视图（按商家分组展示明细 + 订单号） |
 
 ---
 
@@ -610,6 +612,17 @@ AIGC:
 | 状态流转 | 1 处理中 → 2 已解决 → 3 已关闭 |
 | 影响记录 | 记录影响类型和影响描述 |
 | 解决确认 | 记录解决时间、处理人 |
+
+#### 2.8.6 送货单管理
+
+| 功能点 | 说明 |
+| :--- | :--- |
+| 送货单列表 | 按商家维度展示，支持按状态/商家/送达日期筛选，显示单号/商户/状态/总数量 |
+| 送货单详情 | 基本信息 + SKU级明细列表（含订单号）+ 关联配送任务信息 |
+| 确认分货 | 待分货 → 已分货，所有明细同步更新 |
+| 确认签收 | 已分货 → 已签收 |
+| 作废 | 待分货/已分货 → 已取消 |
+| 明细级分货 | 逐条确认实际分货数量，足量→已分货，不足→差异 |
 
 ---
 
@@ -1656,6 +1669,8 @@ app/
 │   │   ├── DeliveryRouteDetail.php                 # 配送线路详情+商家排序（v2）
 │   │   ├── DeliveryTaskList.php
 │   │   ├── DeliveryTaskDetail.php
+│   │   ├── DeliveryNoteList.php                    # 送货单列表
+│   │   ├── DeliveryNoteDetail.php                  # 送货单详情
 │   │   ├── TrackMap.php
 │   │   ├── SignatureList.php
 │   │   └── TemperatureList.php
@@ -1739,6 +1754,8 @@ app/
 │   ├── DeliveryTaskSequence.php                   # ✅ V2.0.0（配送顺序表）
 │   ├── DeliveryRouteStop.php                      # ✅ V2.0.0（线路明细-商家排序）
 │   ├── DeliveryArrivalLog.php                      # ✅ V2.0.0（抵达时间流水）
+│   ├── DeliveryNote.php                            # ✅ V2.0.0（送货单）
+│   ├── DeliveryNoteItem.php                        # ✅ V2.0.0（送货单明细）
 │   ├── VehicleIssue.php                            # ✅ V2.0.0（车辆故障记录）
 │   ├── DeliveryTrack.php                          # ✅ V1.4.0
 │   ├── Signature.php                              # ✅ V1.4.0
@@ -1927,7 +1944,7 @@ database/
 │   ├── 2026_07_27_000007_create_inventory_tables.php                 # 仓库/实时库存/库存日志（3 表）
 │   ├── 2026_07_27_000008_create_loss_tables.php                      # 损耗单/明细（2 表）
 │   ├── 2026_07_27_000009_create_picking_tables.php                   # 拣货任务/明细（2 表）
-│   ├── 2026_07_27_000010_create_delivery_tables.php                  # 配送任务/轨迹/签收/温度（5 表）
+│   ├── 2026_07_27_000010_create_delivery_tables.php                  # 配送任务/轨迹/签收/温度/送货单（10表）
 │   ├── 2026_07_27_000011_create_discrepancy_tables.php               # 差异单（1 表）
 │   ├── 2026_07_27_000012_create_finance_tables.php                  # 客户账户/充值/结算/应收/发票/更正（9 表）
 │   ├── 2026_07_27_000013_create_system_tables.php                    # 系统配置/轮播/主推/操作日志/审计日志/登录日志（6 表）
@@ -2168,6 +2185,8 @@ resources/
 │       ├── delivery/
 │       │   ├── delivery-task-list.blade.php
 │       │   ├── delivery-task-detail.blade.php
+│       │   ├── delivery-note-list.blade.php
+│       │   ├── delivery-note-detail.blade.php
 │       │   ├── track-map.blade.php
 │       │   ├── signature-list.blade.php
 │       │   └── temperature-list.blade.php
@@ -2328,7 +2347,7 @@ docs/
 | 库存管理 | WarehouseList ✅, InventoryList ✅, InventoryAdjustForm, InventoryLogList ✅ | InventoryService | inventory/ ✅ | - | web ✅ |
 | 损耗管理 | LossOrderList ✅, LossOrderDetail, LossOrderForm, LossReport | LossOrderService | loss/ ✅ | - | web ✅ |
 | 拣货管理 | PickingTaskList ✅, PickingTaskDetail | PickingService | picking/ ✅ | - | web ✅ |
-| 物流配送 | DeliveryTaskList ✅, DeliveryTaskDetail, TrackMap, SignatureList ✅, TemperatureList ✅ | DeliveryService | delivery/ ✅ | DriverTaskController | web ✅ + api/v1/mini/driver |
+| 物流配送 | DeliveryTaskList ✅, DeliveryTaskDetail, DeliveryNoteList ✅, DeliveryNoteDetail ✅, TrackMap, SignatureList ✅, TemperatureList ✅ | DeliveryService | delivery/ ✅ | DriverTaskController | web ✅ + api/v1/mini/driver |
 | 差异处理 | DiscrepancyList ✅, DiscrepancyDetail, DiscrepancyReport | DiscrepancyService | discrepancy/ ✅ | - | web ✅ |
 | 财务对账 | MerchantAccountList ✅, RechargeList ✅, RechargeForm, SupplierSettlementList ✅, SettlementDetail, PaymentForm, ReceivableList ✅, ReceivableDetail, ReceivablePaymentForm, InvoiceList ✅, CorrectionAuthorizationList ✅, PriceApportionmentList ✅ | SettlementService, ReceivableService, RechargeService | finance/ ✅ | MerchantAccountController | web ✅ + api/v1/mini/merchant |
 | 价格策略 | PriceStrategyList ✅, PriceStrategyForm, PriceChangeLogList ✅ | PriceStrategyService | price/ ✅ | - | web ✅ |
