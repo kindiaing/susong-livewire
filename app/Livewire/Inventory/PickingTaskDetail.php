@@ -14,7 +14,6 @@ class PickingTaskDetail extends Component
 
     public int $pickingTaskId;
     public ?PickingTask $pickingTask = null;
-    public string $viewMode = 'sku'; // 'sku' 或 'merchant'
 
     public function mount(int $id): void
     {
@@ -30,7 +29,6 @@ class PickingTaskDetail extends Component
             'picker',
             'items.sku',
             'items.order',
-            'items.merchant',
         ])->findOrFail($this->pickingTaskId);
     }
 
@@ -72,38 +70,6 @@ class PickingTaskDetail extends Component
                 'total_quantity' => $totalQuantity,
                 'picked_quantity' => $pickedQuantity,
                 'status' => $status,
-            ];
-        })->values()->all();
-    }
-
-    /**
-     * 按商家分组（按商户拆分明细）
-     *
-     * @return array<array{merchant_id: int, merchant_name: string, items: array}>
-     */
-    public function getMerchantGroups(): array
-    {
-        if (!$this->pickingTask) {
-            return [];
-        }
-
-        $grouped = $this->pickingTask->items->groupBy('merchant_id');
-
-        return $grouped->map(function ($items, $merchantId) {
-            $first = $items->first();
-
-            return [
-                'merchant_id' => $merchantId,
-                'merchant_name' => $first->merchant?->name ?? '',
-                'items' => $items->map(fn($item) => [
-                    'sku_id' => $item->sku_id,
-                    'sku_name' => $item->sku?->sku_name ?? $item->sku?->sku_code ?? '',
-                    'unit' => $item->sku?->unit ?? '',
-                    'required_quantity' => $item->required_quantity,
-                    'picked_quantity' => $item->picked_quantity,
-                    'order_no' => $item->order?->order_no ?? '',
-                    'status' => $item->status,
-                ])->values()->all(),
             ];
         })->values()->all();
     }
@@ -191,22 +157,13 @@ class PickingTaskDetail extends Component
         $this->toastSuccess('拣货已完成');
     }
 
-    // ========== 视图切换 ==========
-
-    public function switchViewMode(string $mode): void
-    {
-        $this->viewMode = $mode;
-    }
-
     public function render()
     {
         $pickingTask = $this->pickingTask;
         $skuSummary = $this->getSkuSummary();
-        $merchantGroups = $this->getMerchantGroups();
-        $viewMode = $this->viewMode;
 
         return view('livewire.inventory.picking-task-detail', compact(
-            'pickingTask', 'skuSummary', 'merchantGroups', 'viewMode'
+            'pickingTask', 'skuSummary'
         ))
             ->layout('components.app-layout')
             ->title('拣货总单详情 - ' . ($pickingTask->task_no ?? ''));

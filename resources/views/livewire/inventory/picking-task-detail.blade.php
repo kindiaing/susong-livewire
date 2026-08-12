@@ -97,20 +97,7 @@
         </div>
     </div>
 
-    {{-- 视图切换标签 --}}
-    <div class="flex items-center gap-1 mb-4 rounded-lg border bg-muted/30 p-1 w-fit">
-        <button type="button" wire:click="switchViewMode('sku')"
-            class="rounded-md px-4 py-1.5 text-sm font-medium transition-colors {{ $viewMode === 'sku' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground' }}">
-            SKU汇总
-        </button>
-        <button type="button" wire:click="switchViewMode('merchant')"
-            class="rounded-md px-4 py-1.5 text-sm font-medium transition-colors {{ $viewMode === 'merchant' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground' }}">
-            商家分组
-        </button>
-    </div>
-
     {{-- SKU汇总视图 --}}
-    @if($viewMode === 'sku')
     <div class="rounded-lg border bg-card">
         <div class="px-6 py-4 border-b">
             <h3 class="text-sm font-semibold text-foreground">SKU汇总（{{ count($skuSummary) }} 种）</h3>
@@ -149,68 +136,4 @@
         <div class="px-6 py-8 text-center text-sm text-muted-foreground">暂无SKU汇总数据</div>
         @endif
     </div>
-    @endif
-
-    {{-- 商家分组视图 --}}
-    @if($viewMode === 'merchant')
-    @foreach($merchantGroups as $group)
-    <div class="rounded-lg border bg-card mb-4">
-        <div class="px-6 py-4 border-b flex items-center justify-between cursor-pointer" wire:click.prevent="" x-data="{ open: true }" @click="open = !open">
-            <div class="flex items-center gap-2">
-                <x-ui.icon name="building-storefront" class="w-4 h-4 text-muted-foreground" />
-                <h3 class="text-sm font-semibold text-foreground">{{ $group['merchant_name'] }}</h3>
-                <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-muted text-muted-foreground">{{ count($group['items']) }} 项</span>
-            </div>
-            <div x-show="open" x-transition>
-                <x-ui.icon name="chevron-up" class="w-4 h-4 text-muted-foreground" />
-            </div>
-            <div x-show="!open" x-transition>
-                <x-ui.icon name="chevron-down" class="w-4 h-4 text-muted-foreground" />
-            </div>
-        </div>
-        <div x-show="open" x-transition>
-        @if(count($group['items']) > 0)
-        <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-            <thead class="bg-muted/20">
-                <tr class="text-xs text-muted-foreground uppercase tracking-wider">
-                    <th class="px-4 py-2 text-left">SKU名称</th>
-                    <th class="px-4 py-2 text-left w-20">单位</th>
-                    <th class="px-4 py-2 text-right w-24">需求数量</th>
-                    <th class="px-4 py-2 text-right w-24">已拣数量</th>
-                    <th class="px-4 py-2 text-left w-32">订单编号</th>
-                    <th class="px-4 py-2 text-center w-24">状态</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y">
-                @foreach($group['items'] as $item)
-                <tr class="hover:bg-muted/30 transition-colors">
-                    <td class="px-4 py-2 text-foreground">{{ $item['sku_name'] }}</td>
-                    <td class="px-4 py-2 text-muted-foreground">{{ $item['unit'] }}</td>
-                    <td class="px-4 py-2 text-right text-foreground">{{ $item['required_quantity'] }}</td>
-                    <td class="px-4 py-2 text-right text-foreground">{{ $item['picked_quantity'] }}</td>
-                    <td class="px-4 py-2 font-mono text-xs text-foreground">{{ $item['order_no'] ?? '-' }}</td>
-                    <td class="px-4 py-2 text-center">
-                        @php $itemStatusMap = [1 => '待拣货', 2 => '已拣货', 3 => '差异']; @endphp
-                        @php $itemColorMap = [1 => 'yellow', 2 => 'green', 3 => 'red']; @endphp
-                        @php $ic = $itemColorMap[$item['status']] ?? 'gray'; @endphp
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $ic }}-100 text-{{ $ic }}-700">{{ $itemStatusMap[$item['status']] ?? '-' }}</span>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-        </div>
-        @else
-        <div class="px-6 py-8 text-center text-sm text-muted-foreground">暂无明细数据</div>
-        @endif
-        </div>
-    </div>
-    @endforeach
-    @if(count($merchantGroups) === 0)
-    <div class="rounded-lg border bg-card">
-        <div class="px-6 py-8 text-center text-sm text-muted-foreground">暂无商家分组数据</div>
-    </div>
-    @endif
-    @endif
 </div>
