@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /**
  * 线路明细模型 — 商家列表（核心排序表）
@@ -88,32 +89,52 @@ class DeliveryRouteStop extends Model
     /**
      * 重新排列某线路的所有 sequence_no，使其从 1 开始连续
      * 在删除/插入/拖拽后调用
+     *
+     * 两阶段更新避免 unique(route_id, sequence_no) 约束冲突：
+     * 1) 先把所有 sequence_no 偏移到安全区间（+1000）
+     * 2) 再按顺序从 1 重新赋值
      */
     public static function resequence(int $routeId): void
     {
-        $stops = static::where('route_id', $routeId)
-            ->orderBy('sequence_no')
-            ->get();
+        DB::transaction(function () use ($routeId) {
+            // 阶段1：偏移到安全区间
+            static::where('route_id', $routeId)->update(['sequence_no' => DB::raw('sequence_no + 1000')]);
 
-        $seq = 1;
-        foreach ($stops as $stop) {
-            if ($stop->sequence_no !== $seq) {
+            // 阶段2：按偏移后的顺序重新赋值
+            $stops = static::where('route_id', $routeId)
+                ->orderBy('sequence_no')
+                ->get(['id']);
+
+            $seq = 1;
+            foreach ($stops as $stop) {
                 $stop->update(['sequence_no' => $seq]);
+                $seq++;
             }
-            $seq++;
-        }
+        });
     }
 
     /**
      * 批量更新排序（拖拽排序）
-     * 接收新的顺序数组 [merchant_id => sequence_no, ...]
+     * 接收新的顺序数组 [0 => merchant_id, 1 => merchant_id, ...]
+     *
+     * 两阶段更新避免 unique(route_id, sequence_no) 约束冲突：
+     * 1) 先把所有 sequence_no 偏移到安全区间（+1000）
+     * 2) 再按新顺序从 1 重新赋值
      */
     public static function batchReorder(int $routeId, array $orderedMerchantIds): void
     {
-        foreach ($orderedMerchantIds as $seq => $merchantId) {
-            static::where('route_id', $routeId)
-                ->where('merchant_id', $merchantId)
-                ->update(['sequence_no' => $seq + 1]);
-        }
+        DB::transaction(function () use ($routeId, $orderedMerchantIds) {
+            // 阶段1：偏移到安全区间，解除唯一约束
+            static::where('route_id', $routeId)->update(['sequence_no' => DB::raw('sequence_no + 1000')]);
+
+            // 阶段2：按新顺序赋值
+            $seq = 1;
+            foreach ($orderedMerchantIds as $merchantId) {
+                static::where('route_id', $routeId)
+                    ->where('merchant_id', $merchantId)
+                    ->update(['sequence_no' => $seq]);
+                $seq++;
+            }
+        });
     }
 }
