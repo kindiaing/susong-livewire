@@ -15,6 +15,10 @@ use Illuminate\Support\Carbon;
  * @property string|null $contact_name 联系人
  * @property string|null $contact_phone 联系电话
  * @property string|null $address 地址
+ * @property float|null $latitude 纬度（GCJ-02）
+ * @property float|null $longitude 经度（GCJ-02）
+ * @property string $coordinate_type 坐标系类型
+ * @property string|null $geohash Geohash编码
  * @property int $min_order_amount 起送金额（厘）
  * @property int $settlement_type 结算方式：1现结，2账期，3预付款
  * @property int $credit_limit 信用额度（厘）
@@ -43,6 +47,10 @@ class Merchant extends Model
         'contact_name',
         'contact_phone',
         'address',
+        'latitude',
+        'longitude',
+        'coordinate_type',
+        'geohash',
         'min_order_amount',
         'settlement_type',
         'credit_limit',
@@ -54,6 +62,10 @@ class Merchant extends Model
     {
         return [
             'user_id' => 'integer',
+            'latitude' => 'decimal:7',
+            'longitude' => 'decimal:7',
+            'coordinate_type' => 'string',
+            'geohash' => 'string',
             'min_order_amount' => 'integer',
             'settlement_type' => 'integer',
             'credit_limit' => 'integer',

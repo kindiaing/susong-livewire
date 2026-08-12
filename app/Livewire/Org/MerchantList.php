@@ -35,6 +35,10 @@ class MerchantList extends Component
     public string $formContactName = '';
     public string $formContactPhone = '';
     public string $formAddress = '';
+    public ?string $formLatitude = null;
+    public ?string $formLongitude = null;
+    public string $formCoordinateType = 'gcj02';
+    public ?string $formGeohash = null;
     public string $formMinOrderAmount = '';
     public int $formSettlementType = 1;
     public string $formCreditLimit = '';
@@ -54,6 +58,10 @@ class MerchantList extends Component
         $this->formContactName = $merchant->contact_name ?? '';
         $this->formContactPhone = $merchant->contact_phone ?? '';
         $this->formAddress = $merchant->address ?? '';
+        $this->formLatitude = $merchant->latitude !== null ? (string) $merchant->latitude : null;
+        $this->formLongitude = $merchant->longitude !== null ? (string) $merchant->longitude : null;
+        $this->formCoordinateType = $merchant->coordinate_type ?? 'gcj02';
+        $this->formGeohash = $merchant->geohash;
         $this->formMinOrderAmount = $this->centsToYuan($merchant->min_order_amount);
         $this->formSettlementType = $merchant->settlement_type;
         $this->formCreditLimit = $this->centsToYuan($merchant->credit_limit);
@@ -69,6 +77,9 @@ class MerchantList extends Component
             'formContactName' => 'required|string|max:50',
             'formContactPhone' => 'required|string|max:20',
             'formAddress' => 'required|string|max:255',
+            'formLatitude' => 'nullable|numeric|between:-90,90',
+            'formLongitude' => 'nullable|numeric|between:-180,180',
+            'formCoordinateType' => 'nullable|string|in:gcj02,wgs84,bd09',
             'formMinOrderAmount' => 'required|numeric|min:0',
             'formSettlementType' => 'required|in:1,2,3',
             'formCreditLimit' => 'required|numeric|min:0',
@@ -81,6 +92,10 @@ class MerchantList extends Component
             'contact_name' => $validated['formContactName'],
             'contact_phone' => $validated['formContactPhone'],
             'address' => $validated['formAddress'],
+            'latitude' => $validated['formLatitude'] !== '' ? $validated['formLatitude'] : null,
+            'longitude' => $validated['formLongitude'] !== '' ? $validated['formLongitude'] : null,
+            'coordinate_type' => $validated['formCoordinateType'] ?: 'gcj02',
+            'geohash' => $validated['formGeohash'] ?? null,
             'min_order_amount' => money_to_cents($validated['formMinOrderAmount']),
             'settlement_type' => $validated['formSettlementType'],
             'credit_limit' => money_to_cents($validated['formCreditLimit']),
@@ -131,6 +146,8 @@ class MerchantList extends Component
             ['key' => 'credit_limit', 'label' => '信用额度', 'sortable' => false, 'exportable' => true, 'type' => 'money', 'width' => '100px'],
             ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true, 'width' => '80px'],
             ['key' => 'address', 'label' => '地址', 'sortable' => false, 'exportable' => true, 'width' => '180px'],
+            ['key' => 'latitude', 'label' => '纬度', 'sortable' => false, 'exportable' => true, 'width' => '100px'],
+            ['key' => 'longitude', 'label' => '经度', 'sortable' => false, 'exportable' => true, 'width' => '100px'],
             ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => true, 'width' => '180px'],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true, 'width' => '150px'],
         ];
@@ -202,6 +219,10 @@ class MerchantList extends Component
         $this->formContactName = '';
         $this->formContactPhone = '';
         $this->formAddress = '';
+        $this->formLatitude = null;
+        $this->formLongitude = null;
+        $this->formCoordinateType = 'gcj02';
+        $this->formGeohash = null;
         $this->formMinOrderAmount = '';
         $this->formSettlementType = 1;
         $this->formCreditLimit = '';

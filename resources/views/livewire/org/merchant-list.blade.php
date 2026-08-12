@@ -108,6 +108,15 @@
                                 {!! status_badge($merchant->status, 'active') !!}
                             </div>
                             @break
+                        @case('address')
+                            <div class="text-sm text-foreground truncate">{{ $merchant->address ?? '-' }}</div>
+                            @break
+                        @case('latitude')
+                            <div class="text-sm text-foreground">{{ $merchant->latitude ?? '-' }}</div>
+                            @break
+                        @case('longitude')
+                            <div class="text-sm text-foreground">{{ $merchant->longitude ?? '-' }}</div>
+                            @break
                         @case('created_at')
                             <div class="text-sm text-foreground">{{ $merchant->created_at?->format('Y-m-d H:i') }}</div>
                             @break
@@ -162,6 +171,18 @@
                     <label class="block text-sm font-medium text-foreground mb-1">地址 <span class="text-red-500">*</span></label>
                     <input type="text" wire:model="formAddress" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="详细地址" />
                     @error('formAddress') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">纬度</label>
+                        <input type="text" wire:model="formLatitude" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="如 39.908823" />
+                        @error('formLatitude') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">经度</label>
+                        <input type="text" wire:model="formLongitude" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="如 116.397470" />
+                        @error('formLongitude') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
