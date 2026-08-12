@@ -97,7 +97,20 @@
         </div>
     </div>
 
+    {{-- 视图切换 --}}
+    <div class="flex items-center gap-2 mb-4">
+        <button type="button" wire:click="switchView('sku')"
+            class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors {{ $viewMode === 'sku' ? 'bg-blue-600 text-white' : 'bg-card border text-muted-foreground hover:text-foreground' }}">
+            SKU汇总视图
+        </button>
+        <button type="button" wire:click="switchView('merchant')"
+            class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors {{ $viewMode === 'merchant' ? 'bg-blue-600 text-white' : 'bg-card border text-muted-foreground hover:text-foreground' }}">
+            商家分组视图
+        </button>
+    </div>
+
     {{-- SKU汇总视图 --}}
+    @if($viewMode === 'sku')
     <div class="rounded-lg border bg-card">
         <div class="px-6 py-4 border-b">
             <h3 class="text-sm font-semibold text-foreground">SKU汇总（{{ count($skuSummary) }} 种）</h3>
@@ -136,4 +149,59 @@
         <div class="px-6 py-8 text-center text-sm text-muted-foreground">暂无SKU汇总数据</div>
         @endif
     </div>
+    @endif
+
+    {{-- 商家分组视图 --}}
+    @if($viewMode === 'merchant')
+    <div class="space-y-4">
+        @foreach($merchantGroups as $group)
+        @php $itemStatusMap = [1 => '待拣货', 2 => '已拣货', 3 => '差异']; @endphp
+        @php $itemColorMap = [1 => 'yellow', 2 => 'green', 3 => 'red']; @endphp
+        @php $gc = $itemColorMap[$group['status']] ?? 'gray'; @endphp
+        <div class="rounded-lg border bg-card overflow-hidden">
+            {{-- 商家分组标题 --}}
+            <div class="px-4 py-3 border-b bg-muted/20 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <h3 class="text-sm font-semibold text-foreground">{{ $group['merchant_name'] }}</h3>
+                    <span class="text-xs text-muted-foreground">{{ $group['sku_count'] }} 种 SKU</span>
+                </div>
+                <div class="flex items-center gap-3 text-sm">
+                    <span class="text-muted-foreground">需 {{ $group['total_quantity'] }} / 拣 {{ $group['picked_quantity'] }}</span>
+                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $gc }}-100 text-{{ $gc }}-700">{{ $itemStatusMap[$group['status']] ?? '-' }}</span>
+                </div>
+            </div>
+            {{-- 商家明细表 --}}
+            <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-xs text-muted-foreground uppercase tracking-wider">
+                        <th class="px-4 py-2 text-left">SKU名称</th>
+                        <th class="px-4 py-2 text-left w-20">单位</th>
+                        <th class="px-4 py-2 text-left w-32">订单号</th>
+                        <th class="px-4 py-2 text-right w-24">需求数量</th>
+                        <th class="px-4 py-2 text-right w-24">已拣数量</th>
+                        <th class="px-4 py-2 text-center w-24">状态</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    @foreach($group['items'] as $item)
+                    <tr class="hover:bg-muted/30 transition-colors">
+                        <td class="px-4 py-2 text-foreground">{{ $item['sku_name'] }}</td>
+                        <td class="px-4 py-2 text-muted-foreground">{{ $item['unit'] }}</td>
+                        <td class="px-4 py-2 text-muted-foreground">{{ $item['order_no'] }}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{{ $item['required_quantity'] }}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{{ $item['picked_quantity'] }}</td>
+                        <td class="px-4 py-2 text-center">
+                            @php $ic = $itemColorMap[$item['status']] ?? 'gray'; @endphp
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $ic }}-100 text-{{ $ic }}-700">{{ $itemStatusMap[$item['status']] ?? '-' }}</span>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+            </div>
+        </div>
+        @endforeach
+    </div>
+    @endif
 </div>

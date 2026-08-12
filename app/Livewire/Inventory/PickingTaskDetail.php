@@ -14,6 +14,7 @@ class PickingTaskDetail extends Component
 
     public int $pickingTaskId;
     public ?PickingTask $pickingTask = null;
+    public string $viewMode = 'sku'; // 'sku' = SKU汇总, 'merchant' = 商家分组
 
     public function mount(int $id): void
     {
@@ -72,6 +73,67 @@ class PickingTaskDetail extends Component
                 'status' => $status,
             ];
         })->values()->all();
+    }
+
+    /**
+     * 按商家分组汇总（给分货/配送用）
+     *
+     * @return array<int, array{merchant_id: int, merchant_name: string, items: array}>
+     */
+    public function getMerchantGroups(): array
+    {
+        if (!$this->pickingTask) {
+            return [];
+        }
+
+        $grouped = $this->pickingTask->items->groupBy('merchant_id');
+
+        return $grouped->map(function ($items, $merchantId) {
+            $merchant = $items->first()->merchant;
+            $totalRequired = $items->sum('required_quantity');
+            $totalPicked = $items->sum('picked_quantity');
+
+            $allPicked = $items->every(fn($item) => $item->status === PickingTaskItem::STATUS_PICKED);
+            $anyDiscrepancy = $items->contains(fn($item) => $item->status === PickingTaskItem::STATUS_DISCREPANCY);
+
+            $status = PickingTaskItem::STATUS_PENDING;
+            if ($allPicked) {
+                $status = PickingTaskItem::STATUS_PICKED;
+            } elseif ($anyDiscrepancy) {
+                $status = PickingTaskItem::STATUS_DISCREPANCY;
+            }
+
+            return [
+                'merchant_id' => $merchantId,
+                'merchant_name' => $merchant?->name ?? '未知商家',
+                'total_quantity' => $totalRequired,
+                'picked_quantity' => $totalPicked,
+                'sku_count' => $items->count(),
+                'status' => $status,
+                'items' => $items->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'sku_name' => $item->sku?->sku_name ?? $item->sku?->sku_code ?? '',
+                        'unit' => $item->sku?->unit ?? '',
+                        'order_no' => $item->order?->order_no ?? '',
+                        'required_quantity' => $item->required_quantity,
+                        'picked_quantity' => $item->picked_quantity,
+                        'status' => $item->status,
+                    ];
+                })->values()->all(),
+            ];
+        })
+        ->sortBy('merchant_name')
+        ->values()
+        ->all();
+    }
+
+    /**
+     * 切换视图模式
+     */
+    public function switchView(string $mode): void
+    {
+        $this->viewMode = $mode;
     }
 
     // ========== 操作方法 ==========
@@ -161,9 +223,10 @@ class PickingTaskDetail extends Component
     {
         $pickingTask = $this->pickingTask;
         $skuSummary = $this->getSkuSummary();
+        $merchantGroups = $this->getMerchantGroups();
 
         return view('livewire.inventory.picking-task-detail', compact(
-            'pickingTask', 'skuSummary'
+            'pickingTask', 'skuSummary', 'merchantGroups'
         ))
             ->layout('components.app-layout')
             ->title('拣货总单详情 - ' . ($pickingTask->task_no ?? ''));
