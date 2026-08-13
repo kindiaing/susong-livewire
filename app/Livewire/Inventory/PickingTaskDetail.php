@@ -67,7 +67,7 @@ class PickingTaskDetail extends Component
             return [
                 'sku_id' => $skuId,
                 'sku_name' => $first->sku?->sku_name ?? $first->sku?->sku_code ?? '',
-                'unit' => $first->sku?->unit ?? '',
+                'unit' => $first->sku?->baseUnit?->name ?? '',
                 'total_quantity' => $totalQuantity,
                 'picked_quantity' => $pickedQuantity,
                 'status' => $status,
@@ -114,7 +114,7 @@ class PickingTaskDetail extends Component
                     return [
                         'id' => $item->id,
                         'sku_name' => $item->sku?->sku_name ?? $item->sku?->sku_code ?? '',
-                        'unit' => $item->sku?->unit ?? '',
+                        'unit' => $item->sku?->baseUnit?->name ?? '',
                         'order_no' => $item->order?->order_no ?? '',
                         'required_quantity' => $item->required_quantity,
                         'picked_quantity' => $item->picked_quantity,

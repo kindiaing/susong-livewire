@@ -301,7 +301,7 @@ class PickingTaskList extends Component
                         $skuAggregation[$skuId] = [
                             'sku_id' => $skuId,
                             'sku_name' => $item->product_name ?: ($item->sku?->product?->name ?? '商品'),
-                            'unit' => $item->sku?->unit ?? '',
+                            'unit' => $item->sku?->baseUnit?->name ?? '',
                             'quantity' => 0,
                             'order_id' => $order->id,
                             'order_no' => $order->order_no,
