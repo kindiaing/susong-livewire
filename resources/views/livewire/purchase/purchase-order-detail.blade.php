@@ -105,7 +105,25 @@
                         <span class="font-mono text-foreground">{{ $item->sku?->sku_code }}</span>
                         <span class="text-muted-foreground ml-1">{{ $item->sku?->product?->name }}</span>
                     </td>
-                    <td class="px-3 py-1.5 text-right tabular-nums">{{ $item->quantity }}</td>
+                    <td class="px-3 py-1.5 text-right tabular-nums">
+                        @php
+                            $qtyDisplay = (string)$item->quantity;
+                            if ($item->sku && $item->sku->base_unit_id && $item->unit_id && $item->unit_quantity) {
+                                try {
+                                    $svc = app(\App\Services\UnitConversionService::class);
+                                    $qtyDisplay = $svc->formatWithConversion($item->sku_id, $item->unit_id, $item->unit_quantity);
+                                } catch (\Exception $e) {
+                                    $qtyDisplay = (string)$item->quantity;
+                                }
+                            } elseif ($item->sku && $item->sku->base_unit_id) {
+                                try {
+                                    $svc = app(\App\Services\UnitConversionService::class);
+                                    $qtyDisplay = $svc->formatHuman($item->sku_id, $item->quantity);
+                                } catch (\Exception $e) {}
+                            }
+                        @endphp
+                        {{ $qtyDisplay }}
+                    </td>
                     <td class="px-3 py-1.5 text-right tabular-nums">{{ money_format($item->price) }}</td>
                     <td class="px-3 py-1.5 text-right tabular-nums {{ $item->strategy_price ? 'text-blue-600 font-medium' : 'text-muted-foreground' }}">{{ $item->strategy_price ? money_format($item->strategy_price) : '-' }}</td>
                     <td class="px-3 py-1.5 text-right tabular-nums font-medium">{{ money_format($item->amount) }}</td>
@@ -256,17 +274,49 @@
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">SKU <span class="text-red-500">*</span></label>
-                    <select wire:model="formSkuId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                    <select wire:model.live="formSkuId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
                         <option value="0">请选择 SKU</option>
                         @foreach($skus as $s)
                             <option value="{{ $s->id }}">{{ $s->sku_code }} - {{ $s->product?->name }}</option>
                         @endforeach
                     </select>
+                    @php
+                        $selectedSku = null;
+                        if ($formSkuId > 0) {
+                            foreach ($skus as $s) {
+                                if ($s->id == $formSkuId) {
+                                    $selectedSku = $s;
+                                    break;
+                                }
+                            }
+                        }
+                    @endphp
+                    @if($selectedSku && $selectedSku->base_unit_id && $availableUnits)
+                        <p class="text-xs text-muted-foreground mt-1">该 SKU 已配置单位换算（基础单位：{{ $selectedSku->baseUnit?->name ?? '-' }}）</p>
+                    @elseif($selectedSku && !$selectedSku->base_unit_id)
+                        <p class="text-xs text-muted-foreground mt-1">该 SKU 未配置单位换算，直接输入数量即可</p>
+                    @endif
                     @error('formSkuId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">数量 <span class="text-red-500">*</span></label>
-                    <input type="number" wire:model="formQuantity" min="1" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                    <div class="flex gap-2">
+                        <input type="number" wire:model.live="formUnitQuantity" min="1" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="0" />
+                        @if($availableUnits)
+                        <select wire:model.live="formUnitId" class="flex h-9 w-28 rounded-md border border-input bg-background px-2 text-sm">
+                            <option value="">单位</option>
+                            @foreach($availableUnits as $unit)
+                                <option value="{{ $unit['unit_id'] }}">{{ $unit['unit_name'] }}</option>
+                            @endforeach
+                        </select>
+                        @endif
+                    </div>
+                    @if($unitPreview)
+                        <p class="text-xs text-blue-600 mt-1">换算：{{ $unitPreview }}</p>
+                    @endif
+                    @if($formUnitId && $formUnitQuantity > 0 && $formQuantity > 0)
+                        <p class="text-xs text-muted-foreground mt-1">基础数量：{{ $formQuantity }}</p>
+                    @endif
                     @error('formQuantity') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>

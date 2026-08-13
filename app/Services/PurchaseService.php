@@ -310,6 +310,8 @@ class PurchaseService
             'purchase_order_id' => $order->id,
             'sku_id' => $skuId,
             'quantity' => $quantity,
+            'unit_id' => $extra['unit_id'] ?? null,
+            'unit_quantity' => $extra['unit_quantity'] ?? null,
             'price' => $price,
             'amount' => intdiv($quantity * $price, 1000),
             'actual_quantity' => 0,
@@ -360,6 +362,8 @@ class PurchaseService
             $updateData['strategy_amount'] = $data['strategy_price'] > 0 ? intdiv($qty * $data['strategy_price'], 1000) : 0;
         }
         if (array_key_exists('remark', $data)) $updateData['remark'] = $data['remark'];
+        if (array_key_exists('unit_id', $data)) $updateData['unit_id'] = $data['unit_id'];
+        if (array_key_exists('unit_quantity', $data)) $updateData['unit_quantity'] = $data['unit_quantity'];
 
         $item->update($updateData);
         $order->recalculateAmounts();
