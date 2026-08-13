@@ -215,6 +215,7 @@ class SystemDataSeeder extends Seeder
         $this->createPermissionTree();
         $this->assignSeedingSuperAdmin();
         $this->ensureDefaultSupplier();
+        $this->ensureDefaultUnits();
 
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
     }
@@ -462,5 +463,35 @@ class SystemDataSeeder extends Seeder
                 'status' => Supplier::STATUS_ENABLED,
             ]
         );
+    }
+
+    /**
+     * 创建默认单位（核心数据，确保单位换算流程可用）
+     */
+    protected function ensureDefaultUnits(): void
+    {
+        $units = [
+            ['name' => '箱', 'symbol' => 'X', 'sort' => 1],
+            ['name' => '件', 'symbol' => 'J', 'sort' => 2],
+            ['name' => '包', 'symbol' => 'B', 'sort' => 3],
+            ['name' => '斤', 'symbol' => 'JIN', 'sort' => 4],
+            ['name' => '桶', 'symbol' => 'T', 'sort' => 5],
+            ['name' => '袋', 'symbol' => 'D', 'sort' => 6],
+            ['name' => '盒', 'symbol' => 'H', 'sort' => 7],
+            ['name' => '瓶', 'symbol' => 'P', 'sort' => 8],
+            ['name' => '个', 'symbol' => 'G', 'sort' => 9],
+            ['name' => '条', 'symbol' => 'TIA', 'sort' => 10],
+        ];
+
+        foreach ($units as $unit) {
+            \App\Models\Unit::firstOrCreate(
+                ['name' => $unit['name']],
+                [
+                    'symbol' => $unit['symbol'],
+                    'status' => \App\Models\Unit::STATUS_ENABLED,
+                    'sort' => $unit['sort'],
+                ]
+            );
+        }
     }
 }

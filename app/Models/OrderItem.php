@@ -13,7 +13,9 @@ use Illuminate\Support\Carbon;
  * @property int $sku_id SKU ID
  * @property string $product_name 商品名称快照
  * @property array|null $sku_specs 规格快照
- * @property int $quantity 下单数量
+ * @property int $quantity 下单数量（base_unit 最小单位）
+ * @property int|null $unit_id 下单时选择的单位ID
+ * @property int $unit_quantity 下单时选择的单位数量
  * @property int $price 下单单价（厘）
  * @property int $actual_quantity 实际称重数量
  * @property int $actual_price 实际称重单价（厘）
@@ -40,6 +42,8 @@ class OrderItem extends Model
         'product_name',
         'sku_specs',
         'quantity',
+        'unit_id',
+        'unit_quantity',
         'price',
         'actual_quantity',
         'actual_price',
@@ -60,6 +64,8 @@ class OrderItem extends Model
             'sku_id' => 'integer',
             'sku_specs' => 'array',
             'quantity' => 'integer',
+            'unit_id' => 'integer',
+            'unit_quantity' => 'integer',
             'price' => 'integer',
             'actual_quantity' => 'integer',
             'actual_price' => 'integer',
@@ -91,6 +97,14 @@ class OrderItem extends Model
     public function sku()
     {
         return $this->belongsTo(Sku::class);
+    }
+
+    /**
+     * 关联下单单位
+     */
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class);
     }
 
     /**

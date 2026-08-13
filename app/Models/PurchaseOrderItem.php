@@ -11,7 +11,9 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $purchase_order_id 采购单ID
  * @property int $sku_id SKU ID
- * @property int $quantity 采购数量
+ * @property int $quantity 采购数量（base_unit 最小单位）
+ * @property int|null $unit_id 采购时选择的单位ID
+ * @property int $unit_quantity 采购时选择的单位数量
  * @property int $price 采购单价（厘）
  * @property int $actual_quantity 实际入库数量
  * @property int $actual_price 实际入库单价（厘）
@@ -31,6 +33,8 @@ class PurchaseOrderItem extends Model
         'purchase_order_id',
         'sku_id',
         'quantity',
+        'unit_id',
+        'unit_quantity',
         'price',
         'actual_quantity',
         'actual_price',
@@ -53,6 +57,8 @@ class PurchaseOrderItem extends Model
             'purchase_order_id' => 'integer',
             'sku_id' => 'integer',
             'quantity' => 'integer',
+            'unit_id' => 'integer',
+            'unit_quantity' => 'integer',
             'price' => 'integer',
             'actual_quantity' => 'integer',
             'actual_price' => 'integer',
@@ -76,6 +82,14 @@ class PurchaseOrderItem extends Model
     public function sku()
     {
         return $this->belongsTo(Sku::class);
+    }
+
+    /**
+     * 关联采购单位
+     */
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class);
     }
 
     /**
