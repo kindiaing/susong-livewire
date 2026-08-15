@@ -74,8 +74,8 @@
                         @case('id')
                             <div class="text-sm text-muted-foreground">{{ $item->id }}</div>
                             @break
-                        @case('amount')
-                            <div class="text-sm text-foreground">{{ money_format($item->amount) }}</div>
+                        @case('original_amount')
+                            <div class="text-sm text-foreground">{{ money_format($item->original_amount) }}</div>
                             @break
                         @case('received_amount')
                             <div class="text-sm text-foreground">{{ money_format($item->received_amount) }}</div>

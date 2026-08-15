@@ -78,8 +78,8 @@
                         @case('purchaseOrder')
                             <div class="text-sm text-foreground">{{ $item->purchaseOrder?->order_no ?? '-' }}</div>
                             @break
-                        @case('amount')
-                            <div class="text-sm text-foreground">{{ money_format($item->amount) }}</div>
+                        @case('payable_amount')
+                            <div class="text-sm text-foreground">{{ money_format($item->payable_amount) }}</div>
                             @break
                         @case('status')
                             <div>

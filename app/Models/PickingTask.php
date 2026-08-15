@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class PickingTask extends Model
 {
+    use SoftDeletes;
 
     protected $fillable = [
         'task_no',

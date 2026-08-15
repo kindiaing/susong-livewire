@@ -94,11 +94,10 @@ class InvoiceList extends Component
     public function getImportColumnMap(): array
     {
         return [
-            '商家ID' => 'merchant_id',
-            '金额(元)' => 'amount',
             '类型' => 'type',
             '抬头' => 'title',
             '税号' => 'tax_no',
+            '金额(元)' => 'amount',
         ];
     }
 
@@ -123,13 +122,14 @@ class InvoiceList extends Component
         ]);
 
         Invoice::create([
-            'merchant_id' => $this->formMerchantId,
             'invoice_no' => generate_sequence_no('INV', 'invoices', 'invoice_no'),
-            'amount' => money_to_cents($this->formAmount),
             'type' => $this->formType,
+            'target_id' => $this->formMerchantId,
+            'amount' => money_to_cents($this->formAmount),
             'title' => $this->formTitle,
             'tax_no' => $this->formTaxNo,
             'status' => 1,
+            'applied_at' => now(),
         ]);
 
         $this->toastSuccess('发票已创建');
@@ -146,7 +146,7 @@ class InvoiceList extends Component
         }
         $item->update([
             'status' => 2,
-            'issued_at' => now()->toDateString(),
+            'issued_at' => now(),
         ]);
         $this->toastSuccess('发票已开具');
     }
@@ -158,7 +158,10 @@ class InvoiceList extends Component
             $this->toastError('仅已开具状态可寄出');
             return;
         }
-        $item->update(['status' => 3]);
+        $item->update([
+            'status' => 3,
+            'sent_at' => now(),
+        ]);
         $this->toastSuccess('发票已寄出');
     }
 

@@ -55,7 +55,7 @@ class ReceivableList extends Component
             ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
             ['key' => 'order', 'label' => '订单号', 'sortable' => false, 'exportable' => true],
             ['key' => 'merchant', 'label' => '商家', 'sortable' => false, 'exportable' => true],
-            ['key' => 'amount', 'label' => '应收金额', 'sortable' => true, 'exportable' => true],
+            ['key' => 'original_amount', 'label' => '应收金额', 'sortable' => true, 'exportable' => true],
             ['key' => 'received_amount', 'label' => '已收金额', 'sortable' => true, 'exportable' => true],
             ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
             ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => true],
@@ -90,7 +90,7 @@ class ReceivableList extends Component
         return [
             '订单ID' => 'order_id',
             '商家ID' => 'merchant_id',
-            '金额(元)' => 'amount',
+            '金额(元)' => 'original_amount',
         ];
     }
 
@@ -101,7 +101,7 @@ class ReceivableList extends Component
 
     public function getImportMoneyFields(): array
     {
-        return ['amount'];
+        return ['original_amount'];
     }
 
     public function save(): void
@@ -113,11 +113,14 @@ class ReceivableList extends Component
         ]);
 
         Receivable::create([
+            'receivable_no' => generate_sequence_no('RC', 'receivables', 'receivable_no'),
             'order_id' => $this->formOrderId,
             'merchant_id' => $this->formMerchantId,
-            'amount' => money_to_cents($this->formAmount),
+            'original_amount' => money_to_cents($this->formAmount),
+            'adjusted_amount' => money_to_cents($this->formAmount),
             'received_amount' => 0,
             'status' => 1,
+            'approval_status' => 1,
         ]);
 
         $this->toastSuccess('应收账款已创建');
@@ -133,8 +136,9 @@ class ReceivableList extends Component
             return;
         }
         $item->update([
-            'received_amount' => $item->amount,
+            'received_amount' => $item->adjusted_amount,
             'status' => 3,
+            'settled_at' => now(),
         ]);
         $this->toastSuccess('已确认收款');
     }

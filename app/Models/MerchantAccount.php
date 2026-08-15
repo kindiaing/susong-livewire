@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class MerchantAccount extends Model
 {
+    use SoftDeletes;
     // 审核状态常量
     public const APPROVAL_PENDING = 1;
     public const APPROVAL_APPROVED = 2;

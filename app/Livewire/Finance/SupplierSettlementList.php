@@ -56,7 +56,7 @@ class SupplierSettlementList extends Component
             ['key' => 'supplier', 'label' => '供应商', 'sortable' => false, 'exportable' => true],
             ['key' => 'purchaseOrder', 'label' => '采购单', 'sortable' => false, 'exportable' => true],
             ['key' => 'settlement_no', 'label' => '结算单号', 'sortable' => true, 'exportable' => true],
-            ['key' => 'amount', 'label' => '金额', 'sortable' => true, 'exportable' => true],
+            ['key' => 'payable_amount', 'label' => '应付金额', 'sortable' => true, 'exportable' => true],
             ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
             ['key' => 'settlement_date', 'label' => '结算日期', 'sortable' => true, 'exportable' => true],
             ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => true],
@@ -91,7 +91,7 @@ class SupplierSettlementList extends Component
         return [
             '供应商ID' => 'supplier_id',
             '采购单ID' => 'purchase_order_id',
-            '金额(元)' => 'amount',
+            '金额(元)' => 'payable_amount',
             '结算日期' => 'settlement_date',
             '备注' => 'note',
         ];
@@ -104,7 +104,7 @@ class SupplierSettlementList extends Component
 
     public function getImportMoneyFields(): array
     {
-        return ['amount'];
+        return ['payable_amount'];
     }
 
     public function save(): void
@@ -120,7 +120,8 @@ class SupplierSettlementList extends Component
             'supplier_id' => $this->formSupplierId,
             'purchase_order_id' => $this->formPurchaseOrderId,
             'settlement_no' => generate_sequence_no('SS', 'supplier_settlements', 'settlement_no'),
-            'amount' => money_to_cents($this->formAmount),
+            'payable_amount' => money_to_cents($this->formAmount),
+            'total_amount' => money_to_cents($this->formAmount),
             'status' => 1,
             'settlement_date' => $this->formSettlementDate,
             'note' => $this->formNote ?: null,

@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class ReceivablePayment extends Model
 {
+    use SoftDeletes;
     // 收款方式常量
     public const METHOD_BALANCE = 1;
     public const METHOD_WECHAT = 2;

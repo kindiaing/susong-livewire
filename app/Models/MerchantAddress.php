@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class MerchantAddress extends Model
 {
+    use SoftDeletes;
 
     protected $fillable = [
         'merchant_id',

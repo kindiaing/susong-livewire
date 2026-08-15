@@ -5,6 +5,12 @@
             <h1 class="text-2xl font-bold text-foreground">授权更正</h1>
             <p class="text-muted-foreground mt-1">管理授权更正记录</p>
         </div>
+        @can('finance.correction-authorization.create')
+        <button type="button" wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+            <x-ui.icon name="plus" class="w-4 h-4" />
+            新增更正
+        </button>
+        @endcan
     </div>
 
     {{-- 搜索栏 + 工具按钮 --}}
@@ -32,9 +38,6 @@
 
     {{-- 列表 --}}
     @php
-        $statusMap = [1 => '待审核', 2 => '已通过', 3 => '已拒绝'];
-        $statusColorMap = [1 => 'yellow', 2 => 'green', 3 => 'red'];
-        $typeMap = ['balance' => '余额更正', 'credit' => '信用更正', 'order' => '订单更正', 'other' => '其他'];
         $allCols = collect($this->getAllColumns())
             ->filter(fn($col) => $col['key'] !== 'type')
             ->values();
@@ -44,7 +47,7 @@
             $width = $col['width'] ?? '120px';
             $gridCols .= ' ' . $width;
         }
-        $gridCols .= ' 80px';
+        $gridCols .= ' 120px';
     @endphp
 
     <div class="rounded-lg border bg-card">
@@ -62,7 +65,7 @@
                  style="grid-template-columns: {{ $gridCols }}"
                  wire:key="correction-authorization-{{ $item->id }}">
                 <div><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm font-medium text-foreground">{{ $typeMap[$item->type] ?? $item->type ?? '-' }}</div>
+                <div class="text-sm font-medium text-foreground">{{ $typeMap[$item->type] ?? $item->type_label ?? '-' }}</div>
                 @foreach($visibleCols as $col)
                     @switch($col['key'])
                         @case('id')
@@ -71,13 +74,17 @@
                         @case('reason')
                             <div class="text-sm text-foreground truncate max-w-[200px]">{{ $item->reason ?? '-' }}</div>
                             @break
-                        @case('status')
-                            <div>
-                                {!! status_badge($item->status, 'active') !!}
-                            </div>
-                            @break
                         @case('amount')
                             <div class="text-sm text-foreground">{{ money_format($item->amount) }}</div>
+                            @break
+                        @case('status')
+                            <div>
+                                @php $c = $statusColorMap[$item->status] ?? 'gray'; @endphp
+                                <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $c }}-100 text-{{ $c }}-700">{{ $statusMap[$item->status] ?? '-' }}</span>
+                            </div>
+                            @break
+                        @case('operator')
+                            <div class="text-sm text-foreground">{{ $item->operator?->name ?? '-' }}</div>
                             @break
                         @case('created_at')
                             <div class="text-sm text-foreground">{{ $item->created_at?->format('Y-m-d H:i') }}</div>
@@ -87,6 +94,10 @@
                     @endswitch
                 @endforeach
                 <div class="flex items-center gap-2">
+                    @if($item->status === 1)
+                        <button type="button" wire:click="approve({{ $item->id }})" class="text-green-600 hover:text-green-700 text-sm">通过</button>
+                        <button type="button" wire:click="reject({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">拒绝</button>
+                    @endif
                     @can('finance.correction-authorization.delete')
                     <button type="button" wire:click="confirmDelete({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
                     @endcan
@@ -99,7 +110,45 @@
 
     <div class="mt-4">{{ $items->links() }}</div>
 
-    {{-- 删除确认弹窗 --}}
+    {{-- 新增弹窗 --}}
+    @if($showModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">新增更正</h2>
+                <button type="button" wire:click="closeModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">更正类型 <span class="text-red-500">*</span></label>
+                    <select wire:model="formType" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        @foreach($typeMap as $key => $label)
+                        <option value="{{ $key }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    @error('formType') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">更正原因 <span class="text-red-500">*</span></label>
+                    <textarea wire:model="formReason" rows="2" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="请输入更正原因"></textarea>
+                    @error('formReason') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">更正金额（元） <span class="text-red-500">*</span></label>
+                    <input type="text" wire:model="formAmount" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="请输入更正金额" />
+                    @error('formAmount') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">提交</button>
+            </div>
+        </div>
+    </div>
+    @endif
 
     @include('partials.column-modal')
     @include('partials.export-modal')

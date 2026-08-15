@@ -22,6 +22,7 @@ return new class extends Migration
             $table->timestamp('started_at')->nullable()->comment('开始时间');
             $table->timestamp('completed_at')->nullable()->comment('完成时间');
             $table->timestamps();
+            $table->softDeletes();
             $table->index('warehouse_id');
             $table->index('route_id');
             $table->index('delivery_date');

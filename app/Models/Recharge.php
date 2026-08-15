@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Recharge extends Model
 {
+    use SoftDeletes;
     // 支付方式常量
     public const METHOD_WECHAT = 1;
     public const METHOD_OFFLINE = 2;

@@ -24,6 +24,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class SupplierSettlement extends Model
 {
+    use SoftDeletes;
+
     // 状态常量
     public const STATUS_PENDING = 1;
     public const STATUS_PARTIAL = 2;
@@ -33,6 +35,7 @@ class SupplierSettlement extends Model
     protected $fillable = [
         'settlement_no',
         'supplier_id',
+        'purchase_order_id',
         'start_date',
         'end_date',
         'total_amount',
@@ -41,6 +44,8 @@ class SupplierSettlement extends Model
         'paid_amount',
         'return_amount',
         'status',
+        'settlement_date',
+        'note',
         'settled_at',
         'closed_at',
         'closed_by',
@@ -50,6 +55,7 @@ class SupplierSettlement extends Model
     {
         return [
             'supplier_id' => 'integer',
+            'purchase_order_id' => 'integer',
             'total_amount' => 'integer',
             'service_fee' => 'integer',
             'payable_amount' => 'integer',
@@ -61,6 +67,7 @@ class SupplierSettlement extends Model
             'closed_by' => 'integer',
             'start_date' => 'date',
             'end_date' => 'date',
+            'settlement_date' => 'date',
         ];
     }
 
@@ -104,6 +111,14 @@ class SupplierSettlement extends Model
     public function payments()
     {
         return $this->hasMany(SettlementPayment::class, 'settlement_id');
+    }
+
+    /**
+     * 关联采购单
+     */
+    public function purchaseOrder()
+    {
+        return $this->belongsTo(PurchaseOrder::class);
     }
 
     /**

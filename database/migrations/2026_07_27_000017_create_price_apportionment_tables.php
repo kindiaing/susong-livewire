@@ -21,6 +21,7 @@ return new class extends Migration
             $table->unsignedBigInteger('operator_id')->nullable()->comment('操作人ID');
             $table->tinyInteger('approval_status')->unsigned()->default(1)->comment('审核状态：1待审核，2已通过，3已拒绝（手动均摊时有效，自动均摊默认2）');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('target_type');
             $table->index('target_id');

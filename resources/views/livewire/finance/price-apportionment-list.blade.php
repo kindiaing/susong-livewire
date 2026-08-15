@@ -5,6 +5,12 @@
             <h1 class="text-2xl font-bold text-foreground">费用均摊</h1>
             <p class="text-muted-foreground mt-1">管理费用均摊记录</p>
         </div>
+        @can('price.price-apportionment.create')
+        <button type="button" wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+            <x-ui.icon name="plus" class="w-4 h-4" />
+            新增均摊
+        </button>
+        @endcan
     </div>
 
     {{-- 搜索栏 + 工具按钮 --}}
@@ -32,11 +38,8 @@
 
     {{-- 列表 --}}
     @php
-        $statusMap = [1 => '待生效', 2 => '已生效', 3 => '已作废'];
-        $statusColorMap = [1 => 'yellow', 2 => 'green', 3 => 'gray'];
-        $typeMap = ['logistics' => '物流均摊', 'cold_chain' => '冷链均摊', 'packaging' => '包装均摊', 'other' => '其他'];
         $allCols = collect($this->getAllColumns())
-            ->filter(fn($col) => $col['key'] !== 'type')
+            ->filter(fn($col) => $col['key'] !== 'apportion_type')
             ->values();
         $visibleCols = $allCols->filter(fn($col) => $this->isColumnVisible($col['key']));
         $gridCols = '40px 1fr';
@@ -44,7 +47,7 @@
             $width = $col['width'] ?? '120px';
             $gridCols .= ' ' . $width;
         }
-        $gridCols .= ' 80px';
+        $gridCols .= ' 120px';
     @endphp
 
     <div class="rounded-lg border bg-card">
@@ -62,18 +65,25 @@
                  style="grid-template-columns: {{ $gridCols }}"
                  wire:key="price-apportionment-{{ $item->id }}">
                 <div><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm font-medium text-foreground">{{ $typeMap[$item->type] ?? $item->type ?? '-' }}</div>
+                <div class="text-sm font-medium text-foreground">{{ $apportionTypeMap[$item->apportion_type] ?? $item->apportion_type_label ?? '-' }}</div>
                 @foreach($visibleCols as $col)
                     @switch($col['key'])
                         @case('id')
                             <div class="text-sm text-muted-foreground">{{ $item->id }}</div>
                             @break
+                        @case('target_type')
+                            <div class="text-sm text-foreground">{{ $targetTypeMap[$item->target_type] ?? '-' }}</div>
+                            @break
                         @case('amount')
                             <div class="text-sm text-foreground">{{ money_format($item->amount) }}</div>
                             @break
-                        @case('status')
+                        @case('apportion_mode')
+                            <div class="text-sm text-foreground">{{ $modeMap[$item->apportion_mode] ?? '-' }}</div>
+                            @break
+                        @case('approval_status')
                             <div>
-                                {!! status_badge($item->status, 'active') !!}
+                                @php $c = $approvalStatusColorMap[$item->approval_status] ?? 'gray'; @endphp
+                                <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $c }}-100 text-{{ $c }}-700">{{ $approvalStatusMap[$item->approval_status] ?? '-' }}</span>
                             </div>
                             @break
                         @case('created_at')
@@ -84,6 +94,10 @@
                     @endswitch
                 @endforeach
                 <div class="flex items-center gap-2">
+                    @if($item->approval_status === 1)
+                        <button type="button" wire:click="approve({{ $item->id }})" class="text-green-600 hover:text-green-700 text-sm">通过</button>
+                        <button type="button" wire:click="reject({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">拒绝</button>
+                    @endif
                     @can('price.price-apportionment.delete')
                     <button type="button" wire:click="confirmDelete({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
                     @endcan
@@ -96,7 +110,58 @@
 
     <div class="mt-4">{{ $items->links() }}</div>
 
-    {{-- 删除确认弹窗 --}}
+    {{-- 新增弹窗 --}}
+    @if($showModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">新增均摊</h2>
+                <button type="button" wire:click="closeModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">单据类型 <span class="text-red-500">*</span></label>
+                    <select wire:model="formTargetType" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        @foreach($targetTypeMap as $key => $label)
+                        <option value="{{ $key }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    @error('formTargetType') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">均摊类型 <span class="text-red-500">*</span></label>
+                    <select wire:model="formApportionType" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        @foreach($apportionTypeMap as $key => $label)
+                        <option value="{{ $key }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    @error('formApportionType') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">均摊金额（元） <span class="text-red-500">*</span></label>
+                    <input type="text" wire:model="formAmount" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="请输入均摊金额" />
+                    @error('formAmount') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">均摊方式 <span class="text-red-500">*</span></label>
+                    <select wire:model="formApportionMode" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        @foreach($modeMap as $key => $label)
+                        <option value="{{ $key }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    @error('formApportionMode') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">提交</button>
+            </div>
+        </div>
+    </div>
+    @endif
 
     @include('partials.column-modal')
     @include('partials.export-modal')
