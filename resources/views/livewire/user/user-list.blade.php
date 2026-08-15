@@ -50,7 +50,7 @@
             </thead>
             <tbody>
             @forelse($users as $user)
-                @php $isSuperAdmin = $user->roles->contains('name', 'super_admin') @endphp
+                @php $isProtectedRole = $user->roles->contains('name', 'super_admin') || $user->roles->contains('name', 'admin') @endphp
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="user-{{ $user->id }}">
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $user->id }}" wire:model.live="selectedIds" class="rounded" /></td>
                     <td class="px-4 py-2 font-medium font-mono">{{ $user->username }}</td>
@@ -61,7 +61,7 @@
                         @if(!$user->phone && !$user->email)—@endif
                     </td>
                     <td class="px-4 py-2">
-                        @if($isSuperAdmin)
+                        @if($isProtectedRole)
                             <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-500" title="已启用">
                                 <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 13.5-13.5"/></svg>
                             </span>
@@ -110,9 +110,9 @@
                                 </svg>
                             </button>
                             @endcan
-                            {{-- 删除（超级管理员不显示） --}}
+                            {{-- 删除（超级管理员/管理员不显示） --}}
                             @can('user.user.delete')
-                            @if(!$isSuperAdmin)
+                            @if(!$isProtectedRole)
                                  <button type="button" wire:click="confirmDelete({{ $user->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
                             @endif
                             @endcan

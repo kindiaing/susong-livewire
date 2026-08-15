@@ -62,7 +62,7 @@
                  style="grid-template-columns: {{ $gridCols }}"
                  wire:key="picking-task-{{ $item->id }}">
                 <div><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm font-mono font-medium text-foreground truncate">{{ $item->task_no }}</div>
+                <div class="text-sm font-mono font-medium truncate"><a href="{{ route('picking-tasks.detail', $item->id) }}" class="text-blue-600 hover:underline" wire:navigate>{{ $item->task_no }}</a></div>
                 @foreach($visibleCols as $col)
                     @switch($col['key'])
                         @case('id')

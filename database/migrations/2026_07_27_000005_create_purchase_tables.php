@@ -30,7 +30,7 @@ return new class extends Migration
             $table->string('order_no', 50)->unique()->comment('采购单号');
             $table->unsignedBigInteger('supplier_id')->comment('供应商ID');
             $table->unsignedBigInteger('warehouse_id')->nullable()->comment('入库目标仓库');
-            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待接单，2备货中，3已发货，4已入库，5完成，9取消');
+            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待接单，2备货中，3已发货，4已入库，5完成，9已作废');
             $table->tinyInteger('return_status')->unsigned()->default(0)->comment('退货状态：0无退货，1部分退货，2全部退货');
             $table->bigInteger('total_amount')->default(0)->comment('总金额');
             $table->bigInteger('actual_amount')->default(0)->comment('实际入库金额');

@@ -45,7 +45,7 @@ class OrderList extends Component
 
     public static array $statusMap = [
         1 => '待拣货', 2 => '拣货中', 3 => '配送中',
-        4 => '已签收', 5 => '已锁定', 9 => '已取消',
+        4 => '已签收', 5 => '已锁定', 9 => '已作废',
     ];
 
     public static array $statusColorMap = [
@@ -239,7 +239,7 @@ class OrderList extends Component
     {
         $order = Order::findOrFail($id);
         if (in_array($order->status, [Order::STATUS_SIGNED, Order::STATUS_LOCKED, Order::STATUS_CANCELLED])) {
-            $this->toastError('当前状态不可取消');
+            $this->toastError('当前状态不可作废');
             return;
         }
         $oldStatus = $order->status;
@@ -253,7 +253,7 @@ class OrderList extends Component
             afterData: ['status' => Order::STATUS_CANCELLED],
         );
 
-        $this->toastSuccess('订单已取消');
+        $this->toastSuccess('订单已作废');
     }
 
     public function completeOrder(int $id): void

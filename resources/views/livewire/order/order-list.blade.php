@@ -30,7 +30,7 @@
             <option value="3">配送中</option>
             <option value="4">已签收</option>
             <option value="5">已锁定</option>
-            <option value="9">已取消</option>
+            <option value="9">已作废</option>
         </select>
         <select wire:model.live="filterPaymentStatus" class="flex h-9 w-32 rounded-md border border-input bg-background px-3 text-sm">
             <option value="-1">全部支付</option>
@@ -80,7 +80,9 @@
                  style="grid-template-columns: {{ $gridCols }}"
                  wire:key="order-{{ $order->id }}">
                 <div><input type="checkbox" value="{{ $order->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm font-mono font-medium text-foreground truncate">{{ $order->order_no }}</div>
+                <div class="text-sm font-mono font-medium truncate">
+                    <a href="{{ route('orders.detail', $order->id) }}" class="text-blue-600 hover:underline">{{ $order->order_no }}</a>
+                </div>
                 @foreach($visibleCols as $col)
                     @switch($col['key'])
                         @case('id')
@@ -121,9 +123,10 @@
                     @endswitch
                 @endforeach
                 <div class="flex items-center gap-2">
-                    <a href="{{ route('orders.detail', $order->id) }}" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="详情"><x-ui.icon name="eye" class="w-3.5 h-3.5" /></a>
                     @can('order.order.edit')
+                    @if(!in_array($order->status, [4, 5, 9]))
                     <button type="button" wire:click="openEditModal({{ $order->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
+                    @endif
                     @endcan
                     @can('order.order.create')
                     @if($order->status === 1)
@@ -132,7 +135,7 @@
                     @endcan
                     @can('order.order.create')
                     @if(!in_array($order->status, [4, 5, 9]))
-                    <button type="button" wire:click="cancelOrder({{ $order->id }})" class="text-orange-600 hover:text-orange-700 text-sm">取消</button>
+                    <button type="button" wire:click="cancelOrder({{ $order->id }})" class="text-orange-600 hover:text-orange-700 text-sm">作废</button>
                     @endif
                     @endcan
                     @can('order.order.create')

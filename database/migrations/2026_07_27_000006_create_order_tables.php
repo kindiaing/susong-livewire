@@ -36,7 +36,7 @@ return new class extends Migration
             $table->string('delivery_address', 255)->nullable()->comment('配送地址');
             $table->string('contact_name', 50)->nullable()->comment('收货联系人');
             $table->string('contact_phone', 20)->nullable()->comment('收货电话');
-            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待拣货，2拣货中，3配送中，4已签收，5已锁定，9已取消');
+            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待拣货，2拣货中，3配送中，4已签收，5已锁定，9已作废');
             $table->bigInteger('total_amount')->default(0)->comment('原始订单金额');
             $table->bigInteger('adjusted_amount')->default(0)->comment('调整后金额');
             $table->bigInteger('final_amount')->default(0)->comment('最终结算金额');

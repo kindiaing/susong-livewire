@@ -36,7 +36,7 @@ class DeliveryTaskDetail extends Model
     public const STATUS_PENDING = 1;     // 待配送
     public const STATUS_IN_PROGRESS = 2; // 配送中
     public const STATUS_DELIVERED = 3;   // 已送达
-    public const STATUS_CANCELLED = 4;   // 已取消
+    public const STATUS_CANCELLED = 4;   // 已作废
 
     // 来源类型常量
     public const SOURCE_ORDER = 'order';
@@ -89,7 +89,7 @@ class DeliveryTaskDetail extends Model
             self::STATUS_PENDING => '待配送',
             self::STATUS_IN_PROGRESS => '配送中',
             self::STATUS_DELIVERED => '已送达',
-            self::STATUS_CANCELLED => '已取消',
+            self::STATUS_CANCELLED => '已作废',
         ];
     }
 

@@ -21,6 +21,7 @@ class SystemDataSeeder extends Seeder
 {
     protected array $systemRoles = [
         ['name' => 'super_admin', 'display_name' => '超级管理员', 'description' => '全部功能、系统配置、账号管理'],
+        ['name' => 'admin', 'display_name' => '管理员', 'description' => '管理后台全模块操作、状态回退、单据作废'],
         ['name' => 'operator', 'display_name' => '运营专员', 'description' => '商品、订单、商家、供应商管理'],
         ['name' => 'operator_manager', 'display_name' => '运营经理', 'description' => '运营审核、商品/订单/价格策略审核确认'],
         ['name' => 'finance', 'display_name' => '财务专员', 'description' => '应收、结算、发票、审计'],
@@ -177,7 +178,7 @@ class SystemDataSeeder extends Seeder
         'purchase.purchase-return.create' => '创建退货', 'purchase.purchase-return.edit' => '编辑退货', 'purchase.purchase-return.delete' => '删除退货',
         'purchase.restock-reminder.create' => '创建提醒', 'purchase.restock-reminder.edit' => '编辑提醒', 'purchase.restock-reminder.delete' => '删除提醒',
         // 订单管理
-        'order.order.create' => '创建订单', 'order.order.edit' => '编辑订单', 'order.order.cancel' => '取消订单', 'order.order.lock' => '锁定订单', 'order.order.change-price' => '改价', 'order.order.delete' => '删除订单',
+        'order.order.create' => '创建订单', 'order.order.edit' => '编辑订单', 'order.order.cancel' => '作废订单', 'order.order.lock' => '锁定订单', 'order.order.change-price' => '改价', 'order.order.delete' => '删除订单',
         'order.order-return.create' => '创建退货', 'order.order-return.edit' => '编辑退货', 'order.order-return.delete' => '删除退货',
         // 库存管理
         'inventory.warehouse.create' => '创建仓库', 'inventory.warehouse.edit' => '编辑仓库', 'inventory.warehouse.delete' => '删除仓库',
@@ -185,7 +186,7 @@ class SystemDataSeeder extends Seeder
         // 配送管理
         'delivery.route.create' => '创建线路', 'delivery.route.edit' => '编辑线路', 'delivery.route.delete' => '删除线路', 'delivery.route.stop-manage' => '管理商家排序',
         'delivery.delivery-task.assign' => '分配任务', 'delivery.delivery-task.update' => '更新状态',
-        'delivery.delivery-note.deliver' => '确认分货', 'delivery.delivery-note.sign' => '确认签收', 'delivery.delivery-note.cancel' => '取消送货单',
+        'delivery.delivery-note.deliver' => '确认分货', 'delivery.delivery-note.sign' => '确认签收', 'delivery.delivery-note.cancel' => '作废送货单',
         'delivery.discrepancy.restock' => '补货', 'delivery.discrepancy.refund' => '退款', 'delivery.discrepancy.writeoff' => '报损',
         'delivery.vehicle-issue.create' => '创建故障', 'delivery.vehicle-issue.edit' => '编辑故障', 'delivery.vehicle-issue.delete' => '删除故障',
         // 损耗管理
@@ -297,6 +298,8 @@ class SystemDataSeeder extends Seeder
 
         // 为各角色分配合适的权限
         $rolePermissions = [
+            // 管理员：全业务模块操作权限 + 状态回退
+            'admin' => Permission::all()->pluck('name')->toArray(),
             // 运营专员：组织/商品/订单/采购查看/库存查看/配送查看/损耗查看/促销查看/轮播
             'operator' => [
                 'dashboard',

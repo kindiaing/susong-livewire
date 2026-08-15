@@ -67,7 +67,7 @@ class OrderDetail extends Component
 
     public function getIsSuperAdminProperty(): bool
     {
-        return auth()->check() && auth()->user()->hasRole('super_admin');
+        return can_rollback_status();
     }
 
     public function getCanEditItemsProperty(): bool
@@ -116,7 +116,7 @@ class OrderDetail extends Component
     public function confirmCancel(): void
     {
         $this->confirmAction = 'cancel';
-        $this->confirmTitle = '确认取消此订单？此操作不可撤销。';
+        $this->confirmTitle = '确认作废此订单？此操作不可撤销。';
         $this->showConfirmModal = true;
     }
 

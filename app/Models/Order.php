@@ -16,7 +16,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $delivery_address 配送地址
  * @property string|null $contact_name 收货联系人
  * @property string|null $contact_phone 收货电话
- * @property int $status 状态：1待拣货，2拣货中，3配送中，4已签收，5已锁定，9已取消
+ * @property int $status 状态：1待拣货，2拣货中，3配送中，4已签收，5已锁定，9已作废
  * @property int $total_amount 原始订单金额（厘）
  * @property int $adjusted_amount 调整后金额（厘）
  * @property int $final_amount 最终结算金额（厘）
@@ -102,7 +102,7 @@ class Order extends Model
             self::STATUS_DELIVERING => '配送中',
             self::STATUS_SIGNED => '已签收',
             self::STATUS_LOCKED => '已锁定',
-            self::STATUS_CANCELLED => '已取消',
+            self::STATUS_CANCELLED => '已作废',
         ];
     }
 

@@ -15,7 +15,7 @@ class DeliveryNoteDetail extends Component
     public $note;
 
     public static array $statusMap = [
-        1 => '待分货', 2 => '已分货', 3 => '已签收', 4 => '已取消',
+        1 => '待分货', 2 => '已分货', 3 => '已签收', 4 => '已作废',
     ];
 
     public static array $statusColorMap = [
@@ -79,12 +79,12 @@ class DeliveryNoteDetail extends Component
     {
         $note = DeliveryNote::findOrFail($this->noteId);
         if (!in_array($note->status, [DeliveryNote::STATUS_PENDING, DeliveryNote::STATUS_DELIVERED])) {
-            $this->toastError('当前状态不允许取消');
+            $this->toastError('当前状态不允许作废');
             return;
         }
         $note->update(['status' => DeliveryNote::STATUS_CANCELLED]);
         $this->loadNote();
-        $this->toastSuccess('送货单已取消');
+        $this->toastSuccess('送货单已作废');
     }
 
     // ========== 明细操作 ==========

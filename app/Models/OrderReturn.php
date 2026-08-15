@@ -69,7 +69,7 @@ class OrderReturn extends Model
             self::STATUS_APPROVED => '已审核',
             self::STATUS_RETURNED => '已退货',
             self::STATUS_REFUNDED => '退款完成',
-            self::STATUS_CANCELLED => '取消',
+            self::STATUS_CANCELLED => '已作废',
         ];
     }
 

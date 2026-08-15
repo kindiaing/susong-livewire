@@ -29,7 +29,7 @@ class DeliveryNoteList extends Component
     public string $filterDeliveryDate = '';
 
     public static array $statusMap = [
-        1 => '待分货', 2 => '已分货', 3 => '已签收', 4 => '已取消',
+        1 => '待分货', 2 => '已分货', 3 => '已签收', 4 => '已作废',
     ];
 
     public static array $statusColorMap = [

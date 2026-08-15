@@ -29,7 +29,7 @@
             @endcan
             @can('delivery.delivery-note.cancel')
             @if(in_array($note->status, [1, 2]))
-            <button type="button" wire:click="cancelNote" class="rounded-md border border-orange-300 px-3 py-1.5 text-sm text-orange-600 hover:bg-orange-50 transition-colors">取消</button>
+            <button type="button" wire:click="cancelNote" class="rounded-md border border-orange-300 px-3 py-1.5 text-sm text-orange-600 hover:bg-orange-50 transition-colors">作废</button>
             @endif
             @endcan
         </div>

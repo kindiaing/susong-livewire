@@ -139,7 +139,7 @@ function status_badge(int|string $status, string $type = 'default', string $labe
             3 => ['配送中', 'bg-orange-100 text-orange-700'],
             4 => ['已签收', 'bg-green-100 text-green-700'],
             5 => ['已锁定', 'bg-gray-100 text-gray-600'],
-            9 => ['已取消', 'bg-red-100 text-red-700'],
+            9 => ['已作废', 'bg-red-100 text-red-700'],
         ],
         'payment' => [
             0 => ['待支付', 'bg-yellow-100 text-yellow-700'],
@@ -211,4 +211,19 @@ function status_badge(int|string $status, string $type = 'default', string $labe
     $item = $map[$status] ?? ['未知', 'bg-gray-100 text-gray-600'];
     $text = $label !== '' ? $label : $item[0];
     return '<span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium ' . $item[1] . '">' . $text . '</span>';
+}
+
+/**
+ * 判断用户是否有状态回退权限（超级管理员或管理员）
+ *
+ * @param \Illuminate\Contracts\Auth\Authenticatable|null $user
+ * @return bool
+ */
+function can_rollback_status($user = null): bool
+{
+    $user = $user ?? auth()->user();
+    if (!$user) {
+        return false;
+    }
+    return $user->hasRole('super_admin') || $user->hasRole('admin');
 }

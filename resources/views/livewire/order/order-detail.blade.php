@@ -18,7 +18,7 @@
             @endif
 
             @if(!in_array($order->status, [4, 5, 9]))
-                <button type="button" wire:click="confirmCancel" class="rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">取消</button>
+                <button type="button" wire:click="confirmCancel" class="rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">作废</button>
             @endif
 
             {{-- 超管状态回退 --}}
