@@ -18,6 +18,7 @@ return new class extends Migration
             $table->bigInteger('credit_limit')->default(0)->comment('信用额度');
             $table->tinyInteger('approval_status')->unsigned()->default(1)->comment('审核状态：1待审核，2已通过，3已拒绝（信用额度调整时有效）');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('approval_status');
             $table->comment('商家账户表');
@@ -35,6 +36,7 @@ return new class extends Migration
             $table->unsignedBigInteger('operator_id')->nullable()->comment('操作人ID');
             $table->string('remark', 255)->nullable()->comment('备注');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('merchant_id');
             $table->index('transaction_no');
@@ -60,6 +62,7 @@ return new class extends Migration
             $table->timestamp('closed_at')->nullable()->comment('办结时间');
             $table->unsignedBigInteger('closed_by')->nullable()->comment('办结操作人ID');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('supplier_id');
             $table->index('status');
@@ -91,6 +94,7 @@ return new class extends Migration
             $table->json('evidence_urls')->nullable()->comment('付款凭证图片数组');
             $table->string('remark', 255)->nullable()->comment('备注');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('settlement_id');
             $table->index('payment_method');
@@ -119,6 +123,7 @@ return new class extends Migration
             $table->unsignedBigInteger('closed_by')->nullable()->comment('办结操作人ID');
             $table->tinyInteger('approval_status')->unsigned()->default(1)->comment('审核状态：1待审核，2已通过，3已拒绝（改价折扣调整时有效）');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('order_id');
             $table->index('merchant_id');
@@ -139,6 +144,7 @@ return new class extends Migration
             $table->json('evidence_urls')->nullable()->comment('收款凭证图片数组');
             $table->string('remark', 255)->nullable()->comment('备注');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('receivable_id');
             $table->index('payment_method');
@@ -161,6 +167,7 @@ return new class extends Migration
             $table->timestamp('issued_at')->nullable()->comment('开具时间');
             $table->timestamp('sent_at')->nullable()->comment('寄出时间');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('target_id');
             $table->index('type');
@@ -171,16 +178,21 @@ return new class extends Migration
         // 单据授权更正表
         Schema::create('correction_authorizations', function (Blueprint $table) {
             $table->id()->comment('主键');
-            $table->unsignedBigInteger('order_id')->comment('订单ID');
-            $table->unsignedBigInteger('operator_id')->comment('授权人ID');
+            $table->unsignedBigInteger('order_id')->nullable()->comment('订单ID');
+            $table->unsignedBigInteger('operator_id')->nullable()->comment('授权人ID');
+            $table->string('type', 20)->default('other')->comment('更正类型：balance余额更正/credit信用更正/order订单更正/other其他');
             $table->string('reason', 255)->comment('更正原因');
+            $table->bigInteger('amount')->default(0)->comment('更正金额（厘）');
+            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待审核2已通过3已拒绝');
             $table->json('before_data')->nullable()->comment('修改前数据');
             $table->json('after_data')->nullable()->comment('修改后数据');
             $table->timestamp('authorized_at')->nullable()->comment('授权时间');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('order_id');
             $table->index('operator_id');
+            $table->index('status');
             $table->comment('单据授权更正表');
         });
     }

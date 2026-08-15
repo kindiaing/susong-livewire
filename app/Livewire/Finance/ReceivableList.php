@@ -12,6 +12,8 @@ use App\Livewire\Traits\WithListCrud;
 use App\Models\Merchant;
 use App\Models\Order;
 use App\Models\Receivable;
+use App\Models\ReceivablePayment;
+use App\Services\NotificationService;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -34,6 +36,16 @@ class ReceivableList extends Component
     public int $formMerchantId = 0;
     public string $formAmount = '';
 
+    // 部分收款弹窗
+    public bool $showReceiveModal = false;
+    public int $receiveId = 0;
+    public string $receiveAmount = '';
+    public string $receiveRemark = '';
+
+    // 详情弹窗
+    public bool $showDetailModal = false;
+    public ?int $detailId = null;
+
     public static array $statusMap = [
         1 => '未结算', 2 => '部分收款', 3 => '已结清',
         4 => '争议中', 5 => '已办结',
@@ -55,7 +67,7 @@ class ReceivableList extends Component
             ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
             ['key' => 'order', 'label' => '订单号', 'sortable' => false, 'exportable' => true],
             ['key' => 'merchant', 'label' => '商家', 'sortable' => false, 'exportable' => true],
-            ['key' => 'amount', 'label' => '应收金额', 'sortable' => true, 'exportable' => true],
+            ['key' => 'original_amount', 'label' => '应收金额', 'sortable' => true, 'exportable' => true],
             ['key' => 'received_amount', 'label' => '已收金额', 'sortable' => true, 'exportable' => true],
             ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
             ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => true],
@@ -90,7 +102,7 @@ class ReceivableList extends Component
         return [
             '订单ID' => 'order_id',
             '商家ID' => 'merchant_id',
-            '金额(元)' => 'amount',
+            '金额(元)' => 'original_amount',
         ];
     }
 
@@ -101,7 +113,7 @@ class ReceivableList extends Component
 
     public function getImportMoneyFields(): array
     {
-        return ['amount'];
+        return ['original_amount'];
     }
 
     public function save(): void
@@ -113,16 +125,86 @@ class ReceivableList extends Component
         ]);
 
         Receivable::create([
+            'receivable_no' => generate_sequence_no('RC', 'receivables', 'receivable_no'),
             'order_id' => $this->formOrderId,
             'merchant_id' => $this->formMerchantId,
-            'amount' => money_to_cents($this->formAmount),
+            'original_amount' => money_to_cents($this->formAmount),
+            'adjusted_amount' => money_to_cents($this->formAmount),
             'received_amount' => 0,
             'status' => 1,
+            'approval_status' => 1,
         ]);
 
         $this->toastSuccess('应收账款已创建');
         $this->showModal = false;
         $this->resetForm();
+    }
+
+    public function openReceiveModal(int $id): void
+    {
+        $item = Receivable::findOrFail($id);
+        if (in_array($item->status, [3, 5])) {
+            $this->toastError('已结清/已办结不可收款');
+            return;
+        }
+        $this->receiveId = $id;
+        $this->receiveAmount = '';
+        $this->receiveRemark = '';
+        $this->showReceiveModal = true;
+    }
+
+    public function submitReceive(): void
+    {
+        $this->validate([
+            'receiveAmount' => 'required|numeric|min:0.01',
+        ]);
+
+        $item = Receivable::findOrFail($this->receiveId);
+        $cents = money_to_cents($this->receiveAmount);
+
+        if ($cents <= 0) {
+            $this->toastError('收款金额必须大于0');
+            return;
+        }
+
+        $newReceived = $item->received_amount + $cents;
+        $newStatus = $newReceived >= $item->adjusted_amount ? 3 : 2;
+
+        $item->update([
+            'received_amount' => $newReceived,
+            'status' => $newStatus,
+            'settled_at' => $newStatus === 3 ? now() : null,
+        ]);
+
+        // 创建收款记录
+        ReceivablePayment::create([
+            'receivable_id' => $item->id,
+            'amount' => $cents,
+            'payment_method' => ReceivablePayment::METHOD_MANUAL,
+            'operator_id' => auth()->id(),
+            'approval_status' => ReceivablePayment::APPROVAL_APPROVED,
+            'remark' => $this->receiveRemark ?: null,
+        ]);
+
+        $this->toastSuccess($newStatus === 3 ? '已结清' : '部分收款已确认');
+
+        // 通知当前用户：收款确认
+        if ($newStatus === 3) {
+            app(NotificationService::class)->receivableCollected(
+                auth()->id(),
+                $item->receivable_no,
+                money_format($item->adjusted_amount),
+            );
+        }
+
+        $this->showReceiveModal = false;
+        $this->receiveId = 0;
+    }
+
+    public function openDetailModal(int $id): void
+    {
+        $this->detailId = $id;
+        $this->showDetailModal = true;
     }
 
     public function confirmReceived(int $id): void
@@ -133,8 +215,9 @@ class ReceivableList extends Component
             return;
         }
         $item->update([
-            'received_amount' => $item->amount,
+            'received_amount' => $item->adjusted_amount,
             'status' => 3,
+            'settled_at' => now(),
         ]);
         $this->toastSuccess('已确认收款');
     }
@@ -147,7 +230,7 @@ class ReceivableList extends Component
         $this->deletingId = null;
     }
 
-    private function resetForm(): void
+    public function resetForm(): void
     {
         $this->editingId = null;
         $this->formOrderId = 0;
@@ -171,8 +254,11 @@ class ReceivableList extends Component
         $orders = Order::orderBy('id', 'desc')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
+        $statusMap = self::$statusMap;
+        $statusColorMap = self::$statusColorMap;
+        $detailItem = $this->detailId ? Receivable::with(['order', 'merchant', 'payments'])->find($this->detailId) : null;
 
-        return view('livewire.finance.receivable-list', compact('items', 'merchants', 'orders', 'allColumns', 'selectedCount'))
+        return view('livewire.finance.receivable-list', compact('items', 'merchants', 'orders', 'allColumns', 'selectedCount', 'statusMap', 'statusColorMap', 'detailItem'))
             ->layout('components.app-layout')
             ->title('应收账款');
     }

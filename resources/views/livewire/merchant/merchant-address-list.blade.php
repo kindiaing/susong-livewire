@@ -2,7 +2,14 @@
     <div class="flex items-center justify-between mb-6">
         <div>
             <h1 class="text-2xl font-bold text-foreground">商家地址</h1>
+            <p class="text-muted-foreground mt-1">管理商家收货地址</p>
         </div>
+        @can('order.cart.create')
+        <button type="button" wire:click="openCreateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+            <x-ui.icon name="plus" class="w-4 h-4" />
+            新增地址
+        </button>
+        @endcan
     </div>
     <div class="flex items-center gap-3 mb-4">
         <div x-data class="relative">
@@ -56,6 +63,9 @@
                     <td class="px-4 py-2 text-muted-foreground">{{ $item->created_at?->format('Y-m-d H:i') }}</td>
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-2">
+                            @can('order.cart.edit')
+                            <button type="button" wire:click="openEditModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
+                            @endcan
                             @can('order.cart.delete')
                             <button type="button" wire:click="confirmDelete({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
                             @endcan
@@ -69,6 +79,68 @@
         </table>
     </div>
     <div class="mt-4">{{ $items->links() }}</div>
+
+    {{-- 新增/编辑弹窗 --}}
+    @if($showModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">{{ $editingId ? '编辑地址' : '新增地址' }}</h2>
+                <button type="button" wire:click="closeModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">商家 <span class="text-red-500">*</span></label>
+                    <select wire:model="formMerchantId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        <option value="0">请选择商家</option>
+                        @foreach($merchants as $m)
+                        <option value="{{ $m->id }}">{{ $m->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('formMerchantId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">联系人 <span class="text-red-500">*</span></label>
+                        <input type="text" wire:model="formContactName" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="联系人姓名" />
+                        @error('formContactName') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">联系电话 <span class="text-red-500">*</span></label>
+                        <input type="text" wire:model="formContactPhone" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="联系电话" />
+                        @error('formContactPhone') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">地址 <span class="text-red-500">*</span></label>
+                    <input type="text" wire:model="formAddress" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="详细地址" />
+                    @error('formAddress') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">默认地址</label>
+                        <select wire:model="formIsDefault" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                            <option value="0">否</option>
+                            <option value="1">是</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">排序</label>
+                        <input type="number" wire:model="formSort" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="0" />
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">{{ $editingId ? '更新' : '保存' }}</button>
+            </div>
+        </div>
+    </div>
+    @endif
+
     @include('partials.delete-confirm')
     @include('partials.column-modal')
     @include('partials.export-modal')

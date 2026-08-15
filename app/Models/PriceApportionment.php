@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class PriceApportionment extends Model
 {
+    use SoftDeletes;
     // 单据类型常量
     public const TARGET_ORDER = 1;
     public const TARGET_PURCHASE = 2;

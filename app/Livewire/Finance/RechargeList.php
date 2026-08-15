@@ -11,6 +11,7 @@ use App\Livewire\Traits\WithToast;
 use App\Livewire\Traits\WithListCrud;
 use App\Models\Merchant;
 use App\Models\Recharge;
+use App\Services\NotificationService;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -33,6 +34,10 @@ class RechargeList extends Component
     public string $formAmount = '';
     public int $formPaymentMethod = 1;
     public string $formNote = '';
+
+    // 详情弹窗
+    public bool $showDetailModal = false;
+    public ?int $detailId = null;
 
     public static array $statusMap = [
         1 => '待确认', 2 => '成功', 3 => '失败',
@@ -107,6 +112,27 @@ class RechargeList extends Component
         return ['amount'];
     }
 
+    public function openEditModal(int $id): void
+    {
+        $item = Recharge::findOrFail($id);
+        if ($item->status !== 1) {
+            $this->toastError('仅待确认状态可编辑');
+            return;
+        }
+        $this->editingId = $id;
+        $this->formMerchantId = $item->merchant_id;
+        $this->formAmount = $this->centsToYuan($item->amount);
+        $this->formPaymentMethod = $item->payment_method;
+        $this->formNote = $item->note ?? '';
+        $this->showModal = true;
+    }
+
+    public function openDetailModal(int $id): void
+    {
+        $this->detailId = $id;
+        $this->showDetailModal = true;
+    }
+
     public function save(): void
     {
         $this->validate([
@@ -115,16 +141,26 @@ class RechargeList extends Component
             'formPaymentMethod' => 'required|integer|in:1,2,3',
         ]);
 
-        Recharge::create([
-            'merchant_id' => $this->formMerchantId,
-            'transaction_no' => generate_sequence_no('RC', 'recharges', 'transaction_no'),
-            'amount' => money_to_cents($this->formAmount),
-            'payment_method' => $this->formPaymentMethod,
-            'status' => 1,
-            'note' => $this->formNote ?: null,
-        ]);
-
-        $this->toastSuccess('充值记录已创建');
+        if ($this->editingId) {
+            $item = Recharge::findOrFail($this->editingId);
+            $item->update([
+                'merchant_id' => $this->formMerchantId,
+                'amount' => money_to_cents($this->formAmount),
+                'payment_method' => $this->formPaymentMethod,
+                'note' => $this->formNote ?: null,
+            ]);
+            $this->toastSuccess('充值记录已更新');
+        } else {
+            Recharge::create([
+                'merchant_id' => $this->formMerchantId,
+                'transaction_no' => generate_sequence_no('RC', 'recharges', 'transaction_no'),
+                'amount' => money_to_cents($this->formAmount),
+                'payment_method' => $this->formPaymentMethod,
+                'status' => 1,
+                'note' => $this->formNote ?: null,
+            ]);
+            $this->toastSuccess('充值记录已创建');
+        }
         $this->showModal = false;
         $this->resetForm();
     }
@@ -137,6 +173,16 @@ class RechargeList extends Component
             return;
         }
         $item->update(['status' => 2]);
+
+        // 通知商家：充值到账
+        if ($item->merchant_id) {
+            app(NotificationService::class)->rechargeApproved(
+                $item->merchant_id,
+                $item->transaction_no,
+                money_format($item->amount),
+            );
+        }
+
         $this->toastSuccess('充值已确认成功');
     }
 
@@ -170,7 +216,7 @@ class RechargeList extends Component
         $this->deletingId = null;
     }
 
-    private function resetForm(): void
+    public function resetForm(): void
     {
         $this->editingId = null;
         $this->formMerchantId = 0;
@@ -194,8 +240,12 @@ class RechargeList extends Component
         $merchants = Merchant::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
+        $statusMap = self::$statusMap;
+        $statusColorMap = self::$statusColorMap;
+        $paymentMethodMap = self::$paymentMethodMap;
+        $detailItem = $this->detailId ? Recharge::with('merchant')->find($this->detailId) : null;
 
-        return view('livewire.finance.recharge-list', compact('items', 'merchants', 'allColumns', 'selectedCount'))
+        return view('livewire.finance.recharge-list', compact('items', 'merchants', 'allColumns', 'selectedCount', 'statusMap', 'statusColorMap', 'paymentMethodMap', 'detailItem'))
             ->layout('components.app-layout')
             ->title('客户充值');
     }

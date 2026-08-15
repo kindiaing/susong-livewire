@@ -33,7 +33,7 @@ class MerchantFavoriteList extends Component
 
     public function getDefaultColumns(): array
     {
-        return ['merchant', 'product', 'created_at'];
+        return ['merchant', 'sku', 'created_at'];
     }
 
     public function getExportRowCallback(): callable
@@ -42,7 +42,7 @@ class MerchantFavoriteList extends Component
             return [
                 'id' => $row->id,
                 'merchant' => $row->merchant?->name ?? '',
-                'product' => $row->product?->name ?? '',
+                'product' => $row->sku?->name ?? '',
                 'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
             ];
         };
@@ -55,7 +55,7 @@ class MerchantFavoriteList extends Component
 
     public function getImportRequiredFields(): array
     {
-        return ['商家ID', '商品ID'];
+        return ['商家ID', 'SKU ID'];
     }
 
     public function getAllColumns(): array
@@ -63,19 +63,19 @@ class MerchantFavoriteList extends Component
         return [
             ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
             ['key' => 'merchant', 'label' => '商家', 'sortable' => false, 'exportable' => true],
-            ['key' => 'product', 'label' => '商品', 'sortable' => false, 'exportable' => true],
+            ['key' => 'sku', 'label' => '商品', 'sortable' => false, 'exportable' => true],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
         ];
     }
 
     public function getExportQuery()
     {
-        return MerchantFavorite::with(['merchant', 'product'])
+        return MerchantFavorite::with(['merchant', 'sku'])
             ->when($this->search, function ($q) {
                 $q->where(function ($q2) {
                     $q2->whereHas('merchant', function ($mq) {
                         $mq->where('name', 'like', "%{$this->search}%");
-                    })->orWhereHas('product', function ($pq) {
+                    })->orWhereHas('sku', function ($pq) {
                         $pq->where('name', 'like', "%{$this->search}%");
                     });
                 });
@@ -96,7 +96,7 @@ class MerchantFavoriteList extends Component
     {
         return [
             '商家ID' => 'merchant_id',
-            '商品ID' => 'product_id',
+            'SKU ID' => 'sku_id',
         ];
     }
 
@@ -115,13 +115,13 @@ class MerchantFavoriteList extends Component
 
     public function render()
     {
-        $query = MerchantFavorite::with(['merchant', 'product'])->orderBy('id', 'desc');
+        $query = MerchantFavorite::with(['merchant', 'sku'])->orderBy('id', 'desc');
 
         if ($this->search) {
             $query->where(function ($q) {
                 $q->whereHas('merchant', function ($mq) {
                     $mq->where('name', 'like', "%{$this->search}%");
-                })->orWhereHas('product', function ($pq) {
+                })->orWhereHas('sku', function ($pq) {
                     $pq->where('name', 'like', "%{$this->search}%");
                 });
             });

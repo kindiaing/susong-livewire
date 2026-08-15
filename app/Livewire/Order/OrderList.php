@@ -11,6 +11,7 @@ use App\Livewire\Traits\WithListCrud;
 use App\Models\AuditLog;
 use App\Models\Merchant;
 use App\Models\Order;
+use App\Services\NotificationService;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -232,6 +233,16 @@ class OrderList extends Component
             afterData: ['status' => Order::STATUS_PICKING],
         );
 
+        // 通知商家：订单状态变更
+        if ($order->merchant_id) {
+            app(NotificationService::class)->orderStatusChanged(
+                $order->merchant_id,
+                $order->order_no,
+                self::$statusMap[$oldStatus] ?? '未知',
+                '拣货中',
+            );
+        }
+
         $this->toastSuccess('订单已确认');
     }
 
@@ -253,6 +264,16 @@ class OrderList extends Component
             afterData: ['status' => Order::STATUS_CANCELLED],
         );
 
+        // 通知商家：订单已作废
+        if ($order->merchant_id) {
+            app(NotificationService::class)->orderStatusChanged(
+                $order->merchant_id,
+                $order->order_no,
+                self::$statusMap[$oldStatus] ?? '未知',
+                '已作废',
+            );
+        }
+
         $this->toastSuccess('订单已作废');
     }
 
@@ -273,6 +294,16 @@ class OrderList extends Component
             beforeData: ['status' => $oldStatus],
             afterData: ['status' => Order::STATUS_SIGNED],
         );
+
+        // 通知商家：订单已完成签收
+        if ($order->merchant_id) {
+            app(NotificationService::class)->orderStatusChanged(
+                $order->merchant_id,
+                $order->order_no,
+                self::$statusMap[$oldStatus] ?? '未知',
+                '已签收',
+            );
+        }
 
         $this->toastSuccess('订单已完成');
     }

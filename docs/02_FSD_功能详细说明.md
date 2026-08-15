@@ -1,13 +1,3 @@
-﻿---
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: 'a8b5c341-2dfe-4786-bf10-da9fcc54ae68'
-  PropagateID: 'a8b5c341-2dfe-4786-bf10-da9fcc54ae68'
-  ReservedCode1: '9ca0914c-57fa-4f3f-ab4c-21c8ad36129c'
-  ReservedCode2: '9ca0914c-57fa-4f3f-ab4c-21c8ad36129c'
----
 
 # FSD 功能详细说明书
 

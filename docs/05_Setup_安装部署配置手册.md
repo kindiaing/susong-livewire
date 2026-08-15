@@ -1,13 +1,3 @@
-﻿---
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: '76ea2f2f-0535-4fe1-8635-1ce36564d274'
-  PropagateID: '76ea2f2f-0535-4fe1-8635-1ce36564d274'
-  ReservedCode1: 'f102a77b-f129-43f9-8827-62cbe94aa2a2'
-  ReservedCode2: 'f102a77b-f129-43f9-8827-62cbe94aa2a2'
----
 
 # Setup 系统安装部署配置手册
 
@@ -194,6 +184,16 @@ php artisan storage:link
 
 REM 9. 启动开发服务
 php artisan serve
+
+REM 10. 启动 Reverb WebSocket 服务（新终端窗口）
+php artisan reverb:start
+
+REM 11. 启动 Vite 前端热更新（新终端窗口，开发时使用）
+npm run dev
+
+REM 提示：Reverb 和 Vite 需要保持运行，勿关闭窗口
+REM 访问 http://livewire.test 即可使用管理后台
+REM 通知实时推送功能需要 Reverb 服务运行中才生效
 ```
 
 ---
@@ -284,6 +284,32 @@ php artisan serve
 | LOG_LEVEL | debug | 日志级别（生产建议 info） |
 | LOG_DAYS | 30 | 日志保留天数 |
 | AUDIT_RETENTION_DAYS | 365 | 审计日志保留天数 |
+
+#### 4.1.9 广播 / WebSocket（Laravel Reverb）
+
+| 配置项 | 默认值 | 说明 |
+| :--- | :--- | :--- |
+| BROADCAST_CONNECTION | reverb | 广播驱动，本项目固定 reverb |
+| REVERB_APP_ID | - | Reverb 应用 ID（首次部署时自动生成，不可为空） |
+| REVERB_APP_KEY | - | Reverb Key（暴露给前端，用于 WebSocket 握手） |
+| REVERB_APP_SECRET | - | Reverb Secret（仅服务端使用，切勿泄露） |
+| REVERB_HOST | localhost | WebSocket 服务器主机名 |
+| REVERB_PORT | 8080 | WebSocket 服务器端口 |
+| REVERB_SCHEME | http | 协议：http（本地开发）/ https（生产环境） |
+
+> **首次部署时**，`REVERB_APP_ID` / `REVERB_APP_KEY` / `REVERB_APP_SECRET` 须填入非空值，可用以下方式生成：
+>
+> ```bash
+> # 方式 1：Laravel 自动安装（推荐）
+> php artisan reverb:install
+>
+> # 方式 2：手动填入随机字符串（至少 16 位）
+> # 例：REVERB_APP_ID=12345678
+> #     REVERB_APP_KEY=随机字母数字串
+> #     REVERB_APP_SECRET=随机字母数字串（32 位以上）
+> ```
+>
+> **生产环境**：`REVERB_SCHEME=https`，`REVERB_HOST` 设为实际域名，`REVERB_PORT=443`；Nginx 需配置 WebSocket 反向代理（参见第 5 章）。
 
 ---
 
@@ -380,6 +406,8 @@ stopwaitsecs=3600
 
 ### 6.1.1 Supervisor 配置（Laravel Reverb WebSocket 服务器）
 
+Reverb 是本项目的实时推送服务器，负责通过 WebSocket 将通知、状态变更等事件推送到前端。
+
 ```ini
 # /etc/supervisor/conf.d/susong-reverb.conf
 [program:susong-reverb]
@@ -394,6 +422,12 @@ redirect_stderr=true
 stdout_logfile=/var/www/susong/storage/logs/reverb.log
 stopwaitsecs=10
 ```
+
+> **注意事项：**
+> - `numprocs` 必须为 1，Reverb 不支持多进程
+> - `--port` 需与 `.env` 中 `REVERB_PORT` 一致
+> - Nginx 需配置 `/app` 路径反向代理到 Reverb 端口（参见第 5 章）
+> - 若修改了 `REVERB_APP_KEY` / `REVERB_APP_ID` / `REVERB_APP_SECRET`，需重启 Reverb：`sudo supervisorctl restart susong-reverb`
 
 ### 6.2 Cron 配置（Laravel 调度器）
 
@@ -543,7 +577,8 @@ php artisan admin:seed --list                # 列出所有可用 Seeder 模块
 | `php artisan queue:restart` | 重启队列消费者 | 更新代码后让 worker 重新加载 |
 | `php artisan schedule:run` | 手动触发定时任务 | 测试调度、Cron 调用 |
 | `php artisan schedule:list` | 查看所有定时任务 | 排查调度问题 |
-| `php artisan reverb:start` | 启动 Reverb WebSocket 服务器 | 后台运行（Supervisor 管理） |
+| `php artisan reverb:start` | 启动 Reverb WebSocket 服务器 | 本地开发手动启动 / 生产环境 Supervisor 管理 |
+| `php artisan reverb:start --port=8080` | 指定端口启动 Reverb | 自定义 WebSocket 端口 |
 | `php artisan serve` | 启动开发服务器 | 本地开发调试 |
 
 ### 10.2 项目自定义命令（admin:* 体系）
@@ -693,6 +728,9 @@ php artisan schedule:list          # 查看定时任务
 | 8 | CORS 跨域错误 | 检查 .env 中 CORS_ALLOWED_ORIGINS 和 SANCTUM_STATEFUL_DOMAINS | 添加前端域名到配置项 |
 | 9 | 定时任务不执行 | 检查 Cron 是否配置；检查 SCHEDULER_ENABLED | `php artisan schedule:run` 手动测试 |
 | 10 | 审核流程不触发 | 检查 approval_type_configs 表对应节点 enabled 字段 | 在"审核管理→审核配置"中开启对应节点 |
+| 11 | 通知不实时推送 | 检查 Reverb 服务是否运行中；检查 `.env` 中 `REVERB_APP_ID/KEY/SECRET` 是否非空；检查 Nginx `/app` 反向代理配置 | `php artisan reverb:start` 启动服务；`sudo supervisorctl status susong-reverb` 检查进程 |
+| 12 | WebSocket 连接 403 | 检查 `routes/channels.php` 中频道授权逻辑；检查 `window.Laravel.userId` 是否正确注入 | 浏览器控制台查看 Echo 日志 |
+| 13 | Reverb 启动失败 | 检查端口是否被占用；检查 `.env` 中 `REVERB_APP_KEY` 是否为空 | `netstat -tlnp \| grep :8080` 排查端口；填入有效凭证后重试 |
 
 ---
 
@@ -712,6 +750,9 @@ php artisan schedule:list          # 查看定时任务
 - [ ] 超级管理员密码已修改（非默认 Password）
 - [ ] 文件存储路径可写（本地或 OSS 配置正确）
 - [ ] 跨域配置匹配前端域名
+- [ ] Reverb WebSocket 服务运行中（`sudo supervisorctl status susong-reverb` 或 `php artisan reverb:start`）
+- [ ] `.env` 中 `REVERB_APP_ID` / `REVERB_APP_KEY` / `REVERB_APP_SECRET` 已填入有效值
+- [ ] Nginx 已配置 `/app` 路径反向代理到 Reverb 端口
 
 ### 13.2 上线后验证项
 
@@ -725,3 +766,5 @@ php artisan schedule:list          # 查看定时任务
 - [ ] 应收/应付结算流程正常
 - [ ] 审核节点开关生效
 - [ ] 操作日志、审计日志、登录日志正常记录
+- [ ] 通知 Drawer 显示正常，点击通知可标记已读
+- [ ] Reverb 实时推送生效（操作触发通知后前端自动刷新，无需手动 F5）

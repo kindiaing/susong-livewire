@@ -35,6 +35,10 @@ class InvoiceList extends Component
     public string $formTitle = '';
     public string $formTaxNo = '';
 
+    // 详情弹窗
+    public bool $showDetailModal = false;
+    public ?int $detailId = null;
+
     public static array $statusMap = [
         1 => '待开具', 2 => '已开具', 3 => '已寄出',
     ];
@@ -94,11 +98,10 @@ class InvoiceList extends Component
     public function getImportColumnMap(): array
     {
         return [
-            '商家ID' => 'merchant_id',
-            '金额(元)' => 'amount',
             '类型' => 'type',
             '抬头' => 'title',
             '税号' => 'tax_no',
+            '金额(元)' => 'amount',
         ];
     }
 
@@ -112,6 +115,28 @@ class InvoiceList extends Component
         return ['amount'];
     }
 
+    public function openEditModal(int $id): void
+    {
+        $item = Invoice::findOrFail($id);
+        if ($item->status !== 1) {
+            $this->toastError('仅待开具状态可编辑');
+            return;
+        }
+        $this->editingId = $id;
+        $this->formMerchantId = $item->target_id;
+        $this->formAmount = $this->centsToYuan($item->amount);
+        $this->formType = $item->type;
+        $this->formTitle = $item->title ?? '';
+        $this->formTaxNo = $item->tax_no ?? '';
+        $this->showModal = true;
+    }
+
+    public function openDetailModal(int $id): void
+    {
+        $this->detailId = $id;
+        $this->showDetailModal = true;
+    }
+
     public function save(): void
     {
         $this->validate([
@@ -122,17 +147,29 @@ class InvoiceList extends Component
             'formTaxNo' => 'required|string|max:50',
         ]);
 
-        Invoice::create([
-            'merchant_id' => $this->formMerchantId,
-            'invoice_no' => generate_sequence_no('INV', 'invoices', 'invoice_no'),
-            'amount' => money_to_cents($this->formAmount),
-            'type' => $this->formType,
-            'title' => $this->formTitle,
-            'tax_no' => $this->formTaxNo,
-            'status' => 1,
-        ]);
-
-        $this->toastSuccess('发票已创建');
+        if ($this->editingId) {
+            $item = Invoice::findOrFail($this->editingId);
+            $item->update([
+                'target_id' => $this->formMerchantId,
+                'amount' => money_to_cents($this->formAmount),
+                'type' => $this->formType,
+                'title' => $this->formTitle,
+                'tax_no' => $this->formTaxNo,
+            ]);
+            $this->toastSuccess('发票已更新');
+        } else {
+            Invoice::create([
+                'invoice_no' => generate_sequence_no('INV', 'invoices', 'invoice_no'),
+                'type' => $this->formType,
+                'target_id' => $this->formMerchantId,
+                'amount' => money_to_cents($this->formAmount),
+                'title' => $this->formTitle,
+                'tax_no' => $this->formTaxNo,
+                'status' => 1,
+                'applied_at' => now(),
+            ]);
+            $this->toastSuccess('发票已创建');
+        }
         $this->showModal = false;
         $this->resetForm();
     }
@@ -146,7 +183,7 @@ class InvoiceList extends Component
         }
         $item->update([
             'status' => 2,
-            'issued_at' => now()->toDateString(),
+            'issued_at' => now(),
         ]);
         $this->toastSuccess('发票已开具');
     }
@@ -158,7 +195,10 @@ class InvoiceList extends Component
             $this->toastError('仅已开具状态可寄出');
             return;
         }
-        $item->update(['status' => 3]);
+        $item->update([
+            'status' => 3,
+            'sent_at' => now(),
+        ]);
         $this->toastSuccess('发票已寄出');
     }
 
@@ -170,7 +210,7 @@ class InvoiceList extends Component
         $this->deletingId = null;
     }
 
-    private function resetForm(): void
+    public function resetForm(): void
     {
         $this->editingId = null;
         $this->formMerchantId = 0;
@@ -195,8 +235,12 @@ class InvoiceList extends Component
         $merchants = Merchant::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
+        $statusMap = self::$statusMap;
+        $statusColorMap = self::$statusColorMap;
+        $typeMap = self::$typeMap;
+        $detailItem = $this->detailId ? Invoice::with('merchant')->find($this->detailId) : null;
 
-        return view('livewire.finance.invoice-list', compact('items', 'merchants', 'allColumns', 'selectedCount'))
+        return view('livewire.finance.invoice-list', compact('items', 'merchants', 'allColumns', 'selectedCount', 'statusMap', 'statusColorMap', 'typeMap', 'detailItem'))
             ->layout('components.app-layout')
             ->title('发票管理');
     }

@@ -43,7 +43,7 @@
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500" /></td>
                     <td class="px-4 py-2 text-muted-foreground">{{ $item->id }}</td>
                     <td class="px-4 py-2 text-foreground">{{ $item->merchant?->name ?? '-' }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $item->product?->name ?? '-' }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $item->sku?->name ?? '-' }}</td>
                     <td class="px-4 py-2 text-muted-foreground">{{ $item->created_at?->format('Y-m-d H:i') }}</td>
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-2">

@@ -4,7 +4,27 @@
 
 {{-- 通知 Drawer — 内联 slide-panel 避免 Livewire 4 与 Blade 组件命名 slot 不兼容 --}}
 <div
-    x-data="{ notificationPanelOpen: false }"
+    x-data="{
+        notificationPanelOpen: false,
+        init() {
+            // 监听 Reverb 私有频道：用户通知
+            if (window.Echo && window.Laravel?.userId) {
+                window.Echo.private(`notifications.${window.Laravel.userId}`)
+                    .listen('.notification.created', () => {
+                        // 通知 Livewire 刷新数据
+                        this.$wire.handleNotificationReceived();
+                    });
+            }
+
+            // 监听 Reverb 公共频道：全站广播
+            if (window.Echo) {
+                window.Echo.channel('notifications')
+                    .listen('.notification.created', () => {
+                        this.$wire.handleNotificationReceived();
+                    });
+            }
+        }
+    }"
     @keydown.escape.window="if(notificationPanelOpen) notificationPanelOpen = false"
 >
     {{-- 触发器：通知铃铛 --}}

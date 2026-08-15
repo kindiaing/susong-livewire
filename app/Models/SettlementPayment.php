@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class SettlementPayment extends Model
 {
+    use SoftDeletes;
     // 付款方式常量
     public const METHOD_BANK = 1;
     public const METHOD_CASH = 2;

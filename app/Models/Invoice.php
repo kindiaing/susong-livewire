@@ -21,6 +21,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class Invoice extends Model
 {
+    use SoftDeletes;
+
     // 类型常量
     public const TYPE_CUSTOMER = 1;
     public const TYPE_SUPPLIER = 2;
@@ -36,6 +38,7 @@ class Invoice extends Model
         'target_id',
         'title',
         'amount',
+        'tax_no',
         'file_url',
         'status',
         'applied_at',
