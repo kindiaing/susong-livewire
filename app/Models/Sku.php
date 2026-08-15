@@ -26,6 +26,7 @@ use Illuminate\Support\Carbon;
  * @property int $min_sale_price 最低销售限价（厘）
  * @property int $max_sale_price 最高销售限价（厘）
  * @property int $stock 当前库存
+ * @property int|null $base_unit_id 最小计量单位ID
  * @property int $status 状态：0禁用，1启用
  * @property int $approval_status 审核状态：1待审核，2已通过，3已拒绝
  * @property Carbon|null $created_at
@@ -62,6 +63,7 @@ class Sku extends Model
         'min_sale_price',
         'max_sale_price',
         'stock',
+        'base_unit_id',
         'status',
         'approval_status',
     ];
@@ -84,6 +86,7 @@ class Sku extends Model
             'min_sale_price' => 'integer',
             'max_sale_price' => 'integer',
             'stock' => 'integer',
+            'base_unit_id' => 'integer',
             'status' => 'integer',
             'approval_status' => 'integer',
         ];
@@ -128,6 +131,22 @@ class Sku extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    /**
+     * 关联最小计量单位
+     */
+    public function baseUnit()
+    {
+        return $this->belongsTo(Unit::class, 'base_unit_id');
+    }
+
+    /**
+     * 关联单位换算关系
+     */
+    public function unitConversions()
+    {
+        return $this->hasMany(UnitConversion::class, 'sku_id');
     }
 
     /**

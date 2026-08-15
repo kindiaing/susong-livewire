@@ -11,8 +11,11 @@ use App\Livewire\Traits\WithToast;
 use App\Livewire\Traits\WithListCrud;
 use App\Models\Product;
 use App\Models\Sku;
+use App\Models\Unit;
+use App\Models\UnitConversion;
 use App\Services\ApprovalService;
 use App\Services\PricingService;
+use App\Services\UnitConversionService;
 use App\Models\PriceChangeLog;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -68,6 +71,13 @@ class SkuList extends Component
 
     public int $formStatus = 1;
 
+    // Tab 切换
+    public string $activeTab = 'basic';
+
+    // 换算配置
+    public ?int $formBaseUnitId = null;
+    public array $formConversions = []; // [{from_unit_id, to_unit_id, ratio}]
+
     public function mount(): void
     {
         $this->initColumnVisibility();
@@ -93,7 +103,42 @@ class SkuList extends Component
         $this->formMinSalePrice = $this->centsToYuan($sku->min_sale_price);
         $this->formMaxSalePrice = $this->centsToYuan($sku->max_sale_price);
         $this->formStatus = $sku->status;
+
+        // 换算配置
+        $this->formBaseUnitId = $sku->base_unit_id;
+        $this->loadConversions($sku);
+        $this->activeTab = 'basic';
         $this->showModal = true;
+    }
+
+    /**
+     * 加载 SKU 的换算链路数据到表单
+     */
+    private function loadConversions(Sku $sku): void
+    {
+        $conversions = UnitConversion::where('sku_id', $sku->id)
+            ->where('status', UnitConversion::STATUS_ENABLED)
+            ->orderBy('sort')
+            ->get();
+
+        // 找链路起点
+        $startConversion = $conversions->first(fn($c) => $c->parent_conversion_id === null)
+            ?? $conversions->first();
+
+        $this->formConversions = [];
+        if ($startConversion) {
+            $current = $startConversion;
+            while ($current) {
+                $this->formConversions[] = [
+                    'id' => $current->id,
+                    'from_unit_id' => (string) $current->from_unit_id,
+                    'to_unit_id' => (string) $current->to_unit_id,
+                    'ratio' => (string) $current->ratio,
+                ];
+                $child = $conversions->first(fn($c) => $c->parent_conversion_id === $current->id);
+                $current = $child ?: null;
+            }
+        }
     }
 
     public function save(): void
@@ -179,6 +224,12 @@ class SkuList extends Component
 
             // 执行更新
             $sku->update($data);
+
+            // 保存换算配置
+            if ($this->formBaseUnitId) {
+                $sku->update(['base_unit_id' => $this->formBaseUnitId]);
+            }
+            $this->saveConversions($sku);
 
             // 写改价日志（编辑且批发价有变动时）
             if ($oldWholesaleCents > 0 && $newWholesaleCents !== $oldWholesaleCents) {
@@ -272,6 +323,87 @@ class SkuList extends Component
         $this->formMinSalePrice = '';
         $this->formMaxSalePrice = '';
         $this->formStatus = 1;
+        $this->activeTab = 'basic';
+        $this->formBaseUnitId = null;
+        $this->formConversions = [];
+    }
+
+    /**
+     * 保存换算链路
+     */
+    private function saveConversions(Sku $sku): void
+    {
+        // 删除旧的换算关系
+        UnitConversion::where('sku_id', $sku->id)->delete();
+
+        // 清除缓存
+        app(UnitConversionService::class)->clearCache($sku->id);
+
+        // 创建新的换算链路
+        $parentConversionId = null;
+        foreach ($this->formConversions as $i => $row) {
+            $fromUnitId = (int) ($row['from_unit_id'] ?? 0);
+            $toUnitId = (int) ($row['to_unit_id'] ?? 0);
+            $ratio = (int) ($row['ratio'] ?? 0);
+
+            if ($fromUnitId && $toUnitId && $ratio > 0 && $fromUnitId !== $toUnitId) {
+                $conversion = UnitConversion::create([
+                    'sku_id' => $sku->id,
+                    'from_unit_id' => $fromUnitId,
+                    'to_unit_id' => $toUnitId,
+                    'ratio' => $ratio,
+                    'parent_conversion_id' => $parentConversionId,
+                    'status' => UnitConversion::STATUS_ENABLED,
+                    'sort' => $i,
+                ]);
+                $parentConversionId = $conversion->id;
+            }
+        }
+    }
+
+    /**
+     * 添加换算行
+     */
+    public function addConversionRow(): void
+    {
+        $this->formConversions[] = [
+            'id' => null,
+            'from_unit_id' => '',
+            'to_unit_id' => '',
+            'ratio' => '',
+        ];
+    }
+
+    /**
+     * 删除换算行
+     */
+    public function removeConversionRow(int $index): void
+    {
+        unset($this->formConversions[$index]);
+        $this->formConversions = array_values($this->formConversions);
+    }
+
+    /**
+     * 获取换算链路预览文本
+     */
+    public function getConversionPreviewProperty(): string
+    {
+        if (empty($this->formConversions)) {
+            return '未配置换算关系';
+        }
+
+        $parts = [];
+        foreach ($this->formConversions as $row) {
+            $fromUnit = Unit::find((int) ($row['from_unit_id'] ?? 0));
+            $toUnit = Unit::find((int) ($row['to_unit_id'] ?? 0));
+            $ratio = $row['ratio'] ?? 0;
+
+            if ($fromUnit && $toUnit && $ratio > 0) {
+                $parts[] = "1{$fromUnit->name}={$ratio}{$toUnit->name}";
+            }
+        }
+
+        return $parts ? implode(' → ', $parts) : '未配置换算关系';
     }
 
     public function getAllColumns(): array
@@ -390,8 +522,11 @@ class SkuList extends Component
         $selectedCount = count($this->selectedIds);
 
         $productOptions = Product::orderBy('name')->get()->map(fn($p) => ['value' => $p->id, 'label' => $p->name])->toArray();
+        $unitOptions = Unit::enabled()->orderBy('sort')->get(['id', 'name']);
 
-        return view('livewire.product.sku-list', compact('skus', 'allColumns', 'selectedCount', 'productOptions'))
+        $conversionPreview = $this->conversionPreview;
+
+        return view('livewire.product.sku-list', compact('skus', 'allColumns', 'selectedCount', 'productOptions', 'unitOptions', 'conversionPreview'))
             ->layout('components.app-layout')
             ->title('SKU管理');
     }

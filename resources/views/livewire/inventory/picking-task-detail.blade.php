@@ -132,8 +132,8 @@
                 <tr class="hover:bg-muted/30 transition-colors">
                     <td class="px-4 py-2 text-foreground">{{ $item['sku_name'] }}</td>
                     <td class="px-4 py-2 text-muted-foreground">{{ $item['unit'] }}</td>
-                    <td class="px-4 py-2 text-right text-foreground">{{ $item['total_quantity'] }}</td>
-                    <td class="px-4 py-2 text-right text-foreground">{{ $item['picked_quantity'] }}</td>
+                    <td class="px-4 py-2 text-right text-foreground">{{ $item['total_qty_display'] }}</td>
+                    <td class="px-4 py-2 text-right text-foreground">{{ $item['picked_qty_display'] }}</td>
                     <td class="px-4 py-2 text-center">
                         @php $itemStatusMap = [1 => '待拣货', 2 => '已拣货', 3 => '差异']; @endphp
                         @php $itemColorMap = [1 => 'yellow', 2 => 'green', 3 => 'red']; @endphp
@@ -189,8 +189,8 @@
                         <td class="px-4 py-2 text-foreground">{{ $item['sku_name'] }}</td>
                         <td class="px-4 py-2 text-muted-foreground">{{ $item['unit'] }}</td>
                         <td class="px-4 py-2 text-muted-foreground">{{ $item['order_no'] }}</td>
-                        <td class="px-4 py-2 text-right text-foreground">{{ $item['required_quantity'] }}</td>
-                        <td class="px-4 py-2 text-right text-foreground">{{ $item['picked_quantity'] }}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{{ $item['required_qty_display'] }}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{{ $item['picked_qty_display'] }}</td>
                         <td class="px-4 py-2 text-center">
                             @php $ic = $itemColorMap[$item['status']] ?? 'gray'; @endphp
                             <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $ic }}-100 text-{{ $ic }}-700">{{ $itemStatusMap[$item['status']] ?? '-' }}</span>

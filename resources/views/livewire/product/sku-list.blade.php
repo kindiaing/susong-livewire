@@ -130,11 +130,88 @@
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
-            <div class="space-y-5">
+
+            {{-- Tab 切换 --}}
+            @if($editingId)
+            <div class="flex border-b mb-4">
+                <button type="button" wire:click="$set('activeTab','basic')" class="px-4 py-2 text-sm font-medium border-b-2 transition-colors {{ $activeTab === 'basic' ? 'border-blue-600 text-blue-600' : 'border-transparent text-muted-foreground hover:text-foreground' }}">基本信息</button>
+                <button type="button" wire:click="$set('activeTab','conversion')" class="px-4 py-2 text-sm font-medium border-b-2 transition-colors {{ $activeTab === 'conversion' ? 'border-blue-600 text-blue-600' : 'border-transparent text-muted-foreground hover:text-foreground' }}">单位换算</button>
+            </div>
+            @endif
+
+            {{-- Tab 内容区 --}}
+            @if($editingId)
+            {{-- 换算配置 Tab --}}
+            <div class="space-y-4 {{ $activeTab === 'conversion' ? '' : 'hidden' }}">
+                    <div class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                        <strong>说明：</strong>单位换算为严格单链路，如 箱→件→包。设置后，库存/订单数量统一用最小单位存储，列表页自动换算显示。
+                    </div>
+
+                    {{-- 最小计量单位 --}}
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">最小计量单位（base_unit）<span class="text-red-500">*</span></label>
+                        <select wire:model.live="formBaseUnitId" wire:key="base-unit-select" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                            <option value="">-- 选择最小单位 --</option>
+                            @foreach($unitOptions as $unit)
+                            <option value="{{ $unit->id }}" {{ (string) $formBaseUnitId === (string) $unit->id ? 'selected' : '' }}>{{ $unit->name }}</option>
+                            @endforeach
+                        </select>
+                        <p class="text-xs text-muted-foreground mt-1">所有库存、订单数量统一按此单位存储</p>
+                    </div>
+
+                    {{-- 换算链路 --}}
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-sm font-medium text-foreground">换算链路（从大到小）</label>
+                            <button type="button" wire:click="addConversionRow" class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium">
+                                <x-ui.icon name="plus" class="w-3.5 h-3.5" />添加一级
+                            </button>
+                        </div>
+
+                        @if(!empty($formConversions))
+                        <div class="space-y-3">
+                            @foreach($formConversions as $index => $row)
+                            <div class="flex items-center gap-2 rounded-md border border-input p-3" wire:key="conv-row-{{ $index }}">
+                                <span class="text-xs text-muted-foreground font-medium shrink-0">{{ $loop->iteration }}.</span>
+                                <select wire:model.live="formConversions.{{ $index }}.from_unit_id" wire:key="conv-from-{{ $index }}" class="flex h-8 rounded-md border border-input bg-background px-2 text-sm min-w-[80px]">
+                                    <option value="">大单位</option>
+                                    @foreach($unitOptions as $unit)
+                                    <option value="{{ $unit->id }}" {{ (string) ($row['from_unit_id'] ?? '') === (string) $unit->id ? 'selected' : '' }}>{{ $unit->name }}</option>
+                                    @endforeach
+                                </select>
+                                <span class="text-muted-foreground text-sm">=</span>
+                                <input type="number" wire:model="formConversions.{{ $index }}.ratio" class="flex h-8 w-20 rounded-md border border-input bg-background px-2 text-sm text-center" min="1" placeholder="系数" />
+                                <select wire:model.live="formConversions.{{ $index }}.to_unit_id" wire:key="conv-to-{{ $index }}" class="flex h-8 rounded-md border border-input bg-background px-2 text-sm min-w-[80px]">
+                                    <option value="">小单位</option>
+                                    @foreach($unitOptions as $unit)
+                                    <option value="{{ $unit->id }}" {{ (string) ($row['to_unit_id'] ?? '') === (string) $unit->id ? 'selected' : '' }}>{{ $unit->name }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="button" wire:click="removeConversionRow({{ $index }})" class="p-1 rounded text-red-500 hover:bg-red-50 transition-colors shrink-0">
+                                    <x-ui.icon name="x-mark" class="w-4 h-4" />
+                                </button>
+                            </div>
+                            @endforeach
+                        </div>
+                        @else
+                        <p class="text-sm text-muted-foreground py-4 text-center">暂未配置换算关系，点击"添加一级"开始</p>
+                        @endif
+
+                        {{-- 链路预览 --}}
+                        @if(!empty($formConversions))
+                        <div class="mt-3 p-3 rounded-lg bg-muted/50 border">
+                            <p class="text-xs text-muted-foreground mb-1">链路预览</p>
+                            <p class="text-sm font-medium text-foreground">{{ $conversionPreview }}</p>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+            {{-- 基本信息 Tab --}}
+            <div class="space-y-5 {{ $activeTab === 'basic' || !$editingId ? '' : 'hidden' }}">
                 {{-- 基本信息 --}}
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <x-ui.searchable-select label="商品 *" wire-model="formProductId" :options="$productOptions" placeholder="搜索商品..." wireModel="formProductId" />
+                        <x-ui.searchable-select label="商品 *" wire:model="formProductId" :options="$productOptions" placeholder="搜索商品..." wireModel="formProductId" />
                         @error('formProductId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
@@ -226,6 +303,8 @@
                     </select>
                 </div>
             </div>
+            @endif
+
             <div class="flex justify-end gap-3 mt-6">
                 <button type="button" wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
                 <button type="button" wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>

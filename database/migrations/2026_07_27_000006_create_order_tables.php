@@ -65,7 +65,9 @@ return new class extends Migration
             $table->unsignedBigInteger('sku_id')->comment('SKU ID');
             $table->string('product_name', 100)->comment('商品名称快照');
             $table->json('sku_specs')->nullable()->comment('规格快照');
-            $table->bigInteger('quantity')->default(0)->comment('下单数量');
+            $table->bigInteger('quantity')->default(0)->comment('下单数量（base_unit 最小单位）');
+            $table->unsignedBigInteger('unit_id')->nullable()->comment('下单时选择的单位ID');
+            $table->bigInteger('unit_quantity')->default(0)->comment('下单时选择的单位数量（如选"箱"输入2，此字段=2）');
             $table->bigInteger('price')->default(0)->comment('下单单价');
             $table->bigInteger('actual_quantity')->default(0)->comment('实际称重数量');
             $table->bigInteger('actual_price')->default(0)->comment('实际称重单价');

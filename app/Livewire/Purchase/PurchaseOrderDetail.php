@@ -9,6 +9,7 @@ use App\Models\Supplier;
 use App\Models\Warehouse;
 use App\Models\Sku;
 use App\Services\PurchaseService;
+use App\Services\UnitConversionService;
 use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithToast;
 use Livewire\Component;
@@ -29,6 +30,8 @@ class PurchaseOrderDetail extends Component
     public ?int $editingItemId = null; // null=新增, int=编辑
     public int $formSkuId = 0;
     public int $formQuantity = 0;
+    public ?int $formUnitId = null;
+    public int $formUnitQuantity = 0;
     public string $formPrice = '';           // 采购单价（元）
     public string $formStrategyPrice = '';   // 改价/促销单价（元）
     public string $formRemark = '';          // 备注
@@ -189,6 +192,15 @@ class PurchaseOrderDetail extends Component
         $this->formPrice = $this->centsToYuan($item->price);
         $this->formStrategyPrice = $item->strategy_price ? $this->centsToYuan($item->strategy_price) : '';
         $this->formRemark = $item->remark ?? '';
+        // 回填单位信息：优先使用保存的 unit_id + unit_quantity，否则用 base_unit
+        if ($item->unit_id && $item->unit_quantity) {
+            $this->formUnitId = $item->unit_id;
+            $this->formUnitQuantity = $item->unit_quantity;
+        } else {
+            $sku = Sku::find($item->sku_id);
+            $this->formUnitId = $sku?->base_unit_id;
+            $this->formUnitQuantity = $item->quantity;
+        }
         $this->showAddItemModal = true;
     }
 
@@ -204,6 +216,10 @@ class PurchaseOrderDetail extends Component
 
         try {
             $service = app(PurchaseService::class);
+            $unitData = [
+                'unit_id' => $this->formUnitId,
+                'unit_quantity' => $this->formUnitQuantity ?: null,
+            ];
 
             if ($this->editingItemId) {
                 // 编辑模式
@@ -213,14 +229,14 @@ class PurchaseOrderDetail extends Component
                     'price' => money_to_cents($this->formPrice),
                     'strategy_price' => $this->formStrategyPrice ? money_to_cents($this->formStrategyPrice) : 0,
                     'remark' => $this->formRemark ?: null,
-                ]);
+                ] + $unitData);
                 $this->toastSuccess('明细已更新');
             } else {
                 // 新增模式
                 $service->addItem($this->order, $this->formSkuId, $this->formQuantity, money_to_cents($this->formPrice), [
                     'strategy_price' => $this->formStrategyPrice ? money_to_cents($this->formStrategyPrice) : 0,
                     'remark' => $this->formRemark ?: null,
-                ]);
+                ] + $unitData);
                 $this->toastSuccess('明细已添加');
             }
 
@@ -428,6 +444,8 @@ class PurchaseOrderDetail extends Component
         $this->editingItemId = null;
         $this->formSkuId = 0;
         $this->formQuantity = 0;
+        $this->formUnitId = null;
+        $this->formUnitQuantity = 0;
         $this->formPrice = '';
         $this->formStrategyPrice = '';
         $this->formRemark = '';
@@ -440,9 +458,89 @@ class PurchaseOrderDetail extends Component
         $skus = Sku::with('product')->orderBy('sku_code')->get();
 
         $isSuperAdmin = $this->isSuperAdmin;
+        $availableUnits = $this->availableUnits;
+        $unitPreview = $this->unitPreview;
 
-        return view('livewire.purchase.purchase-order-detail', compact('suppliers', 'warehouses', 'skus', 'isSuperAdmin'))
+        return view('livewire.purchase.purchase-order-detail', compact('suppliers', 'warehouses', 'skus', 'isSuperAdmin', 'availableUnits', 'unitPreview'))
             ->layout('components.app-layout')
             ->title("采购单 {$this->order->order_no}");
+    }
+
+    // ── 单位换算 ──
+
+    /**
+     * SKU 切换时加载可用单位列表
+     */
+    public function updatedFormSkuId(int $value): void
+    {
+        $this->formUnitId = null;
+        $this->formUnitQuantity = 0;
+        $this->formQuantity = 0;
+        if ($value > 0) {
+            $this->selectSkuUnit();
+        }
+    }
+
+    /**
+     * 单位或单位数量变更时自动换算为 base_unit 数量
+     */
+    public function updatedFormUnitId(): void
+    {
+        $this->recalculateQuantity();
+    }
+
+    public function updatedFormUnitQuantity(): void
+    {
+        $this->recalculateQuantity();
+    }
+
+    /**
+     * 根据 SKU 的 base_unit 设置默认单位
+     */
+    public function selectSkuUnit(): void
+    {
+        if ($this->formSkuId <= 0) {
+            return;
+        }
+        $sku = Sku::find($this->formSkuId);
+        if ($sku && $sku->base_unit_id) {
+            $this->formUnitId = $sku->base_unit_id;
+            $this->recalculateQuantity();
+        }
+    }
+
+    /**
+     * 根据选中的单位 + 单位数量，自动换算为 base_unit 的 formQuantity
+     */
+    private function recalculateQuantity(): void
+    {
+        if ($this->formSkuId > 0 && $this->formUnitId && $this->formUnitQuantity > 0) {
+            $svc = app(UnitConversionService::class);
+            $this->formQuantity = $svc->convertToBase($this->formSkuId, $this->formUnitId, $this->formUnitQuantity);
+        } elseif ($this->formSkuId > 0 && !$this->formUnitId && $this->formUnitQuantity > 0) {
+            $this->formQuantity = $this->formUnitQuantity;
+        } elseif ($this->formSkuId > 0 && $this->formUnitQuantity === 0) {
+            $this->formQuantity = 0;
+        }
+    }
+
+    #[\Livewire\Attributes\Computed]
+    public function availableUnits(): array
+    {
+        if ($this->formSkuId <= 0) {
+            return [];
+        }
+        $svc = app(UnitConversionService::class);
+        return $svc->getAvailableUnits($this->formSkuId);
+    }
+
+    #[\Livewire\Attributes\Computed]
+    public function unitPreview(): string
+    {
+        if ($this->formSkuId <= 0 || !$this->formUnitId || $this->formUnitQuantity <= 0) {
+            return '';
+        }
+        $svc = app(UnitConversionService::class);
+        return $svc->formatWithConversion($this->formSkuId, $this->formUnitId, $this->formUnitQuantity);
     }
 }

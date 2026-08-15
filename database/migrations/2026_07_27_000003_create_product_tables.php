@@ -8,6 +8,35 @@ return new class extends Migration
 {
     public function up(): void
     {
+        Schema::create('units', function (Blueprint $table) {
+            $table->id()->comment('主键');
+            $table->string('name', 20)->unique()->comment('单位名称：箱/件/包/斤/桶等');
+            $table->string('symbol', 10)->nullable()->comment('单位简称/符号');
+            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：0禁用，1启用');
+            $table->unsignedInteger('sort')->default(0)->comment('排序');
+            $table->timestamps();
+            $table->index('status');
+            $table->comment('单位主数据表');
+        });
+
+        Schema::create('unit_conversions', function (Blueprint $table) {
+            $table->id()->comment('主键');
+            $table->unsignedBigInteger('sku_id')->comment('SKU ID');
+            $table->unsignedBigInteger('from_unit_id')->comment('大单位ID（如"箱"）');
+            $table->unsignedBigInteger('to_unit_id')->comment('小单位ID（如"件"）');
+            $table->unsignedBigInteger('ratio')->comment('换算系数：1 from_unit = ratio to_unit');
+            $table->unsignedBigInteger('parent_conversion_id')->nullable()->comment('上级换算ID（链路关系：箱→件 的 ID 会作为 件→包 的 parent）');
+            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：0禁用，1启用');
+            $table->unsignedInteger('sort')->default(0)->comment('排序');
+            $table->timestamps();
+            $table->unique(['sku_id', 'from_unit_id', 'to_unit_id'], 'uk_sku_unit_conversion');
+            $table->index('sku_id');
+            $table->index('from_unit_id');
+            $table->index('to_unit_id');
+            $table->index('parent_conversion_id');
+            $table->comment('单位换算关系表');
+        });
+
         Schema::create('categories', function (Blueprint $table) {
             $table->id()->comment('主键');
             $table->unsignedBigInteger('parent_id')->default(0)->comment('父级分类ID，0为根节点');
@@ -69,6 +98,7 @@ return new class extends Migration
             $table->bigInteger('min_sale_price')->default(0)->comment('最低销售限价（厘）');
             $table->bigInteger('max_sale_price')->default(0)->comment('最高销售限价（厘）');
             $table->bigInteger('stock')->default(0)->comment('当前库存冗余字段');
+            $table->unsignedBigInteger('base_unit_id')->nullable()->comment('最小计量单位ID（关联 units 表）');
             $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：0禁用，1启用');
             $table->tinyInteger('approval_status')->unsigned()->default(1)->comment('审核状态：1待审核，2已通过，3已拒绝');
             $table->timestamps();
@@ -130,6 +160,8 @@ return new class extends Migration
         Schema::dropIfExists('product_tags');
         Schema::dropIfExists('tags');
         Schema::dropIfExists('merchant_sku_visibility');
+        Schema::dropIfExists('unit_conversions');
+        Schema::dropIfExists('units');
         Schema::dropIfExists('skus');
         Schema::dropIfExists('product_images');
         Schema::dropIfExists('products');

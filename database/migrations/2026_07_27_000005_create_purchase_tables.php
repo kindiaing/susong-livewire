@@ -55,7 +55,9 @@ return new class extends Migration
             $table->id()->comment('主键');
             $table->unsignedBigInteger('purchase_order_id')->comment('采购单ID');
             $table->unsignedBigInteger('sku_id')->comment('SKU ID');
-            $table->bigInteger('quantity')->default(0)->comment('采购数量');
+            $table->bigInteger('quantity')->default(0)->comment('采购数量（base_unit 最小单位）');
+            $table->unsignedBigInteger('unit_id')->nullable()->comment('采购时选择的单位ID');
+            $table->bigInteger('unit_quantity')->default(0)->comment('采购时选择的单位数量（如选"箱"输入10，此字段=10）');
             $table->bigInteger('price')->default(0)->comment('采购单价');
             $table->bigInteger('actual_quantity')->default(0)->comment('实际入库数量');
             $table->bigInteger('actual_price')->default(0)->comment('实际入库单价');

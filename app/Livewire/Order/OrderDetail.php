@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Sku;
 use App\Services\PricingService;
+use App\Services\UnitConversionService;
 use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithToast;
 use Livewire\Component;
@@ -28,6 +29,8 @@ class OrderDetail extends Component
     public ?int $editingItemId = null;
     public int $formSkuId = 0;
     public int $formQuantity = 0;
+    public ?int $formUnitId = null;
+    public int $formUnitQuantity = 0;
     public string $formPrice = '';
     public string $formRemark = '';
     public bool $showDeleteItemConfirm = false;
@@ -197,6 +200,91 @@ class OrderDetail extends Component
         $this->showAddItemModal = true;
     }
 
+    /**
+     * SKU 切换时加载可用单位列表
+     */
+    public function updatedFormSkuId(int $value): void
+    {
+        $this->formUnitId = null;
+        $this->formUnitQuantity = 0;
+        $this->formQuantity = 0;
+        // 自动选中 base_unit 作为默认单位
+        if ($value > 0) {
+            $this->selectSkuUnit();
+        }
+    }
+
+    /**
+     * 单位或单位数量变更时自动换算为 base_unit 数量
+     */
+    public function updatedFormUnitId(): void
+    {
+        $this->recalculateQuantity();
+    }
+
+    public function updatedFormUnitQuantity(): void
+    {
+        $this->recalculateQuantity();
+    }
+
+    /**
+     * 根据 SKU 的 base_unit 设置默认单位
+     */
+    public function selectSkuUnit(): void
+    {
+        if ($this->formSkuId <= 0) {
+            return;
+        }
+        $sku = Sku::find($this->formSkuId);
+        if ($sku && $sku->base_unit_id) {
+            $this->formUnitId = $sku->base_unit_id;
+            $this->recalculateQuantity();
+        }
+    }
+
+    /**
+     * 根据选中的单位 + 单位数量，自动换算为 base_unit 的 formQuantity
+     */
+    private function recalculateQuantity(): void
+    {
+        if ($this->formSkuId > 0 && $this->formUnitId && $this->formUnitQuantity > 0) {
+            // 有单位换算：将单位数量转换为 base_unit 数量
+            $svc = app(UnitConversionService::class);
+            $this->formQuantity = $svc->convertToBase($this->formSkuId, $this->formUnitId, $this->formUnitQuantity);
+        } elseif ($this->formSkuId > 0 && !$this->formUnitId && $this->formUnitQuantity > 0) {
+            // SKU 未配置单位换算：formUnitQuantity 直接作为 formQuantity
+            $this->formQuantity = $this->formUnitQuantity;
+        } elseif ($this->formSkuId > 0 && $this->formUnitQuantity === 0) {
+            $this->formQuantity = 0;
+        }
+    }
+
+    /**
+     * 获取当前 SKU 可用单位列表（用于下拉）
+     */
+    #[\Livewire\Attributes\Computed]
+    public function availableUnits(): array
+    {
+        if ($this->formSkuId <= 0) {
+            return [];
+        }
+        $svc = app(UnitConversionService::class);
+        return $svc->getAvailableUnits($this->formSkuId);
+    }
+
+    /**
+     * 获取换算预览文本
+     */
+    #[\Livewire\Attributes\Computed]
+    public function unitPreview(): string
+    {
+        if ($this->formSkuId <= 0 || !$this->formUnitId || $this->formUnitQuantity <= 0) {
+            return '';
+        }
+        $svc = app(UnitConversionService::class);
+        return $svc->formatWithConversion($this->formSkuId, $this->formUnitId, $this->formUnitQuantity);
+    }
+
     public function openEditItemModal(int $itemId): void
     {
         $item = OrderItem::findOrFail($itemId);
@@ -205,6 +293,15 @@ class OrderDetail extends Component
         $this->formQuantity = $item->quantity;
         $this->formPrice = $this->centsToYuan($item->price);
         $this->formRemark = '';
+        // 回填单位信息：优先使用保存的 unit_id + unit_quantity，否则用 base_unit
+        if ($item->unit_id && $item->unit_quantity) {
+            $this->formUnitId = $item->unit_id;
+            $this->formUnitQuantity = $item->unit_quantity;
+        } else {
+            $sku = Sku::find($item->sku_id);
+            $this->formUnitId = $sku?->base_unit_id;
+            $this->formUnitQuantity = $item->quantity;
+        }
         $this->showAddItemModal = true;
     }
 
@@ -224,12 +321,19 @@ class OrderDetail extends Component
         $subtotal = $price * $this->formQuantity;
         $skuLabel = $sku ? ($sku->sku_code . ' - ' . ($sku->product?->name ?? '')) : '';
 
+        // 构造数量显示文本
+        $qtyLabel = (string)$this->formQuantity;
+        if ($this->formUnitId && $this->formUnitQuantity > 0) {
+            $svc = app(UnitConversionService::class);
+            $qtyLabel = $svc->formatWithConversion($this->formSkuId, $this->formUnitId, $this->formUnitQuantity);
+        }
+
         if ($this->editingItemId) {
             $this->saveConfirmTitle = "确认保存修改？";
         } else {
             $this->saveConfirmTitle = "确认添加明细？";
         }
-        $this->saveConfirmTitle .= "\n\n商品：{$skuLabel}　数量：{$this->formQuantity}　单价：{$this->formPrice}元　小计：" . money_format($subtotal);
+        $this->saveConfirmTitle .= "\n\n商品：{$skuLabel}　数量：{$qtyLabel}　单价：{$this->formPrice}元　小计：" . money_format($subtotal);
 
         $this->showSaveConfirm = true;
     }
@@ -256,6 +360,8 @@ class OrderDetail extends Component
                     'actual_quantity' => $this->formQuantity,
                     'actual_price' => $price,
                     'actual_subtotal' => $subtotal,
+                    'unit_id' => $this->formUnitId,
+                    'unit_quantity' => $this->formUnitQuantity ?: null,
                 ]);
                 $this->toastSuccess('明细已更新');
             } else {
@@ -274,6 +380,8 @@ class OrderDetail extends Component
                         'actual_quantity' => $newQuantity,
                         'actual_price' => $price,
                         'actual_subtotal' => $newSubtotal,
+                        'unit_id' => $this->formUnitId,
+                        'unit_quantity' => $this->formUnitQuantity ?: null,
                     ]);
                     $this->toastSuccess('已累加到已有明细');
                 } else {
@@ -288,6 +396,8 @@ class OrderDetail extends Component
                         'actual_price' => $price,
                         'subtotal' => $subtotal,
                         'actual_subtotal' => $subtotal,
+                        'unit_id' => $this->formUnitId,
+                        'unit_quantity' => $this->formUnitQuantity ?: null,
                         'strategy_price' => 0,
                         'strategy_amount' => 0,
                         'discrepancy_amount' => 0,
@@ -316,7 +426,7 @@ class OrderDetail extends Component
      */
     public function cancelAddItem(): void
     {
-        if ($this->formSkuId > 0 || $this->formQuantity > 0 || $this->formPrice !== '') {
+        if ($this->formSkuId > 0 || $this->formQuantity > 0 || $this->formPrice !== '' || $this->formUnitQuantity > 0) {
             $this->showCancelConfirm = true;
         } else {
             $this->closeAddItemModal();
@@ -583,6 +693,8 @@ class OrderDetail extends Component
         $this->editingItemId = null;
         $this->formSkuId = 0;
         $this->formQuantity = 0;
+        $this->formUnitId = null;
+        $this->formUnitQuantity = 0;
         $this->formPrice = '';
         $this->formRemark = '';
     }
@@ -602,8 +714,10 @@ class OrderDetail extends Component
         $skus = Sku::with('product')->orderBy('sku_code')->get();
         $isSuperAdmin = $this->isSuperAdmin;
         $canEditItems = $this->canEditItems;
+        $availableUnits = $this->availableUnits;
+        $unitPreview = $this->unitPreview;
 
-        return view('livewire.order.order-detail', compact('skus', 'isSuperAdmin', 'canEditItems'))
+        return view('livewire.order.order-detail', compact('skus', 'isSuperAdmin', 'canEditItems', 'availableUnits', 'unitPreview'))
             ->layout('components.app-layout')
             ->title("订单 {$this->order->order_no}");
     }

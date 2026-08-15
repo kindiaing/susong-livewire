@@ -129,6 +129,7 @@ return [
             ['key' => 'system.price-log','label' => '改价记录', 'route' => 'price-change-logs','permission' => 'price.price-change-log.view','description' => '价格变更历史'],
             ['key' => 'system.login-log','label' => '登录日志', 'route' => 'login-logs',      'permission' => 'system.login-log.view',     'description' => '用户登录记录'],
             ['key' => 'system.wechat',   'label' => '微信用户', 'route' => 'wechat-users',    'permission' => 'system.wechat-user.view',   'description' => '小程序用户绑定'],
+            ['key' => 'system.unit',      'label' => '单位管理', 'route' => 'units',           'permission' => 'system.system-config.view', 'description' => '单位主数据与换算配置'],
         ],
     ],
 ];

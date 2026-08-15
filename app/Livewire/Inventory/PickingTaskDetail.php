@@ -6,6 +6,7 @@ use App\Models\PickingTask;
 use App\Models\PickingTaskItem;
 use App\Models\User;
 use App\Livewire\Traits\WithToast;
+use App\Services\UnitConversionService;
 use Livewire\Component;
 
 class PickingTaskDetail extends Component
@@ -64,12 +65,23 @@ class PickingTaskDetail extends Component
                 $status = PickingTaskItem::STATUS_DISCREPANCY;
             }
 
+            // human 格式化（有换算配置时显示 "2箱1件"，无配置则显示原始数字）
+            $svc = app(UnitConversionService::class);
+            $totalDisplay = $first->sku?->base_unit_id
+                ? $svc->formatHuman($skuId, $totalQuantity)
+                : (string) $totalQuantity;
+            $pickedDisplay = $first->sku?->base_unit_id
+                ? $svc->formatHuman($skuId, $pickedQuantity)
+                : (string) $pickedQuantity;
+
             return [
                 'sku_id' => $skuId,
                 'sku_name' => $first->sku?->sku_name ?? $first->sku?->sku_code ?? '',
-                'unit' => $first->sku?->unit ?? '',
+                'unit' => $first->sku?->baseUnit?->name ?? '',
                 'total_quantity' => $totalQuantity,
                 'picked_quantity' => $pickedQuantity,
+                'total_qty_display' => $totalDisplay,
+                'picked_qty_display' => $pickedDisplay,
                 'status' => $status,
             ];
         })->values()->all();
@@ -111,13 +123,24 @@ class PickingTaskDetail extends Component
                 'sku_count' => $items->count(),
                 'status' => $status,
                 'items' => $items->map(function ($item) {
+                    $svc = app(UnitConversionService::class);
+                    $skuId = $item->sku_id;
+                    $requiredDisplay = $item->sku?->base_unit_id
+                        ? $svc->formatHuman($skuId, $item->required_quantity)
+                        : (string) $item->required_quantity;
+                    $pickedDisplay = $item->sku?->base_unit_id
+                        ? $svc->formatHuman($skuId, $item->picked_quantity)
+                        : (string) $item->picked_quantity;
+
                     return [
                         'id' => $item->id,
                         'sku_name' => $item->sku?->sku_name ?? $item->sku?->sku_code ?? '',
-                        'unit' => $item->sku?->unit ?? '',
+                        'unit' => $item->sku?->baseUnit?->name ?? '',
                         'order_no' => $item->order?->order_no ?? '',
                         'required_quantity' => $item->required_quantity,
                         'picked_quantity' => $item->picked_quantity,
+                        'required_qty_display' => $requiredDisplay,
+                        'picked_qty_display' => $pickedDisplay,
                         'status' => $item->status,
                     ];
                 })->values()->all(),
