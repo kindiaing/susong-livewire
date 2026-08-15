@@ -30,6 +30,10 @@ class MerchantAccountList extends Component
     public int $formMerchantId = 0;
     public int $formCreditLimit = 0;
 
+    // 详情弹窗
+    public bool $showDetailModal = false;
+    public ?int $detailId = null;
+
     public function mount(): void
     {
         $this->initColumnVisibility();
@@ -79,6 +83,12 @@ class MerchantAccountList extends Component
         return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
     }
 
+    public function openDetailModal(int $id): void
+    {
+        $this->detailId = $id;
+        $this->showDetailModal = true;
+    }
+
     public function openEditModal(int $id): void
     {
         $item = MerchantAccount::findOrFail($id);
@@ -124,7 +134,7 @@ class MerchantAccountList extends Component
         $this->deletingId = null;
     }
 
-    private function resetForm(): void
+    public function resetForm(): void
     {
         $this->editingId = null;
         $this->formMerchantId = 0;
@@ -143,8 +153,9 @@ class MerchantAccountList extends Component
         $merchants = Merchant::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
+        $detailItem = $this->detailId ? MerchantAccount::with('merchant')->find($this->detailId) : null;
 
-        return view('livewire.finance.merchant-account-list', compact('items', 'merchants', 'allColumns', 'selectedCount'))
+        return view('livewire.finance.merchant-account-list', compact('items', 'merchants', 'allColumns', 'selectedCount', 'detailItem'))
             ->layout('components.app-layout')
             ->title('客户账户');
     }

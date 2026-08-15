@@ -45,9 +45,19 @@ class MerchantList extends Component
     public int $formStatus = 1;
     public string $formRemark = '';
 
+    // 详情弹窗
+    public bool $showDetailModal = false;
+    public ?int $detailId = null;
+
     public function mount(): void
     {
         $this->initColumnVisibility();
+    }
+
+    public function openDetailModal(int $id): void
+    {
+        $this->detailId = $id;
+        $this->showDetailModal = true;
     }
 
     public function openEditModal(int $id): void
@@ -252,8 +262,9 @@ class MerchantList extends Component
         $merchants = $query->paginate(setting('per_page', 10));
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
+        $detailItem = $this->detailId ? Merchant::find($this->detailId) : null;
 
-        return view('livewire.org.merchant-list', compact('merchants', 'allColumns', 'selectedCount'))
+        return view('livewire.org.merchant-list', compact('merchants', 'allColumns', 'selectedCount', 'detailItem'))
             ->layout('components.app-layout')
             ->title('商家管理');
     }

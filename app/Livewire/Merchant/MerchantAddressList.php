@@ -26,6 +26,14 @@ class MerchantAddressList extends Component
 
     public string $search = '';
 
+    // 新建/编辑表单
+    public int $formMerchantId = 0;
+    public string $formContactName = '';
+    public string $formContactPhone = '';
+    public string $formAddress = '';
+    public int $formIsDefault = 0;
+    public int $formSort = 0;
+
     public function mount(): void
     {
         $this->initColumnVisibility();
@@ -115,6 +123,66 @@ class MerchantAddressList extends Component
         return $this->getExportQuery()->forPage($this->page, 20)->pluck('id')->toArray();
     }
 
+    public function openCreateModal(): void
+    {
+        $this->resetForm();
+        $this->showModal = true;
+    }
+
+    public function openEditModal(int $id): void
+    {
+        $item = MerchantAddress::findOrFail($id);
+        $this->editingId = $id;
+        $this->formMerchantId = $item->merchant_id;
+        $this->formContactName = $item->contact_name ?? '';
+        $this->formContactPhone = $item->contact_phone ?? '';
+        $this->formAddress = $item->address ?? '';
+        $this->formIsDefault = $item->is_default;
+        $this->formSort = $item->sort ?? 0;
+        $this->showModal = true;
+    }
+
+    public function save(): void
+    {
+        $this->validate([
+            'formMerchantId' => 'required|integer|exists:merchants,id',
+            'formContactName' => 'required|string|max:50',
+            'formContactPhone' => 'required|string|max:20',
+            'formAddress' => 'required|string|max:255',
+        ]);
+
+        $data = [
+            'merchant_id' => $this->formMerchantId,
+            'contact_name' => $this->formContactName,
+            'contact_phone' => $this->formContactPhone,
+            'address' => $this->formAddress,
+            'is_default' => $this->formIsDefault,
+            'sort' => $this->formSort,
+        ];
+
+        if ($this->editingId) {
+            MerchantAddress::findOrFail($this->editingId)->update($data);
+            $this->toastSuccess('地址已更新');
+        } else {
+            MerchantAddress::create($data);
+            $this->toastSuccess('地址已创建');
+        }
+
+        $this->showModal = false;
+        $this->resetForm();
+    }
+
+    public function resetForm(): void
+    {
+        $this->editingId = null;
+        $this->formMerchantId = 0;
+        $this->formContactName = '';
+        $this->formContactPhone = '';
+        $this->formAddress = '';
+        $this->formIsDefault = 0;
+        $this->formSort = 0;
+    }
+
     public function delete(): void
     {
         MerchantAddress::findOrFail($this->deletingId)->delete();
@@ -133,8 +201,12 @@ class MerchantAddressList extends Component
 
         $items = $query->paginate(setting('per_page', 10));
 
+        $items = $query->paginate(setting('per_page', 10));
+        $merchants = \App\Models\Merchant::orderBy('name')->get();
+
         return view('livewire.merchant.merchant-address-list', [
             'items' => $items,
+            'merchants' => $merchants,
             'allColumns' => $this->getAllColumns(),
             'selectedCount' => $this->getSelectedCount(),
         ])

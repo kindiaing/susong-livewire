@@ -12,6 +12,7 @@ use App\Livewire\Traits\WithListCrud;
 use App\Models\Merchant;
 use App\Models\Order;
 use App\Models\Receivable;
+use App\Models\ReceivablePayment;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -33,6 +34,16 @@ class ReceivableList extends Component
     public int $formOrderId = 0;
     public int $formMerchantId = 0;
     public string $formAmount = '';
+
+    // 部分收款弹窗
+    public bool $showReceiveModal = false;
+    public int $receiveId = 0;
+    public string $receiveAmount = '';
+    public string $receiveRemark = '';
+
+    // 详情弹窗
+    public bool $showDetailModal = false;
+    public ?int $detailId = null;
 
     public static array $statusMap = [
         1 => '未结算', 2 => '部分收款', 3 => '已结清',
@@ -128,6 +139,63 @@ class ReceivableList extends Component
         $this->resetForm();
     }
 
+    public function openReceiveModal(int $id): void
+    {
+        $item = Receivable::findOrFail($id);
+        if (in_array($item->status, [3, 5])) {
+            $this->toastError('已结清/已办结不可收款');
+            return;
+        }
+        $this->receiveId = $id;
+        $this->receiveAmount = '';
+        $this->receiveRemark = '';
+        $this->showReceiveModal = true;
+    }
+
+    public function submitReceive(): void
+    {
+        $this->validate([
+            'receiveAmount' => 'required|numeric|min:0.01',
+        ]);
+
+        $item = Receivable::findOrFail($this->receiveId);
+        $cents = money_to_cents($this->receiveAmount);
+
+        if ($cents <= 0) {
+            $this->toastError('收款金额必须大于0');
+            return;
+        }
+
+        $newReceived = $item->received_amount + $cents;
+        $newStatus = $newReceived >= $item->adjusted_amount ? 3 : 2;
+
+        $item->update([
+            'received_amount' => $newReceived,
+            'status' => $newStatus,
+            'settled_at' => $newStatus === 3 ? now() : null,
+        ]);
+
+        // 创建收款记录
+        ReceivablePayment::create([
+            'receivable_id' => $item->id,
+            'amount' => $cents,
+            'payment_method' => ReceivablePayment::METHOD_MANUAL,
+            'operator_id' => auth()->id(),
+            'approval_status' => ReceivablePayment::APPROVAL_APPROVED,
+            'remark' => $this->receiveRemark ?: null,
+        ]);
+
+        $this->toastSuccess($newStatus === 3 ? '已结清' : '部分收款已确认');
+        $this->showReceiveModal = false;
+        $this->receiveId = 0;
+    }
+
+    public function openDetailModal(int $id): void
+    {
+        $this->detailId = $id;
+        $this->showDetailModal = true;
+    }
+
     public function confirmReceived(int $id): void
     {
         $item = Receivable::findOrFail($id);
@@ -151,7 +219,7 @@ class ReceivableList extends Component
         $this->deletingId = null;
     }
 
-    private function resetForm(): void
+    public function resetForm(): void
     {
         $this->editingId = null;
         $this->formOrderId = 0;
@@ -175,8 +243,11 @@ class ReceivableList extends Component
         $orders = Order::orderBy('id', 'desc')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
+        $statusMap = self::$statusMap;
+        $statusColorMap = self::$statusColorMap;
+        $detailItem = $this->detailId ? Receivable::with(['order', 'merchant', 'payments'])->find($this->detailId) : null;
 
-        return view('livewire.finance.receivable-list', compact('items', 'merchants', 'orders', 'allColumns', 'selectedCount'))
+        return view('livewire.finance.receivable-list', compact('items', 'merchants', 'orders', 'allColumns', 'selectedCount', 'statusMap', 'statusColorMap', 'detailItem'))
             ->layout('components.app-layout')
             ->title('应收账款');
     }

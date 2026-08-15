@@ -10,6 +10,7 @@ use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
 use App\Livewire\Traits\WithListCrud;
 use App\Models\PurchaseOrder;
+use App\Models\SettlementPayment;
 use App\Models\Supplier;
 use App\Models\SupplierSettlement;
 use Livewire\Component;
@@ -35,6 +36,16 @@ class SupplierSettlementList extends Component
     public string $formAmount = '';
     public string $formSettlementDate = '';
     public string $formNote = '';
+
+    // 部分付款弹窗
+    public bool $showPaymentModal = false;
+    public int $paymentSettlementId = 0;
+    public string $paymentAmount = '';
+    public string $paymentRemark = '';
+
+    // 详情弹窗
+    public bool $showDetailModal = false;
+    public ?int $detailId = null;
 
     public static array $statusMap = [
         1 => '待结算', 2 => '部分付款', 3 => '已结清', 4 => '已办结',
@@ -132,6 +143,65 @@ class SupplierSettlementList extends Component
         $this->resetForm();
     }
 
+    public function openPartialPayment(int $id): void
+    {
+        $item = SupplierSettlement::findOrFail($id);
+        if ($item->status !== 1 && $item->status !== 2) {
+            $this->toastError('仅待结算/部分付款状态可操作');
+            return;
+        }
+        $this->paymentSettlementId = $id;
+        $this->paymentAmount = '';
+        $this->paymentRemark = '';
+        $this->showPaymentModal = true;
+    }
+
+    public function submitPartialPayment(): void
+    {
+        $this->validate([
+            'paymentAmount' => 'required|numeric|min:0.01',
+        ]);
+
+        $item = SupplierSettlement::findOrFail($this->paymentSettlementId);
+        $cents = money_to_cents($this->paymentAmount);
+
+        if ($cents <= 0) {
+            $this->toastError('付款金额必须大于0');
+            return;
+        }
+
+        $newPaidAmount = $item->paid_amount + $cents;
+        $newStatus = $newPaidAmount >= $item->payable_amount ? 3 : 2;
+
+        $item->update([
+            'paid_amount' => $newPaidAmount,
+            'status' => $newStatus,
+            'settled_at' => $newStatus === 3 ? now() : null,
+        ]);
+
+        // 同时创建付款记录
+        SettlementPayment::create([
+            'settlement_id' => $item->id,
+            'amount' => $cents,
+            'payment_method' => SettlementPayment::METHOD_MANUAL,
+            'operator_id' => auth()->id(),
+            'approval_status' => SettlementPayment::APPROVAL_APPROVED,
+            'remark' => $this->paymentRemark ?: null,
+        ]);
+
+        $this->toastSuccess($newStatus === 3 ? '结算已结清' : '部分付款已确认');
+        $this->showPaymentModal = false;
+        $this->paymentSettlementId = 0;
+        $this->paymentAmount = '';
+        $this->paymentRemark = '';
+    }
+
+    public function openDetailModal(int $id): void
+    {
+        $this->detailId = $id;
+        $this->showDetailModal = true;
+    }
+
     public function confirmPayment(int $id): void
     {
         $item = SupplierSettlement::findOrFail($id);
@@ -151,7 +221,7 @@ class SupplierSettlementList extends Component
         $this->deletingId = null;
     }
 
-    private function resetForm(): void
+    public function resetForm(): void
     {
         $this->editingId = null;
         $this->formSupplierId = 0;
@@ -177,8 +247,11 @@ class SupplierSettlementList extends Component
         $purchaseOrders = PurchaseOrder::orderBy('id', 'desc')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
+        $statusMap = self::$statusMap;
+        $statusColorMap = self::$statusColorMap;
+        $detailItem = $this->detailId ? SupplierSettlement::with(['supplier', 'purchaseOrder', 'payments'])->find($this->detailId) : null;
 
-        return view('livewire.finance.supplier-settlement-list', compact('items', 'suppliers', 'purchaseOrders', 'allColumns', 'selectedCount'))
+        return view('livewire.finance.supplier-settlement-list', compact('items', 'suppliers', 'purchaseOrders', 'allColumns', 'selectedCount', 'statusMap', 'statusColorMap', 'detailItem'))
             ->layout('components.app-layout')
             ->title('供应商结算');
     }

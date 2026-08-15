@@ -107,6 +107,12 @@
                     @endswitch
                 @endforeach
                 <div class="flex items-center gap-2">
+                    <button type="button" wire:click="openDetailModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="详情"><x-ui.icon name="eye" class="w-3.5 h-3.5" /></button>
+                    @can('finance.invoice.edit')
+                    @if($item->status === 1)
+                    <button type="button" wire:click="openEditModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
+                    @endif
+                    @endcan
                     @can('finance.invoice.create')
                     @if($item->status === 1)
                     <button type="button" wire:click="issue({{ $item->id }})" class="text-green-600 hover:text-green-700 text-sm">开具</button>
@@ -135,7 +141,7 @@
         <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-foreground">新增发票</h2>
+                <h2 class="text-lg font-semibold text-foreground">{{ $editingId ? '编辑发票' : '新增发票' }}</h2>
                 <button type="button" wire:click="closeModal" class="text-muted-foreground hover:text-foreground transition-colors">
                     <x-ui.icon name="x-mark" class="w-5 h-5" />
                 </button>
@@ -177,13 +183,41 @@
             </div>
             <div class="flex justify-end gap-3 mt-6">
                 <button type="button" wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button type="button" wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
+                <button type="button" wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">{{ $editingId ? '更新' : '保存' }}</button>
             </div>
         </div>
     </div>
     @endif
 
-    {{-- 删除确认弹窗 --}}
+    {{-- 详情弹窗 --}}
+    @if($showDetailModal && $detailItem)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true" wire:click="showDetailModal = false"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">发票详情</h2>
+                <button type="button" wire:click="showDetailModal = false" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
+            <div class="space-y-3 text-sm">
+                <div class="flex"><span class="w-24 text-muted-foreground">发票号</span><span class="text-foreground font-mono">{{ $detailItem->invoice_no ?? '-' }}</span></div>
+                <div class="flex"><span class="w-24 text-muted-foreground">类型</span><span class="text-foreground">{{ $typeMap[$detailItem->type] ?? '-' }}</span></div>
+                <div class="flex"><span class="w-24 text-muted-foreground">商家</span><span class="text-foreground">{{ $detailItem->merchant?->name ?? '-' }}</span></div>
+                <div class="flex"><span class="w-24 text-muted-foreground">金额</span><span class="text-foreground">{{ money_format($detailItem->amount) }}</span></div>
+                <div class="flex"><span class="w-24 text-muted-foreground">抬头</span><span class="text-foreground">{{ $detailItem->title ?? '-' }}</span></div>
+                <div class="flex"><span class="w-24 text-muted-foreground">税号</span><span class="text-foreground">{{ $detailItem->tax_no ?? '-' }}</span></div>
+                <div class="flex"><span class="w-24 text-muted-foreground">状态</span><span class="text-foreground">{{ $statusMap[$detailItem->status] ?? '-' }}</span></div>
+                <div class="flex"><span class="w-24 text-muted-foreground">开具时间</span><span class="text-foreground">{{ $detailItem->issued_at ?? '-' }}</span></div>
+                <div class="flex"><span class="w-24 text-muted-foreground">寄出时间</span><span class="text-foreground">{{ $detailItem->sent_at ?? '-' }}</span></div>
+                <div class="flex"><span class="w-24 text-muted-foreground">创建时间</span><span class="text-foreground">{{ $detailItem->created_at?->format('Y-m-d H:i') }}</span></div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" wire:click="showDetailModal = false" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">关闭</button>
+            </div>
+        </div>
+    </div>
+    @endif
 
     @include('partials.column-modal')
     @include('partials.export-modal')
