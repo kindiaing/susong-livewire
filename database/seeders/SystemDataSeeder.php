@@ -13,7 +13,7 @@ use Illuminate\Database\Seeder;
  * - 确保 9 个系统角色存在
  * - 创建权限树（模块 → 页面 → 按钮），三级格式命名（模块.页面.动作）
  * - 每个页面级权限自动生成对应的 .view 页面访问权限
- * - 为 seeding 账户分配 super_admin 角色 + 全部权限
+ * - 为首个注册用户分配 super_admin 角色 + 全部权限
  *
  * 此 Seeder 由 DatabaseSeeder 自动调用，适用于生产环境。
  */
@@ -445,10 +445,11 @@ class SystemDataSeeder extends Seeder
             }
         }
 
-        $seeding = \App\Models\User::where('username', 'seeding')->first();
-        if ($seeding) {
-            $seeding->assignRole('super_admin');
-            $seeding->syncPermissions(Permission::all());
+        // 第一个注册用户自动分配 super_admin 角色（不硬编码 username，适配任意部署）
+        $firstUser = \App\Models\User::oldest()->first();
+        if ($firstUser) {
+            $firstUser->assignRole('super_admin');
+            $firstUser->syncPermissions(Permission::all());
         }
     }
 
