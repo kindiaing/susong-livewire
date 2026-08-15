@@ -61,7 +61,7 @@ class LossOrderService
 
             foreach ($discrepancyItems as $item) {
                 $costPrice = $item->actual_price ?: $item->price;
-                $lossAmount = intdiv($item->discrepancy_quantity * $costPrice, 1000);
+                $lossAmount = $item->discrepancy_quantity * $costPrice;
 
                 LossOrderItem::create([
                     'loss_order_id' => $lossOrder->id,
@@ -118,7 +118,7 @@ class LossOrderService
             foreach ($items as $item) {
                 $quantity = (int) $item['quantity'];
                 $costPrice = (int) $item['cost_price'];
-                $lossAmount = intdiv($quantity * $costPrice, 1000);
+                $lossAmount = $quantity * $costPrice;
 
                 LossOrderItem::create([
                     'loss_order_id' => $lossOrder->id,

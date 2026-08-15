@@ -81,7 +81,7 @@ class PurchaseService
                         ->first();
 
                     $price = $skuSupplier?->pivot?->purchase_price ?? $item->sku->purchase_price ?? 0;
-                    $amount = intdiv($item->quantity * $price, 1000);
+                    $amount = $item->quantity * $price;
 
                     PurchaseOrderItem::create([
                         'purchase_order_id' => $order->id,
@@ -183,7 +183,7 @@ class PurchaseService
                 $orderItem = PurchaseOrderItem::findOrFail($item['id']);
                 $actualQuantity = (int) $item['actual_quantity'];
                 $actualPrice = (int) ($item['actual_price'] ?? $orderItem->price);
-                $actualAmount = intdiv($actualQuantity * $actualPrice, 1000);
+                $actualAmount = $actualQuantity * $actualPrice;
 
                 // 计算差异数量（采购数量 - 实际入库数量）
                 $discrepancyQuantity = max(0, $orderItem->quantity - $actualQuantity);
@@ -304,7 +304,7 @@ class PurchaseService
         }
 
         $strategyPrice = $extra['strategy_price'] ?? 0;
-        $strategyAmount = $strategyPrice > 0 ? intdiv($quantity * $strategyPrice, 1000) : 0;
+        $strategyAmount = $strategyPrice > 0 ? $quantity * $strategyPrice : 0;
 
         $item = PurchaseOrderItem::create([
             'purchase_order_id' => $order->id,
@@ -313,7 +313,7 @@ class PurchaseService
             'unit_id' => $extra['unit_id'] ?? null,
             'unit_quantity' => $extra['unit_quantity'] ?? null,
             'price' => $price,
-            'amount' => intdiv($quantity * $price, 1000),
+            'amount' => $quantity * $price,
             'actual_quantity' => 0,
             'actual_price' => 0,
             'actual_amount' => 0,
@@ -354,12 +354,12 @@ class PurchaseService
         if (isset($data['quantity'])) $updateData['quantity'] = $data['quantity'];
         if (isset($data['price'])) {
             $updateData['price'] = $data['price'];
-            $updateData['amount'] = intdiv(($updateData['quantity'] ?? $item->quantity) * $data['price'], 1000);
+            $updateData['amount'] = ($updateData['quantity'] ?? $item->quantity) * $data['price'];
         }
         if (array_key_exists('strategy_price', $data)) {
             $updateData['strategy_price'] = $data['strategy_price'];
             $qty = $updateData['quantity'] ?? $item->quantity;
-            $updateData['strategy_amount'] = $data['strategy_price'] > 0 ? intdiv($qty * $data['strategy_price'], 1000) : 0;
+            $updateData['strategy_amount'] = $data['strategy_price'] > 0 ? $qty * $data['strategy_price'] : 0;
         }
         if (array_key_exists('remark', $data)) $updateData['remark'] = $data['remark'];
         if (array_key_exists('unit_id', $data)) $updateData['unit_id'] = $data['unit_id'];
