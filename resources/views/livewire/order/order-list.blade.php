@@ -80,7 +80,9 @@
                  style="grid-template-columns: {{ $gridCols }}"
                  wire:key="order-{{ $order->id }}">
                 <div><input type="checkbox" value="{{ $order->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm font-mono font-medium text-foreground truncate">{{ $order->order_no }}</div>
+                <div class="text-sm font-mono font-medium truncate">
+                    <a href="{{ route('orders.detail', $order->id) }}" class="text-blue-600 hover:underline">{{ $order->order_no }}</a>
+                </div>
                 @foreach($visibleCols as $col)
                     @switch($col['key'])
                         @case('id')
@@ -121,7 +123,6 @@
                     @endswitch
                 @endforeach
                 <div class="flex items-center gap-2">
-                    <a href="{{ route('orders.detail', $order->id) }}" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="详情"><x-ui.icon name="eye" class="w-3.5 h-3.5" /></a>
                     @can('order.order.edit')
                     <button type="button" wire:click="openEditModal({{ $order->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
                     @endcan

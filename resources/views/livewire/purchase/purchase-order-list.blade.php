@@ -66,7 +66,7 @@
                         @switch($col['key'])
                             @case('order_no')
                                 <td class="px-4 py-2">
-                                    <a href="{{ route('purchase-orders.detail', $order->id) }}" class="font-mono text-blue-600 hover:text-blue-700">{{ $order->order_no }}</a>
+                                    <a href="{{ route('purchase-orders.detail', $order->id) }}" class="font-mono text-blue-600 hover:underline">{{ $order->order_no }}</a>
                                 </td>
                                 @break
                             @case('supplier_id')
@@ -93,10 +93,6 @@
                     @endforeach
                     <td class="px-4 py-2 text-right">
                         <div class="inline-flex items-center gap-0.5">
-                            {{-- 详情 --}}
-                            @can('purchase.purchase-order.view')
-                            <a href="{{ route('purchase-orders.detail', $order->id) }}" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="详情"><x-ui.icon name="eye" class="w-3.5 h-3.5" /></a>
-                            @endcan
                             {{-- 编辑 --}}
                             @can('purchase.purchase-order.edit')
                             <button type="button" wire:click="openEditModal({{ $order->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>

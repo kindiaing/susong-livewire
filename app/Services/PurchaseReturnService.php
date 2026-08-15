@@ -68,7 +68,7 @@ class PurchaseReturnService
                 }
 
                 $price = $orderItem->actual_price ?: $orderItem->price;
-                $amount = intdiv($quantity * $price, 1000);
+                $amount = $quantity * $price;
 
                 PurchaseReturnItem::create([
                     'purchase_return_id' => $return->id,
@@ -136,7 +136,7 @@ class PurchaseReturnService
                     ? ((int) ($actualItems[$item->id]['actual_price'] ?? $item->price))
                     : $item->price;
 
-                $actualAmount = intdiv($actualQuantity * $actualPrice, 1000);
+                $actualAmount = $actualQuantity * $actualPrice;
 
                 // 更新明细实际出库数据
                 $item->update([

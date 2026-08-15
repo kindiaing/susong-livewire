@@ -74,7 +74,7 @@
                     @if($route->color)
                     <span class="inline-block w-3 h-3 rounded-full flex-shrink-0" style="background-color: {{ $route->color }}"></span>
                     @endif
-                    <a href="{{ route('delivery-routes.detail', $route->id) }}" class="text-sm font-medium text-foreground hover:text-blue-600 transition-colors">{{ $route->name }}</a>
+                    <a href="{{ route('delivery-routes.detail', $route->id) }}" class="text-sm font-medium text-blue-600 hover:underline">{{ $route->name }}</a>
                 </div>
                 @foreach($visibleCols as $col)
                     @switch($col['key'])
@@ -123,9 +123,6 @@
                     @endswitch
                 @endforeach
                 <div class="flex items-center gap-2">
-                    <a href="{{ route('delivery-routes.detail', $route->id) }}" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="详情">
-                        <x-ui.icon name="eye" class="w-3.5 h-3.5" />
-                    </a>
                     @can('delivery.route.edit')
                     <button type="button" wire:click="openEditModal({{ $route->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
                     @endcan
