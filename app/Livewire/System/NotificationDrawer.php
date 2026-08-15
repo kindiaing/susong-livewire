@@ -10,6 +10,13 @@ class NotificationDrawer extends Component
     public string $activeTab = '全部';
     public int $unreadCount = 0;
 
+    /**
+     * 前端可监听的 Livewire 事件列表
+     */
+    protected $listeners = [
+        'notification-received' => 'handleNotificationReceived',
+    ];
+
     public function mount(): void
     {
         $this->updateUnreadCount();
@@ -59,6 +66,16 @@ class NotificationDrawer extends Component
     public function setTab(string $tab): void
     {
         $this->activeTab = $tab;
+    }
+
+    /**
+     * 由前端 Echo 收到 Reverb 推送后通过 $dispatch 触发
+     * 刷新通知列表和未读计数
+     */
+    public function handleNotificationReceived(): void
+    {
+        $this->updateUnreadCount();
+        // Livewire 4 会自动重新渲染，通知列表通过 computed property 自动刷新
     }
 
     public function render()

@@ -11,6 +11,7 @@ use App\Livewire\Traits\WithToast;
 use App\Livewire\Traits\WithListCrud;
 use App\Models\Merchant;
 use App\Models\Recharge;
+use App\Services\NotificationService;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -172,6 +173,16 @@ class RechargeList extends Component
             return;
         }
         $item->update(['status' => 2]);
+
+        // 通知商家：充值到账
+        if ($item->merchant_id) {
+            app(NotificationService::class)->rechargeApproved(
+                $item->merchant_id,
+                $item->transaction_no,
+                money_format($item->amount),
+            );
+        }
+
         $this->toastSuccess('充值已确认成功');
     }
 

@@ -13,6 +13,7 @@ use App\Models\PurchaseOrder;
 use App\Models\SettlementPayment;
 use App\Models\Supplier;
 use App\Models\SupplierSettlement;
+use App\Services\NotificationService;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -190,6 +191,16 @@ class SupplierSettlementList extends Component
         ]);
 
         $this->toastSuccess($newStatus === 3 ? '结算已结清' : '部分付款已确认');
+
+        // 通知当前用户：结算状态变更
+        if ($newStatus === 3) {
+            app(NotificationService::class)->settlementCompleted(
+                auth()->id(),
+                $item->settlement_no,
+                money_format($item->payable_amount),
+            );
+        }
+
         $this->showPaymentModal = false;
         $this->paymentSettlementId = 0;
         $this->paymentAmount = '';

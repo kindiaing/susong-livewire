@@ -13,6 +13,7 @@ use App\Models\Merchant;
 use App\Models\Order;
 use App\Models\Receivable;
 use App\Models\ReceivablePayment;
+use App\Services\NotificationService;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -186,6 +187,16 @@ class ReceivableList extends Component
         ]);
 
         $this->toastSuccess($newStatus === 3 ? '已结清' : '部分收款已确认');
+
+        // 通知当前用户：收款确认
+        if ($newStatus === 3) {
+            app(NotificationService::class)->receivableCollected(
+                auth()->id(),
+                $item->receivable_no,
+                money_format($item->adjusted_amount),
+            );
+        }
+
         $this->showReceiveModal = false;
         $this->receiveId = 0;
     }

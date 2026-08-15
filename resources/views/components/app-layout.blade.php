@@ -19,6 +19,8 @@
     @endphp
     <script>
         window.__UI_CLOSE_ON_OUTSIDE = {{ $uiCloseOnOutside ? 'true' : 'false' }};
+        // 注入 Laravel 用户信息供 Echo 认证使用
+        window.Laravel = { userId: {{ auth()->id() ?? 'null' }} };
     </script>
 </head>
 <body class="bg-background text-foreground min-h-screen font-sans">
