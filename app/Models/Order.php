@@ -209,10 +209,11 @@ class Order extends Model
 
     /**
      * 订单号生成
+     * 格式：ORD-YYYYMMDD-5位序号
      */
     public static function generateOrderNo(): string
     {
-        return 'ORD' . date('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+        return generate_sequence_no('ORD', 'orders', 'order_no');
     }
 
     /**

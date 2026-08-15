@@ -27,9 +27,9 @@ class PurchaseDemoSeeder extends Seeder
 
         // 采购单1：绿野蔬菜 - 已完成
         $po1Id = null;
-        if ($supplierGreen && ! DB::table('purchase_orders')->where('order_no', 'PO-20260725-001')->exists()) {
+        if ($supplierGreen && ! DB::table('purchase_orders')->where('order_no', 'PO-20260725-00001')->exists()) {
             $po1Id = DB::table('purchase_orders')->insertGetId([
-                'order_no' => 'PO-20260725-001',
+                'order_no' => 'PO-20260725-00001',
                 'supplier_id' => $supplierGreen->id,
                 'status' => 5,
                 'total_amount' => 450000,
@@ -64,9 +64,9 @@ class PurchaseDemoSeeder extends Seeder
         }
 
         // 采购单2：丰润肉业 - 备货中
-        if ($supplierMeat && ! DB::table('purchase_orders')->where('order_no', 'PO-20260728-002')->exists()) {
+        if ($supplierMeat && ! DB::table('purchase_orders')->where('order_no', 'PO-20260728-00002')->exists()) {
             $po2Id = DB::table('purchase_orders')->insertGetId([
-                'order_no' => 'PO-20260728-002',
+                'order_no' => 'PO-20260728-00002',
                 'supplier_id' => $supplierMeat->id,
                 'status' => 2,
                 'total_amount' => 260000,
@@ -110,13 +110,13 @@ class PurchaseDemoSeeder extends Seeder
     protected function seedPurchaseReturns(): void
     {
         $now = now();
-        $po1 = DB::table('purchase_orders')->where('order_no', 'PO-20260725-001')->first();
+        $po1 = DB::table('purchase_orders')->where('order_no', 'PO-20260725-00001')->first();
         $supplierGreen = DB::table('suppliers')->where('name', '绿野蔬菜种植基地')->first();
         $warehouse1 = DB::table('warehouses')->where('name', '总仓-农批市场')->first();
 
-        if ($po1 && $supplierGreen && $warehouse1 && ! DB::table('purchase_returns')->where('return_no', 'PR-20260728-001')->exists()) {
+        if ($po1 && $supplierGreen && $warehouse1 && ! DB::table('purchase_returns')->where('return_no', 'PR-20260728-00001')->exists()) {
             $returnId = DB::table('purchase_returns')->insertGetId([
-                'return_no' => 'PR-20260728-001',
+                'return_no' => 'PR-20260728-00001',
                 'purchase_order_id' => $po1->id,
                 'supplier_id' => $supplierGreen->id,
                 'warehouse_id' => $warehouse1->id,

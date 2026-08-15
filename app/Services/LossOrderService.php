@@ -249,9 +249,10 @@ class LossOrderService
 
     /**
      * 生成损耗单号
+     * 格式：LO-YYYYMMDD-5位序号
      */
     private function generateLossNo(): string
     {
-        return 'LO' . date('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+        return generate_sequence_no('LO', 'loss_orders', 'loss_no');
     }
 }

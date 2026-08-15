@@ -126,24 +126,11 @@ class DeliveryTask extends Model
 
     /**
      * 生成任务编号
-     * 格式：T-{线路编码}-{日期}-{序号} 如 T-E01-20260810-001
+     * 格式：T-YYYYMMDD-5位序号
      */
     public static function generateTaskNo(string $routeCode, ?string $date = null): string
     {
-        $date = $date ?? now()->format('Ymd');
-        $prefix = "T-{$routeCode}-{$date}-";
-
-        $lastTask = static::where('task_no', 'like', $prefix . '%')
-            ->orderBy('id', 'desc')
-            ->first();
-
-        $seq = 1;
-        if ($lastTask) {
-            $lastSeq = (int) substr($lastTask->task_no, -3);
-            $seq = $lastSeq + 1;
-        }
-
-        return $prefix . str_pad($seq, 3, '0', STR_PAD_LEFT);
+        return generate_sequence_no('T', 'delivery_tasks', 'task_no', $date ? date('Ymd', strtotime($date)) : null);
     }
 
     /**

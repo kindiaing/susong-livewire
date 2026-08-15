@@ -80,7 +80,7 @@ class LossOrderList extends Component
             $item->update($data);
             $this->toastSuccess('损耗单已更新');
         } else {
-            $data['loss_no'] = 'LO' . date('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+            $data['loss_no'] = generate_sequence_no('LO', 'loss_orders', 'loss_no');
             $data['total_amount'] = 0;
             $data['status'] = LossOrder::STATUS_PENDING;
             $data['approval_status'] = LossOrder::APPROVAL_PENDING;

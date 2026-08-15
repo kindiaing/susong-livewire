@@ -77,7 +77,7 @@ class PurchaseReturnList extends Component
             $item->update($data);
             $this->toastSuccess('退货单已更新');
         } else {
-            $data['return_no'] = 'PR' . date('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+            $data['return_no'] = generate_sequence_no('PR', 'purchase_returns', 'return_no');
             PurchaseReturn::create($data);
             $this->toastSuccess('退货单已创建');
         }

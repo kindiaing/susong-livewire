@@ -225,10 +225,11 @@ class PurchaseReturnService
 
     /**
      * 生成退货单号
+     * 格式：PR-YYYYMMDD-5位序号
      */
     private function generateReturnNo(): string
     {
-        return 'PR' . date('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+        return generate_sequence_no('PR', 'purchase_returns', 'return_no');
     }
 
     /**

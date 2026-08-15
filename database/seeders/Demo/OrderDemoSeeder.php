@@ -84,7 +84,7 @@ class OrderDemoSeeder extends Seeder
 
         $orders = [
             [
-                'order_no' => 'ORD-20260728-001', 'merchant' => $merchant1, 'batch' => 1,
+                'order_no' => 'ORD-20260728-00001', 'merchant' => $merchant1, 'batch' => 1,
                 'delivery_address' => '安徽省宿州市埇桥区人民路88号', 'contact_name' => '吴老板', 'contact_phone' => '15800000001',
                 'status' => 4, 'total_amount' => 23000, 'adjusted_amount' => 23000, 'final_amount' => 23000, 'payment_status' => 2, 'settlement_type' => 1,
                 'order_date' => $yesterday, 'delivery_date' => $today,
@@ -94,7 +94,7 @@ class OrderDemoSeeder extends Seeder
                 ],
             ],
             [
-                'order_no' => 'ORD-20260728-002', 'merchant' => $merchant2, 'batch' => 1,
+                'order_no' => 'ORD-20260728-00002', 'merchant' => $merchant2, 'batch' => 1,
                 'delivery_address' => '安徽省宿州市埇桥区汴河路56号', 'contact_name' => '冯老板', 'contact_phone' => '15800000003',
                 'status' => 2, 'total_amount' => 74500, 'adjusted_amount' => 74500, 'final_amount' => 0, 'payment_status' => 1, 'settlement_type' => 2,
                 'order_date' => $yesterday, 'delivery_date' => $today,
@@ -103,7 +103,7 @@ class OrderDemoSeeder extends Seeder
                 ],
             ],
             [
-                'order_no' => 'ORD-20260729-001', 'merchant' => $merchant3, 'batch' => 2,
+                'order_no' => 'ORD-20260729-00001', 'merchant' => $merchant3, 'batch' => 2,
                 'delivery_address' => '安徽省宿州市埇桥区淮海路120号', 'contact_name' => '郑老板', 'contact_phone' => '15800000002',
                 'status' => 1, 'total_amount' => 4025000, 'adjusted_amount' => 4025000, 'final_amount' => 0, 'payment_status' => 1, 'settlement_type' => 3,
                 'order_date' => $today, 'delivery_date' => $now->copy()->addDay()->toDateString(),
@@ -210,11 +210,11 @@ class OrderDemoSeeder extends Seeder
     protected function seedOrderReturns(): void
     {
         $now = now();
-        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-001')->first();
+        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-00001')->first();
 
-        if ($order1 && ! DB::table('order_returns')->where('return_no', 'OR-20260729-001')->exists()) {
+        if ($order1 && ! DB::table('order_returns')->where('return_no', 'RT-20260729-00001')->exists()) {
             $returnId = DB::table('order_returns')->insertGetId([
-                'return_no' => 'OR-20260729-001', 'order_id' => $order1->id, 'merchant_id' => $order1->merchant_id,
+                'return_no' => 'RT-20260729-00001', 'order_id' => $order1->id, 'merchant_id' => $order1->merchant_id,
                 'status' => 1, 'total_amount' => 6900, 'refund_amount' => 0,
                 'reason' => '土豆质量问题退货', 'operator_id' => DB::table('users')->where('username', 'operator1')->value('id'),
                 'created_at' => $now, 'updated_at' => $now,
