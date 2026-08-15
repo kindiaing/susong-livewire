@@ -1,9 +1,115 @@
 <div class="">
     {{-- 页面标题 --}}
     <div class="flex items-center justify-between mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-foreground">配送任务</h1>
-            <p class="text-muted-foreground mt-1">管理配送任务及状态流转</p>
+        <div class="flex items-center gap-3">
+            <div>
+                <h1 class="text-2xl font-bold text-foreground">配送任务</h1>
+                <p class="text-muted-foreground mt-1">配送全流程：待配送→已分配→配送中→已完成</p>
+            </div>
+
+            {{-- 状态流转 Hover Card --}}
+            <div x-data="{ show: false, timer: null, top: 0, left: 0 }"
+                 @mouseenter="timer = setTimeout(() => { $refs.card && (function(){ const r = $el.getBoundingClientRect(); top = r.bottom + 6; left = r.left; show = true })() }, 200)"
+                 @mouseleave="clearTimeout(timer); show = false"
+                 class="relative inline-flex items-center">
+                <div class="cursor-help inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
+                    <x-ui.icon name="arrow-path" class="w-3.5 h-3.5" />
+                    状态流转
+                </div>
+                <template x-teleport="body">
+                    <div x-show="show"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         x-cloak x-ref="card"
+                         @mouseenter="show = true; clearTimeout(timer)"
+                         @mouseleave="show = false"
+                         class="fixed z-50 w-96 rounded-lg border border-border bg-popover text-popover-foreground shadow-lg outline-none"
+                         :style="'top:' + top + 'px;left:' + left + 'px'">
+                        <div class="p-6">
+                            <div class="text-sm font-semibold text-foreground mb-3">配送任务状态流转</div>
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="inline-flex items-center rounded px-2.5 py-1 text-[11px] font-medium leading-none bg-yellow-100 text-yellow-700">1 待配送</span>
+                                <x-ui.icon name="chevron-right" class="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                                <span class="inline-flex items-center rounded px-2.5 py-1 text-[11px] font-medium leading-none bg-blue-100 text-blue-700">2 已分配</span>
+                                <x-ui.icon name="chevron-right" class="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                                <span class="inline-flex items-center rounded px-2.5 py-1 text-[11px] font-medium leading-none bg-orange-100 text-orange-700">3 配送中</span>
+                                <x-ui.icon name="chevron-right" class="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                                <span class="inline-flex items-center rounded px-2.5 py-1 text-[11px] font-medium leading-none bg-green-100 text-green-700">5 已完成</span>
+                            </div>
+                            <div class="mt-3 flex items-center gap-2">
+                                <span class="text-[11px] text-muted-foreground">待配送/已分配/配送中</span>
+                                <x-ui.icon name="chevron-right" class="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                                <span class="inline-flex items-center rounded px-2.5 py-1 text-[11px] font-medium leading-none bg-red-100 text-red-700">6 已作废</span>
+                            </div>
+                            <div class="mt-2">
+                                <span class="inline-flex items-center rounded px-2.5 py-1 text-[11px] font-medium leading-none bg-gray-100 text-gray-600">4 暂停</span>
+                                <span class="text-[11px] text-muted-foreground ml-2">配送中可暂停，暂停后继续配送</span>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            {{-- 流程说明 Hover Card --}}
+            <div x-data="{ show: false, timer: null, top: 0, left: 0 }"
+                 @mouseenter="timer = setTimeout(() => { $refs.card && (function(){ const r = $el.getBoundingClientRect(); top = r.bottom + 6; left = r.left; show = true })() }, 200)"
+                 @mouseleave="clearTimeout(timer); show = false"
+                 class="relative inline-flex items-center">
+                <div class="cursor-help inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground hover:text-foreground hover:bg-accent transition-colors">
+                    <x-ui.icon name="information-circle" class="w-3.5 h-3.5" />
+                    流程说明
+                </div>
+                <template x-teleport="body">
+                    <div x-show="show"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 translate-y-1"
+                         x-cloak x-ref="card"
+                         @mouseenter="show = true; clearTimeout(timer)"
+                         @mouseleave="show = false"
+                         class="fixed z-50 w-96 rounded-lg border border-border bg-popover text-popover-foreground shadow-lg outline-none"
+                         :style="'top:' + top + 'px;left:' + left + 'px'">
+                        <div class="p-6">
+                            <div class="text-sm font-semibold text-foreground mb-4">配送任务流程说明</div>
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-3">
+                                    <span class="inline-flex items-center justify-center rounded px-2.5 py-1 w-[60px] text-[11px] font-medium leading-none bg-yellow-100 text-yellow-700 shrink-0">待配送</span>
+                                    <span class="text-[11px] leading-snug text-muted-foreground">送货单生成配送任务，等待分配司机</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="inline-flex items-center justify-center rounded px-2.5 py-1 w-[60px] text-[11px] font-medium leading-none bg-blue-100 text-blue-700 shrink-0">已分配</span>
+                                    <span class="text-[11px] leading-snug text-muted-foreground">已分配司机和车辆，等待开始配送</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="inline-flex items-center justify-center rounded px-2.5 py-1 w-[60px] text-[11px] font-medium leading-none bg-orange-100 text-orange-700 shrink-0">配送中</span>
+                                    <span class="text-[11px] leading-snug text-muted-foreground">司机正在配送途中</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="inline-flex items-center justify-center rounded px-2.5 py-1 w-[60px] text-[11px] font-medium leading-none bg-gray-100 text-gray-600 shrink-0">暂停</span>
+                                    <span class="text-[11px] leading-snug text-muted-foreground">配送暂时中断，可恢复继续配送</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="inline-flex items-center justify-center rounded px-2.5 py-1 w-[60px] text-[11px] font-medium leading-none bg-green-100 text-green-700 shrink-0">已完成</span>
+                                    <span class="text-[11px] leading-snug text-muted-foreground">所有送货单已送达，任务完成</span>
+                                </div>
+                                <div class="border-t border-border pt-3 mt-1">
+                                    <div class="flex items-center gap-3">
+                                        <span class="inline-flex items-center justify-center rounded px-2.5 py-1 w-[60px] text-[11px] font-medium leading-none bg-red-100 text-red-700 shrink-0">已作废</span>
+                                        <span class="text-[11px] leading-snug text-muted-foreground">配送任务中途作废失效</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
         </div>
         @can('delivery.delivery-task.create')
         <button type="button" wire:click="openGenerateModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
