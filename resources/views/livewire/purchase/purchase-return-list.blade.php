@@ -64,7 +64,9 @@
                     @foreach($visibleCols as $col)
                         @switch($col['key'])
                             @case('return_no')
-                                <td class="px-4 py-2 font-medium text-foreground">{{ $item->return_no }}</td>
+                                <td class="px-4 py-2">
+                                    <a href="{{ route('purchase-returns.detail', $item->id) }}" class="font-mono text-blue-600 hover:underline">{{ $item->return_no }}</a>
+                                </td>
                                 @break
                             @case('purchase_order_id')
                                 <td class="px-4 py-2 text-foreground">{{ $item->purchaseOrder?->order_no ?? '-' }}</td>
@@ -93,10 +95,6 @@
                     @endforeach
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-1">
-                            {{-- 详情 --}}
-                            @can('purchase.purchase-return.view')
-                            <a href="{{ route('purchase-returns.detail', $item->id) }}" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="详情"><x-ui.icon name="eye" class="w-3.5 h-3.5" /></a>
-                            @endcan
                             {{-- 状态流转 --}}
                             @if($item->status === 1)
                                 <button type="button" wire:click="approveReturn({{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="审核"><x-ui.icon name="check" class="w-3.5 h-3.5" /></button>
