@@ -1,13 +1,3 @@
----
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: '46a27e00-5c19-41b3-af3e-3b032cb51019'
-  PropagateID: '46a27e00-5c19-41b3-af3e-3b032cb51019'
-  ReservedCode1: '89d02e6b-5571-4551-bd64-e8e5d531850a'
-  ReservedCode2: '89d02e6b-5571-4551-bd64-e8e5d531850a'
----
 
 # API 前后端接口文档
 

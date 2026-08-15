@@ -1,13 +1,3 @@
----
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: 'a6f672cc-4139-418e-bf13-229d12b0239c'
-  PropagateID: 'a6f672cc-4139-418e-bf13-229d12b0239c'
-  ReservedCode1: '2e8125f6-3005-4c59-91f1-7d65fd23a375'
-  ReservedCode2: '2e8125f6-3005-4c59-91f1-7d65fd23a375'
----
 
 # Setup 系统安装部署配置手册
 
