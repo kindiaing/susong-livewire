@@ -131,7 +131,7 @@ class AdminSeedCommand extends Command
         $this->newLine();
 
         $this->line('  <info>核心数据</info>');
-        $this->line('    system       SystemDataSeeder（9角色+140权限+seeding角色分配）');
+        $this->line('    system       SystemDataSeeder（9角色+140权限+首个用户角色分配）');
         $this->newLine();
 
         $this->line('  <info>测试数据（10 个模块）</info>');
