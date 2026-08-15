@@ -58,6 +58,11 @@ ehthumbs.db
 *.bkp
 *.bak
 *.tmp
+/storage/backups/
+
+# ---------- 截图文件（开发临时用） ----------
+*.png
+!public/images/*.png
 
 # ---------- 项目临时文件 ----------
 .temp/
