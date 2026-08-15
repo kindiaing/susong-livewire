@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('warehouse_id')->comment('仓库ID');
             $table->bigInteger('total_amount')->default(0)->comment('损耗总金额');
             $table->tinyInteger('loss_type')->unsigned()->default(1)->comment('主要损耗类型：1存储腐坏，2称重失水，3过期报废，4加工损耗，5盘点差异，6其他');
-            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待审核，2已通过，3已执行，4已关闭，9已取消');
+            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待审核，2已通过，3已执行，4已关闭，9已作废');
             $table->tinyInteger('approval_status')->unsigned()->default(1)->comment('审核状态：1待审核，2已通过，3已拒绝');
             $table->unsignedBigInteger('applicant_id')->nullable()->comment('申请人ID');
             $table->unsignedBigInteger('reviewer_id')->nullable()->comment('审核人ID');

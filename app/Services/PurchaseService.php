@@ -293,7 +293,7 @@ class PurchaseService
     public function addItem(PurchaseOrder $order, int $skuId, int $quantity, int $price, array $extra = []): PurchaseOrderItem
     {
         $editableStatuses = [PurchaseOrder::STATUS_PENDING, PurchaseOrder::STATUS_PREPARING];
-        $isSuperAdmin = Auth::check() && Auth::user()->hasRole('super_admin');
+        $isSuperAdmin = can_rollback_status();
 
         if (!$isSuperAdmin && !in_array($order->status, $editableStatuses)) {
             throw new \Exception('仅待接单/备货中状态可添加明细');
@@ -338,7 +338,7 @@ class PurchaseService
         $order = $item->purchaseOrder;
 
         $editableStatuses = [PurchaseOrder::STATUS_PENDING, PurchaseOrder::STATUS_PREPARING];
-        $isSuperAdmin = Auth::check() && Auth::user()->hasRole('super_admin');
+        $isSuperAdmin = can_rollback_status();
 
         if (!$isSuperAdmin && !in_array($order->status, $editableStatuses)) {
             throw new \Exception('仅待接单/备货中状态可编辑明细');
@@ -379,10 +379,10 @@ class PurchaseService
      */
     public function forceTransition(PurchaseOrder $order, int $toStatus): PurchaseOrder
     {
-        $isSuperAdmin = Auth::check() && Auth::user()->hasRole('super_admin');
+        $isSuperAdmin = can_rollback_status();
 
         if (!$isSuperAdmin) {
-            throw new \Exception('仅超级管理员可执行状态回退');
+            throw new \Exception('仅超级管理员或管理员可执行状态回退');
         }
 
         if ($order->status === PurchaseOrder::STATUS_CANCELLED) {
@@ -410,7 +410,7 @@ class PurchaseService
         $order = $item->purchaseOrder;
 
         $editableStatuses = [PurchaseOrder::STATUS_PENDING, PurchaseOrder::STATUS_PREPARING];
-        $isSuperAdmin = Auth::check() && Auth::user()->hasRole('super_admin');
+        $isSuperAdmin = can_rollback_status();
 
         if (!$isSuperAdmin && !in_array($order->status, $editableStatuses)) {
             throw new \Exception('仅待接单/备货中状态可删除明细');

@@ -18,6 +18,7 @@ class TestUsersDemoSeeder extends Seeder
     {
         $testUsers = [
             ['role' => 'super_admin', 'username' => 'superadmin', 'name' => '超级管理员', 'phone' => '13800000000', 'email' => 'superadmin@susong.test'],
+            ['role' => 'admin', 'username' => 'admin1', 'name' => '管理员', 'phone' => '13800000009', 'email' => 'admin@susong.test'],
             ['role' => 'operator', 'username' => 'operator1', 'name' => '张运营', 'phone' => '13800000001', 'email' => 'operator@susong.test'],
             ['role' => 'operator_manager', 'username' => 'ops_manager', 'name' => '李运营经理', 'phone' => '13800000002', 'email' => 'ops_manager@susong.test'],
             ['role' => 'finance', 'username' => 'finance1', 'name' => '王财务', 'phone' => '13800000003', 'email' => 'finance@susong.test'],

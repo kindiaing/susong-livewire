@@ -35,7 +35,7 @@ class OrderReturnList extends Component
 
     public static array $statusMap = [
         1 => '待审核', 2 => '已审核', 3 => '已退货',
-        4 => '退款完成', 9 => '取消',
+        4 => '退款完成', 9 => '已作废',
     ];
 
     public static array $statusColorMap = [

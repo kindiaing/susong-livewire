@@ -28,7 +28,7 @@
             <button type="button" wire:click="resumeDelivery" class="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">继续配送</button>
             @endif
             @if($task->canTransitionTo(\App\Models\DeliveryTask::STATUS_CANCELLED))
-            <button type="button" wire:click="cancelDelivery" class="rounded-md border border-orange-300 px-3 py-1.5 text-sm text-orange-600 hover:bg-orange-50 transition-colors">取消任务</button>
+            <button type="button" wire:click="cancelDelivery" class="rounded-md border border-orange-300 px-3 py-1.5 text-sm text-orange-600 hover:bg-orange-50 transition-colors">作废任务</button>
             @endif
         </div>
     </div>
@@ -195,7 +195,7 @@
                     <td class="px-4 py-2 text-right text-foreground">{{ $detail->total_quantity }}</td>
                     <td class="px-4 py-2 text-right text-foreground">{{ money_format($detail->order?->final_amount ?? 0) }}</td>
                     <td class="px-4 py-2 text-center">
-                        @php $detailStatusMap = [1 => '待配送', 2 => '配送中', 3 => '已送达', 4 => '已取消']; @endphp
+                        @php $detailStatusMap = [1 => '待配送', 2 => '配送中', 3 => '已送达', 4 => '已作废']; @endphp
                         @php $dsc = [1 => 'yellow', 2 => 'blue', 3 => 'green', 4 => 'red']; @endphp
                         @php $dc = $dsc[$detail->status] ?? 'gray'; @endphp
                         <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $dc }}-100 text-{{ $dc }}-700">{{ $detailStatusMap[$detail->status] ?? '-' }}</span>

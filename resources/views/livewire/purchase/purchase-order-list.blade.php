@@ -95,7 +95,9 @@
                         <div class="inline-flex items-center gap-0.5">
                             {{-- 编辑 --}}
                             @can('purchase.purchase-order.edit')
+                            @if(!in_array($order->status, [5, 9]))
                             <button type="button" wire:click="openEditModal({{ $order->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
+                            @endif
                             @endcan
                             {{-- 删除（未入库状态可删除） --}}
                             @can('purchase.purchase-order.delete')

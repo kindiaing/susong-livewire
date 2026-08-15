@@ -29,7 +29,7 @@
             <option value="2">已审核</option>
             <option value="3">已退货</option>
             <option value="4">退款完成</option>
-            <option value="9">取消</option>
+            <option value="9">已作废</option>
         </select>
         <div class="flex-1"></div>
         <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="adjustments" class="w-4 h-4" />列配置</button>
@@ -106,7 +106,9 @@
                 @endforeach
                 <div class="flex items-center gap-2">
                     @can('order.order-return.edit')
+                    @if(!in_array($item->status, [3, 4, 9]))
                     <button type="button" wire:click="openEditModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
+                    @endif
                     @endcan
                     @can('order.order-return.create')
                     @if($item->status === 1)

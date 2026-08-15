@@ -51,8 +51,8 @@ class RoleList extends Component
     public function openEditModal(int $id): void
     {
         $role = Role::findOrFail($id);
-        if ($role->name === 'super_admin') {
-            $this->toastError('超级管理员角色不可编辑');
+        if ($role->name === 'super_admin' || $role->name === 'admin') {
+            $this->toastError('该角色不可编辑');
             return;
         }
         $this->editingId = $id;
@@ -100,8 +100,8 @@ class RoleList extends Component
     public function delete(): void
     {
         $role = Role::findOrFail($this->deletingId);
-        if ($role->name === 'super_admin') {
-            $this->toastError('超级管理员角色不可删除');
+        if ($role->name === 'super_admin' || $role->name === 'admin') {
+            $this->toastError('该角色不可删除');
             $this->showDeleteConfirm = false;
             return;
         }

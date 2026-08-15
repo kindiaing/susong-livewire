@@ -20,7 +20,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $product_summary 商品摘要
  * @property int $total_quantity 应送总数量
  * @property float|null $total_weight 总重量（kg）
- * @property int $status 状态：1待分货 2已分货 3已签收 4已取消
+ * @property int $status 状态：1待分货 2已分货 3已签收 4已作废
  * @property \Carbon\Carbon|null $delivered_at 实际分货时间
  * @property string|null $delivery_method 确认方式
  * @property string|null $remark 备注
@@ -74,7 +74,7 @@ class DeliveryNote extends Model
             self::STATUS_PENDING => '待分货',
             self::STATUS_DELIVERED => '已分货',
             self::STATUS_SIGNED => '已签收',
-            self::STATUS_CANCELLED => '已取消',
+            self::STATUS_CANCELLED => '已作废',
         ];
     }
 

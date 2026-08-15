@@ -105,8 +105,8 @@ class UserList extends Component
     public function delete(): void
     {
         $user = User::findOrFail($this->deletingId);
-        if ($user->hasRole('super_admin')) {
-            $this->toastError('超级管理员不可删除');
+        if ($user->hasRole('super_admin') || $user->hasRole('admin')) {
+            $this->toastError('该用户不可删除');
             $this->showDeleteConfirm = false;
             return;
         }
@@ -124,8 +124,8 @@ class UserList extends Component
     public function toggleStatus(int $id): void
     {
         $user = User::findOrFail($id);
-        if ($user->hasRole('super_admin')) {
-            $this->toastError('超级管理员不可禁用');
+        if ($user->hasRole('super_admin') || $user->hasRole('admin')) {
+            $this->toastError('该用户不可禁用');
             return;
         }
         if ($user->id === auth()->id()) {

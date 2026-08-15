@@ -56,7 +56,7 @@ class DeliveryTaskList extends Component
 
     public static array $statusMap = [
         1 => '待配送', 2 => '已分配', 3 => '配送中',
-        4 => '暂停', 5 => '已完成', 6 => '已取消',
+        4 => '暂停', 5 => '已完成', 6 => '已作废',
     ];
 
     public static array $statusColorMap = [
@@ -442,11 +442,11 @@ class DeliveryTaskList extends Component
     {
         $task = DeliveryTask::findOrFail($id);
         if (!$task->canTransitionTo(DeliveryTask::STATUS_CANCELLED)) {
-            $this->toastError('当前状态不允许取消');
+            $this->toastError('当前状态不允许作废');
             return;
         }
         $task->update(['status' => DeliveryTask::STATUS_CANCELLED]);
-        $this->toastSuccess('配送任务已取消');
+        $this->toastSuccess('配送任务已作废');
     }
 
     public function delete(): void

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->unsignedBigInteger('purchase_order_id')->comment('关联采购单ID');
             $table->unsignedBigInteger('supplier_id')->comment('供应商ID');
             $table->unsignedBigInteger('warehouse_id')->comment('出库仓库ID');
-            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待审核，2已审核，3已出库，4完成，9取消');
+            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待审核，2已审核，3已出库，4完成，9已作废');
             $table->bigInteger('total_amount')->default(0)->comment('退货总金额');
             $table->bigInteger('actual_amount')->default(0)->comment('实际出库金额');
             $table->string('reason', 255)->nullable()->comment('退货原因');
@@ -62,7 +62,7 @@ return new class extends Migration
             $table->string('return_no', 50)->unique()->comment('退货单号');
             $table->unsignedBigInteger('order_id')->comment('关联订单ID');
             $table->unsignedBigInteger('merchant_id')->comment('商家ID');
-            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待审核，2已审核，3已退货，4退款完成，9取消');
+            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待审核，2已审核，3已退货，4退款完成，9已作废');
             $table->bigInteger('total_amount')->default(0)->comment('退货总金额');
             $table->bigInteger('refund_amount')->default(0)->comment('实际退款金额');
             $table->string('reason', 255)->nullable()->comment('退货原因');

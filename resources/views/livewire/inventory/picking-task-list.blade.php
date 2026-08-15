@@ -123,7 +123,9 @@
                 @endforeach
                 <div class="flex items-center gap-2">
                     @can('inventory.picking-task.edit')
+                    @if($item->status !== 3)
                     <button type="button" wire:click="openEditModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
+                    @endif
                     @endcan
                     @can('inventory.picking-task.delete')
                     @if($item->status === 1)

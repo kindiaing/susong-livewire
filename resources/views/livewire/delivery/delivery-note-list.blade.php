@@ -22,7 +22,7 @@
             <option value="1">待分货</option>
             <option value="2">已分货</option>
             <option value="3">已签收</option>
-            <option value="4">已取消</option>
+            <option value="4">已作废</option>
         </select>
         <select wire:model.live="filterMerchantId" class="flex h-9 w-40 rounded-md border border-input bg-background px-3 text-sm">
             <option value="0">全部商户</option>

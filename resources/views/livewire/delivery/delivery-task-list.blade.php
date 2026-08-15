@@ -30,7 +30,7 @@
             <option value="3">配送中</option>
             <option value="4">暂停</option>
             <option value="5">已完成</option>
-            <option value="6">已取消</option>
+            <option value="6">已作废</option>
         </select>
         <select wire:model.live="filterRouteId" class="flex h-9 w-40 rounded-md border border-input bg-background px-3 text-sm">
             <option value="0">全部线路</option>
@@ -143,7 +143,9 @@
                 @endforeach
                 <div class="flex items-center gap-2">
                     @can('delivery.delivery-task.edit')
+                    @if(!in_array($item->status, [5, 6]))
                     <button type="button" wire:click="openEditModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
+                    @endif
                     @endcan
                     @can('delivery.delivery-task.create')
                     @if(in_array($item->status, [1, 2]))
@@ -157,7 +159,7 @@
                     @endcan
                     @can('delivery.delivery-task.create')
                     @if($item->canTransitionTo(\App\Models\DeliveryTask::STATUS_CANCELLED))
-                    <button type="button" wire:click="cancelDelivery({{ $item->id }})" class="text-orange-600 hover:text-orange-700 text-sm">取消</button>
+                    <button type="button" wire:click="cancelDelivery({{ $item->id }})" class="text-orange-600 hover:text-orange-700 text-sm">作废</button>
                     @endif
                     @endcan
                     @can('delivery.delivery-task.delete')

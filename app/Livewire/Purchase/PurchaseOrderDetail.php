@@ -68,7 +68,7 @@ class PurchaseOrderDetail extends Component
 
     public function getIsSuperAdminProperty(): bool
     {
-        return auth()->check() && auth()->user()->hasRole('super_admin');
+        return can_rollback_status();
     }
 
     public function loadOrder(int $id): void

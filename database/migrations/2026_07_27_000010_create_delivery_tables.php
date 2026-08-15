@@ -25,8 +25,8 @@ return new class extends Migration
             // 配送批次
             $table->tinyInteger('batch')->unsigned()->default(1)->comment('配送批次：1上午，2下午');
 
-            // 状态：1待配送 2已分配 3配送中 4暂停 5已完成 6已取消
-            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待配送 2已分配 3配送中 4暂停 5已完成 6已取消');
+            // 状态：1待配送 2已分配 3配送中 4暂停 5已完成 6已作废
+            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待配送 2已分配 3配送中 4暂停 5已完成 6已作废');
 
             // 时间
             $table->timestamp('planned_start_time')->nullable()->comment('计划出发时间');
@@ -77,8 +77,8 @@ return new class extends Migration
             $table->string('source_type', 20)->default('order')->comment('来源类型：order=订单 direct=直配单 merge=合并单');
             $table->unsignedBigInteger('source_id')->nullable()->comment('来源单据ID');
 
-            // 状态：1待配送 2配送中 3已送达 4已取消
-            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待配送 2配送中 3已送达 4已取消');
+            // 状态：1待配送 2配送中 3已送达 4已作废
+            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待配送 2配送中 3已送达 4已作废');
 
             // 配送确认
             $table->timestamp('delivered_at')->nullable()->comment('实际送达时间');
@@ -251,8 +251,8 @@ return new class extends Migration
             $table->bigInteger('total_quantity')->default(0)->comment('应送总数量');
             $table->decimal('total_weight', 10, 2)->nullable()->comment('总重量（kg）');
 
-            // 状态：1待分货 2已分货 3已签收 4已取消
-            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待分货，2已分货，3已签收，4已取消');
+            // 状态：1待分货 2已分货 3已签收 4已作废
+            $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待分货，2已分货，3已签收，4已作废');
 
             // 分货确认
             $table->timestamp('delivered_at')->nullable()->comment('实际分货/送达时间');

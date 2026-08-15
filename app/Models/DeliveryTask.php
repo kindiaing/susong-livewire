@@ -39,7 +39,7 @@ class DeliveryTask extends Model
     public const STATUS_IN_PROGRESS = 3;   // 配送中
     public const STATUS_PAUSED = 4;        // 暂停
     public const STATUS_COMPLETED = 5;     // 已完成
-    public const STATUS_CANCELLED = 6;     // 已取消
+    public const STATUS_CANCELLED = 6;     // 已作废
 
     // 配送批次常量
     public const BATCH_MORNING = 1;
@@ -99,7 +99,7 @@ class DeliveryTask extends Model
             self::STATUS_IN_PROGRESS => '配送中',
             self::STATUS_PAUSED => '暂停',
             self::STATUS_COMPLETED => '已完成',
-            self::STATUS_CANCELLED => '已取消',
+            self::STATUS_CANCELLED => '已作废',
         ];
     }
 

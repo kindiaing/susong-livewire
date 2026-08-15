@@ -49,7 +49,7 @@
             </thead>
             <tbody>
                 @forelse($roles as $role)
-                @php $isSuperAdmin = $role->name === 'super_admin' @endphp
+                @php $isProtectedRole = $role->name === 'super_admin' || $role->name === 'admin' @endphp
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="role-{{ $role->id }}">
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $role->id }}" wire:model.live="selectedIds" class="rounded" /></td>
                     <td class="px-4 py-2 font-medium text-foreground font-mono">{{ $role->name }}</td>
@@ -59,7 +59,7 @@
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-1">
                             @can('user.role.edit')
-                            @if(!$isSuperAdmin)
+                            @if(!$isProtectedRole)
                                 <button type="button" wire:click="openEditModal({{ $role->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
                             @endif
                             @endcan
@@ -71,7 +71,7 @@
                             </button>
                             @endcan
                             @can('user.role.delete')
-                            @if(!$isSuperAdmin)
+                            @if(!$isProtectedRole)
                                 <button type="button" wire:click="confirmDelete({{ $role->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
                             @endif
                             @endcan

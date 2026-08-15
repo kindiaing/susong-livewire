@@ -108,7 +108,9 @@
                             @endif
                             {{-- 编辑 --}}
                             @can('purchase.purchase-return.edit')
+                            @if(!in_array($item->status, [4, 9]))
                             <button type="button" wire:click="openEditModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
+                            @endif
                             @endcan
                             @can('purchase.purchase-return.delete')
                             <button type="button" wire:click="confirmDelete({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
