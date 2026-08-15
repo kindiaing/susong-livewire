@@ -119,7 +119,7 @@ class SupplierSettlementList extends Component
         SupplierSettlement::create([
             'supplier_id' => $this->formSupplierId,
             'purchase_order_id' => $this->formPurchaseOrderId,
-            'settlement_no' => 'SS' . now()->format('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT),
+            'settlement_no' => generate_sequence_no('SS', 'supplier_settlements', 'settlement_no'),
             'amount' => money_to_cents($this->formAmount),
             'status' => 1,
             'settlement_date' => $this->formSettlementDate,

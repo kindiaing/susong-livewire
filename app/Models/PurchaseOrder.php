@@ -160,10 +160,11 @@ class PurchaseOrder extends Model
 
     /**
      * 采购单号生成
+     * 格式：PO-YYYYMMDD-5位序号
      */
     public static function generateOrderNo(): string
     {
-        return 'PO' . date('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+        return generate_sequence_no('PO', 'purchase_orders', 'order_no');
     }
 
     /**

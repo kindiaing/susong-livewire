@@ -23,9 +23,9 @@ class LossDemoSeeder extends Seeder
         $warehouse1 = DB::table('warehouses')->where('name', '总仓-农批市场')->first();
         $operatorUser = DB::table('users')->where('username', 'operator1')->first();
 
-        if ($warehouse1 && ! DB::table('loss_orders')->where('loss_no', 'LOSS-20260728-001')->exists()) {
+        if ($warehouse1 && ! DB::table('loss_orders')->where('loss_no', 'LO-20260728-00001')->exists()) {
             $lossId = DB::table('loss_orders')->insertGetId([
-                'loss_no' => 'LOSS-20260728-001', 'warehouse_id' => $warehouse1->id,
+                'loss_no' => 'LO-20260728-00001', 'warehouse_id' => $warehouse1->id,
                 'total_amount' => 6400, 'loss_type' => 2, 'status' => 3, 'approval_status' => 2,
                 'applicant_id' => $operatorUser?->id, 'reviewer_id' => $operatorUser?->id,
                 'reviewed_at' => $now, 'executed_at' => $now,

@@ -117,7 +117,7 @@ class RechargeList extends Component
 
         Recharge::create([
             'merchant_id' => $this->formMerchantId,
-            'transaction_no' => 'RC' . now()->format('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT),
+            'transaction_no' => generate_sequence_no('RC', 'recharges', 'transaction_no'),
             'amount' => money_to_cents($this->formAmount),
             'payment_method' => $this->formPaymentMethod,
             'status' => 1,

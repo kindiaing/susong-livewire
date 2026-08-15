@@ -11,7 +11,7 @@ return new class extends Migration
         // ========== 配送任务表（大幅改造） ==========
         Schema::create('delivery_tasks', function (Blueprint $table) {
             $table->id()->comment('主键');
-            $table->string('task_no', 50)->unique()->comment('任务编号，如：T-E01-20260810-001');
+            $table->string('task_no', 50)->unique()->comment('任务编号，如：T-20260810-00001');
             $table->unsignedBigInteger('route_id')->comment('所属线路ID');
 
             // 日期信息
@@ -231,7 +231,7 @@ return new class extends Migration
         // ========== 送货单主表（按商户维度，司机分货依据） ==========
         Schema::create('delivery_notes', function (Blueprint $table) {
             $table->id()->comment('主键');
-            $table->string('note_no', 50)->unique()->comment('送货单编号，如：DN-E01-20260810-001');
+            $table->string('note_no', 50)->unique()->comment('送货单编号，如：DN-20260810-00001');
             $table->unsignedBigInteger('task_id')->comment('所属配送任务ID');
 
             // 商家信息

@@ -273,18 +273,9 @@ class PickingTaskList extends Component
         // 按商户分组生成送货单
         $merchantGroups = $orders->groupBy('merchant_id');
 
-        // 查询当天该线路已有的最大送货单序号，避免唯一约束冲突
-        $dateStr = date('Ymd', strtotime($this->genDeliveryDate));
-        $notePrefix = "DN-{$route->code}-{$dateStr}-";
-        $lastNote = DeliveryNote::where('note_no', 'like', $notePrefix . '%')
-            ->orderBy('id', 'desc')
-            ->first();
-        $merchantSeq = $lastNote ? ((int) substr($lastNote->note_no, -3)) + 1 : 1;
-
         foreach ($merchantGroups as $merchantId => $merchantOrders) {
             $merchant = $merchantOrders->first()->merchant;
-            $noteNo = self::generateNoteNo($route->code, $this->genDeliveryDate, $merchantSeq);
-            $merchantSeq++;
+            $noteNo = self::generateNoteNo($route->code, $this->genDeliveryDate, 0);
 
             // 收集该商户下所有订单的商品
             $merchantOrderIds = $merchantOrders->pluck('id')->toArray();
@@ -477,28 +468,14 @@ class PickingTaskList extends Component
 
     public static function generateTaskNo(string $routeCode, string $date): string
     {
-        $dateStr = date('Ymd', strtotime($date));
-        $prefix = "PK-{$routeCode}-{$dateStr}-";
-
-        $lastTask = PickingTask::where('task_no', 'like', $prefix . '%')
-            ->orderBy('id', 'desc')
-            ->first();
-
-        if ($lastTask) {
-            $lastSeq = (int) substr($lastTask->task_no, -3);
-            $nextSeq = $lastSeq + 1;
-        } else {
-            $nextSeq = 1;
-        }
-
-        return $prefix . str_pad((string) $nextSeq, 3, '0', STR_PAD_LEFT);
+        return generate_sequence_no('PK', 'picking_tasks', 'task_no', date('Ymd', strtotime($date)));
     }
 
     public static function generateNoteNo(string $routeCode, string $date, int $merchantSeq): string
     {
         $dateStr = date('Ymd', strtotime($date));
 
-        return "DN-{$routeCode}-{$dateStr}-" . str_pad((string) $merchantSeq, 3, '0', STR_PAD_LEFT);
+        return generate_sequence_no('DN', 'delivery_notes', 'note_no', $dateStr);
     }
 
     // ========== 查询与渲染 ==========

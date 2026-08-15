@@ -27,9 +27,9 @@ class FinanceDemoSeeder extends Seeder
         $operatorUser = DB::table('users')->where('username', 'operator1')->first();
 
         $recharges = [
-            ['merchant' => '味之初餐饮店', 'amount' => 5000000, 'payment_method' => 3, 'transaction_no' => 'RCH-20260720-001', 'status' => 2, 'approval_status' => 2],
-            ['merchant' => '家常菜馆',    'amount' => 3000000, 'payment_method' => 2, 'transaction_no' => 'RCH-20260722-001', 'status' => 2, 'approval_status' => 2],
-            ['merchant' => '鲜之味快餐店', 'amount' => 10000000, 'payment_method' => 3, 'transaction_no' => 'RCH-20260725-001', 'status' => 1, 'approval_status' => 1],
+            ['merchant' => '味之初餐饮店', 'amount' => 5000000, 'payment_method' => 3, 'transaction_no' => 'RC-20260720-00001', 'status' => 2, 'approval_status' => 2],
+            ['merchant' => '家常菜馆',    'amount' => 3000000, 'payment_method' => 2, 'transaction_no' => 'RC-20260722-00001', 'status' => 2, 'approval_status' => 2],
+            ['merchant' => '鲜之味快餐店', 'amount' => 10000000, 'payment_method' => 3, 'transaction_no' => 'RC-20260725-00001', 'status' => 1, 'approval_status' => 1],
         ];
 
         foreach ($recharges as $item) {
@@ -52,11 +52,11 @@ class FinanceDemoSeeder extends Seeder
         $now = now();
         $supplierGreen = DB::table('suppliers')->where('name', '绿野蔬菜种植基地')->first();
         $supplierMeat = DB::table('suppliers')->where('name', '丰润肉业有限公司')->first();
-        $po1 = DB::table('purchase_orders')->where('order_no', 'PO-20260725-001')->first();
+        $po1 = DB::table('purchase_orders')->where('order_no', 'PO-20260725-00001')->first();
 
-        if ($supplierGreen && ! DB::table('supplier_settlements')->where('settlement_no', 'SS-20260728-001')->exists()) {
+        if ($supplierGreen && ! DB::table('supplier_settlements')->where('settlement_no', 'SS-20260728-00001')->exists()) {
             $settlementId = DB::table('supplier_settlements')->insertGetId([
-                'settlement_no' => 'SS-20260728-001', 'supplier_id' => $supplierGreen->id,
+                'settlement_no' => 'SS-20260728-00001', 'supplier_id' => $supplierGreen->id,
                 'start_date' => '2026-07-01', 'end_date' => '2026-07-28',
                 'total_amount' => 440000, 'service_fee' => 5000, 'payable_amount' => 435000,
                 'return_amount' => 0, 'paid_amount' => 435000, 'status' => 3,
@@ -79,9 +79,9 @@ class FinanceDemoSeeder extends Seeder
             }
         }
 
-        if ($supplierMeat && ! DB::table('supplier_settlements')->where('settlement_no', 'SS-20260728-002')->exists()) {
+        if ($supplierMeat && ! DB::table('supplier_settlements')->where('settlement_no', 'SS-20260728-00002')->exists()) {
             DB::table('supplier_settlements')->insert([
-                'settlement_no' => 'SS-20260728-002', 'supplier_id' => $supplierMeat->id,
+                'settlement_no' => 'SS-20260728-00002', 'supplier_id' => $supplierMeat->id,
                 'start_date' => '2026-07-01', 'end_date' => '2026-07-28',
                 'total_amount' => 260000, 'service_fee' => 3000, 'payable_amount' => 257000,
                 'return_amount' => 0, 'paid_amount' => 0, 'status' => 1,
@@ -93,8 +93,8 @@ class FinanceDemoSeeder extends Seeder
     protected function seedReceivables(): void
     {
         $now = now();
-        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-001')->first();
-        $order2 = DB::table('orders')->where('order_no', 'ORD-20260728-002')->first();
+        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-00001')->first();
+        $order2 = DB::table('orders')->where('order_no', 'ORD-20260728-00002')->first();
 
         if ($order1 && ! DB::table('receivables')->where('receivable_no', 'RCV-20260728-001')->exists()) {
             $rcvId = DB::table('receivables')->insertGetId([
@@ -132,9 +132,9 @@ class FinanceDemoSeeder extends Seeder
         $now = now();
         $merchant1 = DB::table('merchants')->where('name', '味之初餐饮店')->first();
 
-        if ($merchant1 && ! DB::table('invoices')->where('invoice_no', 'INV-20260728-001')->exists()) {
+        if ($merchant1 && ! DB::table('invoices')->where('invoice_no', 'INV-20260728-00001')->exists()) {
             DB::table('invoices')->insert([
-                'invoice_no' => 'INV-20260728-001', 'type' => 1,
+                'invoice_no' => 'INV-20260728-00001', 'type' => 1,
                 'target_id' => $merchant1->id, 'title' => '味之初餐饮店',
                 'amount' => 23000, 'file_url' => '/uploads/invoices/demo-inv-001.pdf',
                 'status' => 2, 'applied_at' => $now, 'issued_at' => $now,
@@ -146,7 +146,7 @@ class FinanceDemoSeeder extends Seeder
     protected function seedCorrectionAuthorizations(): void
     {
         $now = now();
-        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-001')->first();
+        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-00001')->first();
         $operatorUser = DB::table('users')->where('username', 'operator1')->first();
 
         if ($order1 && ! DB::table('correction_authorizations')->where('order_id', $order1->id)->exists()) {

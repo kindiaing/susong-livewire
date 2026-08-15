@@ -227,3 +227,37 @@ function can_rollback_status($user = null): bool
     }
     return $user->hasRole('super_admin') || $user->hasRole('admin');
 }
+
+/**
+ * 生成业务单据编号（日期递增序号）
+ *
+ * 格式：{前缀}-{YYYYMMDD}-{5位序号}
+ * 示例：ORD-20260815-00001, PO-20260815-00003
+ *
+ * 序号按「前缀+日期」维度独立递增，每日从 1 开始。
+ * 通过 LIKE 查询当日最大序号 +1，保证递增且不碰撞。
+ *
+ * @param string $prefix   单据前缀（如 ORD/PO/PR/LO/RT/SS/RC/INV）
+ * @param string $table    数据表名（用于查询最大序号）
+ * @param string $column   编号字段名（如 order_no/return_no/loss_no）
+ * @param string|null $date 日期字符串（null=当天）
+ * @return string
+ */
+function generate_sequence_no(string $prefix, string $table, string $column, ?string $date = null): string
+{
+    $date = $date ?? now()->format('Ymd');
+    $prefixWithDate = "{$prefix}-{$date}-";
+
+    $lastNo = \DB::table($table)
+        ->where($column, 'like', $prefixWithDate . '%')
+        ->orderByDesc('id')
+        ->value($column);
+
+    $seq = 1;
+    if ($lastNo) {
+        $lastSeq = (int) substr($lastNo, -5);
+        $seq = $lastSeq + 1;
+    }
+
+    return $prefixWithDate . str_pad((string) $seq, 5, '0', STR_PAD_LEFT);
+}

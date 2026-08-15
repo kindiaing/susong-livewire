@@ -124,7 +124,7 @@ class InvoiceList extends Component
 
         Invoice::create([
             'merchant_id' => $this->formMerchantId,
-            'invoice_no' => 'INV' . now()->format('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT),
+            'invoice_no' => generate_sequence_no('INV', 'invoices', 'invoice_no'),
             'amount' => money_to_cents($this->formAmount),
             'type' => $this->formType,
             'title' => $this->formTitle,

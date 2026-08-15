@@ -37,9 +37,9 @@ class DeliveryDemoSeeder extends Seeder
         if (!$warehouse1) return;
 
         // 拣货任务1：已完成（北线，昨天）
-        if (!DB::table('picking_tasks')->where('task_no', 'PK-E01-20260810-001')->exists()) {
+        if (!DB::table('picking_tasks')->where('task_no', 'PK-20260810-00001')->exists()) {
             DB::table('picking_tasks')->insert([
-                'task_no' => 'PK-E01-20260810-001',
+                'task_no' => 'PK-20260810-00001',
                 'warehouse_id' => $warehouse1->id,
                 'route_id' => $route1?->id,
                 'delivery_date' => '2026-08-10',
@@ -56,9 +56,9 @@ class DeliveryDemoSeeder extends Seeder
         }
 
         // 拣货任务2：拣货中（北线，今天）
-        if (!DB::table('picking_tasks')->where('task_no', 'PK-E01-20260811-001')->exists()) {
+        if (!DB::table('picking_tasks')->where('task_no', 'PK-20260811-00001')->exists()) {
             DB::table('picking_tasks')->insert([
-                'task_no' => 'PK-E01-20260811-001',
+                'task_no' => 'PK-20260811-00001',
                 'warehouse_id' => $warehouse1->id,
                 'route_id' => $route1?->id,
                 'delivery_date' => '2026-08-11',
@@ -76,9 +76,9 @@ class DeliveryDemoSeeder extends Seeder
 
         // 拣货任务3：待分配（南线，今天）
         $route2 = DB::table('delivery_routes')->where('code', 'E02')->first();
-        if ($route2 && !DB::table('picking_tasks')->where('task_no', 'PK-E02-20260811-001')->exists()) {
+        if ($route2 && !DB::table('picking_tasks')->where('task_no', 'PK-20260811-00002')->exists()) {
             DB::table('picking_tasks')->insert([
-                'task_no' => 'PK-E02-20260811-001',
+                'task_no' => 'PK-20260811-00002',
                 'warehouse_id' => $warehouse1->id,
                 'route_id' => $route2->id,
                 'delivery_date' => '2026-08-11',
@@ -100,8 +100,8 @@ class DeliveryDemoSeeder extends Seeder
         $now = now();
 
         // ===== 拣货任务1（已完成）明细 =====
-        $pickingTask1 = DB::table('picking_tasks')->where('task_no', 'PK-E01-20260810-001')->first();
-        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-001')->first();
+        $pickingTask1 = DB::table('picking_tasks')->where('task_no', 'PK-20260810-00001')->first();
+        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-00001')->first();
 
         if ($pickingTask1 && $order1) {
             $merchant1 = DB::table('merchants')->where('id', $order1->merchant_id)->first();
@@ -136,8 +136,8 @@ class DeliveryDemoSeeder extends Seeder
         }
 
         // ===== 拣货任务2（拣货中）明细 =====
-        $pickingTask2 = DB::table('picking_tasks')->where('task_no', 'PK-E01-20260811-001')->first();
-        $order2 = DB::table('orders')->where('order_no', 'ORD-20260728-002')->first();
+        $pickingTask2 = DB::table('picking_tasks')->where('task_no', 'PK-20260811-00001')->first();
+        $order2 = DB::table('orders')->where('order_no', 'ORD-20260728-00002')->first();
 
         if ($pickingTask2 && $order2) {
             $product = DB::table('products')->where('name', '五花肉')->first();
@@ -170,12 +170,12 @@ class DeliveryDemoSeeder extends Seeder
         $now = now();
 
         // 送货单1：已签收（味之初，北线，昨天）
-        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-001')->first();
+        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-00001')->first();
         $merchant1 = $order1 ? DB::table('merchants')->where('id', $order1->merchant_id)->first() : null;
 
-        if ($order1 && $merchant1 && !DB::table('delivery_notes')->where('note_no', 'DN-E01-20260810-001')->exists()) {
+        if ($order1 && $merchant1 && !DB::table('delivery_notes')->where('note_no', 'DN-20260810-00001')->exists()) {
             DB::table('delivery_notes')->insert([
-                'note_no' => 'DN-E01-20260810-001',
+                'note_no' => 'DN-20260810-00001',
                 'task_id' => 0,
                 'merchant_id' => $merchant1->id,
                 'merchant_name' => $merchant1->name,
@@ -196,12 +196,12 @@ class DeliveryDemoSeeder extends Seeder
         }
 
         // 送货单2：已分货（家常菜馆，北线，昨天）
-        $order2 = DB::table('orders')->where('order_no', 'ORD-20260728-002')->first();
+        $order2 = DB::table('orders')->where('order_no', 'ORD-20260728-00002')->first();
         $merchant2 = $order2 ? DB::table('merchants')->where('id', $order2->merchant_id)->first() : null;
 
-        if ($order2 && $merchant2 && !DB::table('delivery_notes')->where('note_no', 'DN-E01-20260810-002')->exists()) {
+        if ($order2 && $merchant2 && !DB::table('delivery_notes')->where('note_no', 'DN-20260810-00002')->exists()) {
             DB::table('delivery_notes')->insert([
-                'note_no' => 'DN-E01-20260810-002',
+                'note_no' => 'DN-20260810-00002',
                 'task_id' => 0,
                 'merchant_id' => $merchant2->id,
                 'merchant_name' => $merchant2->name,
@@ -223,9 +223,9 @@ class DeliveryDemoSeeder extends Seeder
 
         // 送货单3：待分货（鲜之味快餐店，北线，今天）
         $merchant3 = DB::table('merchants')->where('name', '鲜之味快餐店')->first();
-        if ($merchant3 && !DB::table('delivery_notes')->where('note_no', 'DN-E01-20260811-001')->exists()) {
+        if ($merchant3 && !DB::table('delivery_notes')->where('note_no', 'DN-20260811-00001')->exists()) {
             DB::table('delivery_notes')->insert([
-                'note_no' => 'DN-E01-20260811-001',
+                'note_no' => 'DN-20260811-00001',
                 'task_id' => 0,
                 'merchant_id' => $merchant3->id,
                 'merchant_name' => $merchant3->name,
@@ -247,9 +247,9 @@ class DeliveryDemoSeeder extends Seeder
 
         // 送货单4：待分货（鑫鑫小吃店，南线，今天）
         $merchant4 = DB::table('merchants')->where('name', '鑫鑫小吃店')->first();
-        if ($merchant4 && !DB::table('delivery_notes')->where('note_no', 'DN-E02-20260811-001')->exists()) {
+        if ($merchant4 && !DB::table('delivery_notes')->where('note_no', 'DN-20260811-00002')->exists()) {
             DB::table('delivery_notes')->insert([
-                'note_no' => 'DN-E02-20260811-001',
+                'note_no' => 'DN-20260811-00002',
                 'task_id' => 0,
                 'merchant_id' => $merchant4->id,
                 'merchant_name' => $merchant4->name,
@@ -275,8 +275,8 @@ class DeliveryDemoSeeder extends Seeder
         $now = now();
 
         // 送货单1 明细（已签收）
-        $note1 = DB::table('delivery_notes')->where('note_no', 'DN-E01-20260810-001')->first();
-        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-001')->first();
+        $note1 = DB::table('delivery_notes')->where('note_no', 'DN-20260810-00001')->first();
+        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-00001')->first();
 
         if ($note1) {
             $items1 = [
@@ -308,8 +308,8 @@ class DeliveryDemoSeeder extends Seeder
         }
 
         // 送货单2 明细（已分货）
-        $note2 = DB::table('delivery_notes')->where('note_no', 'DN-E01-20260810-002')->first();
-        $order2 = DB::table('orders')->where('order_no', 'ORD-20260728-002')->first();
+        $note2 = DB::table('delivery_notes')->where('note_no', 'DN-20260810-00002')->first();
+        $order2 = DB::table('orders')->where('order_no', 'ORD-20260728-00002')->first();
 
         if ($note2) {
             $product = DB::table('products')->where('name', '五花肉')->first();
@@ -334,7 +334,7 @@ class DeliveryDemoSeeder extends Seeder
         }
 
         // 送货单3 明细（待分货）
-        $note3 = DB::table('delivery_notes')->where('note_no', 'DN-E01-20260811-001')->first();
+        $note3 = DB::table('delivery_notes')->where('note_no', 'DN-20260811-00001')->first();
         if ($note3) {
             $product = DB::table('products')->where('name', '鲜虾')->first();
             if ($product) {
@@ -358,7 +358,7 @@ class DeliveryDemoSeeder extends Seeder
         }
 
         // 送货单4 明细（待分货）
-        $note4 = DB::table('delivery_notes')->where('note_no', 'DN-E02-20260811-001')->first();
+        $note4 = DB::table('delivery_notes')->where('note_no', 'DN-20260811-00002')->first();
         if ($note4) {
             $product = DB::table('products')->where('name', '土豆')->first();
             if ($product) {
@@ -390,11 +390,11 @@ class DeliveryDemoSeeder extends Seeder
         $route1 = DB::table('delivery_routes')->where('code', 'E01')->first();
         $driver1 = DB::table('drivers')->where('phone', '13700000001')->first();
         $vehicle1 = DB::table('vehicles')->where('plate_number', '皖LT0001')->first();
-        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-001')->first();
+        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-00001')->first();
 
         if (!$route1) return;
 
-        $taskNo = 'T-E01-20260810-001';
+        $taskNo = 'T-20260810-00001';
 
         if (!DB::table('delivery_tasks')->where('task_no', $taskNo)->exists()) {
             $taskId = DB::table('delivery_tasks')->insertGetId([
@@ -475,7 +475,7 @@ class DeliveryDemoSeeder extends Seeder
             }
 
             // 家常菜馆的配送明细
-            $order2 = DB::table('orders')->where('order_no', 'ORD-20260728-002')->first();
+            $order2 = DB::table('orders')->where('order_no', 'ORD-20260728-00002')->first();
             if ($order2) {
                 $merchant2 = DB::table('merchants')->where('id', $order2->merchant_id)->first();
 
@@ -542,8 +542,8 @@ class DeliveryDemoSeeder extends Seeder
     protected function seedSignatures(): void
     {
         $now = now();
-        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-001')->first();
-        $task = DB::table('delivery_tasks')->where('task_no', 'T-E01-20260810-001')->first();
+        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-00001')->first();
+        $task = DB::table('delivery_tasks')->where('task_no', 'T-20260810-00001')->first();
 
         if ($order1 && $task && !DB::table('signatures')->where('order_id', $order1->id)->exists()) {
             DB::table('signatures')->insert([
@@ -557,7 +557,7 @@ class DeliveryDemoSeeder extends Seeder
     protected function seedTemperatures(): void
     {
         $now = now();
-        $task = DB::table('delivery_tasks')->where('task_no', 'T-E01-20260810-001')->first();
+        $task = DB::table('delivery_tasks')->where('task_no', 'T-20260810-00001')->first();
 
         if ($task && !DB::table('temperatures')->where('delivery_task_id', $task->id)->exists()) {
             DB::table('temperatures')->insert([
@@ -570,7 +570,7 @@ class DeliveryDemoSeeder extends Seeder
     protected function seedDiscrepancies(): void
     {
         $now = now();
-        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-001')->first();
+        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-00001')->first();
 
         if ($order1 && !DB::table('discrepancies')->where('order_id', $order1->id)->exists()) {
             $orderItem = DB::table('order_items')->where('order_id', $order1->id)->first();

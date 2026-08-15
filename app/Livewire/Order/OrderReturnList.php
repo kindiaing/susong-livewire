@@ -142,7 +142,7 @@ class OrderReturnList extends Component
                 'formReason' => 'required|string|max:255',
             ]);
             OrderReturn::create([
-                'return_no' => 'RT' . date('YmdHis') . str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT),
+                'return_no' => generate_sequence_no('RT', 'order_returns', 'return_no'),
                 'order_id' => $validated['formOrderId'],
                 'merchant_id' => $validated['formMerchantId'],
                 'reason' => $validated['formReason'],

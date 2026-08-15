@@ -51,7 +51,7 @@ class PriceDemoSeeder extends Seeder
     protected function seedPriceChangeLogs(): void
     {
         $now = now();
-        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-001')->first();
+        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-00001')->first();
         $operatorUser = DB::table('users')->where('username', 'operator1')->first();
 
         if ($order1 && ! DB::table('price_change_logs')->where('target_type', 1)->where('target_id', $order1->id)->exists()) {
@@ -68,7 +68,7 @@ class PriceDemoSeeder extends Seeder
     protected function seedPriceApportionments(): void
     {
         $now = now();
-        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-001')->first();
+        $order1 = DB::table('orders')->where('order_no', 'ORD-20260728-00001')->first();
 
         if ($order1 && ! DB::table('price_apportionments')->where('target_type', 1)->where('target_id', $order1->id)->exists()) {
             DB::table('price_apportionments')->insert([
