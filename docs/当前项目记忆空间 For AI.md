@@ -1,3 +1,13 @@
+---
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: '93daeba5-0943-4bad-80c9-964e5bcf6484'
+  PropagateID: '93daeba5-0943-4bad-80c9-964e5bcf6484'
+  ReservedCode1: '15c7016f-65bf-4abb-9bb1-7cde96f9de80'
+  ReservedCode2: '15c7016f-65bf-4abb-9bb1-7cde96f9de80'
+---
 
 # 项目记忆空间
 
