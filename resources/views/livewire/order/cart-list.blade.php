@@ -79,7 +79,14 @@
                         <td class="px-4 py-2"><input type="checkbox" value="{{ $cart->id }}" wire:model.live="selectedIds" class="rounded" /></td>
                         <td class="px-4 py-2 font-mono text-foreground">{{ $cart->sku?->sku_code ?? '-' }}</td>
                         <td class="px-4 py-2 text-foreground">{{ $cart->sku?->product?->name ?? '-' }}</td>
-                        <td class="px-4 py-2 text-right text-foreground">{{ number_format($cart->quantity) }}</td>
+                        <td class="px-4 py-2 text-right text-foreground">@php
+                            $svc = app(\App\Services\UnitConversionService::class);
+                            if ($cart->unit_id && $cart->unit_quantity) {
+                                echo $svc->formatWithConversion($cart->sku_id, $cart->unit_id, $cart->unit_quantity);
+                            } else {
+                                echo $svc->formatHuman($cart->sku_id, $cart->quantity);
+                            }
+                        @endphp</td>
                         <td class="px-4 py-2 text-right text-foreground">{{ money_format($cart->price) }}</td>
                         <td class="px-4 py-2 text-right text-foreground font-medium">{{ money_format($cart->quantity * $cart->price) }}</td>
                         <td class="px-4 py-2 text-right">
@@ -139,7 +146,23 @@
                 @endif
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">数量 <span class="text-red-500">*</span></label>
-                    <input type="number" wire:model="formQuantity" min="1" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="请输入数量" />
+                    <div class="flex gap-2">
+                        <input type="number" wire:model.live="formUnitQuantity" min="1" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="0" />
+                        @if($availableUnits)
+                        <select wire:model.live="formUnitId" class="flex h-9 w-28 rounded-md border border-input bg-background px-2 text-sm">
+                            <option value="">单位</option>
+                            @foreach($availableUnits as $unit)
+                                <option value="{{ $unit['unit_id'] }}">{{ $unit['unit_name'] }}</option>
+                            @endforeach
+                        </select>
+                        @endif
+                    </div>
+                    @if($unitPreview)
+                        <p class="text-xs text-blue-600 mt-1">换算：{{ $unitPreview }}</p>
+                    @endif
+                    @if($formUnitId && $formUnitQuantity > 0 && $formQuantity > 0)
+                        <p class="text-xs text-muted-foreground mt-1">基础数量：{{ $formQuantity }}</p>
+                    @endif
                     @error('formQuantity') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 @if(!$editingId)

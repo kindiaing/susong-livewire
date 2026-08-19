@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '89916a83-8e2b-4c2f-ab44-57633f57a5b0'
-  PropagateID: '89916a83-8e2b-4c2f-ab44-57633f57a5b0'
-  ReservedCode1: '0ab2312c-7491-45f9-829e-4906d4cfe979'
-  ReservedCode2: '0ab2312c-7491-45f9-829e-4906d4cfe979'
+  ProduceID: '7e2789b7-8131-4566-b67b-871f64f73faf'
+  PropagateID: '7e2789b7-8131-4566-b67b-871f64f73faf'
+  ReservedCode1: '0fad1914-3117-4f5d-8655-eba67aa1c196'
+  ReservedCode2: '0fad1914-3117-4f5d-8655-eba67aa1c196'
 ---
 
 # Laravel Reverb 实时推送 — 开发教程

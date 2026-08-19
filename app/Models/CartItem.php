@@ -11,8 +11,10 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $cart_id 购物车ID
  * @property int $sku_id SKU ID
- * @property int $quantity 数量
+ * @property int $quantity 数量（base_unit 最小单位）
  * @property int $price 加入时单价（厘）
+ * @property int|null $unit_id 下单时所选单位ID
+ * @property int|null $unit_quantity 下单时所选单位的数量
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
@@ -23,6 +25,8 @@ class CartItem extends Model
         'sku_id',
         'quantity',
         'price',
+        'unit_id',
+        'unit_quantity',
     ];
 
     protected function casts(): array
@@ -32,6 +36,8 @@ class CartItem extends Model
             'sku_id' => 'integer',
             'quantity' => 'integer',
             'price' => 'integer',
+            'unit_id' => 'integer',
+            'unit_quantity' => 'integer',
         ];
     }
 
@@ -43,6 +49,14 @@ class CartItem extends Model
     public function sku()
     {
         return $this->belongsTo(Sku::class);
+    }
+
+    /**
+     * 关联下单单位
+     */
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class);
     }
 
     /**

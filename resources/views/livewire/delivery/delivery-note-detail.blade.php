@@ -90,7 +90,7 @@
                 </div>
                 <div class="flex justify-between">
                     <span class="text-muted-foreground">应送总数</span>
-                    <span class="text-foreground">{{ $note->total_quantity }}</span>
+                    <span class="text-foreground">{{ number_format($note->total_quantity) }}</span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-muted-foreground">已分货数</span>
@@ -127,7 +127,10 @@
                 <tr class="hover:bg-muted/30 transition-colors">
                     <td class="px-4 py-2 text-foreground">{{ $item->sku_name ?? $item->sku?->name ?? '-' }}</td>
                     <td class="px-4 py-2 text-muted-foreground">{{ $item->unit ?? '-' }}</td>
-                    <td class="px-4 py-2 text-right text-foreground">{{ $item->quantity }}</td>
+                    <td class="px-4 py-2 text-right text-foreground">@php
+                        $svc = app(\App\Services\UnitConversionService::class);
+                        echo $svc->formatHuman($item->sku_id, $item->quantity);
+                    @endphp</td>
                     <td class="px-4 py-2 text-right">
                         @if($note->status === 2)
                             <input type="number"
@@ -139,7 +142,10 @@
                                 wire:change="confirmItemDelivery({{ $item->id }}, $event.target.value)"
                             />
                         @else
-                            <span class="text-foreground">{{ $item->picked_quantity ?? '-' }}</span>
+                            <span class="text-foreground">@php
+                                $svc2 = app(\App\Services\UnitConversionService::class);
+                                echo $svc2->formatHuman($item->sku_id, $item->picked_quantity ?? 0);
+                            @endphp</span>
                         @endif
                     </td>
                     <td class="px-4 py-2 text-muted-foreground font-mono text-xs">{{ $item->order_no ?? '-' }}</td>

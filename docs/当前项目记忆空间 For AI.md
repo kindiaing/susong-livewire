@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '93daeba5-0943-4bad-80c9-964e5bcf6484'
-  PropagateID: '93daeba5-0943-4bad-80c9-964e5bcf6484'
-  ReservedCode1: '15c7016f-65bf-4abb-9bb1-7cde96f9de80'
-  ReservedCode2: '15c7016f-65bf-4abb-9bb1-7cde96f9de80'
+  ProduceID: '9dc0c785-6110-43ee-ae49-520ad9d05379'
+  PropagateID: '9dc0c785-6110-43ee-ae49-520ad9d05379'
+  ReservedCode1: '755129cd-9def-4c9e-9988-67a6a9e33fb1'
+  ReservedCode2: '755129cd-9def-4c9e-9988-67a6a9e33fb1'
 ---
 
 # 项目记忆空间

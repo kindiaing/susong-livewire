@@ -16,6 +16,7 @@ use App\Models\Merchant;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Sku;
+use App\Services\UnitConversionService;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -40,7 +41,9 @@ class CartList extends Component
     // 表单
     public int $formMerchantId = 0;
     public int $formSkuId = 0;
-    public int $formQuantity = 1;
+    public int $formQuantity = 0;
+    public ?int $formUnitId = null;
+    public int $formUnitQuantity = 0;
     public string $formUnitPrice = '';
 
     // 生成订单确认弹窗
@@ -136,6 +139,88 @@ class CartList extends Component
         $this->showModal = true;
     }
 
+    /**
+     * SKU 切换时加载可用单位列表
+     */
+    public function updatedFormSkuId(int $value): void
+    {
+        $this->formUnitId = null;
+        $this->formUnitQuantity = 0;
+        $this->formQuantity = 0;
+        if ($value > 0) {
+            $this->selectSkuUnit();
+        }
+    }
+
+    /**
+     * 单位或单位数量变更时自动换算为 base_unit 数量
+     */
+    public function updatedFormUnitId(): void
+    {
+        $this->recalculateQuantity();
+    }
+
+    public function updatedFormUnitQuantity(): void
+    {
+        $this->recalculateQuantity();
+    }
+
+    /**
+     * 根据 SKU 的 base_unit 设置默认单位
+     */
+    public function selectSkuUnit(): void
+    {
+        if ($this->formSkuId <= 0) {
+            return;
+        }
+        $sku = Sku::find($this->formSkuId);
+        if ($sku && $sku->base_unit_id) {
+            $this->formUnitId = $sku->base_unit_id;
+            $this->recalculateQuantity();
+        }
+    }
+
+    /**
+     * 根据选中的单位 + 单位数量，自动换算为 base_unit 的 formQuantity
+     */
+    private function recalculateQuantity(): void
+    {
+        if ($this->formSkuId > 0 && $this->formUnitId && $this->formUnitQuantity > 0) {
+            $svc = app(UnitConversionService::class);
+            $this->formQuantity = $svc->convertToBase($this->formSkuId, $this->formUnitId, $this->formUnitQuantity);
+        } elseif ($this->formSkuId > 0 && !$this->formUnitId && $this->formUnitQuantity > 0) {
+            $this->formQuantity = $this->formUnitQuantity;
+        } elseif ($this->formSkuId > 0 && $this->formUnitQuantity === 0) {
+            $this->formQuantity = 0;
+        }
+    }
+
+    /**
+     * 获取当前 SKU 可用单位列表（用于下拉）
+     */
+    #[\Livewire\Attributes\Computed]
+    public function availableUnits(): array
+    {
+        if ($this->formSkuId <= 0) {
+            return [];
+        }
+        $svc = app(UnitConversionService::class);
+        return $svc->getAvailableUnits($this->formSkuId);
+    }
+
+    /**
+     * 获取换算预览文本
+     */
+    #[\Livewire\Attributes\Computed]
+    public function unitPreview(): string
+    {
+        if ($this->formSkuId <= 0 || !$this->formUnitId || $this->formUnitQuantity <= 0) {
+            return '';
+        }
+        $svc = app(UnitConversionService::class);
+        return $svc->formatWithConversion($this->formSkuId, $this->formUnitId, $this->formUnitQuantity);
+    }
+
     public function openEditModal(int $id): void
     {
         $item = CartItem::findOrFail($id);
@@ -144,6 +229,15 @@ class CartList extends Component
         $this->formSkuId = $item->sku_id;
         $this->formQuantity = $item->quantity;
         $this->formUnitPrice = $this->centsToYuan($item->price);
+        // 回填单位信息
+        if ($item->unit_id && $item->unit_quantity) {
+            $this->formUnitId = $item->unit_id;
+            $this->formUnitQuantity = $item->unit_quantity;
+        } else {
+            $sku = Sku::find($item->sku_id);
+            $this->formUnitId = $sku?->base_unit_id;
+            $this->formUnitQuantity = $item->quantity;
+        }
         $this->showModal = true;
     }
 
@@ -155,6 +249,8 @@ class CartList extends Component
             ]);
             CartItem::findOrFail($this->editingId)->update([
                 'quantity' => $validated['formQuantity'],
+                'unit_id' => $this->formUnitId,
+                'unit_quantity' => $this->formUnitQuantity ?: null,
             ]);
             $this->toastSuccess('购物车已更新');
         } else {
@@ -178,6 +274,10 @@ class CartList extends Component
 
             if ($existing) {
                 $existing->increment('quantity', $validated['formQuantity']);
+                $existing->update([
+                    'unit_id' => $this->formUnitId,
+                    'unit_quantity' => ($existing->unit_quantity ?? 0) + $this->formUnitQuantity,
+                ]);
                 $this->toastSuccess('购物车数量已累加');
             } else {
                 CartItem::create([
@@ -185,6 +285,8 @@ class CartList extends Component
                     'sku_id' => $validated['formSkuId'],
                     'quantity' => $validated['formQuantity'],
                     'price' => money_to_cents($validated['formUnitPrice']),
+                    'unit_id' => $this->formUnitId,
+                    'unit_quantity' => $this->formUnitQuantity ?: null,
                 ]);
                 $this->toastSuccess('购物车已创建');
             }
@@ -227,7 +329,9 @@ class CartList extends Component
         $this->editingId = null;
         $this->formMerchantId = 0;
         $this->formSkuId = 0;
-        $this->formQuantity = 1;
+        $this->formQuantity = 0;
+        $this->formUnitId = null;
+        $this->formUnitQuantity = 0;
         $this->formUnitPrice = '';
     }
 
@@ -327,6 +431,8 @@ class CartList extends Component
                     'actual_price' => $cartItem->price,
                     'subtotal' => $subtotal,
                     'actual_subtotal' => $subtotal,
+                    'unit_id' => $cartItem->unit_id,
+                    'unit_quantity' => $cartItem->unit_quantity,
                     'strategy_price' => 0,
                     'strategy_amount' => 0,
                     'discrepancy_amount' => 0,
@@ -414,7 +520,7 @@ class CartList extends Component
         // 按商户分组
         $groupedItems = $this->getGroupedByMerchant($items->getCollection());
 
-        return view('livewire.order.cart-list', compact('items', 'merchants', 'skus', 'allColumns', 'selectedCount', 'groupedItems'))
+        return view('livewire.order.cart-list', compact('items', 'merchants', 'skus', 'allColumns', 'selectedCount', 'groupedItems', 'availableUnits', 'unitPreview'))
             ->layout('components.app-layout')
             ->title('购物车');
     }

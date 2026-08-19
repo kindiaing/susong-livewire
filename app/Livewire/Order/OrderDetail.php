@@ -639,6 +639,8 @@ class OrderDetail extends Component
                         'actual_quantity' => $newQuantity,
                         'actual_price' => $price,
                         'actual_subtotal' => $newSubtotal,
+                        'unit_id' => $sku->base_unit_id,
+                        'unit_quantity' => $existingItem->unit_quantity ? $existingItem->unit_quantity + $quantity : $quantity,
                     ]);
                     $merged++;
                     continue;
@@ -657,6 +659,8 @@ class OrderDetail extends Component
                         'actual_price' => $price,
                         'subtotal' => $subtotal,
                         'actual_subtotal' => $subtotal,
+                        'unit_id' => $sku->base_unit_id,
+                        'unit_quantity' => $quantity,
                         'strategy_price' => 0,
                         'strategy_amount' => 0,
                         'discrepancy_amount' => 0,

@@ -70,7 +70,7 @@ return new class extends Migration
 
             // 商品信息
             $table->string('product_summary', 500)->nullable()->comment('商品摘要');
-            $table->decimal('total_quantity', 10, 2)->nullable()->comment('总数量');
+            $table->bigInteger('total_quantity')->nullable()->comment('总数量（base_unit 最小单位）');
             $table->decimal('total_weight', 10, 2)->nullable()->comment('总重量（kg）');
 
             // 单据来源

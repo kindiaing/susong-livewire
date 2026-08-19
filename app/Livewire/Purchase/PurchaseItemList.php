@@ -6,6 +6,7 @@ use App\Models\PurchaseItem;
 use App\Models\Sku;
 use App\Models\Supplier;
 use App\Services\PurchaseService;
+use App\Services\UnitConversionService;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
@@ -32,12 +33,96 @@ class PurchaseItemList extends Component
     public int $formSkuId = 0;
     public int $formSupplierId = 0;
     public int $formQuantity = 0;
+    public ?int $formUnitId = null;
+    public int $formUnitQuantity = 0;
     public int $formSourceType = 1;
     public bool $showGenerateConfirm = false;
 
     public function mount(): void
     {
         $this->initColumnVisibility();
+    }
+
+    /**
+     * SKU 切换时加载可用单位列表
+     */
+    public function updatedFormSkuId(int $value): void
+    {
+        $this->formUnitId = null;
+        $this->formUnitQuantity = 0;
+        $this->formQuantity = 0;
+        if ($value > 0) {
+            $this->selectSkuUnit();
+        }
+    }
+
+    /**
+     * 单位或单位数量变更时自动换算为 base_unit 数量
+     */
+    public function updatedFormUnitId(): void
+    {
+        $this->recalculateQuantity();
+    }
+
+    public function updatedFormUnitQuantity(): void
+    {
+        $this->recalculateQuantity();
+    }
+
+    /**
+     * 根据 SKU 的 base_unit 设置默认单位
+     */
+    public function selectSkuUnit(): void
+    {
+        if ($this->formSkuId <= 0) {
+            return;
+        }
+        $sku = Sku::find($this->formSkuId);
+        if ($sku && $sku->base_unit_id) {
+            $this->formUnitId = $sku->base_unit_id;
+            $this->recalculateQuantity();
+        }
+    }
+
+    /**
+     * 根据选中的单位 + 单位数量，自动换算为 base_unit 的 formQuantity
+     */
+    private function recalculateQuantity(): void
+    {
+        if ($this->formSkuId > 0 && $this->formUnitId && $this->formUnitQuantity > 0) {
+            $svc = app(UnitConversionService::class);
+            $this->formQuantity = $svc->convertToBase($this->formSkuId, $this->formUnitId, $this->formUnitQuantity);
+        } elseif ($this->formSkuId > 0 && !$this->formUnitId && $this->formUnitQuantity > 0) {
+            $this->formQuantity = $this->formUnitQuantity;
+        } elseif ($this->formSkuId > 0 && $this->formUnitQuantity === 0) {
+            $this->formQuantity = 0;
+        }
+    }
+
+    /**
+     * 获取当前 SKU 可用单位列表（用于下拉）
+     */
+    #[\Livewire\Attributes\Computed]
+    public function availableUnits(): array
+    {
+        if ($this->formSkuId <= 0) {
+            return [];
+        }
+        $svc = app(UnitConversionService::class);
+        return $svc->getAvailableUnits($this->formSkuId);
+    }
+
+    /**
+     * 获取换算预览文本
+     */
+    #[\Livewire\Attributes\Computed]
+    public function unitPreview(): string
+    {
+        if ($this->formSkuId <= 0 || !$this->formUnitId || $this->formUnitQuantity <= 0) {
+            return '';
+        }
+        $svc = app(UnitConversionService::class);
+        return $svc->formatWithConversion($this->formSkuId, $this->formUnitId, $this->formUnitQuantity);
     }
 
     public function openEditModal(int $id): void
@@ -48,6 +133,15 @@ class PurchaseItemList extends Component
         $this->formSupplierId = $item->supplier_id ?? 0;
         $this->formQuantity = $item->quantity;
         $this->formSourceType = $item->source_type;
+        // 回填单位信息
+        if ($item->unit_id && $item->unit_quantity) {
+            $this->formUnitId = $item->unit_id;
+            $this->formUnitQuantity = $item->unit_quantity;
+        } else {
+            $sku = Sku::find($item->sku_id);
+            $this->formUnitId = $sku?->base_unit_id;
+            $this->formUnitQuantity = $item->quantity;
+        }
         $this->showModal = true;
     }
 
@@ -65,6 +159,8 @@ class PurchaseItemList extends Component
             'supplier_id' => $validated['formSupplierId'] > 0 ? $validated['formSupplierId'] : null,
             'quantity' => $validated['formQuantity'],
             'source_type' => $validated['formSourceType'],
+            'unit_id' => $this->formUnitId,
+            'unit_quantity' => $this->formUnitQuantity ?: null,
         ];
 
         if ($this->editingId) {
@@ -136,6 +232,8 @@ class PurchaseItemList extends Component
         $this->formSkuId = 0;
         $this->formSupplierId = 0;
         $this->formQuantity = 0;
+        $this->formUnitId = null;
+        $this->formUnitQuantity = 0;
         $this->formSourceType = 1;
     }
 
@@ -245,7 +343,7 @@ class PurchaseItemList extends Component
         $skuOptions = Sku::with('product')->orderBy('sku_code')->get()->map(fn($s) => ['value' => $s->id, 'label' => $s->sku_code . ' - ' . ($s->product?->name ?? '')])->toArray();
         $supplierOptions = Supplier::where('status', 1)->orderBy('name')->get()->map(fn($s) => ['value' => $s->id, 'label' => $s->name])->toArray();
 
-        return view('livewire.purchase.purchase-item-list', compact('items', 'allColumns', 'selectedCount', 'skuOptions', 'supplierOptions'))
+        return view('livewire.purchase.purchase-item-list', compact('items', 'allColumns', 'selectedCount', 'skuOptions', 'supplierOptions', 'availableUnits', 'unitPreview'))
             ->layout('components.app-layout')
             ->title('待采清单');
     }

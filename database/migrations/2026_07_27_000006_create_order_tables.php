@@ -19,8 +19,10 @@ return new class extends Migration
             $table->id()->comment('主键');
             $table->unsignedBigInteger('cart_id')->comment('购物车ID');
             $table->unsignedBigInteger('sku_id')->comment('SKU ID');
-            $table->bigInteger('quantity')->default(0)->comment('数量');
+            $table->bigInteger('quantity')->default(0)->comment('数量（base_unit 最小单位）');
             $table->bigInteger('price')->default(0)->comment('加入时单价');
+            $table->unsignedBigInteger('unit_id')->nullable()->comment('下单时所选单位ID');
+            $table->bigInteger('unit_quantity')->default(0)->comment('下单时所选单位的数量');
             $table->timestamps();
             $table->index('cart_id');
             $table->index('sku_id');

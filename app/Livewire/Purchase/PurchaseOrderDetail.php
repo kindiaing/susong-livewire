@@ -424,7 +424,10 @@ class PurchaseOrderDetail extends Component
 
                 try {
                     $service = app(PurchaseService::class);
-                    $service->addItem($this->order, $sku->id, $quantity, $price);
+                    $service->addItem($this->order, $sku->id, $quantity, $price, [
+                        'unit_id' => $sku->base_unit_id,
+                        'unit_quantity' => $quantity,
+                    ]);
                     $imported++;
                 } catch (\Exception $e) {
                     continue;

@@ -6,6 +6,7 @@ use App\Models\PickingTask;
 use App\Models\PickingTaskItem;
 use App\Models\User;
 use App\Livewire\Traits\WithToast;
+use App\Services\InventoryService;
 use App\Services\UnitConversionService;
 use Livewire\Component;
 
@@ -225,7 +226,7 @@ class PickingTaskDetail extends Component
     }
 
     /**
-     * 完成拣货
+     * 完成拣货：状态变更为已完成，并按拣货数量执行出库
      */
     public function completePicking(): void
     {
@@ -234,12 +235,43 @@ class PickingTaskDetail extends Component
             return;
         }
 
+        // 执行出库：按 SKU 汇总实际拣货数量，逐一出库
+        $inventoryService = app(InventoryService::class);
+        $warehouseId = $this->pickingTask->warehouse_id;
+        $items = PickingTaskItem::where('picking_task_id', $this->pickingTaskId)
+            ->with('sku')
+            ->get();
+
+        $outErrors = [];
+        foreach ($items as $item) {
+            if ($item->picked_quantity <= 0) {
+                continue;
+            }
+            try {
+                $inventoryService->stockOut(
+                    warehouse: $warehouseId,
+                    sku: $item->sku_id,
+                    quantity: $item->picked_quantity,
+                    sourceType: 'picking',
+                    sourceId: $this->pickingTaskId,
+                    reason: '拣货出库 - ' . ($this->pickingTask->task_no ?? ''),
+                );
+            } catch (\Exception $e) {
+                $outErrors[] = $item->sku?->sku_code ?? "SKU#{$item->sku_id}" . ': ' . $e->getMessage();
+            }
+        }
+
         $this->pickingTask->update([
             'status' => PickingTask::STATUS_COMPLETED,
             'completed_at' => now(),
         ]);
         $this->loadPickingTask();
-        $this->toastSuccess('拣货已完成');
+
+        if (!empty($outErrors)) {
+            $this->toastWarning('拣货已完成，部分出库异常：' . implode('；', $outErrors));
+        } else {
+            $this->toastSuccess('拣货已完成，库存已出库');
+        }
     }
 
     public function render()

@@ -18,7 +18,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $order_date 下单日期
  * @property Carbon $delivery_date 送达日期
  * @property string|null $product_summary 商品摘要
- * @property string|null $total_quantity 总数量
+ * @property int|null $total_quantity 总数量（base_unit 最小单位）
  * @property string|null $total_weight 总重量（kg）
  * @property string $source_type 来源类型
  * @property int|null $source_id 来源单据ID
@@ -71,7 +71,7 @@ class DeliveryTaskDetail extends Model
             'merchant_id' => 'integer',
             'order_date' => 'date',
             'delivery_date' => 'date',
-            'total_quantity' => 'decimal:2',
+            'total_quantity' => 'integer',
             'total_weight' => 'decimal:2',
             'source_id' => 'integer',
             'status' => 'integer',

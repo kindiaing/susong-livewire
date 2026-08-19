@@ -94,6 +94,8 @@ class PurchaseService
                         'actual_amount' => 0,
                         'strategy_price' => 0,
                         'strategy_amount' => 0,
+                        'unit_id' => $item->unit_id ?? $item->sku?->base_unit_id,
+                        'unit_quantity' => $item->unit_quantity ?? $item->quantity,
                     ]);
 
                     // 标记待采项为已生成，回写采购单ID和预估成本价

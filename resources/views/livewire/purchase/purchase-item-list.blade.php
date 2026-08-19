@@ -128,9 +128,25 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-foreground mb-1">数量 <span class="text-red-500">*</span></label>
-                        <input type="number" wire:model="formQuantity" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" min="1" />
+                        <div class="flex gap-2">
+                            <input type="number" wire:model.live="formUnitQuantity" min="1" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="0" />
+                            @if($availableUnits)
+                            <select wire:model.live="formUnitId" class="flex h-9 w-28 rounded-md border border-input bg-background px-2 text-sm">
+                                <option value="">单位</option>
+                                @foreach($availableUnits as $unit)
+                                    <option value="{{ $unit['unit_id'] }}">{{ $unit['unit_name'] }}</option>
+                                @endforeach
+                            </select>
+                            @endif
+                        </div>
+                        @if($unitPreview)
+                            <p class="text-xs text-blue-600 mt-1">换算：{{ $unitPreview }}</p>
+                        @endif
+                        @if($formUnitId && $formUnitQuantity > 0 && $formQuantity > 0)
+                            <p class="text-xs text-muted-foreground mt-1">基础数量：{{ $formQuantity }}</p>
+                        @endif
                         @error('formQuantity') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
+                    </div>>
                     <div>
                         <label class="block text-sm font-medium text-foreground mb-1">来源</label>
                         <select wire:model="formSourceType" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">

@@ -12,10 +12,12 @@ return new class extends Migration
             $table->id()->comment('主键');
             $table->unsignedBigInteger('sku_id')->comment('SKU ID');
             $table->unsignedBigInteger('supplier_id')->nullable()->comment('供应商ID');
-            $table->bigInteger('quantity')->default(0)->comment('待采数量');
+            $table->bigInteger('quantity')->default(0)->comment('待采数量（base_unit 最小单位）');
             $table->bigInteger('expected_price')->default(0)->comment('预估成本价（厘）');
             $table->tinyInteger('source_type')->unsigned()->default(1)->comment('来源：1订单汇总，2手工添加');
             $table->unsignedBigInteger('source_id')->nullable()->comment('来源业务ID');
+            $table->unsignedBigInteger('unit_id')->nullable()->comment('待采单位ID');
+            $table->bigInteger('unit_quantity')->default(0)->comment('待采单位数量');
             $table->unsignedBigInteger('purchase_order_id')->nullable()->comment('关联采购单ID');
             $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待生成采购单，2已生成采购单');
             $table->timestamps();

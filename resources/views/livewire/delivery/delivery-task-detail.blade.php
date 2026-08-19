@@ -192,7 +192,7 @@
                     <td class="px-4 py-2 font-mono text-xs text-foreground">{{ $detail->order?->order_no ?? '-' }}</td>
                     <td class="px-4 py-2 text-foreground">{{ $detail->merchant_name }}</td>
                     <td class="px-4 py-2 text-muted-foreground truncate max-w-[200px]">{{ $detail->product_summary ?: '-' }}</td>
-                    <td class="px-4 py-2 text-right text-foreground">{{ $detail->total_quantity }}</td>
+                    <td class="px-4 py-2 text-right text-foreground">{{ number_format($detail->total_quantity) }}</td>
                     <td class="px-4 py-2 text-right text-foreground">{{ money_format($detail->order?->final_amount ?? 0) }}</td>
                     <td class="px-4 py-2 text-center">
                         @php $detailStatusMap = [1 => '待配送', 2 => '配送中', 3 => '已送达', 4 => '已作废']; @endphp

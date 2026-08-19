@@ -190,7 +190,7 @@
                             <div class="text-sm text-foreground">{{ $item->total_skus }}</div>
                             @break
                         @case('total_quantity')
-                            <div class="text-sm text-foreground">{{ $item->total_quantity }}</div>
+                            <div class="text-sm text-foreground">{{ number_format($item->total_quantity) }}</div>
                             @break
                         @case('started_at')
                             <div class="text-sm text-foreground">{{ $item->started_at?->format('Y-m-d H:i') ?? '-' }}</div>

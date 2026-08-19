@@ -10,9 +10,11 @@ use Illuminate\Support\Carbon;
  *
  * @property int $id
  * @property int $sku_id SKU ID
- * @property int $quantity 待采数量
+ * @property int $quantity 待采数量（base_unit 最小单位）
  * @property int $source_type 来源：1订单汇总，2手工添加
  * @property int|null $source_id 来源业务ID
+ * @property int|null $unit_id 待采单位ID
+ * @property int|null $unit_quantity 待采单位数量
  * @property int $status 状态：1待生成采购单，2已生成采购单
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -35,6 +37,8 @@ class PurchaseItem extends Model
         'source_id',
         'purchase_order_id',
         'expected_price',
+        'unit_id',
+        'unit_quantity',
         'status',
     ];
 
@@ -48,6 +52,8 @@ class PurchaseItem extends Model
             'source_id' => 'integer',
             'purchase_order_id' => 'integer',
             'expected_price' => 'integer',
+            'unit_id' => 'integer',
+            'unit_quantity' => 'integer',
             'status' => 'integer',
         ];
     }
@@ -76,6 +82,14 @@ class PurchaseItem extends Model
     public function sku()
     {
         return $this->belongsTo(Sku::class);
+    }
+
+    /**
+     * 关联待采单位
+     */
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class);
     }
 
     public function supplier()
