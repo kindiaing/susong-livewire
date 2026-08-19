@@ -245,7 +245,15 @@ class SkuList extends Component
 
             $this->toastSuccess('SKU已更新');
         } else {
-            Sku::create($data);
+            // 创建 SKU
+            $sku = Sku::create($data);
+
+            // 保存换算配置（创建时也可配置）
+            if ($this->formBaseUnitId) {
+                $sku->update(['base_unit_id' => $this->formBaseUnitId]);
+            }
+            $this->saveConversions($sku);
+
             $this->toastSuccess('SKU已创建');
         }
 
@@ -253,8 +261,33 @@ class SkuList extends Component
         $this->resetForm();
     }
 
+    /**
+     * 是否为超级管理员/管理员（可删除、可状态回退）
+     */
+    public function getIsSuperAdminProperty(): bool
+    {
+        return can_rollback_status();
+    }
+
+    /**
+     * 禁用/启用 SKU（非管理员不可删除，仅可禁用）
+     */
+    public function toggleStatus(int $id): void
+    {
+        $sku = Sku::findOrFail($id);
+        $sku->status = $sku->status === Sku::STATUS_ENABLED ? Sku::STATUS_DISABLED : Sku::STATUS_ENABLED;
+        $sku->save();
+        $this->toastSuccess($sku->status === Sku::STATUS_ENABLED ? 'SKU已启用' : 'SKU已禁用');
+    }
+
     public function confirmDelete(int $id): void
     {
+        // 仅管理员可删除
+        if (!$this->isSuperAdmin) {
+            $this->toastError('仅管理员可删除SKU，如需停用请使用禁用功能');
+            return;
+        }
+
         $sku = Sku::findOrFail($id);
         $warnings = [];
 
@@ -272,7 +305,7 @@ class SkuList extends Component
             $this->deleteWarning = implode('，', $warnings) . '。请先移除关联数据后再删除。';
             $this->canDelete = false;
         } else {
-            $this->deleteWarning = '确定要删除该SKU吗？此操作不可恢复。';
+            $this->deleteWarning = '确定要删除该SKU吗？删除后将软删除，可从回收站恢复。';
             $this->canDelete = true;
         }
 
@@ -282,17 +315,45 @@ class SkuList extends Component
 
     public function delete(): void
     {
+        // 仅管理员可删除
+        if (!$this->isSuperAdmin) {
+            $this->toastError('仅管理员可删除SKU');
+            return;
+        }
+
         if (!$this->canDelete) {
             $this->toastWarning('无法删除，请先移除关联数据');
             return;
         }
 
+        // 软删除
         Sku::findOrFail($this->deletingId)->delete();
-        $this->toastSuccess('SKU已删除');
+        $this->toastSuccess('SKU已删除（软删除，可恢复）');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
         $this->deleteWarning = '';
         $this->canDelete = true;
+    }
+
+    /**
+     * 批量删除（覆盖 Trait，仅管理员可操作）
+     */
+    public function batchDelete(): void
+    {
+        if (!$this->isSuperAdmin) {
+            $this->toastError('仅管理员可删除SKU');
+            return;
+        }
+
+        if (empty($this->selectedIds)) {
+            $this->toastError('请先选择数据');
+            return;
+        }
+
+        Sku::destroy($this->selectedIds);
+        $count = count($this->selectedIds);
+        $this->clearSelection();
+        $this->toastSuccess("已删除 {$count} 条SKU（软删除，可恢复）");
     }
 
     public function resetFilters(): void
@@ -526,7 +587,9 @@ class SkuList extends Component
 
         $conversionPreview = $this->conversionPreview;
 
-        return view('livewire.product.sku-list', compact('skus', 'allColumns', 'selectedCount', 'productOptions', 'unitOptions', 'conversionPreview'))
+        $isSuperAdmin = $this->isSuperAdmin;
+
+        return view('livewire.product.sku-list', compact('skus', 'allColumns', 'selectedCount', 'productOptions', 'unitOptions', 'conversionPreview', 'isSuperAdmin'))
             ->layout('components.app-layout')
             ->title('SKU管理');
     }
