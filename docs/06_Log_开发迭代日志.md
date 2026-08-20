@@ -1,14 +1,3 @@
----
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: '9989c357-0932-4e7c-a183-42c2bdf37132'
-  PropagateID: '9989c357-0932-4e7c-a183-42c2bdf37132'
-  ReservedCode1: '3ff27739-7c46-4720-8191-a1e30e73ca44'
-  ReservedCode2: '3ff27739-7c46-4720-8191-a1e30e73ca44'
----
-
 # 开发迭代日志
 
 对应 PRD 版本：V1.2
@@ -1138,3 +1127,47 @@ AIGC:
 | 分支 | feature/delivery-task |
 | 提交 | f569d4e（Migration + Model）、aed481a（Livewire + 路由/菜单/权限） |
 | 验证 | migrate:refresh --seed 通过 |
+
+---
+
+## V2.0.1 — 单据编辑/删除门控收紧（仅初始状态可改）
+
+### 变更概述
+
+统一规则：单据仅在初始状态（状态 1）可编辑/删除；提交后不可修改，需超管/管理员在订单/采购单详情页「回退」状态后方可编辑。回退仅改状态 + 审计日志，不做库存/金额/关联单据联动，其余单据不提供回退入口。
+
+### Livewire 组件变更
+
+| 操作 | 组件 | 说明 |
+| :--- | :--- | :--- |
+| 收紧 | Order\OrderList | 编辑按钮 1~3 → 仅待拣货；删除按钮补仅待拣货；openEditModal/save/delete/batchDelete 服务端校验 |
+| 收紧 | Purchase\PurchaseOrderList | 编辑按钮 1~4 → 仅待接单；删除按钮 1~3 → 仅待接单；服务端校验同步 |
+| 收紧 | Purchase\PurchaseReturnList | 编辑按钮 1~3 → 仅待审核；删除按钮补仅待审核；服务端校验同步 |
+| 收紧 | Order\OrderReturnList | 编辑按钮 1~2 → 仅待审核；删除按钮补仅待审核；覆盖批量删除（Trait 通用实现无状态校验），仅待审核可删 |
+| 收紧 | Loss\LossOrderList | 编辑服务端 1~2 → 仅待审核；删除按钮补仅待审核；服务端校验同步 |
+| 收紧 | Inventory\PickingTaskList | 编辑按钮 1~2 → 仅待分配；服务端校验同步（删除原有仅待分配校验保留） |
+| 收紧 | Delivery\DeliveryTaskList | 编辑按钮 1~4 → 仅待配送；删除按钮补仅待配送；服务端校验同步 |
+| 收紧 | Finance\RechargeList | 删除按钮补仅待确认；save/delete 服务端校验；提示文案统一 |
+| 收紧 | Finance\InvoiceList | 删除按钮补仅待开具；save/delete 服务端校验；提示文案统一 |
+| 收紧 | Order\OrderDetail | canEditItems 移除超管任意状态直改特权 → 仅待拣货；executeSaveItem/deleteItem 服务端校验 |
+| 收紧 | Purchase\PurchaseOrderDetail | 明细增/改/删/导入由「状态 1~2 + 超管任意状态」→ 仅待接单；executeImport 服务端校验 |
+
+### Service 变更
+
+| 操作 | Service | 说明 |
+| :--- | :--- | :--- |
+| 收紧 | PurchaseService::addItem / updateItem / removeItem | 明细操作仅待接单状态可用，移除超管直改特权（超管须先回退状态再编辑）；rollbackStatus 保留不变 |
+
+### 保留不变
+
+- 订单/采购单详情页「超管状态回退」按钮维持现状（仅改状态 + AuditLog，无联动）
+- 售后退货/损耗单/拣货任务/配送任务/充值/发票不提供回退入口
+- 无数据库结构变更
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | bugfix |
+| 提交 | 见本次提交 |
+| 验证 | Pint 通过；测试套件 9 个失败为迁移索引重复（idx_model）既有问题，与本次无关 |

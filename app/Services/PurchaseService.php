@@ -2,13 +2,12 @@
 
 namespace App\Services;
 
+use App\Models\AuditLog;
 use App\Models\PurchaseItem;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
-use App\Models\AuditLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 /**
  * 采购单服务
@@ -29,7 +28,7 @@ class PurchaseService
      * 按供应商分组，同一供应商的待采项合并为一个采购单。
      * 自动匹配 SKU 的默认供应商。
      *
-     * @param array $purchaseItemIds 待采清单ID数组
+     * @param  array  $purchaseItemIds  待采清单ID数组
      * @return array 创建的采购单ID数组
      */
     public function createFromItems(array $purchaseItemIds): array
@@ -48,14 +47,14 @@ class PurchaseService
         foreach ($items as $item) {
             // 优先级：待采项指定供应商 > SKU 默认供应商 > SKU 首个可用供应商
             $supplierId = $item->supplier_id;
-            if (!$supplierId) {
+            if (! $supplierId) {
                 $defaultSupplier = $item->sku?->suppliers()
                     ->wherePivot('is_default', true)
                     ->wherePivot('status', 1)
                     ->first();
                 $supplierId = $defaultSupplier?->id ?? $item->sku?->suppliers()->wherePivot('status', 1)->first()?->id;
             }
-            if (!$supplierId) {
+            if (! $supplierId) {
                 throw new \Exception("SKU {$item->sku_id} 没有可用供应商，请指定供应商");
             }
             $grouped[$supplierId][] = $item;
@@ -119,7 +118,7 @@ class PurchaseService
      */
     public function submit(PurchaseOrder $order): PurchaseOrder
     {
-        if (!$order->canTransitionTo(PurchaseOrder::STATUS_PREPARING)) {
+        if (! $order->canTransitionTo(PurchaseOrder::STATUS_PREPARING)) {
             throw new \Exception('当前状态不允许提交');
         }
 
@@ -139,7 +138,7 @@ class PurchaseService
      */
     public function ship(PurchaseOrder $order): PurchaseOrder
     {
-        if (!$order->canTransitionTo(PurchaseOrder::STATUS_SHIPPED)) {
+        if (! $order->canTransitionTo(PurchaseOrder::STATUS_SHIPPED)) {
             throw new \Exception('当前状态不允许发货');
         }
 
@@ -161,15 +160,14 @@ class PurchaseService
      * 断链修复：入库时计算差异数量(discrepancy_quantity)
      * 当系统配置 stockin_auto_create_loss=true 且差异>0 时，自动创建损耗单
      *
-     * @param PurchaseOrder $order 采购单
-     * @param int $warehouseId 入库仓库
-     * @param array $items 入库明细 [{id: purchaseOrderItemId, actual_quantity, actual_price, discrepancy_reason}]
-     * @param string $batchNo 批次号
-     * @return PurchaseOrder
+     * @param  PurchaseOrder  $order  采购单
+     * @param  int  $warehouseId  入库仓库
+     * @param  array  $items  入库明细 [{id: purchaseOrderItemId, actual_quantity, actual_price, discrepancy_reason}]
+     * @param  string  $batchNo  批次号
      */
     public function stockIn(PurchaseOrder $order, int $warehouseId, array $items, string $batchNo): PurchaseOrder
     {
-        if (!$order->canTransitionTo(PurchaseOrder::STATUS_STOCKED)) {
+        if (! $order->canTransitionTo(PurchaseOrder::STATUS_STOCKED)) {
             throw new \Exception('当前状态不允许入库');
         }
 
@@ -236,7 +234,7 @@ class PurchaseService
      */
     public function complete(PurchaseOrder $order): PurchaseOrder
     {
-        if (!$order->canTransitionTo(PurchaseOrder::STATUS_COMPLETED)) {
+        if (! $order->canTransitionTo(PurchaseOrder::STATUS_COMPLETED)) {
             throw new \Exception('当前状态不允许完成');
         }
 
@@ -267,7 +265,7 @@ class PurchaseService
      */
     public function cancel(PurchaseOrder $order): PurchaseOrder
     {
-        if (!$order->canTransitionTo(PurchaseOrder::STATUS_CANCELLED)) {
+        if (! $order->canTransitionTo(PurchaseOrder::STATUS_CANCELLED)) {
             // 给出更明确的错误提示
             if (in_array($order->status, [PurchaseOrder::STATUS_STOCKED, PurchaseOrder::STATUS_COMPLETED])) {
                 throw new \Exception('已入库/完成的采购单禁止直接作废，请走退货流程');
@@ -290,19 +288,13 @@ class PurchaseService
     /**
      * 添加采购单明细
      *
-     * @param array $extra 额外字段（strategy_price, remark 等）
+     * @param  array  $extra  额外字段（strategy_price, remark 等）
      */
     public function addItem(PurchaseOrder $order, int $skuId, int $quantity, int $price, array $extra = []): PurchaseOrderItem
     {
-        $editableStatuses = [PurchaseOrder::STATUS_PENDING, PurchaseOrder::STATUS_PREPARING];
-        $isSuperAdmin = can_rollback_status();
-
-        if (!$isSuperAdmin && !in_array($order->status, $editableStatuses)) {
-            throw new \Exception('仅待接单/备货中状态可添加明细');
-        }
-
-        if ($isSuperAdmin && in_array($order->status, [PurchaseOrder::STATUS_CANCELLED])) {
-            throw new \Exception('已作废的采购单不可添加明细');
+        // 仅初始状态（待接单）可添加明细；其他状态需管理员回退状态后才能修改
+        if ($order->status !== PurchaseOrder::STATUS_PENDING) {
+            throw new \Exception('当前状态不可添加明细，需管理员回退状态后才能修改');
         }
 
         $strategyPrice = $extra['strategy_price'] ?? 0;
@@ -339,21 +331,19 @@ class PurchaseService
         $item = PurchaseOrderItem::findOrFail($itemId);
         $order = $item->purchaseOrder;
 
-        $editableStatuses = [PurchaseOrder::STATUS_PENDING, PurchaseOrder::STATUS_PREPARING];
-        $isSuperAdmin = can_rollback_status();
-
-        if (!$isSuperAdmin && !in_array($order->status, $editableStatuses)) {
-            throw new \Exception('仅待接单/备货中状态可编辑明细');
-        }
-
-        if ($isSuperAdmin && in_array($order->status, [PurchaseOrder::STATUS_CANCELLED])) {
-            throw new \Exception('已作废的采购单不可编辑明细');
+        // 仅初始状态（待接单）可编辑明细；其他状态需管理员回退状态后才能修改
+        if ($order->status !== PurchaseOrder::STATUS_PENDING) {
+            throw new \Exception('当前状态不可编辑明细，需管理员回退状态后才能修改');
         }
 
         $updateData = [];
 
-        if (isset($data['sku_id'])) $updateData['sku_id'] = $data['sku_id'];
-        if (isset($data['quantity'])) $updateData['quantity'] = $data['quantity'];
+        if (isset($data['sku_id'])) {
+            $updateData['sku_id'] = $data['sku_id'];
+        }
+        if (isset($data['quantity'])) {
+            $updateData['quantity'] = $data['quantity'];
+        }
         if (isset($data['price'])) {
             $updateData['price'] = $data['price'];
             $updateData['amount'] = ($updateData['quantity'] ?? $item->quantity) * $data['price'];
@@ -363,9 +353,15 @@ class PurchaseService
             $qty = $updateData['quantity'] ?? $item->quantity;
             $updateData['strategy_amount'] = $data['strategy_price'] > 0 ? $qty * $data['strategy_price'] : 0;
         }
-        if (array_key_exists('remark', $data)) $updateData['remark'] = $data['remark'];
-        if (array_key_exists('unit_id', $data)) $updateData['unit_id'] = $data['unit_id'];
-        if (array_key_exists('unit_quantity', $data)) $updateData['unit_quantity'] = $data['unit_quantity'];
+        if (array_key_exists('remark', $data)) {
+            $updateData['remark'] = $data['remark'];
+        }
+        if (array_key_exists('unit_id', $data)) {
+            $updateData['unit_id'] = $data['unit_id'];
+        }
+        if (array_key_exists('unit_quantity', $data)) {
+            $updateData['unit_quantity'] = $data['unit_quantity'];
+        }
 
         $item->update($updateData);
         $order->recalculateAmounts();
@@ -383,7 +379,7 @@ class PurchaseService
     {
         $isSuperAdmin = can_rollback_status();
 
-        if (!$isSuperAdmin) {
+        if (! $isSuperAdmin) {
             throw new \Exception('仅超级管理员或管理员可执行状态回退');
         }
 
@@ -411,15 +407,9 @@ class PurchaseService
     {
         $order = $item->purchaseOrder;
 
-        $editableStatuses = [PurchaseOrder::STATUS_PENDING, PurchaseOrder::STATUS_PREPARING];
-        $isSuperAdmin = can_rollback_status();
-
-        if (!$isSuperAdmin && !in_array($order->status, $editableStatuses)) {
-            throw new \Exception('仅待接单/备货中状态可删除明细');
-        }
-
-        if ($isSuperAdmin && in_array($order->status, [PurchaseOrder::STATUS_CANCELLED])) {
-            throw new \Exception('已作废的采购单不可删除明细');
+        // 仅初始状态（待接单）可删除明细；其他状态需管理员回退状态后才能修改
+        if ($order->status !== PurchaseOrder::STATUS_PENDING) {
+            throw new \Exception('当前状态不可删除明细，需管理员回退状态后才能修改');
         }
 
         $item->delete();
@@ -431,7 +421,7 @@ class PurchaseService
      */
     private function auditStatusChange(PurchaseOrder $order, string $action, int $oldStatus, int $newStatus, ?string $reason = null): void
     {
-        if (!setting('audit_purchase_order', true)) {
+        if (! setting('audit_purchase_order', true)) {
             return;
         }
 

@@ -22,36 +22,48 @@ use Livewire\WithPagination;
 
 class PickingTaskList extends Component
 {
-    use WithPagination;
-    use WithRowSelection;
     use WithColumnVisibility;
     use WithExcelExport;
-    use WithToast;
     use WithListCrud;
+    use WithPagination;
+    use WithRowSelection;
+    use WithToast;
 
     protected string $modelClass = PickingTask::class;
 
     public string $search = '';
+
     public int $filterStatus = 0;
+
     public int $filterRouteId = 0;
+
     public string $filterDeliveryDate = '';
 
     // 编辑弹窗
     public int $formWarehouseId = 0;
+
     public int $formPickerId = 0;
+
     public string $formRemark = '';
 
     // 生成拣货总单弹窗
     public bool $showGenerateModal = false;
+
     public int $genRouteId = 0;
+
     public string $genDeliveryDate = '';
+
     public string $genWarehouseName = '';
+
     public array $genSelectedOrderIds = [];
+
     public array $pendingOrders = [];
 
     // 选项数据
     public array $routeOptions = [];
+
     public array $warehouseOptions = [];
+
     public array $pickerOptions = [];
 
     public static array $statusMap = [
@@ -69,19 +81,19 @@ class PickingTaskList extends Component
         $this->routeOptions = DeliveryRoute::enabled()
             ->ordered()
             ->get(['id', 'name', 'code'])
-            ->mapWithKeys(fn($r) => [$r->id => $r->code . ' ' . $r->name])
+            ->mapWithKeys(fn ($r) => [$r->id => $r->code.' '.$r->name])
             ->toArray();
 
         $this->warehouseOptions = Warehouse::enabled()
             ->get(['id', 'name'])
-            ->mapWithKeys(fn($w) => [$w->id => $w->name])
+            ->mapWithKeys(fn ($w) => [$w->id => $w->name])
             ->toArray();
 
         $this->pickerOptions = User::role('picker')
             ->where('status', 1)
             ->orderBy('name')
             ->get(['id', 'name'])
-            ->mapWithKeys(fn($u) => [$u->id => $u->name])
+            ->mapWithKeys(fn ($u) => [$u->id => $u->name])
             ->toArray();
 
         $this->genDeliveryDate = now()->format('Y-m-d');
@@ -127,6 +139,7 @@ class PickingTaskList extends Component
     {
         if ($this->genRouteId <= 0 || empty($this->genDeliveryDate)) {
             $this->pendingOrders = [];
+
             return;
         }
 
@@ -138,6 +151,7 @@ class PickingTaskList extends Component
 
         if (empty($routeMerchantIds)) {
             $this->pendingOrders = [];
+
             return;
         }
 
@@ -158,10 +172,10 @@ class PickingTaskList extends Component
 
         $this->pendingOrders = $orders->map(function ($order) {
             $productSummary = $order->items->take(3)
-                ->map(fn($item) => $item->product_name ?: ($item->sku?->product?->name ?? '商品'))
+                ->map(fn ($item) => $item->product_name ?: ($item->sku?->product?->name ?? '商品'))
                 ->implode('、');
             if ($order->items->count() > 3) {
-                $productSummary .= ' 等' . $order->items->count() . '项';
+                $productSummary .= ' 等'.$order->items->count().'项';
             }
 
             return [
@@ -206,6 +220,7 @@ class PickingTaskList extends Component
 
         if (empty($this->genSelectedOrderIds)) {
             $this->toastError('请至少选择一个待拣货订单');
+
             return;
         }
 
@@ -214,6 +229,7 @@ class PickingTaskList extends Component
 
         if ($warehouseId <= 0) {
             $this->toastError('该线路未配置出发仓库');
+
             return;
         }
 
@@ -288,7 +304,7 @@ class PickingTaskList extends Component
             foreach ($merchantOrders as $order) {
                 foreach ($order->items as $item) {
                     $skuId = $item->sku_id;
-                    if (!isset($skuAggregation[$skuId])) {
+                    if (! isset($skuAggregation[$skuId])) {
                         $skuAggregation[$skuId] = [
                             'sku_id' => $skuId,
                             'sku_name' => $item->product_name ?: ($item->sku?->product?->name ?? '商品'),
@@ -309,7 +325,7 @@ class PickingTaskList extends Component
             $summarySlice = array_slice($productNames, 0, 3);
             $productSummary = implode('、', $summarySlice);
             if (count($productNames) > 3) {
-                $productSummary .= ' 等' . count($productNames) . '项';
+                $productSummary .= ' 等'.count($productNames).'项';
             }
 
             // 创建送货单
@@ -362,6 +378,11 @@ class PickingTaskList extends Component
     public function openEditModal(int $id): void
     {
         $item = PickingTask::findOrFail($id);
+        if ($item->status !== PickingTask::STATUS_PENDING) {
+            $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
+
+            return;
+        }
         $this->editingId = $id;
         $this->formWarehouseId = $item->warehouse_id ?? 0;
         $this->formPickerId = $item->picker_id ?? 0;
@@ -377,7 +398,15 @@ class PickingTaskList extends Component
             'formRemark' => 'nullable|string|max:500',
         ]);
 
-        PickingTask::findOrFail($this->editingId)->update([
+        $task = PickingTask::findOrFail($this->editingId);
+        if ($task->status !== PickingTask::STATUS_PENDING) {
+            $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
+            $this->showModal = false;
+            $this->resetForm();
+
+            return;
+        }
+        $task->update([
             'warehouse_id' => $validated['formWarehouseId'] ?: null,
             'picker_id' => $validated['formPickerId'] ?: null,
             'remark' => $validated['formRemark'],
@@ -396,6 +425,7 @@ class PickingTaskList extends Component
             $this->toastError('仅待分配状态的拣货任务可删除');
             $this->showDeleteConfirm = false;
             $this->deletingId = null;
+
             return;
         }
 
@@ -453,7 +483,7 @@ class PickingTaskList extends Component
 
     public function getExportFileName(): string
     {
-        return '拣货任务_' . now()->format('Ymd_His');
+        return '拣货任务_'.now()->format('Ymd_His');
     }
 
     public function getPageIds(): array

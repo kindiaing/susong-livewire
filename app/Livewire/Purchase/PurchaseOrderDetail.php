@@ -3,50 +3,67 @@
 namespace App\Livewire\Purchase;
 
 use App\Exports\GenericExport;
-use App\Models\PurchaseOrder;
-use App\Models\PurchaseOrderItem;
-use App\Models\Supplier;
-use App\Models\Warehouse;
-use App\Models\Sku;
-use App\Services\PurchaseService;
-use App\Services\UnitConversionService;
 use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithToast;
+use App\Models\PurchaseOrder;
+use App\Models\PurchaseOrderItem;
+use App\Models\Sku;
+use App\Models\Supplier;
+use App\Models\Warehouse;
+use App\Services\PurchaseService;
+use App\Services\UnitConversionService;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Maatwebsite\Excel\Facades\Excel;
 
 class PurchaseOrderDetail extends Component
 {
-    use WithToast;
     use WithFileUploads;
     use WithMoneyConversion;
+    use WithToast;
 
     public PurchaseOrder $order;
+
     public $items;
 
     // 明细编辑
     public bool $showAddItemModal = false;
+
     public ?int $editingItemId = null; // null=新增, int=编辑
+
     public int $formSkuId = 0;
+
     public int $formQuantity = 0;
+
     public ?int $formUnitId = null;
+
     public int $formUnitQuantity = 0;
+
     public string $formPrice = '';           // 采购单价（元）
+
     public string $formStrategyPrice = '';   // 改价/促销单价（元）
+
     public string $formRemark = '';          // 备注
+
     public bool $showDeleteItemConfirm = false;
+
     public ?int $deletingItemId = null;
 
     // 入库弹窗
     public bool $showStockInModal = false;
+
     public int $stockInWarehouseId = 0;
+
     public string $stockInBatchNo = '';
+
     public array $stockInItems = [];
 
     // 状态操作确认
     public bool $showConfirmModal = false;
+
     public string $confirmAction = '';
+
     public string $confirmTitle = '';
 
     // 提交后是否返回列表页
@@ -54,11 +71,14 @@ class PurchaseOrderDetail extends Component
 
     // 导出
     public bool $showExportModal = false;
+
     public bool $exportActual = false;
+
     public bool $exportDiscrepancy = false;
 
     // 导入
     public bool $showImportModal = false;
+
     public $importFile = null;
 
     public function mount(int $id): void
@@ -112,7 +132,7 @@ class PurchaseOrderDetail extends Component
     public function confirmRollback(string $toStatus): void
     {
         $statusLabels = PurchaseOrder::statusMap();
-        $this->confirmAction = 'rollback_' . $toStatus;
+        $this->confirmAction = 'rollback_'.$toStatus;
         $this->confirmTitle = "确认回退到【{$statusLabels[$toStatus]}】状态？";
         $this->showConfirmModal = true;
     }
@@ -129,6 +149,7 @@ class PurchaseOrderDetail extends Component
                 $this->loadOrder($this->order->id);
                 $this->showConfirmModal = false;
                 $this->toastSuccess('状态已回退');
+
                 return;
             }
 
@@ -285,13 +306,13 @@ class PurchaseOrderDetail extends Component
     public function openStockInModal(): void
     {
         $this->stockInWarehouseId = 0;
-        $this->stockInBatchNo = 'IN' . date('YmdHis');
+        $this->stockInBatchNo = 'IN'.date('YmdHis');
         $this->stockInItems = [];
 
         foreach ($this->order->items as $item) {
             $this->stockInItems[] = [
                 'id' => $item->id,
-                'sku_name' => $item->sku?->sku_code . ' - ' . ($item->sku?->product?->name ?? ''),
+                'sku_name' => $item->sku?->sku_code.' - '.($item->sku?->product?->name ?? ''),
                 'quantity' => $item->quantity,
                 'price' => $this->centsToYuan($item->price),
                 'actual_quantity' => $item->quantity,
@@ -316,6 +337,7 @@ class PurchaseOrderDetail extends Component
             $items = collect($this->stockInItems)->map(function ($item) {
                 $item['price'] = money_to_cents($item['price']);
                 $item['actual_price'] = money_to_cents($item['actual_price']);
+
                 return $item;
             })->toArray();
             $service->stockIn($this->order, $this->stockInWarehouseId, $items, $this->stockInBatchNo);
@@ -379,7 +401,7 @@ class PurchaseOrderDetail extends Component
             return $row;
         })->toArray();
 
-        $fileName = '采购明细_' . $this->order->order_no . '_' . now()->format('Ymd_His') . '.xlsx';
+        $fileName = '采购明细_'.$this->order->order_no.'_'.now()->format('Ymd_His').'.xlsx';
 
         $this->showExportModal = false;
 
@@ -402,6 +424,12 @@ class PurchaseOrderDetail extends Component
 
     public function executeImport(): void
     {
+        if ($this->order->status !== PurchaseOrder::STATUS_PENDING) {
+            $this->toastError('当前状态不可导入明细，需管理员回退状态后才能修改');
+            $this->showImportModal = false;
+
+            return;
+        }
         $this->validate([
             'importFile' => 'required|file|mimes:xlsx,xls,csv|max:10240',
         ]);
@@ -411,16 +439,22 @@ class PurchaseOrderDetail extends Component
             $imported = 0;
 
             foreach ($rows as $index => $row) {
-                if ($index === 0) continue; // 跳过标题行
+                if ($index === 0) {
+                    continue;
+                } // 跳过标题行
 
                 $skuCode = trim($row[0] ?? '');
                 $quantity = (int) ($row[1] ?? 0);
                 $price = money_to_cents($row[2] ?? 0);
 
-                if (! $skuCode || $quantity <= 0) continue;
+                if (! $skuCode || $quantity <= 0) {
+                    continue;
+                }
 
                 $sku = Sku::where('sku_code', $skuCode)->first();
-                if (! $sku) continue;
+                if (! $sku) {
+                    continue;
+                }
 
                 try {
                     $service = app(PurchaseService::class);
@@ -438,7 +472,7 @@ class PurchaseOrderDetail extends Component
             $this->showImportModal = false;
             $this->toastSuccess("成功导入 {$imported} 条明细");
         } catch (\Exception $e) {
-            $this->toastError('导入失败：' . $e->getMessage());
+            $this->toastError('导入失败：'.$e->getMessage());
         }
     }
 
@@ -520,30 +554,32 @@ class PurchaseOrderDetail extends Component
         if ($this->formSkuId > 0 && $this->formUnitId && $this->formUnitQuantity > 0) {
             $svc = app(UnitConversionService::class);
             $this->formQuantity = $svc->convertToBase($this->formSkuId, $this->formUnitId, $this->formUnitQuantity);
-        } elseif ($this->formSkuId > 0 && !$this->formUnitId && $this->formUnitQuantity > 0) {
+        } elseif ($this->formSkuId > 0 && ! $this->formUnitId && $this->formUnitQuantity > 0) {
             $this->formQuantity = $this->formUnitQuantity;
         } elseif ($this->formSkuId > 0 && $this->formUnitQuantity === 0) {
             $this->formQuantity = 0;
         }
     }
 
-    #[\Livewire\Attributes\Computed]
+    #[Computed]
     public function availableUnits(): array
     {
         if ($this->formSkuId <= 0) {
             return [];
         }
         $svc = app(UnitConversionService::class);
+
         return $svc->getAvailableUnits($this->formSkuId);
     }
 
-    #[\Livewire\Attributes\Computed]
+    #[Computed]
     public function unitPreview(): string
     {
-        if ($this->formSkuId <= 0 || !$this->formUnitId || $this->formUnitQuantity <= 0) {
+        if ($this->formSkuId <= 0 || ! $this->formUnitId || $this->formUnitQuantity <= 0) {
             return '';
         }
         $svc = app(UnitConversionService::class);
+
         return $svc->formatWithConversion($this->formSkuId, $this->formUnitId, $this->formUnitQuantity);
     }
 }

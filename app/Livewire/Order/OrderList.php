@@ -5,9 +5,9 @@ namespace App\Livewire\Order;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithListCrud;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
-use App\Livewire\Traits\WithListCrud;
 use App\Models\AuditLog;
 use App\Models\Merchant;
 use App\Models\Order;
@@ -17,31 +17,40 @@ use Livewire\WithPagination;
 
 class OrderList extends Component
 {
-    use WithPagination;
-    use WithRowSelection;
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
-    use WithToast;
     use WithListCrud;
+    use WithPagination;
+    use WithRowSelection;
+    use WithToast;
 
     protected string $modelClass = Order::class;
 
     public string $search = '';
+
     public int $filterStatus = -1;
+
     public int $filterPaymentStatus = -1;
 
     // 创建表单：基础字段
     public int $formMerchantId = 0;
+
     public string $formOrderDate = '';
+
     public string $formDeliveryDate = '';
+
     public string $formRemark = '';
 
     // 创建表单：配送字段
     public int $formSettlementType = 1;
+
     public int $formBatch = 1;
+
     public string $formContactName = '';
+
     public string $formContactPhone = '';
+
     public string $formDeliveryAddress = '';
 
     public static array $statusMap = [
@@ -105,7 +114,7 @@ class OrderList extends Component
 
     public function getExportFileName(): string
     {
-        return '客户订单_' . now()->format('Ymd_His');
+        return '客户订单_'.now()->format('Ymd_His');
     }
 
     public function getImportModelClass(): string
@@ -157,6 +166,11 @@ class OrderList extends Component
     public function openEditModal(int $id): void
     {
         $order = Order::findOrFail($id);
+        if ($order->status !== Order::STATUS_PICKING_WAIT) {
+            $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
+
+            return;
+        }
         $this->editingId = $id;
         $this->formRemark = $order->remark ?? '';
         $this->showModal = true;
@@ -165,6 +179,14 @@ class OrderList extends Component
     public function save(): void
     {
         if ($this->editingId) {
+            $order = Order::findOrFail($this->editingId);
+            if ($order->status !== Order::STATUS_PICKING_WAIT) {
+                $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
+                $this->showModal = false;
+                $this->resetForm();
+
+                return;
+            }
             $validated = $this->validate([
                 'formRemark' => 'nullable|string|max:500',
             ]);
@@ -220,6 +242,7 @@ class OrderList extends Component
         $order = Order::findOrFail($id);
         if ($order->status != Order::STATUS_PICKING_WAIT) {
             $this->toastError('只有待拣货订单可确认');
+
             return;
         }
         $oldStatus = $order->status;
@@ -251,6 +274,7 @@ class OrderList extends Component
         $order = Order::findOrFail($id);
         if (in_array($order->status, [Order::STATUS_SIGNED, Order::STATUS_LOCKED, Order::STATUS_CANCELLED])) {
             $this->toastError('当前状态不可作废');
+
             return;
         }
         $oldStatus = $order->status;
@@ -282,6 +306,7 @@ class OrderList extends Component
         $order = Order::findOrFail($id);
         if ($order->status != Order::STATUS_DELIVERING) {
             $this->toastError('只有配送中订单可完成');
+
             return;
         }
         $oldStatus = $order->status;
@@ -311,9 +336,11 @@ class OrderList extends Component
     public function delete(): void
     {
         $order = Order::findOrFail($this->deletingId);
-        if (in_array($order->status, [Order::STATUS_SIGNED, Order::STATUS_LOCKED])) {
-            $this->toastError('已签收或已锁定订单不可删除');
+        if ($order->status !== Order::STATUS_PICKING_WAIT) {
+            $this->toastError('当前状态不可删除，仅待拣货状态的订单可删除');
             $this->showDeleteConfirm = false;
+            $this->deletingId = null;
+
             return;
         }
         $order->delete();
@@ -327,21 +354,22 @@ class OrderList extends Component
         $ids = $this->selectedIds;
         if (empty($ids)) {
             $this->toastError('请先选择要删除的订单');
+
             return;
         }
         $protected = Order::whereIn('id', $ids)
-            ->whereIn('status', [Order::STATUS_SIGNED, Order::STATUS_LOCKED])
+            ->where('status', '!=', Order::STATUS_PICKING_WAIT)
             ->count();
         if ($protected > 0) {
-            $this->toastError("{$protected} 条已签收/已锁定订单不可删除，已跳过");
+            $this->toastError("{$protected} 条非待拣货状态订单不可删除，已跳过");
         }
         $deletableIds = Order::whereIn('id', $ids)
-            ->whereNotIn('status', [Order::STATUS_SIGNED, Order::STATUS_LOCKED])
+            ->where('status', Order::STATUS_PICKING_WAIT)
             ->pluck('id')
             ->toArray();
-        if (!empty($deletableIds)) {
+        if (! empty($deletableIds)) {
             Order::whereIn('id', $deletableIds)->delete();
-            $this->toastSuccess('已删除 ' . count($deletableIds) . ' 条订单');
+            $this->toastSuccess('已删除 '.count($deletableIds).' 条订单');
         }
         $this->clearSelection();
     }

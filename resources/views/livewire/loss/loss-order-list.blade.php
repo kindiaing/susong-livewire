@@ -221,7 +221,9 @@
                             @endif
                             @endcan
                             @can('loss.loss-order.delete')
+                            @if($item->status === 1)
                             <button type="button" wire:click="confirmDelete({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
+                            @endif
                             @endcan
                         </div>
                     </td>

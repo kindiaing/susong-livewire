@@ -2,40 +2,45 @@
 
 namespace App\Livewire\Loss;
 
-use App\Models\LossOrder;
-use App\Models\Warehouse;
-use App\Services\ApprovalService;
-use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
-use App\Livewire\Traits\WithToast;
 use App\Livewire\Traits\WithListCrud;
+use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
+use App\Models\LossOrder;
+use App\Models\Warehouse;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class LossOrderList extends Component
 {
-    use WithPagination;
-    use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
-    use WithToast;
+    use WithColumnVisibility, WithExcelExport, WithExcelImport, WithRowSelection;
     use WithListCrud;
+    use WithPagination;
+    use WithToast;
 
     protected string $modelClass = LossOrder::class;
 
     public string $search = '';
+
     public int $filterStatus = -1;
+
     public int $filterLossType = -1;
 
     public bool $showApproveConfirm = false;
 
     public ?int $approvingId = null;
+
     public string $approveRemark = '';
 
     public int $formWarehouseId = 0;
+
     public int $formLossType = 1;
+
     public string $formReason = '';
+
     public string $formRemark = '';
 
     public function mount(): void
@@ -46,8 +51,9 @@ class LossOrderList extends Component
     public function openEditModal(int $id): void
     {
         $item = LossOrder::findOrFail($id);
-        if ($item->status !== LossOrder::STATUS_PENDING && $item->status !== LossOrder::STATUS_APPROVED) {
-            $this->toastError('当前状态不可编辑');
+        if ($item->status !== LossOrder::STATUS_PENDING) {
+            $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
+
             return;
         }
         $this->editingId = $id;
@@ -76,6 +82,13 @@ class LossOrderList extends Component
 
         if ($this->editingId) {
             $item = LossOrder::findOrFail($this->editingId);
+            if ($item->status !== LossOrder::STATUS_PENDING) {
+                $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
+                $this->showModal = false;
+                $this->resetForm();
+
+                return;
+            }
             unset($data['warehouse_id']);
             $item->update($data);
             $this->toastSuccess('损耗单已更新');
@@ -96,6 +109,13 @@ class LossOrderList extends Component
     public function delete(): void
     {
         $item = LossOrder::findOrFail($this->deletingId);
+        if ($item->status !== LossOrder::STATUS_PENDING) {
+            $this->toastError('当前状态不可删除，仅待审核状态的损耗单可删除');
+            $this->showDeleteConfirm = false;
+            $this->deletingId = null;
+
+            return;
+        }
         $item->delete();
         $this->toastSuccess('损耗单已删除');
         $this->showDeleteConfirm = false;
@@ -116,6 +136,7 @@ class LossOrderList extends Component
         if ($item->approval_status !== LossOrder::APPROVAL_PENDING) {
             $this->toastError('该单不在待审核状态');
             $this->showApproveConfirm = false;
+
             return;
         }
 
@@ -138,6 +159,7 @@ class LossOrderList extends Component
         if ($item->approval_status !== LossOrder::APPROVAL_PENDING) {
             $this->toastError('该单不在待审核状态');
             $this->showApproveConfirm = false;
+
             return;
         }
 
@@ -159,6 +181,7 @@ class LossOrderList extends Component
 
         if ($item->status !== LossOrder::STATUS_APPROVED) {
             $this->toastError('只有已通过的单据可执行');
+
             return;
         }
 
@@ -176,6 +199,7 @@ class LossOrderList extends Component
 
         if ($item->status !== LossOrder::STATUS_EXECUTED) {
             $this->toastError('只有已执行的单据可关闭');
+
             return;
         }
 
@@ -269,7 +293,7 @@ class LossOrderList extends Component
 
     public function getExportFileName(): string
     {
-        return '损耗管理_' . now()->format('Ymd_His');
+        return '损耗管理_'.now()->format('Ymd_His');
     }
 
     public function getImportModelClass(): string

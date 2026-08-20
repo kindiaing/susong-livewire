@@ -5,10 +5,10 @@ namespace App\Livewire\Finance;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithListCrud;
 use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
-use App\Livewire\Traits\WithListCrud;
 use App\Models\Merchant;
 use App\Models\Recharge;
 use App\Services\NotificationService;
@@ -17,26 +17,30 @@ use Livewire\WithPagination;
 
 class RechargeList extends Component
 {
-    use WithPagination;
-    use WithRowSelection;
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
-    use WithMoneyConversion;
-    use WithToast;
     use WithListCrud;
+    use WithMoneyConversion;
+    use WithPagination;
+    use WithRowSelection;
+    use WithToast;
 
     protected string $modelClass = Recharge::class;
 
     public string $search = '';
 
     public int $formMerchantId = 0;
+
     public string $formAmount = '';
+
     public int $formPaymentMethod = 1;
+
     public string $formNote = '';
 
     // 详情弹窗
     public bool $showDetailModal = false;
+
     public ?int $detailId = null;
 
     public static array $statusMap = [
@@ -76,7 +80,7 @@ class RechargeList extends Component
             ->when($this->search, function ($q) {
                 $q->where(function ($q2) {
                     $q2->where('transaction_no', 'like', "%{$this->search}%")
-                        ->orWhereHas('merchant', fn($mq) => $mq->where('name', 'like', "%{$this->search}%"));
+                        ->orWhereHas('merchant', fn ($mq) => $mq->where('name', 'like', "%{$this->search}%"));
                 });
             })
             ->orderBy('id', 'desc');
@@ -84,7 +88,7 @@ class RechargeList extends Component
 
     public function getExportFileName(): string
     {
-        return '客户充值_' . now()->format('Ymd_His');
+        return '客户充值_'.now()->format('Ymd_His');
     }
 
     public function getImportModelClass(): string
@@ -116,7 +120,8 @@ class RechargeList extends Component
     {
         $item = Recharge::findOrFail($id);
         if ($item->status !== 1) {
-            $this->toastError('仅待确认状态可编辑');
+            $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
+
             return;
         }
         $this->editingId = $id;
@@ -143,6 +148,13 @@ class RechargeList extends Component
 
         if ($this->editingId) {
             $item = Recharge::findOrFail($this->editingId);
+            if ($item->status !== 1) {
+                $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
+                $this->showModal = false;
+                $this->resetForm();
+
+                return;
+            }
             $item->update([
                 'merchant_id' => $this->formMerchantId,
                 'amount' => money_to_cents($this->formAmount),
@@ -170,6 +182,7 @@ class RechargeList extends Component
         $item = Recharge::findOrFail($id);
         if ($item->status !== 1) {
             $this->toastError('当前状态不可审核');
+
             return;
         }
         $item->update(['status' => 2]);
@@ -191,6 +204,7 @@ class RechargeList extends Component
         $item = Recharge::findOrFail($id);
         if ($item->status !== 1) {
             $this->toastError('当前状态不可拒绝');
+
             return;
         }
         $item->update(['status' => 3]);
@@ -202,15 +216,24 @@ class RechargeList extends Component
         $item = Recharge::findOrFail($id);
         if ($item->status !== 2) {
             $this->toastError('仅成功状态可确认到账');
+
             return;
         }
-        $item->update(['status' => 2, 'remark' => ($item->remark ? $item->remark . "\n" : '') . '已确认到账 ' . now()->format('Y-m-d H:i')]);
+        $item->update(['status' => 2, 'remark' => ($item->remark ? $item->remark."\n" : '').'已确认到账 '.now()->format('Y-m-d H:i')]);
         $this->toastSuccess('充值已确认到账');
     }
 
     public function delete(): void
     {
-        Recharge::findOrFail($this->deletingId)->delete();
+        $item = Recharge::findOrFail($this->deletingId);
+        if ($item->status !== 1) {
+            $this->toastError('当前状态不可删除，仅待确认状态的充值记录可删除');
+            $this->showDeleteConfirm = false;
+            $this->deletingId = null;
+
+            return;
+        }
+        $item->delete();
         $this->toastSuccess('充值记录已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
@@ -232,7 +255,7 @@ class RechargeList extends Component
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('transaction_no', 'like', "%{$this->search}%")
-                    ->orWhereHas('merchant', fn($mq) => $mq->where('name', 'like', "%{$this->search}%"));
+                    ->orWhereHas('merchant', fn ($mq) => $mq->where('name', 'like', "%{$this->search}%"));
             });
         }
 

@@ -5,10 +5,10 @@ namespace App\Livewire\Finance;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithListCrud;
 use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
-use App\Livewire\Traits\WithListCrud;
 use App\Models\Invoice;
 use App\Models\Merchant;
 use Livewire\Component;
@@ -16,27 +16,32 @@ use Livewire\WithPagination;
 
 class InvoiceList extends Component
 {
-    use WithPagination;
-    use WithRowSelection;
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
-    use WithMoneyConversion;
-    use WithToast;
     use WithListCrud;
+    use WithMoneyConversion;
+    use WithPagination;
+    use WithRowSelection;
+    use WithToast;
 
     protected string $modelClass = Invoice::class;
 
     public string $search = '';
 
     public int $formMerchantId = 0;
+
     public string $formAmount = '';
+
     public int $formType = 1;
+
     public string $formTitle = '';
+
     public string $formTaxNo = '';
 
     // 详情弹窗
     public bool $showDetailModal = false;
+
     public ?int $detailId = null;
 
     public static array $statusMap = [
@@ -79,7 +84,7 @@ class InvoiceList extends Component
             ->when($this->search, function ($q) {
                 $q->where(function ($q2) {
                     $q2->where('invoice_no', 'like', "%{$this->search}%")
-                        ->orWhereHas('merchant', fn($mq) => $mq->where('name', 'like', "%{$this->search}%"));
+                        ->orWhereHas('merchant', fn ($mq) => $mq->where('name', 'like', "%{$this->search}%"));
                 });
             })
             ->orderBy('id', 'desc');
@@ -87,7 +92,7 @@ class InvoiceList extends Component
 
     public function getExportFileName(): string
     {
-        return '发票管理_' . now()->format('Ymd_His');
+        return '发票管理_'.now()->format('Ymd_His');
     }
 
     public function getImportModelClass(): string
@@ -119,7 +124,8 @@ class InvoiceList extends Component
     {
         $item = Invoice::findOrFail($id);
         if ($item->status !== 1) {
-            $this->toastError('仅待开具状态可编辑');
+            $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
+
             return;
         }
         $this->editingId = $id;
@@ -149,6 +155,13 @@ class InvoiceList extends Component
 
         if ($this->editingId) {
             $item = Invoice::findOrFail($this->editingId);
+            if ($item->status !== 1) {
+                $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
+                $this->showModal = false;
+                $this->resetForm();
+
+                return;
+            }
             $item->update([
                 'target_id' => $this->formMerchantId,
                 'amount' => money_to_cents($this->formAmount),
@@ -179,6 +192,7 @@ class InvoiceList extends Component
         $item = Invoice::findOrFail($id);
         if ($item->status !== 1) {
             $this->toastError('仅待开具状态可操作');
+
             return;
         }
         $item->update([
@@ -193,6 +207,7 @@ class InvoiceList extends Component
         $item = Invoice::findOrFail($id);
         if ($item->status !== 2) {
             $this->toastError('仅已开具状态可寄出');
+
             return;
         }
         $item->update([
@@ -204,7 +219,15 @@ class InvoiceList extends Component
 
     public function delete(): void
     {
-        Invoice::findOrFail($this->deletingId)->delete();
+        $item = Invoice::findOrFail($this->deletingId);
+        if ($item->status !== 1) {
+            $this->toastError('当前状态不可删除，仅待开具状态的发票可删除');
+            $this->showDeleteConfirm = false;
+            $this->deletingId = null;
+
+            return;
+        }
+        $item->delete();
         $this->toastSuccess('发票已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
@@ -227,7 +250,7 @@ class InvoiceList extends Component
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('invoice_no', 'like', "%{$this->search}%")
-                    ->orWhereHas('merchant', fn($mq) => $mq->where('name', 'like', "%{$this->search}%"));
+                    ->orWhereHas('merchant', fn ($mq) => $mq->where('name', 'like', "%{$this->search}%"));
             });
         }
 

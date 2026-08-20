@@ -5,9 +5,9 @@ namespace App\Livewire\Order;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithListCrud;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
-use App\Livewire\Traits\WithListCrud;
 use App\Models\Merchant;
 use App\Models\OrderReturn;
 use Livewire\Component;
@@ -15,22 +15,26 @@ use Livewire\WithPagination;
 
 class OrderReturnList extends Component
 {
-    use WithPagination;
-    use WithRowSelection;
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
-    use WithToast;
     use WithListCrud;
+    use WithPagination;
+    use WithRowSelection;
+    use WithToast;
 
     protected string $modelClass = OrderReturn::class;
 
     public string $search = '';
+
     public int $filterStatus = 0;
 
     public int $formOrderId = 0;
+
     public int $formMerchantId = 0;
+
     public string $formReason = '';
+
     public string $formNote = '';
 
     public static array $statusMap = [
@@ -69,7 +73,7 @@ class OrderReturnList extends Component
 
     public function getExportFileName(): string
     {
-        return '售后退货_' . now()->format('Ymd_His');
+        return '售后退货_'.now()->format('Ymd_His');
     }
 
     public function getImportModelClass(): string
@@ -117,6 +121,11 @@ class OrderReturnList extends Component
     public function openEditModal(int $id): void
     {
         $item = OrderReturn::findOrFail($id);
+        if ($item->status !== OrderReturn::STATUS_PENDING) {
+            $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
+
+            return;
+        }
         $this->editingId = $id;
         $this->formReason = $item->reason ?? '';
         $this->formNote = $item->note ?? '';
@@ -126,11 +135,19 @@ class OrderReturnList extends Component
     public function save(): void
     {
         if ($this->editingId) {
+            $item = OrderReturn::findOrFail($this->editingId);
+            if ($item->status !== OrderReturn::STATUS_PENDING) {
+                $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
+                $this->showModal = false;
+                $this->resetForm();
+
+                return;
+            }
             $validated = $this->validate([
                 'formReason' => 'nullable|string|max:255',
                 'formNote' => 'nullable|string|max:500',
             ]);
-            OrderReturn::findOrFail($this->editingId)->update([
+            $item->update([
                 'reason' => $validated['formReason'],
                 'note' => $validated['formNote'],
             ]);
@@ -161,6 +178,7 @@ class OrderReturnList extends Component
         $item = OrderReturn::findOrFail($id);
         if ($item->status != 1) {
             $this->toastError('只有待审核退货单可审核通过');
+
             return;
         }
         $item->update(['status' => 2]);
@@ -172,6 +190,7 @@ class OrderReturnList extends Component
         $item = OrderReturn::findOrFail($id);
         if ($item->status != 1) {
             $this->toastError('只有待审核退货单可拒绝');
+
             return;
         }
         $item->update(['status' => 9]);
@@ -183,6 +202,7 @@ class OrderReturnList extends Component
         $item = OrderReturn::findOrFail($id);
         if ($item->status != 2) {
             $this->toastError('只有已审核的退货单可开始退货');
+
             return;
         }
         $item->update(['status' => 3]);
@@ -194,6 +214,7 @@ class OrderReturnList extends Component
         $item = OrderReturn::findOrFail($id);
         if ($item->status != 3) {
             $this->toastError('只有已退货的单据可完成退款');
+
             return;
         }
         $item->update(['status' => 4]);
@@ -202,7 +223,15 @@ class OrderReturnList extends Component
 
     public function delete(): void
     {
-        OrderReturn::findOrFail($this->deletingId)->delete();
+        $item = OrderReturn::findOrFail($this->deletingId);
+        if ($item->status !== OrderReturn::STATUS_PENDING) {
+            $this->toastError('当前状态不可删除，仅待审核状态的退货单可删除');
+            $this->showDeleteConfirm = false;
+            $this->deletingId = null;
+
+            return;
+        }
+        $item->delete();
         $this->toastSuccess('退货单已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
@@ -220,6 +249,32 @@ class OrderReturnList extends Component
         return [
             ['label' => '批量删除', 'method' => 'batchDelete', 'color' => 'bg-red-600 hover:bg-red-700'],
         ];
+    }
+
+    /**
+     * 批量删除：仅待审核状态可删除，其余跳过
+     */
+    public function batchDelete(): void
+    {
+        $ids = $this->selectedIds;
+        if (empty($ids)) {
+            $this->toastError('请先选择数据');
+
+            return;
+        }
+        $deletable = OrderReturn::whereIn('id', $ids)
+            ->where('status', OrderReturn::STATUS_PENDING)
+            ->pluck('id')
+            ->toArray();
+        $skipped = count($ids) - count($deletable);
+        if ($skipped > 0) {
+            $this->toastError("{$skipped} 条非待审核状态退货单不可删除，已跳过");
+        }
+        if (! empty($deletable)) {
+            OrderReturn::whereIn('id', $deletable)->delete();
+            $this->toastSuccess('已删除 '.count($deletable).' 条退货单');
+        }
+        $this->clearSelection();
     }
 
     private function resetForm(): void

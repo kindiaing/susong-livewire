@@ -67,7 +67,7 @@
                 @endif
             </button>
             <div class="ml-auto flex items-center gap-2 pr-4" x-show="activeTab === 'items'">
-                @if(in_array($order->status, [1, 2]) || $isSuperAdmin && !in_array($order->status, [9]))
+                @if($order->status === 1)
                     <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1 text-xs hover:bg-accent transition-colors">
                         <x-ui.icon name="arrow-down-tray" class="w-3.5 h-3.5" /> 导入
                     </button>
@@ -75,7 +75,7 @@
                 <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1 text-xs hover:bg-accent transition-colors">
                     <x-ui.icon name="arrow-up-tray" class="w-3.5 h-3.5" /> 导出
                 </button>
-                @if(in_array($order->status, [1, 2]) || $isSuperAdmin && !in_array($order->status, [9]))
+                @if($order->status === 1)
                     <button type="button" wire:click="openAddItemModal" class="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-blue-700 transition-colors">
                         <x-ui.icon name="plus" class="w-3.5 h-3.5" /> 添加
                     </button>
@@ -131,7 +131,7 @@
                     <td class="px-3 py-1.5 text-right tabular-nums">{{ $item->actual_amount ? money_format($item->actual_amount) : '-' }}</td>
                     <td class="px-3 py-1.5">
                         <div class="flex items-center gap-1">
-                            @if(in_array($order->status, [1, 2]) || $isSuperAdmin && !in_array($order->status, [9]))
+                            @if($order->status === 1)
                                 <button type="button" wire:click="openEditItemModal({{ $item->id }})" class="text-blue-500 hover:text-blue-700" title="编辑">
                                     <x-ui.icon name="pencil-square" class="w-3.5 h-3.5" />
                                 </button>

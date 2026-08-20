@@ -5,53 +5,67 @@ namespace App\Livewire\Delivery;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
+use App\Livewire\Traits\WithListCrud;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
-use App\Livewire\Traits\WithListCrud;
+use App\Models\DeliveryNote;
+use App\Models\DeliveryRoute;
+use App\Models\DeliveryRouteStop;
 use App\Models\DeliveryTask;
 use App\Models\DeliveryTaskDetail;
 use App\Models\DeliveryTaskSequence;
-use App\Models\DeliveryRoute;
-use App\Models\DeliveryRouteStop;
 use App\Models\Driver;
-use App\Models\Vehicle;
-use App\Models\DeliveryNote;
 use App\Models\Order;
+use App\Models\Vehicle;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class DeliveryTaskList extends Component
 {
-    use WithPagination;
-    use WithRowSelection;
     use WithColumnVisibility;
     use WithExcelExport;
     use WithExcelImport;
-    use WithToast;
     use WithListCrud;
+    use WithPagination;
+    use WithRowSelection;
+    use WithToast;
 
     protected string $modelClass = DeliveryTask::class;
 
     public string $search = '';
+
     public int $filterStatus = 0;
+
     public int $filterRouteId = 0;
+
     public string $filterDeliveryDate = '';
 
     // 编辑表单字段
     public int $formDriverId = 0;
+
     public int $formVehicleId = 0;
+
     public int $formBatch = 1;
+
     public string $formRemark = '';
 
     // 生成任务弹窗
     public bool $showGenerateModal = false;
+
     public int $genRouteId = 0;
+
     public string $genDeliveryDate = '';
+
     public int $genDriverId = 0;
+
     public int $genVehicleId = 0;
+
     public int $genBatch = 1;
+
     public string $genRemark = '';
+
     public array $genSelectedOrderIds = [];
+
     public array $pendingOrders = [];
 
     public static array $statusMap = [
@@ -70,7 +84,9 @@ class DeliveryTaskList extends Component
 
     // 下拉数据
     public array $routeOptions = [];
+
     public array $driverOptions = [];
+
     public array $vehicleOptions = [];
 
     public function mount(): void
@@ -85,19 +101,19 @@ class DeliveryTaskList extends Component
         $this->routeOptions = DeliveryRoute::enabled()
             ->ordered()
             ->get(['id', 'name', 'code'])
-            ->mapWithKeys(fn($r) => [$r->id => $r->code . ' ' . $r->name])
+            ->mapWithKeys(fn ($r) => [$r->id => $r->code.' '.$r->name])
             ->toArray();
 
         $this->driverOptions = Driver::enabled()
             ->orderBy('name')
             ->get(['id', 'name'])
-            ->mapWithKeys(fn($d) => [$d->id => $d->name])
+            ->mapWithKeys(fn ($d) => [$d->id => $d->name])
             ->toArray();
 
         $this->vehicleOptions = Vehicle::active()
             ->orderBy('plate_number')
             ->get(['id', 'plate_number'])
-            ->mapWithKeys(fn($v) => [$v->id => $v->plate_number])
+            ->mapWithKeys(fn ($v) => [$v->id => $v->plate_number])
             ->toArray();
     }
 
@@ -106,6 +122,11 @@ class DeliveryTaskList extends Component
     public function openEditModal(int $id): void
     {
         $item = DeliveryTask::findOrFail($id);
+        if ($item->status !== DeliveryTask::STATUS_PENDING) {
+            $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
+
+            return;
+        }
         $this->editingId = $id;
         $this->formDriverId = $item->driver_id ?? 0;
         $this->formVehicleId = $item->vehicle_id ?? 0;
@@ -123,7 +144,15 @@ class DeliveryTaskList extends Component
             'formRemark' => 'nullable|string|max:500',
         ]);
 
-        DeliveryTask::findOrFail($this->editingId)->update([
+        $task = DeliveryTask::findOrFail($this->editingId);
+        if ($task->status !== DeliveryTask::STATUS_PENDING) {
+            $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
+            $this->showModal = false;
+            $this->resetForm();
+
+            return;
+        }
+        $task->update([
             'driver_id' => $validated['formDriverId'] ?: null,
             'vehicle_id' => $validated['formVehicleId'] ?: null,
             'batch' => $validated['formBatch'],
@@ -182,6 +211,7 @@ class DeliveryTaskList extends Component
     {
         if ($this->genRouteId <= 0 || empty($this->genDeliveryDate)) {
             $this->pendingOrders = [];
+
             return;
         }
 
@@ -208,10 +238,10 @@ class DeliveryTaskList extends Component
 
         $this->pendingOrders = $orders->map(function ($order) {
             $productSummary = $order->items->take(3)
-                ->map(fn($item) => $item->sku?->product?->name ?? '商品')
+                ->map(fn ($item) => $item->sku?->product?->name ?? '商品')
                 ->implode('、');
             if ($order->items->count() > 3) {
-                $productSummary .= ' 等' . $order->items->count() . '项';
+                $productSummary .= ' 等'.$order->items->count().'项';
             }
 
             return [
@@ -263,6 +293,7 @@ class DeliveryTaskList extends Component
 
         if (empty($this->genSelectedOrderIds)) {
             $this->toastError('请至少选择一个待配送订单');
+
             return;
         }
 
@@ -280,7 +311,7 @@ class DeliveryTaskList extends Component
             'batch' => $validated['genBatch'],
             'status' => $validated['genDriverId'] ? DeliveryTask::STATUS_ASSIGNED : DeliveryTask::STATUS_PENDING,
             'planned_start_time' => $route->departure_time
-                ? $validated['genDeliveryDate'] . ' ' . $route->departure_time->format('H:i:s')
+                ? $validated['genDeliveryDate'].' '.$route->departure_time->format('H:i:s')
                 : null,
             'remark' => $validated['genRemark'],
         ]);
@@ -311,10 +342,10 @@ class DeliveryTaskList extends Component
 
             foreach ($merchantOrders as $order) {
                 $productSummary = $order->items->take(3)
-                    ->map(fn($item) => $item->sku?->product?->name ?? '商品')
+                    ->map(fn ($item) => $item->sku?->product?->name ?? '商品')
                     ->implode('、');
                 if ($order->items->count() > 3) {
-                    $productSummary .= ' 等' . $order->items->count() . '项';
+                    $productSummary .= ' 等'.$order->items->count().'项';
                 }
 
                 $detail = DeliveryTaskDetail::create([
@@ -343,7 +374,7 @@ class DeliveryTaskList extends Component
         // 按 delivery_route_stops 顺序生成顺序表
         $seqNo = 1;
         foreach ($routeStops as $merchantId => $stop) {
-            if (!isset($detailIdMap[$merchantId])) {
+            if (! isset($detailIdMap[$merchantId])) {
                 continue; // 该商家没有待配送订单，跳过
             }
 
@@ -413,8 +444,9 @@ class DeliveryTaskList extends Component
     public function startDelivery(int $id): void
     {
         $task = DeliveryTask::findOrFail($id);
-        if (!in_array($task->status, [DeliveryTask::STATUS_PENDING, DeliveryTask::STATUS_ASSIGNED])) {
+        if (! in_array($task->status, [DeliveryTask::STATUS_PENDING, DeliveryTask::STATUS_ASSIGNED])) {
             $this->toastError('仅待配送/已分配任务可开始');
+
             return;
         }
         $task->update([
@@ -429,6 +461,7 @@ class DeliveryTaskList extends Component
         $task = DeliveryTask::findOrFail($id);
         if ($task->status !== DeliveryTask::STATUS_IN_PROGRESS) {
             $this->toastError('仅配送中任务可完成');
+
             return;
         }
         $task->update([
@@ -441,8 +474,9 @@ class DeliveryTaskList extends Component
     public function cancelDelivery(int $id): void
     {
         $task = DeliveryTask::findOrFail($id);
-        if (!$task->canTransitionTo(DeliveryTask::STATUS_CANCELLED)) {
+        if (! $task->canTransitionTo(DeliveryTask::STATUS_CANCELLED)) {
             $this->toastError('当前状态不允许作废');
+
             return;
         }
         $task->update(['status' => DeliveryTask::STATUS_CANCELLED]);
@@ -451,7 +485,15 @@ class DeliveryTaskList extends Component
 
     public function delete(): void
     {
-        DeliveryTask::findOrFail($this->deletingId)->delete();
+        $task = DeliveryTask::findOrFail($this->deletingId);
+        if ($task->status !== DeliveryTask::STATUS_PENDING) {
+            $this->toastError('当前状态不可删除，仅待配送状态的任务可删除');
+            $this->showDeleteConfirm = false;
+            $this->deletingId = null;
+
+            return;
+        }
+        $task->delete();
         $this->toastSuccess('配送任务已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
@@ -511,7 +553,7 @@ class DeliveryTaskList extends Component
 
     public function getExportFileName(): string
     {
-        return '配送任务_' . now()->format('Ymd_His');
+        return '配送任务_'.now()->format('Ymd_His');
     }
 
     public function getImportModelClass(): string

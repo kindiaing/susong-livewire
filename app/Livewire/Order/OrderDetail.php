@@ -3,41 +3,53 @@
 namespace App\Livewire\Order;
 
 use App\Exports\GenericExport;
+use App\Livewire\Traits\WithMoneyConversion;
+use App\Livewire\Traits\WithToast;
 use App\Models\AuditLog;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Sku;
 use App\Services\PricingService;
 use App\Services\UnitConversionService;
-use App\Livewire\Traits\WithMoneyConversion;
-use App\Livewire\Traits\WithToast;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Maatwebsite\Excel\Facades\Excel;
 
 class OrderDetail extends Component
 {
-    use WithToast;
-    use WithMoneyConversion;
     use WithFileUploads;
+    use WithMoneyConversion;
+    use WithToast;
 
     public Order $order;
+
     public $items;
 
     // 明细编辑
     public bool $showAddItemModal = false;
+
     public ?int $editingItemId = null;
+
     public int $formSkuId = 0;
+
     public int $formQuantity = 0;
+
     public ?int $formUnitId = null;
+
     public int $formUnitQuantity = 0;
+
     public string $formPrice = '';
+
     public string $formRemark = '';
+
     public bool $showDeleteItemConfirm = false;
+
     public ?int $deletingItemId = null;
 
     // 添加明细确认
     public bool $showSaveConfirm = false;
+
     public string $saveConfirmTitle = '';
 
     // 取消确认（表单有数据时）
@@ -45,16 +57,21 @@ class OrderDetail extends Component
 
     // 状态操作确认
     public bool $showConfirmModal = false;
+
     public string $confirmAction = '';
+
     public string $confirmTitle = '';
 
     // 导出
     public bool $showExportModal = false;
+
     public bool $exportActual = false;
+
     public bool $exportStrategy = false;
 
     // 导入
     public bool $showImportModal = false;
+
     public $importFile = null;
 
     // 状态变更记录
@@ -72,8 +89,8 @@ class OrderDetail extends Component
 
     public function getCanEditItemsProperty(): bool
     {
-        return $this->order->status === Order::STATUS_PICKING_WAIT
-            || ($this->isSuperAdmin && $this->order->status !== Order::STATUS_CANCELLED);
+        // 仅初始状态（待拣货）可编辑；其他状态需管理员回退状态后才能修改
+        return $this->order->status === Order::STATUS_PICKING_WAIT;
     }
 
     public function loadOrder(int $id): void
@@ -125,7 +142,7 @@ class OrderDetail extends Component
     public function confirmRollback(string $toStatus): void
     {
         $statusLabels = Order::statusMap();
-        $this->confirmAction = 'rollback_' . $toStatus;
+        $this->confirmAction = 'rollback_'.$toStatus;
         $this->confirmTitle = "确认回退到【{$statusLabels[$toStatus]}】状态？";
         $this->showConfirmModal = true;
     }
@@ -150,6 +167,7 @@ class OrderDetail extends Component
                 $this->loadOrder($this->order->id);
                 $this->showConfirmModal = false;
                 $this->toastSuccess('状态已回退');
+
                 return;
             }
 
@@ -164,6 +182,7 @@ class OrderDetail extends Component
 
             if ($newStatus === null) {
                 $this->showConfirmModal = false;
+
                 return;
             }
 
@@ -251,7 +270,7 @@ class OrderDetail extends Component
             // 有单位换算：将单位数量转换为 base_unit 数量
             $svc = app(UnitConversionService::class);
             $this->formQuantity = $svc->convertToBase($this->formSkuId, $this->formUnitId, $this->formUnitQuantity);
-        } elseif ($this->formSkuId > 0 && !$this->formUnitId && $this->formUnitQuantity > 0) {
+        } elseif ($this->formSkuId > 0 && ! $this->formUnitId && $this->formUnitQuantity > 0) {
             // SKU 未配置单位换算：formUnitQuantity 直接作为 formQuantity
             $this->formQuantity = $this->formUnitQuantity;
         } elseif ($this->formSkuId > 0 && $this->formUnitQuantity === 0) {
@@ -262,26 +281,28 @@ class OrderDetail extends Component
     /**
      * 获取当前 SKU 可用单位列表（用于下拉）
      */
-    #[\Livewire\Attributes\Computed]
+    #[Computed]
     public function availableUnits(): array
     {
         if ($this->formSkuId <= 0) {
             return [];
         }
         $svc = app(UnitConversionService::class);
+
         return $svc->getAvailableUnits($this->formSkuId);
     }
 
     /**
      * 获取换算预览文本
      */
-    #[\Livewire\Attributes\Computed]
+    #[Computed]
     public function unitPreview(): string
     {
-        if ($this->formSkuId <= 0 || !$this->formUnitId || $this->formUnitQuantity <= 0) {
+        if ($this->formSkuId <= 0 || ! $this->formUnitId || $this->formUnitQuantity <= 0) {
             return '';
         }
         $svc = app(UnitConversionService::class);
+
         return $svc->formatWithConversion($this->formSkuId, $this->formUnitId, $this->formUnitQuantity);
     }
 
@@ -319,21 +340,21 @@ class OrderDetail extends Component
         $sku = Sku::with('product')->find($this->formSkuId);
         $price = money_to_cents($this->formPrice);
         $subtotal = $price * $this->formQuantity;
-        $skuLabel = $sku ? ($sku->sku_code . ' - ' . ($sku->product?->name ?? '')) : '';
+        $skuLabel = $sku ? ($sku->sku_code.' - '.($sku->product?->name ?? '')) : '';
 
         // 构造数量显示文本
-        $qtyLabel = (string)$this->formQuantity;
+        $qtyLabel = (string) $this->formQuantity;
         if ($this->formUnitId && $this->formUnitQuantity > 0) {
             $svc = app(UnitConversionService::class);
             $qtyLabel = $svc->formatWithConversion($this->formSkuId, $this->formUnitId, $this->formUnitQuantity);
         }
 
         if ($this->editingItemId) {
-            $this->saveConfirmTitle = "确认保存修改？";
+            $this->saveConfirmTitle = '确认保存修改？';
         } else {
-            $this->saveConfirmTitle = "确认添加明细？";
+            $this->saveConfirmTitle = '确认添加明细？';
         }
-        $this->saveConfirmTitle .= "\n\n商品：{$skuLabel}　数量：{$qtyLabel}　单价：{$this->formPrice}元　小计：" . money_format($subtotal);
+        $this->saveConfirmTitle .= "\n\n商品：{$skuLabel}　数量：{$qtyLabel}　单价：{$this->formPrice}元　小计：".money_format($subtotal);
 
         $this->showSaveConfirm = true;
     }
@@ -343,6 +364,12 @@ class OrderDetail extends Component
      */
     public function executeSaveItem(): void
     {
+        if ($this->order->status !== Order::STATUS_PICKING_WAIT) {
+            $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
+            $this->showSaveConfirm = false;
+
+            return;
+        }
         try {
             $sku = Sku::with('product')->findOrFail($this->formSkuId);
             $price = money_to_cents($this->formPrice);
@@ -455,6 +482,13 @@ class OrderDetail extends Component
 
     public function deleteItem(): void
     {
+        if ($this->order->status !== Order::STATUS_PICKING_WAIT) {
+            $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
+            $this->showDeleteItemConfirm = false;
+            $this->deletingItemId = null;
+
+            return;
+        }
         try {
             $item = OrderItem::findOrFail($this->deletingItemId);
             $item->delete();
@@ -499,7 +533,7 @@ class OrderDetail extends Component
             );
             $this->formPrice = $this->centsToYuan($result['price']);
         } catch (\Exception $e) {
-            $this->toastError('取价失败：' . $e->getMessage());
+            $this->toastError('取价失败：'.$e->getMessage());
         }
     }
 
@@ -573,7 +607,7 @@ class OrderDetail extends Component
         }
         unset($row);
 
-        $fileName = '订单明细_' . $this->order->order_no . '_' . now()->format('Ymd_His') . '.xlsx';
+        $fileName = '订单明细_'.$this->order->order_no.'_'.now()->format('Ymd_His').'.xlsx';
 
         $this->showExportModal = false;
 
@@ -607,7 +641,9 @@ class OrderDetail extends Component
             $merged = 0;
 
             foreach ($rows as $index => $row) {
-                if ($index === 0) continue; // 跳过标题行
+                if ($index === 0) {
+                    continue;
+                } // 跳过标题行
 
                 $skuCode = trim($row[0] ?? '');
                 $quantity = (int) ($row[1] ?? 0);
@@ -615,12 +651,14 @@ class OrderDetail extends Component
 
                 if (! $skuCode || $quantity <= 0) {
                     $skipped++;
+
                     continue;
                 }
 
                 $sku = Sku::where('sku_code', $skuCode)->first();
                 if (! $sku) {
                     $skipped++;
+
                     continue;
                 }
 
@@ -643,6 +681,7 @@ class OrderDetail extends Component
                         'unit_quantity' => $existingItem->unit_quantity ? $existingItem->unit_quantity + $quantity : $quantity,
                     ]);
                     $merged++;
+
                     continue;
                 }
 
@@ -669,6 +708,7 @@ class OrderDetail extends Component
                     $imported++;
                 } catch (\Exception $e) {
                     $skipped++;
+
                     continue;
                 }
             }
@@ -686,7 +726,7 @@ class OrderDetail extends Component
             }
             $this->toastSuccess($msg);
         } catch (\Exception $e) {
-            $this->toastError('导入失败：' . $e->getMessage());
+            $this->toastError('导入失败：'.$e->getMessage());
         }
     }
 

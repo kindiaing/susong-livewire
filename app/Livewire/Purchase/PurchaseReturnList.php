@@ -2,35 +2,41 @@
 
 namespace App\Livewire\Purchase;
 
-use App\Models\PurchaseReturn;
-use App\Models\PurchaseOrder;
-use App\Models\Supplier;
-use App\Models\Warehouse;
-use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
-use App\Livewire\Traits\WithToast;
 use App\Livewire\Traits\WithListCrud;
+use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
+use App\Models\PurchaseOrder;
+use App\Models\PurchaseReturn;
+use App\Models\Supplier;
+use App\Models\Warehouse;
+use App\Services\PurchaseReturnService;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class PurchaseReturnList extends Component
 {
-    use WithPagination;
-    use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
-    use WithToast;
+    use WithColumnVisibility, WithExcelExport, WithExcelImport, WithRowSelection;
     use WithListCrud;
+    use WithPagination;
+    use WithToast;
 
     protected string $modelClass = PurchaseReturn::class;
 
     public string $search = '';
+
     public int $filterStatus = -1;
 
     public int $formPurchaseOrderId = 0;
+
     public int $formSupplierId = 0;
+
     public int $formWarehouseId = 0;
+
     public string $formReason = '';
+
     public string $formRemark = '';
 
     public function mount(): void
@@ -41,6 +47,11 @@ class PurchaseReturnList extends Component
     public function openEditModal(int $id): void
     {
         $item = PurchaseReturn::findOrFail($id);
+        if ($item->status !== PurchaseReturn::STATUS_PENDING) {
+            $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
+
+            return;
+        }
         $this->editingId = $id;
         $this->formPurchaseOrderId = $item->purchase_order_id;
         $this->formSupplierId = $item->supplier_id;
@@ -73,6 +84,13 @@ class PurchaseReturnList extends Component
 
         if ($this->editingId) {
             $item = PurchaseReturn::findOrFail($this->editingId);
+            if ($item->status !== PurchaseReturn::STATUS_PENDING) {
+                $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
+                $this->showModal = false;
+                $this->resetForm();
+
+                return;
+            }
             unset($data['status'], $data['total_amount'], $data['actual_amount']);
             $item->update($data);
             $this->toastSuccess('退货单已更新');
@@ -89,6 +107,13 @@ class PurchaseReturnList extends Component
     public function delete(): void
     {
         $item = PurchaseReturn::findOrFail($this->deletingId);
+        if ($item->status !== PurchaseReturn::STATUS_PENDING) {
+            $this->toastError('当前状态不可删除，仅待审核状态的退货单可删除');
+            $this->showDeleteConfirm = false;
+            $this->deletingId = null;
+
+            return;
+        }
         $item->delete();
         $this->toastSuccess('退货单已删除');
         $this->showDeleteConfirm = false;
@@ -118,7 +143,7 @@ class PurchaseReturnList extends Component
     {
         try {
             $return = PurchaseReturn::findOrFail($id);
-            $service = app(\App\Services\PurchaseReturnService::class);
+            $service = app(PurchaseReturnService::class);
             $service->approve($return);
             $this->toastSuccess('退货单已审核');
         } catch (\Exception $e) {
@@ -130,7 +155,7 @@ class PurchaseReturnList extends Component
     {
         try {
             $return = PurchaseReturn::findOrFail($id);
-            $service = app(\App\Services\PurchaseReturnService::class);
+            $service = app(PurchaseReturnService::class);
             $service->ship($return);
             $this->toastSuccess('退货单已出库');
         } catch (\Exception $e) {
@@ -142,7 +167,7 @@ class PurchaseReturnList extends Component
     {
         try {
             $return = PurchaseReturn::findOrFail($id);
-            $service = app(\App\Services\PurchaseReturnService::class);
+            $service = app(PurchaseReturnService::class);
             $service->complete($return);
             $this->toastSuccess('退货单已完成');
         } catch (\Exception $e) {
@@ -154,7 +179,7 @@ class PurchaseReturnList extends Component
     {
         try {
             $return = PurchaseReturn::findOrFail($id);
-            $service = app(\App\Services\PurchaseReturnService::class);
+            $service = app(PurchaseReturnService::class);
             $service->cancel($return);
             $this->toastSuccess('退货单已作废');
         } catch (\Exception $e) {
@@ -222,7 +247,7 @@ class PurchaseReturnList extends Component
 
     public function getExportFileName(): string
     {
-        return '采购退货_' . now()->format('Ymd_His');
+        return '采购退货_'.now()->format('Ymd_His');
     }
 
     public function getImportModelClass(): string

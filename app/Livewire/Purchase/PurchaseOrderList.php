@@ -2,32 +2,35 @@
 
 namespace App\Livewire\Purchase;
 
-use App\Models\PurchaseOrder;
-use App\Models\Supplier;
-use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
-use App\Livewire\Traits\WithToast;
 use App\Livewire\Traits\WithListCrud;
+use App\Livewire\Traits\WithRowSelection;
+use App\Livewire\Traits\WithToast;
+use App\Models\PurchaseOrder;
+use App\Models\Supplier;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class PurchaseOrderList extends Component
 {
-    use WithPagination;
-    use WithRowSelection, WithColumnVisibility, WithExcelExport, WithExcelImport;
-    use WithToast;
+    use WithColumnVisibility, WithExcelExport, WithExcelImport, WithRowSelection;
     use WithListCrud;
+    use WithPagination;
+    use WithToast;
 
     protected string $modelClass = PurchaseOrder::class;
 
     public string $search = '';
+
     public int $filterStatus = -1;
 
     public int $formSupplierId = 0;
+
     public string $formPurchaseDate = '';
+
     public string $formRemark = '';
 
     public function mount(): void
@@ -38,6 +41,11 @@ class PurchaseOrderList extends Component
     public function openEditModal(int $id): void
     {
         $order = PurchaseOrder::findOrFail($id);
+        if ($order->status !== PurchaseOrder::STATUS_PENDING) {
+            $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
+
+            return;
+        }
         $this->editingId = $id;
         $this->formSupplierId = $order->supplier_id;
         $this->formPurchaseDate = $order->purchase_date?->format('Y-m-d') ?? '';
@@ -60,7 +68,15 @@ class PurchaseOrderList extends Component
         ];
 
         if ($this->editingId) {
-            PurchaseOrder::findOrFail($this->editingId)->update($data);
+            $order = PurchaseOrder::findOrFail($this->editingId);
+            if ($order->status !== PurchaseOrder::STATUS_PENDING) {
+                $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
+                $this->showModal = false;
+                $this->resetForm();
+
+                return;
+            }
+            $order->update($data);
             $this->toastSuccess('采购单已更新');
         } else {
             $data['order_no'] = PurchaseOrder::generateOrderNo();
@@ -79,10 +95,11 @@ class PurchaseOrderList extends Component
     {
         $order = PurchaseOrder::findOrFail($this->deletingId);
 
-        if (in_array($order->status, [PurchaseOrder::STATUS_STOCKED, PurchaseOrder::STATUS_COMPLETED, PurchaseOrder::STATUS_CANCELLED])) {
-            $this->toastError('已入库/已完成/已作废的采购单不可删除');
+        if ($order->status !== PurchaseOrder::STATUS_PENDING) {
+            $this->toastError('当前状态不可删除，仅待接单状态的采购单可删除');
             $this->showDeleteConfirm = false;
             $this->deletingId = null;
+
             return;
         }
 
@@ -97,20 +114,22 @@ class PurchaseOrderList extends Component
         $count = count($this->selectedIds);
         if ($count === 0) {
             $this->toastWarning('请先选择要删除的采购单');
+
             return;
         }
         $deletable = PurchaseOrder::whereIn('id', $this->selectedIds)
-            ->whereNotIn('status', [PurchaseOrder::STATUS_STOCKED, PurchaseOrder::STATUS_COMPLETED, PurchaseOrder::STATUS_CANCELLED])
+            ->where('status', PurchaseOrder::STATUS_PENDING)
             ->pluck('id')
             ->toArray();
 
         if (empty($deletable)) {
-            $this->toastError('所选采购单均为已入库/已完成/已作废状态，不可删除');
+            $this->toastError('所选采购单均非待接单状态，不可删除');
+
             return;
         }
 
         PurchaseOrder::whereIn('id', $deletable)->delete();
-        $this->toastSuccess('已删除 ' . count($deletable) . ' 条采购单');
+        $this->toastSuccess('已删除 '.count($deletable).' 条采购单');
         $this->clearSelection();
     }
 
@@ -186,7 +205,7 @@ class PurchaseOrderList extends Component
 
     public function getExportFileName(): string
     {
-        return '采购单_' . now()->format('Ymd_His');
+        return '采购单_'.now()->format('Ymd_His');
     }
 
     public function getImportModelClass(): string
