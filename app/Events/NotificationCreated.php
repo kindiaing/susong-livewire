@@ -11,7 +11,7 @@ use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * 通知创建事件 — 通过 Reverb 实时推送
+ * 通知创建事件 — 通过 Pusher 实时推送
  *
  * 实现 ShouldBroadcastNow：同步广播（不走队列），适合通知这种即时性要求高的场景。
  * 广播到两个频道：

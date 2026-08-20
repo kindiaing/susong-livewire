@@ -18,6 +18,7 @@
         "livewire/blaze": "^1.0",
         "livewire/livewire": "^4.1",
         "maatwebsite/excel": "^3.1",
+        "pusher/pusher-php-server": "*",
         "spatie/laravel-permission": "^8.3"
     },
     "require-dev": {
