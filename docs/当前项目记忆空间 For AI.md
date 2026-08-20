@@ -1,14 +1,3 @@
----
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: '0c8c0f2b-3915-4703-8e2c-1c45c41ae0bf'
-  PropagateID: '0c8c0f2b-3915-4703-8e2c-1c45c41ae0bf'
-  ReservedCode1: '25551b1b-a829-42f1-811b-7c010465c7f9'
-  ReservedCode2: '25551b1b-a829-42f1-811b-7c010465c7f9'
----
-
 # 项目记忆空间
 
 > 本文档为 AI 协作记忆区，记录项目核心规则、验收标准和开发规范，确保每次会话上下文一致。

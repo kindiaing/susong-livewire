@@ -1,14 +1,3 @@
----
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: '08a928f5-5fbc-4142-af50-49e2c3bd79bd'
-  PropagateID: '08a928f5-5fbc-4142-af50-49e2c3bd79bd'
-  ReservedCode1: '1315e351-a433-4c73-93f6-e813ac23e559'
-  ReservedCode2: '1315e351-a433-4c73-93f6-e813ac23e559'
----
-
 # Laravel Reverb 实时推送 — 开发教程
 
 > 本文档面向项目新成员，系统讲解 Reverb 在项目中的完整链路：从配置、事件、服务到前端订阅，以及如何新增一个通知场景。
