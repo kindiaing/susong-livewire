@@ -16,6 +16,7 @@ class ProductDemoSeeder extends Seeder
     {
         $this->seedCategories();
         $this->seedProducts();
+        $this->seedUnitConversions();
         $this->seedSkuSuppliers();
         $this->seedSkuBarcodes();
         $this->seedKeywords();
@@ -91,38 +92,94 @@ class ProductDemoSeeder extends Seeder
     {
         $now = now();
 
+        $unitJin = DB::table('units')->where('name', '斤')->value('id');
+        $unitTong = DB::table('units')->where('name', '桶')->value('id');
+
+        // base_unit_id 只属于 skus 表，products 表无此字段
         $products = [
-            ['category_id' => DB::table('categories')->where('name', '蔬菜')->value('id'), 'name' => '大白菜', 'unit' => '斤', 'is_weight_priced' => 1, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['category_id' => DB::table('categories')->where('name', '蔬菜')->value('id'), 'name' => '土豆', 'unit' => '斤', 'is_weight_priced' => 1, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['category_id' => DB::table('categories')->where('name', '蔬菜')->value('id'), 'name' => '西红柿', 'unit' => '斤', 'is_weight_priced' => 1, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['category_id' => DB::table('categories')->where('name', '肉类')->value('id'), 'name' => '五花肉', 'unit' => '斤', 'is_weight_priced' => 1, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['category_id' => DB::table('categories')->where('name', '水产')->value('id'), 'name' => '鲜虾', 'unit' => '斤', 'is_weight_priced' => 1, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
-            ['category_id' => DB::table('categories')->where('name', '粮油')->value('id'), 'name' => '金龙鱼大豆油', 'unit' => '桶', 'is_weight_priced' => 0, 'status' => 1, 'created_at' => $now, 'updated_at' => $now],
+            ['name' => '大白菜',     'category' => '蔬菜', 'unit' => '斤', 'is_weight_priced' => 1, 'base_unit_id' => $unitJin,   'purchase_price' => 8000],
+            ['name' => '土豆',       'category' => '蔬菜', 'unit' => '斤', 'is_weight_priced' => 1, 'base_unit_id' => $unitJin,   'purchase_price' => 12000],
+            ['name' => '西红柿',     'category' => '蔬菜', 'unit' => '斤', 'is_weight_priced' => 1, 'base_unit_id' => $unitJin,   'purchase_price' => 25000],
+            ['name' => '五花肉',     'category' => '肉类', 'unit' => '斤', 'is_weight_priced' => 1, 'base_unit_id' => $unitJin,   'purchase_price' => 130000],
+            ['name' => '鲜虾',       'category' => '水产', 'unit' => '斤', 'is_weight_priced' => 1, 'base_unit_id' => $unitJin,   'purchase_price' => 350000],
+            ['name' => '金龙鱼大豆油', 'category' => '粮油', 'unit' => '桶', 'is_weight_priced' => 0, 'base_unit_id' => $unitTong,  'purchase_price' => 450000],
         ];
 
-        foreach ($products as $product) {
-            if (! empty($product['category_id']) && ! DB::table('products')->where('name', $product['name'])->exists()) {
-                $productId = DB::table('products')->insertGetId($product);
+        foreach ($products as $p) {
+            $categoryId = DB::table('categories')->where('name', $p['category'])->value('id');
+            if (empty($categoryId) || DB::table('products')->where('name', $p['name'])->exists()) continue;
 
-                $name = $product['name'];
-                $purchasePrice = match($name) {
-                    '大白菜' => 8000, '土豆' => 12000, '西红柿' => 25000,
-                    '五花肉' => 130000, '鲜虾' => 350000,
-                    '金龙鱼大豆油' => 450000,
-                    default => 10000,
-                };
-                $wholesalePrice = (int)($purchasePrice * 1.15);
+            $productId = DB::table('products')->insertGetId([
+                'category_id' => $categoryId,
+                'name' => $p['name'],
+                'unit' => $p['unit'],
+                'is_weight_priced' => $p['is_weight_priced'],
+                'status' => 1,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
 
-                DB::table('skus')->insert([
-                    'product_id' => $productId,
-                    'sku_code' => 'SKU-' . str_pad($productId, 4, '0', STR_PAD_LEFT),
-                    'specs' => json_encode([['label' => '规格', 'value' => $product['unit']]]),
-                    'purchase_price' => $purchasePrice,
-                    'wholesale_price' => $wholesalePrice,
-                    'cost_price' => 0,
-                    'stock' => 0,
+            $wholesalePrice = (int)($p['purchase_price'] * 1.15);
+
+            DB::table('skus')->insert([
+                'product_id' => $productId,
+                'sku_code' => 'SKU-' . str_pad($productId, 4, '0', STR_PAD_LEFT),
+                'specs' => json_encode([['label' => '规格', 'value' => $p['unit']]]),
+                'purchase_price' => $p['purchase_price'],
+                'wholesale_price' => $wholesalePrice,
+                'cost_price' => 0,
+                'stock' => 0,
+                'base_unit_id' => $p['base_unit_id'],
+                'status' => 1,
+                'approval_status' => 2,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
+    }
+
+    /**
+     * 单位换算种子数据
+     *
+     * 严格单链路设计：每个 SKU 最多一条从大单位到 base_unit 的换算链。
+     * 蔬菜/肉类：箱(1) → 斤(4)，1箱=50斤
+     * 水产：箱(1) → 斤(4)，1箱=20斤
+     * 粮油：箱(1) → 桶(5)，1箱=6桶
+     */
+    protected function seedUnitConversions(): void
+    {
+        $now = now();
+        $unitXiang = DB::table('units')->where('name', '箱')->value('id');
+        $unitJin = DB::table('units')->where('name', '斤')->value('id');
+        $unitTong = DB::table('units')->where('name', '桶')->value('id');
+
+        if (! $unitXiang || ! $unitJin || ! $unitTong) return;
+
+        // 商品名 => [from_unit, to_unit, ratio]
+        $conversionMap = [
+            '大白菜'     => [$unitXiang, $unitJin, 50],
+            '土豆'       => [$unitXiang, $unitJin, 50],
+            '西红柿'     => [$unitXiang, $unitJin, 50],
+            '五花肉'     => [$unitXiang, $unitJin, 50],
+            '鲜虾'       => [$unitXiang, $unitJin, 20],
+            '金龙鱼大豆油' => [$unitXiang, $unitTong, 6],
+        ];
+
+        foreach ($conversionMap as $productName => [$fromUnitId, $toUnitId, $ratio]) {
+            $product = DB::table('products')->where('name', $productName)->first();
+            if (! $product) continue;
+            $sku = DB::table('skus')->where('product_id', $product->id)->first();
+            if (! $sku) continue;
+
+            if (! DB::table('unit_conversions')->where('sku_id', $sku->id)->where('from_unit_id', $fromUnitId)->where('to_unit_id', $toUnitId)->exists()) {
+                DB::table('unit_conversions')->insert([
+                    'sku_id' => $sku->id,
+                    'from_unit_id' => $fromUnitId,
+                    'to_unit_id' => $toUnitId,
+                    'ratio' => $ratio,
+                    'parent_conversion_id' => null,
                     'status' => 1,
-                    'approval_status' => 2,
+                    'sort' => 0,
                     'created_at' => $now,
                     'updated_at' => $now,
                 ]);

@@ -56,19 +56,20 @@ class OrderDemoSeeder extends Seeder
         $now = now();
         $merchant1 = DB::table('merchants')->where('name', '味之初餐饮店')->first();
         $merchant2 = DB::table('merchants')->where('name', '鲜之味快餐店')->first();
+        $unitJin = DB::table('units')->where('name', '斤')->value('id');
 
         if ($merchant1 && ! DB::table('carts')->where('merchant_id', $merchant1->id)->exists()) {
             $cartId = DB::table('carts')->insertGetId(['merchant_id' => $merchant1->id, 'created_at' => $now, 'updated_at' => $now]);
             $sku1 = DB::table('skus')->where('sku_code', 'SKU-0001')->first();
             $sku2 = DB::table('skus')->where('sku_code', 'SKU-0002')->first();
-            if ($sku1) DB::table('cart_items')->insert(['cart_id' => $cartId, 'sku_id' => $sku1->id, 'quantity' => 2000, 'price' => 9200, 'created_at' => $now, 'updated_at' => $now]);
-            if ($sku2) DB::table('cart_items')->insert(['cart_id' => $cartId, 'sku_id' => $sku2->id, 'quantity' => 1000, 'price' => 13800, 'created_at' => $now, 'updated_at' => $now]);
+            if ($sku1) DB::table('cart_items')->insert(['cart_id' => $cartId, 'sku_id' => $sku1->id, 'quantity' => 2000, 'unit_id' => $unitJin, 'unit_quantity' => 2000, 'price' => 9200, 'created_at' => $now, 'updated_at' => $now]);
+            if ($sku2) DB::table('cart_items')->insert(['cart_id' => $cartId, 'sku_id' => $sku2->id, 'quantity' => 1000, 'unit_id' => $unitJin, 'unit_quantity' => 1000, 'price' => 13800, 'created_at' => $now, 'updated_at' => $now]);
         }
 
         if ($merchant2 && ! DB::table('carts')->where('merchant_id', $merchant2->id)->exists()) {
             $cartId = DB::table('carts')->insertGetId(['merchant_id' => $merchant2->id, 'created_at' => $now, 'updated_at' => $now]);
             $sku4 = DB::table('skus')->where('sku_code', 'SKU-0004')->first();
-            if ($sku4) DB::table('cart_items')->insert(['cart_id' => $cartId, 'sku_id' => $sku4->id, 'quantity' => 500, 'price' => 149500, 'created_at' => $now, 'updated_at' => $now]);
+            if ($sku4) DB::table('cart_items')->insert(['cart_id' => $cartId, 'sku_id' => $sku4->id, 'quantity' => 500, 'unit_id' => $unitJin, 'unit_quantity' => 500, 'price' => 149500, 'created_at' => $now, 'updated_at' => $now]);
         }
     }
 
@@ -78,6 +79,8 @@ class OrderDemoSeeder extends Seeder
         $merchant1 = DB::table('merchants')->where('name', '味之初餐饮店')->first();
         $merchant2 = DB::table('merchants')->where('name', '家常菜馆')->first();
         $merchant3 = DB::table('merchants')->where('name', '鲜之味快餐店')->first();
+        $unitJin = DB::table('units')->where('name', '斤')->value('id');
+        $unitXiang = DB::table('units')->where('name', '箱')->value('id');
 
         $today = $now->toDateString();
         $yesterday = $now->copy()->subDay()->toDateString();
@@ -89,8 +92,8 @@ class OrderDemoSeeder extends Seeder
                 'status' => 4, 'total_amount' => 23000, 'adjusted_amount' => 23000, 'final_amount' => 23000, 'payment_status' => 2, 'settlement_type' => 1,
                 'order_date' => $yesterday, 'delivery_date' => $today,
                 'items' => [
-                    ['product' => '大白菜', 'quantity' => 2000, 'price' => 9200, 'actual_quantity' => 2100, 'actual_price' => 9200],
-                    ['product' => '土豆',   'quantity' => 500,  'price' => 13800, 'actual_quantity' => 480, 'actual_price' => 13800],
+                    ['product' => '大白菜', 'quantity' => 2000, 'unit_id' => $unitXiang, 'unit_quantity' => 40, 'price' => 9200, 'actual_quantity' => 2100, 'actual_price' => 9200],
+                    ['product' => '土豆',   'quantity' => 500,  'unit_id' => $unitJin,   'unit_quantity' => 500, 'price' => 13800, 'actual_quantity' => 480, 'actual_price' => 13800],
                 ],
             ],
             [
@@ -99,7 +102,7 @@ class OrderDemoSeeder extends Seeder
                 'status' => 2, 'total_amount' => 74500, 'adjusted_amount' => 74500, 'final_amount' => 0, 'payment_status' => 1, 'settlement_type' => 2,
                 'order_date' => $yesterday, 'delivery_date' => $today,
                 'items' => [
-                    ['product' => '五花肉', 'quantity' => 500, 'price' => 149000, 'actual_quantity' => 0, 'actual_price' => 0],
+                    ['product' => '五花肉', 'quantity' => 500, 'unit_id' => $unitJin, 'unit_quantity' => 500, 'price' => 149000, 'actual_quantity' => 0, 'actual_price' => 0],
                 ],
             ],
             [
@@ -108,7 +111,7 @@ class OrderDemoSeeder extends Seeder
                 'status' => 1, 'total_amount' => 4025000, 'adjusted_amount' => 4025000, 'final_amount' => 0, 'payment_status' => 1, 'settlement_type' => 3,
                 'order_date' => $today, 'delivery_date' => $now->copy()->addDay()->toDateString(),
                 'items' => [
-                    ['product' => '鲜虾', 'quantity' => 1000, 'price' => 4025000, 'actual_quantity' => 0, 'actual_price' => 0],
+                    ['product' => '鲜虾', 'quantity' => 1000, 'unit_id' => $unitXiang, 'unit_quantity' => 50, 'price' => 4025000, 'actual_quantity' => 0, 'actual_price' => 0],
                 ],
             ],
         ];
@@ -138,8 +141,8 @@ class OrderDemoSeeder extends Seeder
 
                 DB::table('order_items')->insert([
                     'order_id' => $orderId, 'sku_id' => $sku->id, 'product_name' => $item['product'],
-                    'sku_specs' => $sku->specs, 'quantity' => $item['quantity'], 'price' => $item['price'],
-                    'actual_quantity' => $item['actual_quantity'], 'actual_price' => $item['actual_price'],
+                    'sku_specs' => $sku->specs, 'quantity' => $item['quantity'], 'unit_id' => $item['unit_id'], 'unit_quantity' => $item['unit_quantity'],
+                    'price' => $item['price'], 'actual_quantity' => $item['actual_quantity'], 'actual_price' => $item['actual_price'],
                     'subtotal' => $subtotal, 'actual_subtotal' => $actualSubtotal,
                     'strategy_price' => 0, 'strategy_amount' => 0, 'discrepancy_amount' => abs($subtotal - $actualSubtotal),
                     'status' => 1, 'created_at' => $now, 'updated_at' => $now,

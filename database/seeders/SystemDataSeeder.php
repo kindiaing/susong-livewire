@@ -75,8 +75,8 @@ class SystemDataSeeder extends Seeder
             'display_name' => '采购管理',
             'icon' => 'truck',
             'pages' => [
-                'purchase.purchase-order' => ['display_name' => '采购单', 'buttons' => ['purchase.purchase-order.create', 'purchase.purchase-order.edit', 'purchase.purchase-order.delete', 'purchase.purchase-order.submit', 'purchase.purchase-order.approve']],
-                'purchase.purchase-return' => ['display_name' => '采购退货', 'buttons' => ['purchase.purchase-return.create', 'purchase.purchase-return.edit', 'purchase.purchase-return.delete']],
+                'purchase.purchase-order' => ['display_name' => '采购单', 'buttons' => ['purchase.purchase-order.create', 'purchase.purchase-order.edit', 'purchase.purchase-order.delete', 'purchase.purchase-order.submit', 'purchase.purchase-order.approve', 'purchase.purchase-order.cancel']],
+                'purchase.purchase-return' => ['display_name' => '采购退货', 'buttons' => ['purchase.purchase-return.create', 'purchase.purchase-return.edit', 'purchase.purchase-return.delete', 'purchase.purchase-return.cancel']],
                 'purchase.restock-reminder' => ['display_name' => '补货提醒', 'buttons' => ['purchase.restock-reminder.create', 'purchase.restock-reminder.edit', 'purchase.restock-reminder.delete']],
             ],
         ],
@@ -86,7 +86,7 @@ class SystemDataSeeder extends Seeder
             'pages' => [
                 'order.order' => ['display_name' => '订单列表', 'buttons' => ['order.order.create', 'order.order.edit', 'order.order.cancel', 'order.order.lock', 'order.order.change-price', 'order.order.delete']],
                 'order.cart' => ['display_name' => '购物车', 'buttons' => []],
-                'order.order-return' => ['display_name' => '退货管理', 'buttons' => ['order.order-return.create', 'order.order-return.edit', 'order.order-return.delete']],
+                'order.order-return' => ['display_name' => '退货管理', 'buttons' => ['order.order-return.create', 'order.order-return.edit', 'order.order-return.delete', 'order.order-return.cancel']],
             ],
         ],
         'inventory' => [
@@ -96,7 +96,7 @@ class SystemDataSeeder extends Seeder
                 'inventory.warehouse' => ['display_name' => '仓库管理', 'buttons' => ['inventory.warehouse.create', 'inventory.warehouse.edit', 'inventory.warehouse.delete']],
                 'inventory.inventory' => ['display_name' => '库存列表', 'buttons' => []],
                 'inventory.inventory-log' => ['display_name' => '库存日志', 'buttons' => []],
-                'inventory.picking-task' => ['display_name' => '拣货任务', 'buttons' => ['inventory.picking-task.create', 'inventory.picking-task.edit', 'inventory.picking-task.delete']],
+                'inventory.picking-task' => ['display_name' => '拣货任务', 'buttons' => ['inventory.picking-task.create', 'inventory.picking-task.edit', 'inventory.picking-task.delete', 'inventory.picking-task.cancel']],
             ],
         ],
         'delivery' => [
@@ -116,7 +116,7 @@ class SystemDataSeeder extends Seeder
             'display_name' => '损耗管理',
             'icon' => 'exclamation-triangle',
             'pages' => [
-                'loss.loss-order' => ['display_name' => '损耗单', 'buttons' => ['loss.loss-order.create', 'loss.loss-order.edit', 'loss.loss-order.approve', 'loss.loss-order.execute', 'loss.loss-order.close']],
+                'loss.loss-order' => ['display_name' => '损耗单', 'buttons' => ['loss.loss-order.create', 'loss.loss-order.edit', 'loss.loss-order.approve', 'loss.loss-order.execute', 'loss.loss-order.close', 'loss.loss-order.cancel']],
             ],
         ],
         'finance' => [
@@ -174,15 +174,15 @@ class SystemDataSeeder extends Seeder
         'product.visibility.create' => '创建可见性配置', 'product.visibility.edit' => '编辑可见性配置', 'product.visibility.delete' => '删除可见性配置',
         // 采购管理
         'purchase.purchase-order.create' => '创建采购单', 'purchase.purchase-order.edit' => '编辑采购单', 'purchase.purchase-order.delete' => '删除采购单',
-        'purchase.purchase-order.submit' => '提交审核', 'purchase.purchase-order.approve' => '审核采购单',
-        'purchase.purchase-return.create' => '创建退货', 'purchase.purchase-return.edit' => '编辑退货', 'purchase.purchase-return.delete' => '删除退货',
+        'purchase.purchase-order.submit' => '提交审核', 'purchase.purchase-order.approve' => '审核采购单', 'purchase.purchase-order.cancel' => '作废采购单',
+        'purchase.purchase-return.create' => '创建退货', 'purchase.purchase-return.edit' => '编辑退货', 'purchase.purchase-return.delete' => '删除退货', 'purchase.purchase-return.cancel' => '作废退货',
         'purchase.restock-reminder.create' => '创建提醒', 'purchase.restock-reminder.edit' => '编辑提醒', 'purchase.restock-reminder.delete' => '删除提醒',
         // 订单管理
         'order.order.create' => '创建订单', 'order.order.edit' => '编辑订单', 'order.order.cancel' => '作废订单', 'order.order.lock' => '锁定订单', 'order.order.change-price' => '改价', 'order.order.delete' => '删除订单',
-        'order.order-return.create' => '创建退货', 'order.order-return.edit' => '编辑退货', 'order.order-return.delete' => '删除退货',
+        'order.order-return.create' => '创建退货', 'order.order-return.edit' => '编辑退货', 'order.order-return.delete' => '删除退货', 'order.order-return.cancel' => '作废退货',
         // 库存管理
         'inventory.warehouse.create' => '创建仓库', 'inventory.warehouse.edit' => '编辑仓库', 'inventory.warehouse.delete' => '删除仓库',
-        'inventory.picking-task.create' => '生成拣货单', 'inventory.picking-task.edit' => '编辑拣货任务', 'inventory.picking-task.delete' => '删除拣货任务',
+        'inventory.picking-task.create' => '生成拣货单', 'inventory.picking-task.edit' => '编辑拣货任务', 'inventory.picking-task.delete' => '删除拣货任务', 'inventory.picking-task.cancel' => '作废拣货任务',
         // 配送管理
         'delivery.route.create' => '创建线路', 'delivery.route.edit' => '编辑线路', 'delivery.route.delete' => '删除线路', 'delivery.route.stop-manage' => '管理商家排序',
         'delivery.delivery-task.assign' => '分配任务', 'delivery.delivery-task.update' => '更新状态',
@@ -191,7 +191,7 @@ class SystemDataSeeder extends Seeder
         'delivery.vehicle-issue.create' => '创建故障', 'delivery.vehicle-issue.edit' => '编辑故障', 'delivery.vehicle-issue.delete' => '删除故障',
         // 损耗管理
         'loss.loss-order.create' => '创建损耗单', 'loss.loss-order.edit' => '编辑损耗单', 'loss.loss-order.approve' => '审核损耗单',
-        'loss.loss-order.execute' => '执行损耗', 'loss.loss-order.close' => '关闭损耗单',
+        'loss.loss-order.execute' => '执行损耗', 'loss.loss-order.close' => '关闭损耗单', 'loss.loss-order.cancel' => '作废损耗单',
         // 财务管理
         'finance.recharge.create' => '创建充值', 'finance.recharge.approve' => '审核充值',
         'finance.supplier-settlement.create' => '创建结算', 'finance.supplier-settlement.pay' => '付款',
@@ -301,6 +301,7 @@ class SystemDataSeeder extends Seeder
             // 管理员：全业务模块操作权限 + 状态回退
             'admin' => Permission::all()->pluck('name')->toArray(),
             // 运营专员：组织/商品/订单/采购查看/库存查看/配送查看/损耗查看/促销查看/轮播
+            // 不含作废(cancel)/删除(delete)权限——仅管理员/超级管理员可用
             'operator' => [
                 'dashboard',
                 'user.user', 'user.user.view',
@@ -317,7 +318,7 @@ class SystemDataSeeder extends Seeder
                 'purchase.purchase-order', 'purchase.purchase-order.view',
                 'purchase.purchase-return', 'purchase.purchase-return.view',
                 'purchase.restock-reminder', 'purchase.restock-reminder.view',
-                'order.order', 'order.order.view', 'order.order.create', 'order.order.edit', 'order.order.cancel', 'order.order.lock', 'order.order.change-price', 'order.order.delete',
+                'order.order', 'order.order.view', 'order.order.create', 'order.order.edit', 'order.order.lock', 'order.order.change-price',
                 'order.cart',
                 'order.order-return', 'order.order-return.view', 'order.order-return.create', 'order.order-return.edit',
                 'inventory.warehouse', 'inventory.warehouse.view',
@@ -334,44 +335,10 @@ class SystemDataSeeder extends Seeder
                 'price.price-change-log', 'price.price-change-log.view',
                 'system.banner', 'system.banner.view', 'system.banner.create', 'system.banner.edit',
             ],
-            // 运营经理：运营专员权限 + 审核权限
-            'operator_manager' => [
-                'dashboard',
-                'user.user', 'user.user.view',
-                'org.supplier', 'org.supplier.view', 'org.supplier.create', 'org.supplier.edit',
-                'org.merchant', 'org.merchant.view', 'org.merchant.create', 'org.merchant.edit',
-                'delivery.route', 'delivery.route.view', 'delivery.route.create', 'delivery.route.edit', 'delivery.route.stop-manage',
-                'org.driver', 'org.driver.view', 'org.driver.create', 'org.driver.edit',
-                'org.vehicle', 'org.vehicle.view', 'org.vehicle.create', 'org.vehicle.edit',
-                'product.product', 'product.product.view', 'product.product.create', 'product.product.edit',
-                'product.category', 'product.category.view', 'product.category.create', 'product.category.edit',
-                'product.tag', 'product.tag.view', 'product.tag.create', 'product.tag.edit',
-                'product.keyword', 'product.keyword.view', 'product.keyword.create', 'product.keyword.edit',
-                'product.visibility', 'product.visibility.view',
-                'purchase.purchase-order', 'purchase.purchase-order.view', 'purchase.purchase-order.approve',
-                'purchase.purchase-return', 'purchase.purchase-return.view',
-                'purchase.restock-reminder', 'purchase.restock-reminder.view',
-                'order.order', 'order.order.view', 'order.order.create', 'order.order.edit', 'order.order.cancel', 'order.order.lock', 'order.order.change-price', 'order.order.delete',
-                'order.cart',
-                'order.order-return', 'order.order-return.view', 'order.order-return.create', 'order.order-return.edit',
-                'inventory.warehouse', 'inventory.warehouse.view',
-                'inventory.inventory', 'inventory.inventory.view',
-                'inventory.inventory-log', 'inventory.inventory-log.view',
-                'delivery.delivery-task', 'delivery.delivery-task.view', 'delivery.delivery-task.assign', 'delivery.delivery-task.update',
-                'delivery.delivery-note', 'delivery.delivery-note.view', 'delivery.delivery-note.deliver', 'delivery.delivery-note.sign',
-                'delivery.signature', 'delivery.signature.view',
-                'delivery.signature', 'delivery.signature.view',
-                'delivery.discrepancy', 'delivery.discrepancy.view', 'delivery.discrepancy.restock', 'delivery.discrepancy.refund', 'delivery.discrepancy.writeoff',
-                'delivery.temperature', 'delivery.temperature.view',
-                'delivery.vehicle-issue', 'delivery.vehicle-issue.view', 'delivery.vehicle-issue.create', 'delivery.vehicle-issue.edit', 'delivery.vehicle-issue.delete',
-                'loss.loss-order', 'loss.loss-order.view', 'loss.loss-order.create', 'loss.loss-order.approve', 'loss.loss-order.execute', 'loss.loss-order.close',
-                'price.promotion', 'price.promotion.view', 'price.promotion.create', 'price.promotion.edit', 'price.promotion.approve',
-                'price.pricing-config', 'price.pricing-config.view',
-                'price.price-change-log', 'price.price-change-log.view',
-                'price.price-apportionment', 'price.price-apportionment.view',
-                'system.banner', 'system.banner.view', 'system.banner.create', 'system.banner.edit',
-                'system.audit-log', 'system.audit-log.view',
-            ],
+            // 运营经理：全部业务权限，排除作废(.cancel)和删除(.delete)——此两类仅管理员/超级管理员可用
+            'operator_manager' => Permission::all()
+                ->filter(fn($p) => ! str_ends_with($p->name, '.delete') && ! str_ends_with($p->name, '.cancel'))
+                ->pluck('name')->toArray(),
             // 财务专员：财务/价格记录/审计日志
             'finance' => [
                 'dashboard',

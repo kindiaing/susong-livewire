@@ -24,6 +24,7 @@ class PurchaseDemoSeeder extends Seeder
         $now = now();
         $supplierGreen = DB::table('suppliers')->where('name', '绿野蔬菜种植基地')->first();
         $supplierMeat = DB::table('suppliers')->where('name', '丰润肉业有限公司')->first();
+        $unitXiang = DB::table('units')->where('name', '箱')->value('id');
 
         // 采购单1：绿野蔬菜 - 已完成
         $po1Id = null;
@@ -46,19 +47,19 @@ class PurchaseDemoSeeder extends Seeder
             if ($product1) {
                 $sku1 = DB::table('skus')->where('product_id', $product1->id)->first();
                 if ($sku1) DB::table('purchase_order_items')->insert([
-                    'purchase_order_id' => $po1Id, 'sku_id' => $sku1->id, 'quantity' => 50000, 'price' => 8000, 'actual_quantity' => 50000, 'actual_price' => 8000, 'amount' => 400000, 'actual_amount' => 400000, 'strategy_price' => 0, 'strategy_amount' => 0, 'created_at' => $now, 'updated_at' => $now,
+                    'purchase_order_id' => $po1Id, 'sku_id' => $sku1->id, 'quantity' => 50000, 'unit_id' => $unitXiang, 'unit_quantity' => 1000, 'price' => 8000, 'actual_quantity' => 50000, 'actual_price' => 8000, 'amount' => 400000, 'actual_amount' => 400000, 'strategy_price' => 0, 'strategy_amount' => 0, 'created_at' => $now, 'updated_at' => $now,
                 ]);
             }
             if ($product2) {
                 $sku2 = DB::table('skus')->where('product_id', $product2->id)->first();
                 if ($sku2) DB::table('purchase_order_items')->insert([
-                    'purchase_order_id' => $po1Id, 'sku_id' => $sku2->id, 'quantity' => 3000, 'price' => 12000, 'actual_quantity' => 2800, 'actual_price' => 12000, 'amount' => 36000, 'actual_amount' => 33600, 'strategy_price' => 0, 'strategy_amount' => 0, 'discrepancy_reason' => '运输损耗5%', 'created_at' => $now, 'updated_at' => $now,
+                    'purchase_order_id' => $po1Id, 'sku_id' => $sku2->id, 'quantity' => 3000, 'unit_id' => $unitXiang, 'unit_quantity' => 60, 'price' => 12000, 'actual_quantity' => 2800, 'actual_price' => 12000, 'amount' => 36000, 'actual_amount' => 33600, 'strategy_price' => 0, 'strategy_amount' => 0, 'discrepancy_reason' => '运输损耗5%', 'created_at' => $now, 'updated_at' => $now,
                 ]);
             }
             if ($product3) {
                 $sku3 = DB::table('skus')->where('product_id', $product3->id)->first();
                 if ($sku3) DB::table('purchase_order_items')->insert([
-                    'purchase_order_id' => $po1Id, 'sku_id' => $sku3->id, 'quantity' => 2000, 'price' => 25000, 'actual_quantity' => 2000, 'actual_price' => 25000, 'amount' => 50000, 'actual_amount' => 50000, 'strategy_price' => 0, 'strategy_amount' => 0, 'created_at' => $now, 'updated_at' => $now,
+                    'purchase_order_id' => $po1Id, 'sku_id' => $sku3->id, 'quantity' => 2000, 'unit_id' => $unitXiang, 'unit_quantity' => 40, 'price' => 25000, 'actual_quantity' => 2000, 'actual_price' => 25000, 'amount' => 50000, 'actual_amount' => 50000, 'strategy_price' => 0, 'strategy_amount' => 0, 'created_at' => $now, 'updated_at' => $now,
                 ]);
             }
         }
@@ -80,7 +81,7 @@ class PurchaseDemoSeeder extends Seeder
             if ($product4) {
                 $sku4 = DB::table('skus')->where('product_id', $product4->id)->first();
                 if ($sku4) DB::table('purchase_order_items')->insert([
-                    'purchase_order_id' => $po2Id, 'sku_id' => $sku4->id, 'quantity' => 2000, 'price' => 130000, 'actual_quantity' => 0, 'actual_price' => 0, 'amount' => 260000, 'actual_amount' => 0, 'strategy_price' => 0, 'strategy_amount' => 0, 'created_at' => $now, 'updated_at' => $now,
+                    'purchase_order_id' => $po2Id, 'sku_id' => $sku4->id, 'quantity' => 2000, 'unit_id' => $unitXiang, 'unit_quantity' => 40, 'price' => 130000, 'actual_quantity' => 0, 'actual_price' => 0, 'amount' => 260000, 'actual_amount' => 0, 'strategy_price' => 0, 'strategy_amount' => 0, 'created_at' => $now, 'updated_at' => $now,
                 ]);
             }
         }
@@ -93,11 +94,14 @@ class PurchaseDemoSeeder extends Seeder
         if (! $product) return;
         $sku = DB::table('skus')->where('product_id', $product->id)->first();
         if (! $sku) return;
+        $unitXiang = DB::table('units')->where('name', '箱')->value('id');
 
         if (! DB::table('purchase_items')->where('sku_id', $sku->id)->exists()) {
             DB::table('purchase_items')->insert([
                 'sku_id' => $sku->id,
                 'quantity' => 1000,
+                'unit_id' => $unitXiang,
+                'unit_quantity' => 50,
                 'source_type' => 1,
                 'source_id' => null,
                 'status' => 1,
