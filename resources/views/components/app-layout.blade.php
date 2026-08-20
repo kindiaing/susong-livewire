@@ -39,6 +39,8 @@
     {{-- Toast 全局容器 --}}
     <x-ui.toaster />
 
+    @stack('scripts')
+
     @livewireScripts
 </body>
 </html>

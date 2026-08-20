@@ -520,6 +520,9 @@ class CartList extends Component
         // 按商户分组
         $groupedItems = $this->getGroupedByMerchant($items->getCollection());
 
+        $availableUnits = $this->availableUnits;
+        $unitPreview = $this->unitPreview;
+
         return view('livewire.order.cart-list', compact('items', 'merchants', 'skus', 'allColumns', 'selectedCount', 'groupedItems', 'availableUnits', 'unitPreview'))
             ->layout('components.app-layout')
             ->title('购物车');

@@ -34,17 +34,21 @@
             @endif
     </div>
 
+    @php
+        $allCols = collect($this->getAllColumns());
+        $visibleCols = $allCols->filter(fn($col) => $this->isColumnVisible($col['key']))->values();
+        $colspan = $visibleCols->count() + 2;
+    @endphp
+
     {{-- 用户列表 --}}
     <div class="rounded-lg border bg-card overflow-hidden">
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     <th class="px-4 py-2.5 text-left w-10"><input type="checkbox" wire:model.live="selectAllPage" class="rounded" /></th>
-                    <th class="px-4 py-2.5 text-left">用户名</th>
-                    <th class="px-4 py-2.5 text-left">姓名</th>
-                    <th class="px-4 py-2.5 text-left">联系方式</th>
-                    <th class="px-4 py-2.5 text-left w-16">状态</th>
-                    <th class="px-4 py-2.5 text-left">角色</th>
+                    @foreach($visibleCols as $col)
+                    <th class="px-4 py-2.5 text-left">{{ $col['label'] }}</th>
+                    @endforeach
                     <th class="px-4 py-2.5 text-right w-28">操作</th>
                 </tr>
             </thead>
@@ -53,41 +57,62 @@
                 @php $isProtectedRole = $user->roles->contains('name', 'super_admin') || $user->roles->contains('name', 'admin') @endphp
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="user-{{ $user->id }}">
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $user->id }}" wire:model.live="selectedIds" class="rounded" /></td>
-                    <td class="px-4 py-2 font-medium font-mono">{{ $user->username }}</td>
-                    <td class="px-4 py-2">{{ $user->name }}</td>
-                    <td class="px-4 py-2 text-muted-foreground">
-                        @if($user->phone){{ $user->phone }}@endif
-                        @if($user->email)<span class="ml-1 text-xs">{{ $user->email }}</span>@endif
-                        @if(!$user->phone && !$user->email)—@endif
-                    </td>
-                    <td class="px-4 py-2">
-                        @if($isProtectedRole)
-                            <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-500" title="已启用">
-                                <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 13.5-13.5"/></svg>
-                            </span>
-                        @else
-                            <button type="button" wire:click="toggleStatus({{ $user->id }})" title="{{ $user->status === 1 ? '点击禁用' : '点击启用' }}" class="inline-flex items-center justify-center">
-                                @if($user->status === 1)
-                                    <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-500 hover:bg-green-600 transition-colors">
+                    @foreach($visibleCols as $col)
+                    @switch($col['key'])
+                        @case('id')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $user->id }}</td>
+                            @break
+                        @case('username')
+                            <td class="px-4 py-2 font-medium font-mono">{{ $user->username }}</td>
+                            @break
+                        @case('name')
+                            <td class="px-4 py-2">{{ $user->name }}</td>
+                            @break
+                        @case('phone')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $user->phone ?? '—' }}</td>
+                            @break
+                        @case('email')
+                            <td class="px-4 py-2 text-muted-foreground text-xs">{{ $user->email ?? '—' }}</td>
+                            @break
+                        @case('status')
+                            <td class="px-4 py-2">
+                                @if($isProtectedRole)
+                                    <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-500" title="已启用">
                                         <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 13.5-13.5"/></svg>
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-300 hover:bg-gray-400 transition-colors">
-                                        <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                                    </span>
+                                    <button type="button" wire:click="toggleStatus({{ $user->id }})" title="{{ $user->status === 1 ? '点击禁用' : '点击启用' }}" class="inline-flex items-center justify-center">
+                                        @if($user->status === 1)
+                                            <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-500 hover:bg-green-600 transition-colors">
+                                                <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 13.5-13.5"/></svg>
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-300 hover:bg-gray-400 transition-colors">
+                                                <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                            </span>
+                                        @endif
+                                    </button>
                                 @endif
-                            </button>
-                        @endif
-                    </td>
-                    <td class="px-4 py-2">
-                        <div class="flex flex-wrap gap-1">
-                        @forelse($user->roles as $role)
-                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-blue-50 text-blue-700">{{ $role->display_name }}</span>
-                        @empty
-                            <span class="text-xs text-muted-foreground">未分配</span>
-                        @endforelse
-                        </div>
-                    </td>
+                            </td>
+                            @break
+                        @case('roles')
+                            <td class="px-4 py-2">
+                                <div class="flex flex-wrap gap-1">
+                                @forelse($user->roles as $role)
+                                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-blue-50 text-blue-700">{{ $role->display_name }}</span>
+                                @empty
+                                    <span class="text-xs text-muted-foreground">未分配</span>
+                                @endforelse
+                                </div>
+                            </td>
+                            @break
+                        @case('created_at')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $user->created_at?->format('Y-m-d H:i') }}</td>
+                            @break
+                        @default
+                            <td class="px-4 py-2 text-foreground">{{ $user->{$col['key']} ?? '—' }}</td>
+                    @endswitch
+                    @endforeach
                     <td class="px-4 py-2 text-right">
                         <div class="inline-flex items-center gap-0.5">
                             {{-- 编辑 --}}
@@ -120,7 +145,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="7" class="px-4 py-10 text-center text-muted-foreground">暂无用户数据</td></tr>
+                <tr><td colspan="{{ $colspan }}" class="px-4 py-10 text-center text-muted-foreground">暂无用户数据</td></tr>
             @endforelse
             </tbody>
         </table>

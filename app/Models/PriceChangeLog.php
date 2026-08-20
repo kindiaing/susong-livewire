@@ -37,6 +37,7 @@ class PriceChangeLog extends Model
     public const TARGET_PURCHASE = 2;
     public const TARGET_RECEIVABLE = 3;
     public const TARGET_PAYABLE = 4;
+    public const TARGET_SKU = 5;
 
     protected $fillable = [
         'source_type',
@@ -96,6 +97,7 @@ class PriceChangeLog extends Model
             self::TARGET_PURCHASE => '采购单',
             self::TARGET_RECEIVABLE => '应收',
             self::TARGET_PAYABLE => '应付',
+            self::TARGET_SKU => 'SKU改价',
         ];
     }
 

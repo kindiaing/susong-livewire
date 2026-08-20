@@ -44,6 +44,12 @@
         @endif
     </div>
 
+    @php
+        $allCols = collect($this->getAllColumns());
+        $visibleCols = $allCols->filter(fn($col) => $this->isColumnVisible($col['key']))->values();
+        $colspan = $visibleCols->count() + 2;
+    @endphp
+
     {{-- 按商户分组展示 --}}
     @forelse($groupedItems as $group)
         <div class="mb-4 rounded-lg border bg-card overflow-hidden">
@@ -65,11 +71,9 @@
                 <thead>
                     <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
                         <th class="px-4 py-2 text-left w-10"><input type="checkbox" class="rounded" /></th>
-                        <th class="px-4 py-2 text-left">SKU编码</th>
-                        <th class="px-4 py-2 text-left">商品名称</th>
-                        <th class="px-4 py-2 text-right">数量</th>
-                        <th class="px-4 py-2 text-right">单价</th>
-                        <th class="px-4 py-2 text-right">金额</th>
+                        @foreach($visibleCols as $col)
+                        <th class="px-4 py-2 @switch($col['key']) @case('quantity') @case('price') @case('subtotal') text-right @break @default text-left @endswitch">{{ $col['label'] }}</th>
+                        @endforeach
                         <th class="px-4 py-2 text-right w-24">操作</th>
                     </tr>
                 </thead>
@@ -77,18 +81,43 @@
                     @foreach($group['items'] as $cart)
                     <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="cart-{{ $cart->id }}">
                         <td class="px-4 py-2"><input type="checkbox" value="{{ $cart->id }}" wire:model.live="selectedIds" class="rounded" /></td>
-                        <td class="px-4 py-2 font-mono text-foreground">{{ $cart->sku?->sku_code ?? '-' }}</td>
-                        <td class="px-4 py-2 text-foreground">{{ $cart->sku?->product?->name ?? '-' }}</td>
-                        <td class="px-4 py-2 text-right text-foreground">@php
-                            $svc = app(\App\Services\UnitConversionService::class);
-                            if ($cart->unit_id && $cart->unit_quantity) {
-                                echo $svc->formatWithConversion($cart->sku_id, $cart->unit_id, $cart->unit_quantity);
-                            } else {
-                                echo $svc->formatHuman($cart->sku_id, $cart->quantity);
-                            }
-                        @endphp</td>
-                        <td class="px-4 py-2 text-right text-foreground">{{ money_format($cart->price) }}</td>
-                        <td class="px-4 py-2 text-right text-foreground font-medium">{{ money_format($cart->quantity * $cart->price) }}</td>
+                        @foreach($visibleCols as $col)
+                        @switch($col['key'])
+                            @case('id')
+                                <td class="px-4 py-2 text-muted-foreground">{{ $cart->id }}</td>
+                                @break
+                            @case('merchant_id')
+                                <td class="px-4 py-2 text-foreground">{{ $cart->merchant?->name ?? '-' }}</td>
+                                @break
+                            @case('sku_id')
+                                <td class="px-4 py-2 font-mono text-foreground">{{ $cart->sku?->sku_code ?? '-' }}</td>
+                                @break
+                            @case('product_name')
+                                <td class="px-4 py-2 text-foreground">{{ $cart->sku?->product?->name ?? '-' }}</td>
+                                @break
+                            @case('quantity')
+                                <td class="px-4 py-2 text-right text-foreground">@php
+                                    $svc = app(\App\Services\UnitConversionService::class);
+                                    if ($cart->unit_id && $cart->unit_quantity) {
+                                        echo $svc->formatWithConversion($cart->sku_id, $cart->unit_id, $cart->unit_quantity);
+                                    } else {
+                                        echo $svc->formatHuman($cart->sku_id, $cart->quantity);
+                                    }
+                                @endphp</td>
+                                @break
+                            @case('price')
+                                <td class="px-4 py-2 text-right text-foreground">{{ money_format($cart->price) }}</td>
+                                @break
+                            @case('subtotal')
+                                <td class="px-4 py-2 text-right text-foreground font-medium">{{ money_format($cart->quantity * $cart->price) }}</td>
+                                @break
+                            @case('created_at')
+                                <td class="px-4 py-2 text-muted-foreground">{{ $cart->created_at?->format('Y-m-d H:i') }}</td>
+                                @break
+                            @default
+                                <td class="px-4 py-2 text-foreground">{{ $cart->{$col['key']} ?? '-' }}</td>
+                        @endswitch
+                        @endforeach
                         <td class="px-4 py-2 text-right">
                             <div class="flex items-center justify-end gap-1">
                                 @can('order.cart.edit')

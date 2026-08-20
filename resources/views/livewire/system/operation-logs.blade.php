@@ -57,52 +57,62 @@
         <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="arrow-up-tray" class="w-4 h-4" />导出</button>
     </div>
 
+    @php
+        $allCols = collect($this->getAllColumns());
+        $visibleCols = $allCols->filter(fn($col) => $this->isColumnVisible($col['key']))->values();
+        $colspan = $visibleCols->count() + 1;
+    @endphp
+
     {{-- 日志列表 --}}
     <div class="rounded-lg border bg-card">
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAllPage" class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500" /></th>
-                    <th class="px-4 py-2 text-left w-16">ID</th>
-                    <th class="px-4 py-2 text-left">方法</th>
-                    <th class="px-4 py-2 text-left">操作内容</th>
-                    <th class="px-4 py-2 text-left">路径</th>
-                    <th class="px-4 py-2 text-left">操作人</th>
-                    <th class="px-4 py-2 text-left">IP</th>
-                    <th class="px-4 py-2 text-left">时间</th>
+                    @foreach($visibleCols as $col)
+                    <th class="px-4 py-2 text-left">{{ $col['label'] }}</th>
+                    @endforeach
                 </tr>
             </thead>
             <tbody>
                 @forelse($logs as $log)
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="olog-{{ $log->id }}">
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $log->id }}" wire:model.live="selectedIds" class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500" /></td>
-                    <td class="px-4 py-2 text-muted-foreground">{{ $log->id }}</td>
-
-                    {{-- 请求方法 --}}
-                    <td class="px-4 py-2">
-                        @php $mc = $log->method_color; @endphp
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium {{ $mc === 'green' ? 'bg-green-100 text-green-700' : ($mc === 'blue' ? 'bg-blue-100 text-blue-700' : ($mc === 'orange' ? 'bg-orange-100 text-orange-700' : ($mc === 'red' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'))) }}">
-                            {{ $log->method }}
-                        </span>
-                    </td>
-
-                    {{-- 操作内容 --}}
-                    <td class="px-4 py-2 text-foreground truncate min-w-0">{{ $log->content }}</td>
-
-                    {{-- 路径 --}}
-                    <td class="px-4 py-2 text-muted-foreground truncate font-mono min-w-0">{{ $log->path }}</td>
-
-                    {{-- 操作人 --}}
-                    <td class="px-4 py-2 text-foreground">{{ $log->username ?? '-' }}</td>
-
-                    {{-- IP --}}
-                    <td class="px-4 py-2 text-muted-foreground font-mono">{{ $log->ip ?? '-' }}</td>
-
-                    {{-- 时间 --}}
-                    <td class="px-4 py-2 text-muted-foreground">{{ $log->created_at?->format('Y-m-d H:i') }}</td>
+                    @foreach($visibleCols as $col)
+                    @switch($col['key'])
+                        @case('id')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $log->id }}</td>
+                            @break
+                        @case('method')
+                            <td class="px-4 py-2">
+                                @php $mc = $log->method_color; @endphp
+                                <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium {{ $mc === 'green' ? 'bg-green-100 text-green-700' : ($mc === 'blue' ? 'bg-blue-100 text-blue-700' : ($mc === 'orange' ? 'bg-orange-100 text-orange-700' : ($mc === 'red' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'))) }}">
+                                    {{ $log->method }}
+                                </span>
+                            </td>
+                            @break
+                        @case('content')
+                            <td class="px-4 py-2 text-foreground truncate min-w-0">{{ $log->content }}</td>
+                            @break
+                        @case('path')
+                            <td class="px-4 py-2 text-muted-foreground truncate font-mono min-w-0">{{ $log->path }}</td>
+                            @break
+                        @case('username')
+                            <td class="px-4 py-2 text-foreground">{{ $log->username ?? '-' }}</td>
+                            @break
+                        @case('ip')
+                            <td class="px-4 py-2 text-muted-foreground font-mono">{{ $log->ip ?? '-' }}</td>
+                            @break
+                        @case('created_at')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $log->created_at?->format('Y-m-d H:i') }}</td>
+                            @break
+                        @default
+                            <td class="px-4 py-2 text-foreground">{{ $log->{$col['key']} ?? '-' }}</td>
+                    @endswitch
+                    @endforeach
                 </tr>
                 @empty
-                <tr><td colspan="8" class="px-6 py-12 text-center text-muted-foreground">暂无操作日志</td></tr>
+                <tr><td colspan="{{ $colspan }}" class="px-6 py-12 text-center text-muted-foreground">暂无操作日志</td></tr>
                 @endforelse
             </tbody>
         </table>

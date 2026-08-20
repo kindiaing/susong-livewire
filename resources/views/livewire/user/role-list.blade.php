@@ -34,16 +34,21 @@
             @endif
     </div>
 
+    @php
+        $allCols = collect($this->getAllColumns());
+        $visibleCols = $allCols->filter(fn($col) => $this->isColumnVisible($col['key']))->values();
+        $colspan = $visibleCols->count() + 2;
+    @endphp
+
     {{-- 角色列表 --}}
     <div class="rounded-lg border bg-card">
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAllPage" class="rounded" /></th>
-                    <th class="px-4 py-2 text-left">角色标识</th>
-                    <th class="px-4 py-2 text-left">显示名称</th>
-                    <th class="px-4 py-2 text-left">用户数</th>
-                    <th class="px-4 py-2 text-left">权限数</th>
+                    @foreach($visibleCols as $col)
+                    <th class="px-4 py-2 text-left">{{ $col['label'] }}</th>
+                    @endforeach
                     <th class="px-4 py-2 text-left w-24">操作</th>
                 </tr>
             </thead>
@@ -52,10 +57,36 @@
                 @php $isProtectedRole = $role->name === 'super_admin' || $role->name === 'admin' @endphp
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="role-{{ $role->id }}">
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $role->id }}" wire:model.live="selectedIds" class="rounded" /></td>
-                    <td class="px-4 py-2 font-medium text-foreground font-mono">{{ $role->name }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $role->display_name }}</td>
-                    <td class="px-4 py-2 text-muted-foreground">{{ $role->users_count }}</td>
-                    <td class="px-4 py-2 text-muted-foreground">{{ $role->permissions_count }}</td>
+                    @foreach($visibleCols as $col)
+                    @switch($col['key'])
+                        @case('id')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $role->id }}</td>
+                            @break
+                        @case('name')
+                            <td class="px-4 py-2 font-medium text-foreground font-mono">{{ $role->name }}</td>
+                            @break
+                        @case('display_name')
+                            <td class="px-4 py-2 text-foreground">{{ $role->display_name }}</td>
+                            @break
+                        @case('guard_name')
+                            <td class="px-4 py-2 text-muted-foreground font-mono">{{ $role->guard_name }}</td>
+                            @break
+                        @case('users_count')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $role->users_count }}</td>
+                            @break
+                        @case('permissions_count')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $role->permissions_count }}</td>
+                            @break
+                        @case('description')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $role->description ?? '—' }}</td>
+                            @break
+                        @case('created_at')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $role->created_at?->format('Y-m-d H:i') }}</td>
+                            @break
+                        @default
+                            <td class="px-4 py-2 text-foreground">{{ $role->{$col['key']} ?? '—' }}</td>
+                    @endswitch
+                    @endforeach
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-1">
                             @can('user.role.edit')
@@ -79,7 +110,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="6" class="px-6 py-12 text-center text-muted-foreground">暂无角色数据</td></tr>
+                <tr><td colspan="{{ $colspan }}" class="px-6 py-12 text-center text-muted-foreground">暂无角色数据</td></tr>
                 @endforelse
             </tbody>
         </table>

@@ -60,18 +60,21 @@
             @endif
     </div>
 
+    @php
+        $allCols = collect($this->getAllColumns());
+        $visibleCols = $allCols->filter(fn($col) => $this->isColumnVisible($col['key']))->values();
+        $colspan = $visibleCols->count() + 2;
+    @endphp
+
     {{-- 列表 --}}
     <div class="rounded-lg border bg-card overflow-x-auto">
         <table class="w-full text-sm min-w-[900px]">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAllPage" class="rounded" /></th>
-                    <th class="px-4 py-2 text-left">仓库</th>
-                    <th class="px-4 py-2 text-left">SKU</th>
-                    <th class="px-4 py-2 text-left">总库存</th>
-                    <th class="px-4 py-2 text-left">锁定</th>
-                    <th class="px-4 py-2 text-left">可用</th>
-                    <th class="px-4 py-2 text-left">效期</th>
+                    @foreach($visibleCols as $col)
+                    <th class="px-4 py-2 text-left">{{ $col['label'] }}</th>
+                    @endforeach
                     <th class="px-4 py-2 text-left w-24">操作</th>
                 </tr>
             </thead>
@@ -79,15 +82,45 @@
                 @forelse($items as $item)
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="inventory-{{ $item->id }}">
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></td>
-                    <td class="px-4 py-2 text-foreground">{{ $item->warehouse?->name ?? '-' }}</td>
-                    <td class="px-4 py-2 text-foreground">
-                        {{ $item->sku?->sku_code ?? '-' }}
-                        <span class="text-muted-foreground text-xs ml-1">{{ $item->sku?->product?->name ?? '' }}</span>
-                    </td>
-                    <td class="px-4 py-2 text-foreground">{{ $item->total_stock }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $item->locked_stock }}</td>
-                    <td class="px-4 py-2 {{ $item->available_stock <= $item->warning_value ? 'text-red-600 font-medium' : 'text-foreground' }}">{{ $item->available_stock }}</td>
-                    <td class="px-4 py-2 text-muted-foreground">{{ $item->expiry_date ? $item->expiry_date->format('Y-m-d') : '-' }}</td>
+                    @foreach($visibleCols as $col)
+                    @switch($col['key'])
+                        @case('id')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $item->id }}</td>
+                            @break
+                        @case('warehouse_id')
+                            <td class="px-4 py-2 text-foreground">{{ $item->warehouse?->name ?? '-' }}</td>
+                            @break
+                        @case('sku_id')
+                            <td class="px-4 py-2 text-foreground">
+                                {{ $item->sku?->sku_code ?? '-' }}
+                                <span class="text-muted-foreground text-xs ml-1">{{ $item->sku?->product?->name ?? '' }}</span>
+                            </td>
+                            @break
+                        @case('total_stock')
+                            <td class="px-4 py-2 text-foreground">{{ $item->total_stock }}</td>
+                            @break
+                        @case('locked_stock')
+                            <td class="px-4 py-2 text-foreground">{{ $item->locked_stock }}</td>
+                            @break
+                        @case('available_stock')
+                            <td class="px-4 py-2 {{ $item->available_stock <= $item->warning_value ? 'text-red-600 font-medium' : 'text-foreground' }}">{{ $item->available_stock }}</td>
+                            @break
+                        @case('batch_no')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $item->batch_no ?? '-' }}</td>
+                            @break
+                        @case('expiry_date')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $item->expiry_date ? $item->expiry_date->format('Y-m-d') : '-' }}</td>
+                            @break
+                        @case('warning_value')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $item->warning_value }}</td>
+                            @break
+                        @case('created_at')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $item->created_at?->format('Y-m-d H:i') }}</td>
+                            @break
+                        @default
+                            <td class="px-4 py-2 text-foreground">{{ $item->{$col['key']} ?? '-' }}</td>
+                    @endswitch
+                    @endforeach
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-2">
                             @can('inventory.inventory.edit')
@@ -100,7 +133,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="8" class="px-6 py-12 text-center text-muted-foreground">暂无库存数据</td></tr>
+                <tr><td colspan="{{ $colspan }}" class="px-6 py-12 text-center text-muted-foreground">暂无库存数据</td></tr>
                 @endforelse
             </tbody>
         </table>

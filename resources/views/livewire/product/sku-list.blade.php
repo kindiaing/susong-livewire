@@ -45,28 +45,20 @@
         @endif
     </div>
 
+    @php
+        $allCols = collect($this->getAllColumns());
+        $visibleCols = $allCols->filter(fn($col) => $this->isColumnVisible($col['key']))->values();
+        $colspan = $visibleCols->count() + 2;
+    @endphp
+
     <div class="rounded-lg border bg-card overflow-x-auto">
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAll" class="rounded" /></th>
-                    <th class="px-4 py-2 text-left">SKU编码</th>
-                    <th class="px-4 py-2 text-left">商品名称</th>
-                    <th class="px-4 py-2 text-left">采购价</th>
-                    <th class="px-4 py-2 text-left">成本价</th>
-                    <th class="px-4 py-2 text-left">最低采购限价</th>
-                    <th class="px-4 py-2 text-left">吊牌价</th>
-                    <th class="px-4 py-2 text-left">零售价</th>
-                    <th class="px-4 py-2 text-left">批发价</th>
-                    <th class="px-4 py-2 text-left">员工价</th>
-                    <th class="px-4 py-2 text-left">门店价</th>
-                    <th class="px-4 py-2 text-left">小程序价</th>
-                    <th class="px-4 py-2 text-left">配送价</th>
-                    <th class="px-4 py-2 text-left">最低销售限价</th>
-                    <th class="px-4 py-2 text-left">最高销售限价</th>
-                    <th class="px-4 py-2 text-left">库存</th>
-                    <th class="px-4 py-2 text-left">状态</th>
-                    <th class="px-4 py-2 text-left">审核</th>
+                    @foreach($visibleCols as $col)
+                    <th class="px-4 py-2 text-left">{{ $col['label'] }}</th>
+                    @endforeach
                     <th class="px-4 py-2 text-left w-24">操作</th>
                 </tr>
             </thead>
@@ -74,31 +66,40 @@
                 @forelse($skus as $sku)
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="sku-{{ $sku->id }}">
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $sku->id }}" wire:model.live="selectedIds" class="rounded" /></td>
-                    <td class="px-4 py-2 font-medium text-foreground font-mono">{{ $sku->sku_code }}</td>
-                    <td class="px-4 py-2 text-foreground truncate">{{ $sku->product?->name ?? '-' }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->purchase_price) }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->cost_price) }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->min_purchase_price) }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->list_price) }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->retail_price) }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->wholesale_price) }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->employee_price) }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->offline_price) }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->miniapp_price) }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->delivery_price) }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->min_sale_price) }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ money_format($sku->max_sale_price) }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $sku->stock }}</td>
-                    <td class="px-4 py-2">
-                        @if($sku->status === 1)
-                            <span class="inline-flex items-center gap-1.5 text-xs text-green-700"><span class="w-2 h-2 rounded-full bg-green-500"></span>启用</span>
-                        @else
-                            <span class="inline-flex items-center gap-1.5 text-xs text-gray-500"><span class="w-2 h-2 rounded-full bg-gray-400"></span>禁用</span>
-                        @endif
-                    </td>
-                    <td class="px-4 py-2">
-                        {!! status_badge($sku->approval_status, 'sku_approval') !!}
-                    </td>
+                    @foreach($visibleCols as $col)
+                    @switch($col['key'])
+                        @case('id')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $sku->id }}</td>
+                            @break
+                        @case('product_id')
+                            <td class="px-4 py-2 text-foreground truncate">{{ $sku->product?->name ?? '-' }}</td>
+                            @break
+                        @case('sku_code')
+                            <td class="px-4 py-2 font-medium text-foreground font-mono">{{ $sku->sku_code }}</td>
+                            @break
+                        @case('stock')
+                            <td class="px-4 py-2 text-foreground">{{ $sku->stock }}</td>
+                            @break
+                        @case('approval_status')
+                            <td class="px-4 py-2">{!! status_badge($sku->approval_status, 'sku_approval') !!}</td>
+                            @break
+                        @case('status')
+                            <td class="px-4 py-2">
+                                @if($sku->status === 1)
+                                    <span class="inline-flex items-center gap-1.5 text-xs text-green-700"><span class="w-2 h-2 rounded-full bg-green-500"></span>启用</span>
+                                @else
+                                    <span class="inline-flex items-center gap-1.5 text-xs text-gray-500"><span class="w-2 h-2 rounded-full bg-gray-400"></span>禁用</span>
+                                @endif
+                            </td>
+                            @break
+                        @default
+                            @if(in_array($col['key'], ['purchase_price','cost_price','min_purchase_price','list_price','retail_price','wholesale_price','employee_price','offline_price','miniapp_price','delivery_price','min_sale_price','max_sale_price']))
+                            <td class="px-4 py-2 text-foreground">{{ money_format($sku->{$col['key']}) }}</td>
+                            @else
+                            <td class="px-4 py-2 text-foreground truncate">{{ $sku->{$col['key']} ?? '-' }}</td>
+                            @endif
+                    @endswitch
+                    @endforeach
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-2">
                             @can('product.product.edit')
@@ -116,7 +117,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="19" class="px-6 py-12 text-center text-muted-foreground">暂无SKU数据</td></tr>
+                <tr><td colspan="{{ $colspan }}" class="px-6 py-12 text-center text-muted-foreground">暂无SKU数据</td></tr>
                 @endforelse
             </tbody>
         </table>
@@ -298,7 +299,7 @@
 
                 {{-- 状态 --}}
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">状态</label>
+                    <label class="block text-sm font-medium text-foreground mb-1">状态 <span class="text-red-500">*</span></label>
                     <select wire:model="formStatus" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
                         <option value="1">启用</option>
                         <option value="0">禁用</option>

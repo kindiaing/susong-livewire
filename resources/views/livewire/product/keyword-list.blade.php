@@ -34,15 +34,20 @@
         @endif
     </div>
 
+    @php
+        $allCols = collect($this->getAllColumns());
+        $visibleCols = $allCols->filter(fn($col) => $this->isColumnVisible($col['key']))->values();
+        $colspan = $visibleCols->count() + 2;
+    @endphp
+
     <div class="rounded-lg border bg-card">
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAll" class="rounded" /></th>
-                    <th class="px-4 py-2 text-left w-16">ID</th>
-                    <th class="px-4 py-2 text-left">关键词</th>
-                    <th class="px-4 py-2 text-left">关联商品</th>
-                    <th class="px-4 py-2 text-left">搜索次数</th>
+                    @foreach($visibleCols as $col)
+                    <th class="px-4 py-2 text-left">{{ $col['label'] }}</th>
+                    @endforeach
                     <th class="px-4 py-2 text-left w-24">操作</th>
                 </tr>
             </thead>
@@ -50,10 +55,27 @@
                 @forelse($keywords as $kw)
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="keyword-{{ $kw->id }}">
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $kw->id }}" wire:model.live="selectedIds" class="rounded" /></td>
-                    <td class="px-4 py-2 text-muted-foreground">{{ $kw->id }}</td>
-                    <td class="px-4 py-2 font-medium text-foreground">{{ $kw->keyword }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $kw->product?->name ?? '-' }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $kw->search_count }}</td>
+                    @foreach($visibleCols as $col)
+                    @switch($col['key'])
+                        @case('id')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $kw->id }}</td>
+                            @break
+                        @case('keyword')
+                            <td class="px-4 py-2 font-medium text-foreground">{{ $kw->keyword }}</td>
+                            @break
+                        @case('product_id')
+                            <td class="px-4 py-2 text-foreground">{{ $kw->product?->name ?? '-' }}</td>
+                            @break
+                        @case('search_count')
+                            <td class="px-4 py-2 text-foreground">{{ $kw->search_count }}</td>
+                            @break
+                        @case('created_at')
+                            <td class="px-4 py-2 text-muted-foreground text-xs">{{ $kw->created_at?->format('Y-m-d H:i') }}</td>
+                            @break
+                        @default
+                            <td class="px-4 py-2 text-foreground">{{ $kw->{$col['key']} ?? '-' }}</td>
+                    @endswitch
+                    @endforeach
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-2">
                             @can('product.keyword.edit')
@@ -66,7 +88,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="6" class="px-6 py-12 text-center text-muted-foreground">暂无关键词数据</td></tr>
+                <tr><td colspan="{{ $colspan }}" class="px-6 py-12 text-center text-muted-foreground">暂无关键词数据</td></tr>
                 @endforelse
             </tbody>
         </table>

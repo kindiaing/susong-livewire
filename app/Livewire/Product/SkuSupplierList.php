@@ -168,6 +168,8 @@ class SkuSupplierList extends Component
             ['key' => 'supplier_id', 'label' => '供应商', 'sortable' => false, 'exportable' => true],
             ['key' => 'purchase_price', 'label' => '采购价', 'sortable' => false, 'exportable' => true, 'type' => 'money'],
             ['key' => 'is_default', 'label' => '默认供应商', 'sortable' => false, 'exportable' => true],
+            ['key' => 'sort', 'label' => '排序', 'sortable' => true, 'exportable' => true],
+            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
         ];
     }
 

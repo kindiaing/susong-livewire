@@ -24,34 +24,55 @@
         <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="adjustments" class="w-4 h-4" />列配置</button>
         <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="arrow-up-tray" class="w-4 h-4" />导出</button>
     </div>
+    @php
+        $allCols = collect($this->getAllColumns());
+        $visibleCols = $allCols->filter(fn($col) => $this->isColumnVisible($col['key']))->values();
+        $colspan = $visibleCols->count() + 1;
+    @endphp
     <div class="rounded-lg border bg-card">
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAllPage" class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500" /></th>
-                    <th class="px-4 py-2 text-left w-16">ID</th>
-                    <th class="px-4 py-2 text-left">SKU</th>
-                    <th class="px-4 py-2 text-left">变更字段</th>
-                    <th class="px-4 py-2 text-left">修改前</th>
-                    <th class="px-4 py-2 text-left">修改后</th>
-                    <th class="px-4 py-2 text-left">操作人</th>
-                    <th class="px-4 py-2 text-left">创建时间</th>
+                    @foreach($visibleCols as $col)
+                    <th class="px-4 py-2 text-left">{{ $col['label'] }}</th>
+                    @endforeach
                 </tr>
             </thead>
             <tbody>
                 @forelse($items as $item)
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="price-change-log-list-{{ $item->id }}">
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500" /></td>
-                    <td class="px-4 py-2 text-muted-foreground">{{ $item->id }}</td>
-                    <td class="px-4 py-2 text-foreground font-mono">{{ $item->sku?->sku_code ?? '-' }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $item->field_name }}</td>
-                    <td class="px-4 py-2 text-muted-foreground">{{ $item->before_value }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $item->after_value }}</td>
-                    <td class="px-4 py-2 text-muted-foreground">{{ $item->operator_id ?? '-' }}</td>
-                    <td class="px-4 py-2 text-muted-foreground">{{ $item->created_at?->format('Y-m-d H:i') }}</td>
+                    @foreach($visibleCols as $col)
+                    @switch($col['key'])
+                        @case('id')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $item->id }}</td>
+                            @break
+                        @case('sku')
+                            <td class="px-4 py-2 text-foreground font-mono">{{ $item->sku?->sku_code ?? '-' }}</td>
+                            @break
+                        @case('field_name')
+                            <td class="px-4 py-2 text-foreground">{{ $item->field_name }}</td>
+                            @break
+                        @case('before_value')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $item->before_value }}</td>
+                            @break
+                        @case('after_value')
+                            <td class="px-4 py-2 text-foreground">{{ $item->after_value }}</td>
+                            @break
+                        @case('operator_id')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $item->operator?->name ?? $item->operator_id ?? '-' }}</td>
+                            @break
+                        @case('created_at')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $item->created_at?->format('Y-m-d H:i') }}</td>
+                            @break
+                        @default
+                            <td class="px-4 py-2 text-foreground">{{ $item->{$col['key']} ?? '-' }}</td>
+                    @endswitch
+                    @endforeach
                 </tr>
                 @empty
-                <tr><td colspan="8" class="px-6 py-12 text-center text-muted-foreground">暂无数据</td></tr>
+                <tr><td colspan="{{ $colspan }}" class="px-6 py-12 text-center text-muted-foreground">暂无数据</td></tr>
                 @endforelse
             </tbody>
         </table>

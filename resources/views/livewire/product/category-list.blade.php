@@ -40,6 +40,11 @@
         @endif
     </div>
 
+    @php
+        $visibleCols = collect($this->getAllColumns())->filter(fn($col) => $this->isColumnVisible($col['key']))->values();
+        $colspan = $visibleCols->count() + 3;
+    @endphp
+
     {{-- Tree Table --}}
     <div class="rounded-lg border bg-card">
         <table class="w-full text-sm">
@@ -47,9 +52,9 @@
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     <th class="px-2 py-2 w-8"></th>
                     <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAll" class="rounded" /></th>
-                    <th class="px-4 py-2 text-left">分类名称</th>
-                    <th class="px-4 py-2 text-left w-24">排序</th>
-                    <th class="px-4 py-2 text-left w-20">状态</th>
+                    @foreach($visibleCols as $col)
+                    <th class="px-4 py-2 text-left">{{ $col['label'] }}</th>
+                    @endforeach
                     <th class="px-4 py-2 text-left w-24">操作</th>
                 </tr>
             </thead>
@@ -69,34 +74,51 @@
                         </svg>
                     </td>
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $category->id }}" wire:model.live="selectedIds" class="rounded" /></td>
-                    <td class="px-4 py-2 font-medium text-foreground">
-                        <div class="flex items-center justify-between" style="padding-left: {{ $depth * 24 }}px">
-                            <span>{{ $category->name }}</span>
-                            @if($category->children->isNotEmpty())
-                                <button type="button" wire:click="toggleExpand({{ $category->id }})" class="inline-flex items-center gap-1 ml-2 text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0">
-                                    @if(in_array((string) $category->id, $expandedIds))
-                                        <span>收起</span>
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
-                                    @else
-                                        <span>展开</span>
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    @foreach($visibleCols as $col)
+                    @switch($col['key'])
+                        @case('id')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $category->id }}</td>
+                            @break
+                        @case('name')
+                            <td class="px-4 py-2 font-medium text-foreground">
+                                <div class="flex items-center justify-between" style="padding-left: {{ $depth * 24 }}px">
+                                    <span>{{ $category->name }}</span>
+                                    @if($category->children->isNotEmpty())
+                                        <button type="button" wire:click="toggleExpand({{ $category->id }})" class="inline-flex items-center gap-1 ml-2 text-xs text-muted-foreground hover:text-foreground transition-colors shrink-0">
+                                            @if(in_array((string) $category->id, $expandedIds))
+                                                <span>收起</span>
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                                            @else
+                                                <span>展开</span>
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                            @endif
+                                        </button>
                                     @endif
-                                </button>
-                            @endif
-                        </div>
-                    </td>
-                    <td class="px-4 py-2 text-foreground">{{ $category->sort }}</td>
-                    <td class="px-4 py-2">
-                        @if($category->status === 1)
-                            <span class="inline-flex items-center gap-1.5 text-xs text-green-700">
-                                <span class="w-2 h-2 rounded-full bg-green-500"></span>启用
-                            </span>
-                        @else
-                            <span class="inline-flex items-center gap-1.5 text-xs text-gray-500">
-                                <span class="w-2 h-2 rounded-full bg-gray-400"></span>禁用
-                            </span>
-                        @endif
-                    </td>
+                                </div>
+                            </td>
+                            @break
+                        @case('parent_id')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $category->parent_id ?? '-' }}</td>
+                            @break
+                        @case('sort')
+                            <td class="px-4 py-2 text-foreground">{{ $category->sort }}</td>
+                            @break
+                        @case('status')
+                            <td class="px-4 py-2">
+                                @if($category->status === 1)
+                                    <span class="inline-flex items-center gap-1.5 text-xs text-green-700"><span class="w-2 h-2 rounded-full bg-green-500"></span>启用</span>
+                                @else
+                                    <span class="inline-flex items-center gap-1.5 text-xs text-gray-500"><span class="w-2 h-2 rounded-full bg-gray-400"></span>禁用</span>
+                                @endif
+                            </td>
+                            @break
+                        @case('icon')
+                            <td class="px-4 py-2 text-foreground">{{ $category->icon ?: '-' }}</td>
+                            @break
+                        @default
+                            <td class="px-4 py-2 text-foreground truncate">{{ $category->{$col['key']} ?? '-' }}</td>
+                    @endswitch
+                    @endforeach
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-2">
                             @can('product.category.edit')
@@ -109,7 +131,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="7" class="px-6 py-12 text-center text-muted-foreground">暂无分类数据</td></tr>
+                <tr><td colspan="{{ $colspan }}" class="px-6 py-12 text-center text-muted-foreground">暂无分类数据</td></tr>
                 @endforelse
             </tbody>
         </table>

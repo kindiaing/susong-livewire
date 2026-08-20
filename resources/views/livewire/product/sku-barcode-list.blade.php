@@ -41,19 +41,20 @@
         @endif
     </div>
 
+    @php
+        $allCols = collect($this->getAllColumns());
+        $visibleCols = $allCols->filter(fn($col) => $this->isColumnVisible($col['key']))->values();
+        $colspan = $visibleCols->count() + 2;
+    @endphp
+
     <div class="rounded-lg border bg-card">
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAll" class="rounded" /></th>
-                    <th class="px-4 py-2 text-left w-16">ID</th>
-                    <th class="px-4 py-2 text-left">SKU编码</th>
-                    <th class="px-4 py-2 text-left">条码值</th>
-                    <th class="px-4 py-2 text-left">条码类型</th>
-                    <th class="px-4 py-2 text-left">供应商</th>
-                    <th class="px-4 py-2 text-left">默认</th>
-                    <th class="px-4 py-2 text-left">启用</th>
-                    <th class="px-4 py-2 text-left">备注</th>
+                    @foreach($visibleCols as $col)
+                    <th class="px-4 py-2 text-left">{{ $col['label'] }}</th>
+                    @endforeach
                     <th class="px-4 py-2 text-left w-24">操作</th>
                 </tr>
             </thead>
@@ -61,16 +62,36 @@
                 @forelse($barcodes as $barcode)
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="barcode-{{ $barcode->id }}">
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $barcode->id }}" wire:model.live="selectedIds" class="rounded" /></td>
-                    <td class="px-4 py-2 text-muted-foreground">{{ $barcode->id }}</td>
-                    <td class="px-4 py-2 font-medium text-foreground font-mono">{{ $barcode->sku?->sku_code ?? '-' }}</td>
-                    <td class="px-4 py-2 text-foreground font-mono">{{ $barcode->barcode_code }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ \App\Models\SkuBarcode::barcodeTypeMap()[$barcode->barcode_type] ?? '-' }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $barcode->supplier?->name ?? '-' }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $barcode->is_default ? '是' : '否' }}</td>
-                    <td class="px-4 py-2">
-                        {!! status_badge($barcode->is_enabled, 'active') !!}
-                    </td>
-                    <td class="px-4 py-2 text-muted-foreground truncate">{{ $barcode->remark ?? '-' }}</td>
+                    @foreach($visibleCols as $col)
+                    @switch($col['key'])
+                        @case('id')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $barcode->id }}</td>
+                            @break
+                        @case('sku_id')
+                            <td class="px-4 py-2 font-medium text-foreground font-mono">{{ $barcode->sku?->sku_code ?? '-' }}</td>
+                            @break
+                        @case('barcode_type')
+                            <td class="px-4 py-2 text-foreground">{{ \App\Models\SkuBarcode::barcodeTypeMap()[$barcode->barcode_type] ?? '-' }}</td>
+                            @break
+                        @case('barcode_code')
+                            <td class="px-4 py-2 text-foreground font-mono">{{ $barcode->barcode_code }}</td>
+                            @break
+                        @case('supplier_id')
+                            <td class="px-4 py-2 text-foreground">{{ $barcode->supplier?->name ?? '-' }}</td>
+                            @break
+                        @case('is_default')
+                            <td class="px-4 py-2 text-foreground">{{ $barcode->is_default ? '是' : '否' }}</td>
+                            @break
+                        @case('is_enabled')
+                            <td class="px-4 py-2">{!! status_badge($barcode->is_enabled, 'active') !!}</td>
+                            @break
+                        @case('remark')
+                            <td class="px-4 py-2 text-muted-foreground truncate">{{ $barcode->remark ?? '-' }}</td>
+                            @break
+                        @default
+                            <td class="px-4 py-2 text-foreground">{{ $barcode->{$col['key']} ?? '-' }}</td>
+                    @endswitch
+                    @endforeach
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-2">
                             @can('product.product.edit')
@@ -83,7 +104,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="10" class="px-6 py-12 text-center text-muted-foreground">暂无条码数据</td></tr>
+                <tr><td colspan="{{ $colspan }}" class="px-6 py-12 text-center text-muted-foreground">暂无条码数据</td></tr>
                 @endforelse
             </tbody>
         </table>

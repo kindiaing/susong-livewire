@@ -34,16 +34,20 @@
             @endif
     </div>
 
+    @php
+        $allCols = collect($this->getAllColumns());
+        $visibleCols = $allCols->filter(fn($col) => $this->isColumnVisible($col['key']))->values();
+        $colspan = $visibleCols->count() + 2;
+    @endphp
+
     {{-- 列表 --}}
     <div class="rounded-lg border bg-card overflow-hidden">
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     <th class="px-4 py-2.5 text-left w-10"><input type="checkbox" wire:model.live="selectAllPage" class="rounded" /></th>
-                    @foreach($allColumns as $col)
-                        @if($col['key'] !== 'id')
-                            <th class="px-4 py-2.5 text-left">{{ $col['label'] }}</th>
-                        @endif
+                    @foreach($visibleCols as $col)
+                    <th class="px-4 py-2.5 text-left">{{ $col['label'] }}</th>
                     @endforeach
                     <th class="px-4 py-2.5 text-right w-20">操作</th>
                 </tr>
@@ -52,32 +56,50 @@
             @forelse($items as $item)
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="promo-{{ $item->id }}">
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></td>
-                    <td class="px-4 py-2 font-medium text-foreground">{{ $item->name }}</td>
-                    <td class="px-4 py-2">
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-blue-50 text-blue-700">{{ $typeMap[$item->promo_type] ?? '未知' }}</span>
-                    </td>
-                    <td class="px-4 py-2">
-                        <button type="button" wire:click="toggleStatus({{ $item->id }})" title="{{ $item->status === 1 ? '点击禁用' : '点击启用' }}" class="inline-flex items-center justify-center">
-                            @if($item->status === 1)
-                                <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-500 hover:bg-green-600 transition-colors">
-                                    <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 13.5-13.5"/></svg>
-                                </span>
-                            @else
-                                <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-300 hover:bg-gray-400 transition-colors">
-                                    <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-                                </span>
-                            @endif
-                        </button>
-                    </td>
-                    <td class="px-4 py-2 text-muted-foreground text-xs">{{ $item->start_at?->format('Y-m-d H:i') }}</td>
-                    <td class="px-4 py-2 text-muted-foreground text-xs">{{ $item->end_at?->format('Y-m-d H:i') }}</td>
-                    <td class="px-4 py-2 text-muted-foreground text-xs">{{ $item->created_at?->format('Y-m-d H:i') }}</td>
+                    @foreach($visibleCols as $col)
+                    @switch($col['key'])
+                        @case('name')
+                            <td class="px-4 py-2 font-medium text-foreground">{{ $item->name }}</td>
+                            @break
+                        @case('promo_type')
+                            <td class="px-4 py-2">
+                                <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-blue-50 text-blue-700">{{ $typeMap[$item->promo_type] ?? '未知' }}</span>
+                            </td>
+                            @break
+                        @case('status')
+                            <td class="px-4 py-2">
+                                <button type="button" wire:click="toggleStatus({{ $item->id }})" title="{{ $item->status === 1 ? '点击禁用' : '点击启用' }}" class="inline-flex items-center justify-center">
+                                    @if($item->status === 1)
+                                        <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-green-500 hover:bg-green-600 transition-colors">
+                                            <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 13.5-13.5"/></svg>
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-gray-300 hover:bg-gray-400 transition-colors">
+                                            <svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        </span>
+                                    @endif
+                                </button>
+                            </td>
+                            @break
+                        @case('start_at')
+                            <td class="px-4 py-2 text-muted-foreground text-xs">{{ $item->start_at?->format('Y-m-d H:i') }}</td>
+                            @break
+                        @case('end_at')
+                            <td class="px-4 py-2 text-muted-foreground text-xs">{{ $item->end_at?->format('Y-m-d H:i') }}</td>
+                            @break
+                        @case('created_at')
+                            <td class="px-4 py-2 text-muted-foreground text-xs">{{ $item->created_at?->format('Y-m-d H:i') }}</td>
+                            @break
+                        @default
+                            <td class="px-4 py-2 text-foreground">{{ $item->{$col['key']} ?? '-' }}</td>
+                    @endswitch
+                    @endforeach
                     <td class="px-4 py-2 text-right">
                         <button type="button" wire:click="confirmDelete({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="8" class="px-4 py-10 text-center text-muted-foreground">暂无促销活动数据</td></tr>
+                <tr><td colspan="{{ $colspan }}" class="px-4 py-10 text-center text-muted-foreground">暂无促销活动数据</td></tr>
             @endforelse
             </tbody>
         </table>

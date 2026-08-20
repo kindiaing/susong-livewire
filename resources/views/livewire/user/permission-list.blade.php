@@ -39,33 +39,66 @@
         </select>
     </div>
 
+    @php
+        $allCols = collect($this->getAllColumns());
+        $visibleCols = $allCols->filter(fn($col) => $this->isColumnVisible($col['key']))->values();
+        $colspan = $visibleCols->count() + 1;
+    @endphp
+
     <div class="rounded-lg border bg-card">
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    <th class="px-4 py-2 text-left w-16">ID</th>
-                    <th class="px-4 py-2 text-left">权限标识</th>
-                    <th class="px-4 py-2 text-left">显示名称</th>
-                    <th class="px-4 py-2 text-left">类型</th>
-                    <th class="px-4 py-2 text-left">关联角色数</th>
-                    <th class="px-4 py-2 text-left">排序</th>
+                    @foreach($visibleCols as $col)
+                    <th class="px-4 py-2 text-left">{{ $col['label'] }}</th>
+                    @endforeach
                     <th class="px-4 py-2 text-left w-24">操作</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($permissions as $perm)
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="perm-{{ $perm->id }}">
-                    <td class="px-4 py-2 text-muted-foreground">{{ $perm->id }}</td>
-                    <td class="px-4 py-2 font-medium text-foreground font-mono">{{ $perm->name }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $perm->display_name }}</td>
-                    <td class="px-4 py-2">
-                        @php $typeLabel = \App\Models\Permission::typeMap()[$perm->type] ?? '未知'; @endphp
-                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium {{ $perm->type === 1 ? 'bg-blue-100 text-blue-700' : ($perm->type === 2 ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700') }}">
-                            {{ $typeLabel }}
-                        </span>
-                    </td>
-                    <td class="px-4 py-2 text-muted-foreground">{{ $perm->roles_count }}</td>
-                    <td class="px-4 py-2 text-muted-foreground">{{ $perm->sort }}</td>
+                    @foreach($visibleCols as $col)
+                    @switch($col['key'])
+                        @case('id')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $perm->id }}</td>
+                            @break
+                        @case('name')
+                            <td class="px-4 py-2 font-medium text-foreground font-mono">{{ $perm->name }}</td>
+                            @break
+                        @case('display_name')
+                            <td class="px-4 py-2 text-foreground">{{ $perm->display_name }}</td>
+                            @break
+                        @case('type')
+                            <td class="px-4 py-2">
+                                @php $typeLabel = \App\Models\Permission::typeMap()[$perm->type] ?? '未知'; @endphp
+                                <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium {{ $perm->type === 1 ? 'bg-blue-100 text-blue-700' : ($perm->type === 2 ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700') }}">
+                                    {{ $typeLabel }}
+                                </span>
+                            </td>
+                            @break
+                        @case('roles_count')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $perm->roles_count }}</td>
+                            @break
+                        @case('parent_id')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $perm->parent_id }}</td>
+                            @break
+                        @case('route')
+                            <td class="px-4 py-2 text-muted-foreground font-mono">{{ $perm->route ?? '—' }}</td>
+                            @break
+                        @case('sort')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $perm->sort }}</td>
+                            @break
+                        @case('icon')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $perm->icon ?? '—' }}</td>
+                            @break
+                        @case('created_at')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $perm->created_at?->format('Y-m-d H:i') }}</td>
+                            @break
+                        @default
+                            <td class="px-4 py-2 text-foreground">{{ $perm->{$col['key']} ?? '—' }}</td>
+                    @endswitch
+                    @endforeach
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-1">
                             {{-- 编辑 --}}
@@ -88,7 +121,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="7" class="px-6 py-12 text-center text-muted-foreground">暂无权限数据</td></tr>
+                <tr><td colspan="{{ $colspan }}" class="px-6 py-12 text-center text-muted-foreground">暂无权限数据</td></tr>
                 @endforelse
             </tbody>
         </table>

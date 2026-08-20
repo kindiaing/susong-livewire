@@ -47,6 +47,14 @@ class UserList extends Component
         $this->initColumnVisibility();
     }
 
+    /**
+     * User 模块使用 DB 持久化列配置（UserPreference 表）
+     */
+    public function useDbColumnVisibility(): bool
+    {
+        return true;
+    }
+
     public function openEditModal(int $id): void
     {
         $user = User::findOrFail($id);
@@ -201,7 +209,7 @@ class UserList extends Component
 
     public function getDefaultColumns(): array
     {
-        return ['username', 'name', 'phone', 'email', 'status', 'created_at'];
+        return ['username', 'name', 'phone', 'email', 'status', 'roles', 'created_at'];
     }
 
     public function getExportRowCallback(): callable
@@ -245,6 +253,7 @@ class UserList extends Component
             ['key' => 'phone', 'label' => '手机号', 'sortable' => true, 'exportable' => true],
             ['key' => 'email', 'label' => '邮箱', 'sortable' => true, 'exportable' => true],
             ['key' => 'status', 'label' => '状态', 'sortable' => true, 'exportable' => true],
+            ['key' => 'roles', 'label' => '角色', 'sortable' => false, 'exportable' => false],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
         ];
     }

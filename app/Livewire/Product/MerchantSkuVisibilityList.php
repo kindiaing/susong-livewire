@@ -223,12 +223,13 @@ class MerchantSkuVisibilityList extends Component
             ['key' => 'product_id', 'label' => '商品', 'sortable' => false, 'exportable' => true],
             ['key' => 'sku_id', 'label' => 'SKU', 'sortable' => false, 'exportable' => true],
             ['key' => 'is_visible', 'label' => '是否可见', 'sortable' => false, 'exportable' => true],
+            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
         ];
     }
 
     public function getDefaultColumns(): array
     {
-        return ['merchant_id', 'target_type', 'product_id', 'sku_id', 'is_visible'];
+        return ['merchant_id', 'target_type', 'product_id', 'sku_id', 'is_visible', 'created_at'];
     }
 
     public function getExportQuery()

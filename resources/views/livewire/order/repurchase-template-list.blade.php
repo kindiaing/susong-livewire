@@ -32,15 +32,19 @@
         <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="arrow-up-tray" class="w-4 h-4" />导出</button>
         <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="arrow-down-tray" class="w-4 h-4" />导入</button>
     </div>
+    @php
+        $allCols = collect($this->getAllColumns());
+        $visibleCols = $allCols->filter(fn($col) => $this->isColumnVisible($col['key']))->values();
+        $colspan = $visibleCols->count() + 2;
+    @endphp
     <div class="rounded-lg border bg-card">
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAllPage" class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500" /></th>
-                    <th class="px-4 py-2 text-left w-16">ID</th>
-                    <th class="px-4 py-2 text-left">模板名称</th>
-                    <th class="px-4 py-2 text-left">商家</th>
-                    <th class="px-4 py-2 text-left">状态</th>
+                    @foreach($visibleCols as $col)
+                    <th class="px-4 py-2 text-left">{{ $col['label'] }}</th>
+                    @endforeach
                     <th class="px-4 py-2 text-left w-24">操作</th>
                 </tr>
             </thead>
@@ -48,12 +52,27 @@
                 @forelse($templates as $tpl)
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="rt-{{ $tpl->id }}">
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $tpl->id }}" wire:model.live="selectedIds" class="h-4 w-4 rounded border-input text-blue-600 focus:ring-blue-500" /></td>
-                    <td class="px-4 py-2 text-muted-foreground">{{ $tpl->id }}</td>
-                    <td class="px-4 py-2 font-medium text-foreground">{{ $tpl->name }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $tpl->merchant?->name ?? '-' }}</td>
-                    <td class="px-4 py-2">
-                        {!! status_badge($tpl->status, 'active') !!}
-                    </td>
+                    @foreach($visibleCols as $col)
+                    @switch($col['key'])
+                        @case('id')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $tpl->id }}</td>
+                            @break
+                        @case('name')
+                            <td class="px-4 py-2 font-medium text-foreground">{{ $tpl->name }}</td>
+                            @break
+                        @case('merchant')
+                            <td class="px-4 py-2 text-foreground">{{ $tpl->merchant?->name ?? '-' }}</td>
+                            @break
+                        @case('status')
+                            <td class="px-4 py-2">{!! status_badge($tpl->status, 'active') !!}</td>
+                            @break
+                        @case('created_at')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $tpl->created_at?->format('Y-m-d H:i') }}</td>
+                            @break
+                        @default
+                            <td class="px-4 py-2 text-foreground">{{ $tpl->{$col['key']} ?? '-' }}</td>
+                    @endswitch
+                    @endforeach
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-2">
                             @can('order.cart.edit')
@@ -66,7 +85,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="6" class="px-6 py-12 text-center text-muted-foreground">暂无复购模板数据</td></tr>
+                <tr><td colspan="{{ $colspan }}" class="px-6 py-12 text-center text-muted-foreground">暂无复购模板数据</td></tr>
                 @endforelse
             </tbody>
         </table>

@@ -343,6 +343,9 @@ class PurchaseItemList extends Component
         $skuOptions = Sku::with('product')->orderBy('sku_code')->get()->map(fn($s) => ['value' => $s->id, 'label' => $s->sku_code . ' - ' . ($s->product?->name ?? '')])->toArray();
         $supplierOptions = Supplier::where('status', 1)->orderBy('name')->get()->map(fn($s) => ['value' => $s->id, 'label' => $s->name])->toArray();
 
+        $availableUnits = $this->availableUnits;
+        $unitPreview = $this->unitPreview;
+
         return view('livewire.purchase.purchase-item-list', compact('items', 'allColumns', 'selectedCount', 'skuOptions', 'supplierOptions', 'availableUnits', 'unitPreview'))
             ->layout('components.app-layout')
             ->title('待采清单');

@@ -93,9 +93,15 @@ class KeywordList extends Component
         return [
             ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
             ['key' => 'keyword', 'label' => '关键词', 'sortable' => true, 'exportable' => true],
+            ['key' => 'product_id', 'label' => '关联商品', 'sortable' => false, 'exportable' => true],
             ['key' => 'search_count', 'label' => '搜索次数', 'sortable' => true, 'exportable' => true],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
         ];
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['id', 'keyword', 'product_id', 'search_count'];
     }
 
     public function getExportQuery()

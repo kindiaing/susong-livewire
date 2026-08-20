@@ -44,18 +44,21 @@
             @endif
     </div>
 
+    @php
+        $allCols = collect($this->getAllColumns());
+        $visibleCols = $allCols->filter(fn($col) => $this->isColumnVisible($col['key']))->values();
+        $colspan = $visibleCols->count() + 2;
+    @endphp
+
     {{-- 列表 --}}
     <div class="rounded-lg border bg-card">
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAllPage" class="rounded" /></th>
-                    <th class="px-4 py-2 text-left">仓库名称</th>
-                    <th class="px-4 py-2 text-left">类型</th>
-                    <th class="px-4 py-2 text-left">冷链</th>
-                    <th class="px-4 py-2 text-left">地址</th>
-                    <th class="px-4 py-2 text-left w-16">排序</th>
-                    <th class="px-4 py-2 text-left">状态</th>
+                    @foreach($visibleCols as $col)
+                    <th class="px-4 py-2 text-left">{{ $col['label'] }}</th>
+                    @endforeach
                     <th class="px-4 py-2 text-left w-24">操作</th>
                 </tr>
             </thead>
@@ -63,14 +66,36 @@
                 @forelse($items as $item)
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="warehouse-{{ $item->id }}">
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></td>
-                    <td class="px-4 py-2 font-medium text-foreground truncate">{{ $item->name }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ \App\Models\Warehouse::typeMap()[$item->type] ?? '-' }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $item->is_cold_chain ? '是' : '否' }}</td>
-                    <td class="px-4 py-2 text-muted-foreground truncate">{{ $item->address ?: '-' }}</td>
-                    <td class="px-4 py-2 text-muted-foreground">{{ $item->sort }}</td>
-                    <td class="px-4 py-2">
-                        {!! status_badge($item->status, 'active') !!}
-                    </td>
+                    @foreach($visibleCols as $col)
+                    @switch($col['key'])
+                        @case('id')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $item->id }}</td>
+                            @break
+                        @case('name')
+                            <td class="px-4 py-2 font-medium text-foreground truncate">{{ $item->name }}</td>
+                            @break
+                        @case('type')
+                            <td class="px-4 py-2 text-foreground">{{ \App\Models\Warehouse::typeMap()[$item->type] ?? '-' }}</td>
+                            @break
+                        @case('is_cold_chain')
+                            <td class="px-4 py-2 text-foreground">{{ $item->is_cold_chain ? '是' : '否' }}</td>
+                            @break
+                        @case('address')
+                            <td class="px-4 py-2 text-muted-foreground truncate">{{ $item->address ?: '-' }}</td>
+                            @break
+                        @case('sort')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $item->sort }}</td>
+                            @break
+                        @case('status')
+                            <td class="px-4 py-2">{!! status_badge($item->status, 'active') !!}</td>
+                            @break
+                        @case('created_at')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $item->created_at?->format('Y-m-d H:i') }}</td>
+                            @break
+                        @default
+                            <td class="px-4 py-2 text-foreground">{{ $item->{$col['key']} ?? '-' }}</td>
+                    @endswitch
+                    @endforeach
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-2">
                             @can('inventory.warehouse.edit')
@@ -83,7 +108,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="8" class="px-6 py-12 text-center text-muted-foreground">暂无仓库数据</td></tr>
+                <tr><td colspan="{{ $colspan }}" class="px-6 py-12 text-center text-muted-foreground">暂无仓库数据</td></tr>
                 @endforelse
             </tbody>
         </table>

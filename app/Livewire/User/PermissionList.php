@@ -48,6 +48,14 @@ class PermissionList extends Component
         $this->initColumnVisibility();
     }
 
+    /**
+     * User 模块使用 DB 持久化列配置（UserPreference 表）
+     */
+    public function useDbColumnVisibility(): bool
+    {
+        return true;
+    }
+
     public function openEditModal(int $id): void
     {
         $perm = Permission::findOrFail($id);
@@ -190,7 +198,7 @@ class PermissionList extends Component
 
     public function getDefaultColumns(): array
     {
-        return ['name', 'display_name', 'type', 'parent_id', 'route', 'sort', 'icon', 'created_at'];
+        return ['id', 'name', 'display_name', 'type', 'roles_count', 'sort'];
     }
 
     public function getExportRowCallback(): callable
@@ -232,6 +240,7 @@ class PermissionList extends Component
             ['key' => 'name', 'label' => '权限标识', 'sortable' => true, 'exportable' => true],
             ['key' => 'display_name', 'label' => '权限名称', 'sortable' => true, 'exportable' => true],
             ['key' => 'type', 'label' => '类型', 'sortable' => true, 'exportable' => true],
+            ['key' => 'roles_count', 'label' => '关联角色数', 'sortable' => true, 'exportable' => true],
             ['key' => 'parent_id', 'label' => '父级ID', 'sortable' => true, 'exportable' => true],
             ['key' => 'route', 'label' => '路由', 'sortable' => false, 'exportable' => true],
             ['key' => 'sort', 'label' => '排序', 'sortable' => true, 'exportable' => true],

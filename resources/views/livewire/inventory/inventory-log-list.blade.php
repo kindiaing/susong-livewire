@@ -43,43 +43,72 @@
             @endif
     </div>
 
+    @php
+        $allCols = collect($this->getAllColumns());
+        $visibleCols = $allCols->filter(fn($col) => $this->isColumnVisible($col['key']))->values();
+        $colspan = $visibleCols->count() + 1;
+    @endphp
+
     {{-- 列表 --}}
     <div class="rounded-lg border bg-card overflow-x-auto">
         <table class="w-full text-sm min-w-[1000px]">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAllPage" class="rounded" /></th>
-                    <th class="px-4 py-2 text-left">仓库</th>
-                    <th class="px-4 py-2 text-left">SKU</th>
-                    <th class="px-4 py-2 text-left">类型</th>
-                    <th class="px-4 py-2 text-left">变动数量</th>
-                    <th class="px-4 py-2 text-left">变动前</th>
-                    <th class="px-4 py-2 text-left">变动后</th>
-                    <th class="px-4 py-2 text-left">原因</th>
-                    <th class="px-4 py-2 text-left">时间</th>
+                    @foreach($visibleCols as $col)
+                    <th class="px-4 py-2 text-left">{{ $col['label'] }}</th>
+                    @endforeach
                 </tr>
             </thead>
             <tbody>
                 @forelse($items as $item)
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="invlog-{{ $item->id }}">
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></td>
-                    <td class="px-4 py-2 text-foreground">{{ $item->warehouse?->name ?? '-' }}</td>
-                    <td class="px-4 py-2 text-foreground">
-                        {{ $item->sku?->sku_code ?? '-' }}
-                        <span class="text-muted-foreground text-xs ml-1">{{ $item->sku?->product?->name ?? '' }}</span>
-                    </td>
-                    <td class="px-4 py-2">
-                        @php($typeLabel = \App\Models\InventoryLog::typeMap()[$item->type] ?? '未知')
-                        {!! status_badge($item->type, 'inventory_log', $typeLabel) !!}
-                    </td>
-                    <td class="px-4 py-2 {{ $item->quantity >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ $item->quantity >= 0 ? '+' : '' }}{{ $item->quantity }}</td>
-                    <td class="px-4 py-2 text-muted-foreground">{{ $item->before_stock }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $item->after_stock }}</td>
-                    <td class="px-4 py-2 text-muted-foreground truncate">{{ $item->reason ?: '-' }}</td>
-                    <td class="px-4 py-2 text-muted-foreground">{{ $item->created_at ? $item->created_at->format('Y-m-d H:i') : '-' }}</td>
+                    @foreach($visibleCols as $col)
+                    @switch($col['key'])
+                        @case('id')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $item->id }}</td>
+                            @break
+                        @case('warehouse_id')
+                            <td class="px-4 py-2 text-foreground">{{ $item->warehouse?->name ?? '-' }}</td>
+                            @break
+                        @case('sku_id')
+                            <td class="px-4 py-2 text-foreground">
+                                {{ $item->sku?->sku_code ?? '-' }}
+                                <span class="text-muted-foreground text-xs ml-1">{{ $item->sku?->product?->name ?? '' }}</span>
+                            </td>
+                            @break
+                        @case('type')
+                            <td class="px-4 py-2">
+                                @php($typeLabel = \App\Models\InventoryLog::typeMap()[$item->type] ?? '未知')
+                                {!! status_badge($item->type, 'inventory_log', $typeLabel) !!}
+                            </td>
+                            @break
+                        @case('quantity')
+                            <td class="px-4 py-2 {{ $item->quantity >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ $item->quantity >= 0 ? '+' : '' }}{{ $item->quantity }}</td>
+                            @break
+                        @case('before_stock')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $item->before_stock }}</td>
+                            @break
+                        @case('after_stock')
+                            <td class="px-4 py-2 text-foreground">{{ $item->after_stock }}</td>
+                            @break
+                        @case('reason')
+                            <td class="px-4 py-2 text-muted-foreground truncate">{{ $item->reason ?: '-' }}</td>
+                            @break
+                        @case('operator_id')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $item->operator?->name ?? $item->operator_id ?? '-' }}</td>
+                            @break
+                        @case('created_at')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $item->created_at ? $item->created_at->format('Y-m-d H:i') : '-' }}</td>
+                            @break
+                        @default
+                            <td class="px-4 py-2 text-foreground">{{ $item->{$col['key']} ?? '-' }}</td>
+                    @endswitch
+                    @endforeach
                 </tr>
                 @empty
-                <tr><td colspan="9" class="px-6 py-12 text-center text-muted-foreground">暂无库存变动记录</td></tr>
+                <tr><td colspan="{{ $colspan }}" class="px-6 py-12 text-center text-muted-foreground">暂无库存变动记录</td></tr>
                 @endforelse
             </tbody>
         </table>

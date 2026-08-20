@@ -33,12 +33,12 @@ class OperationLogs extends Component
     {
         return [
             ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
-            ['key' => 'user_id', 'label' => '用户ID', 'sortable' => true, 'exportable' => true],
-            ['key' => 'module', 'label' => '模块', 'sortable' => false, 'exportable' => true],
-            ['key' => 'action', 'label' => '操作', 'sortable' => false, 'exportable' => true],
-            ['key' => 'description', 'label' => '描述', 'sortable' => false, 'exportable' => true],
+            ['key' => 'method', 'label' => '方法', 'sortable' => false, 'exportable' => true],
+            ['key' => 'content', 'label' => '操作内容', 'sortable' => false, 'exportable' => true],
+            ['key' => 'path', 'label' => '路径', 'sortable' => false, 'exportable' => true],
+            ['key' => 'username', 'label' => '操作人', 'sortable' => false, 'exportable' => true],
             ['key' => 'ip', 'label' => 'IP', 'sortable' => false, 'exportable' => true],
-            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
+            ['key' => 'created_at', 'label' => '时间', 'sortable' => true, 'exportable' => true],
         ];
     }
 

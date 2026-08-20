@@ -48,6 +48,14 @@ class RoleList extends Component
         $this->initColumnVisibility();
     }
 
+    /**
+     * User 模块使用 DB 持久化列配置（UserPreference 表）
+     */
+    public function useDbColumnVisibility(): bool
+    {
+        return true;
+    }
+
     public function openEditModal(int $id): void
     {
         $role = Role::findOrFail($id);
@@ -299,7 +307,7 @@ class RoleList extends Component
 
     public function getDefaultColumns(): array
     {
-        return ['name', 'display_name', 'guard_name', 'description', 'created_at'];
+        return ['name', 'display_name', 'users_count', 'permissions_count'];
     }
 
     public function getExportRowCallback(): callable
@@ -336,8 +344,10 @@ class RoleList extends Component
         return [
             ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
             ['key' => 'name', 'label' => '角色标识', 'sortable' => true, 'exportable' => true],
-            ['key' => 'display_name', 'label' => '角色名称', 'sortable' => true, 'exportable' => true],
+            ['key' => 'display_name', 'label' => '显示名称', 'sortable' => true, 'exportable' => true],
             ['key' => 'guard_name', 'label' => '守卫', 'sortable' => true, 'exportable' => true],
+            ['key' => 'users_count', 'label' => '用户数', 'sortable' => true, 'exportable' => true],
+            ['key' => 'permissions_count', 'label' => '权限数', 'sortable' => true, 'exportable' => true],
             ['key' => 'description', 'label' => '描述', 'sortable' => false, 'exportable' => true],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
         ];

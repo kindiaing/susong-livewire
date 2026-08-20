@@ -48,18 +48,19 @@
         @endif
     </div>
 
+    @php
+        $visibleCols = collect($this->getAllColumns())->filter(fn($col) => $this->isColumnVisible($col['key']))->values();
+        $colspan = $visibleCols->count() + 2;
+    @endphp
+
     <div class="rounded-lg border bg-card">
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     <th class="px-4 py-2 text-left w-10"><input type="checkbox" wire:model.live="selectAll" class="rounded" /></th>
-                    <th class="px-4 py-2 text-left w-16">ID</th>
-                    <th class="px-4 py-2 text-left">商品名称</th>
-                    <th class="px-4 py-2 text-left">分类</th>
-                    <th class="px-4 py-2 text-left">单位</th>
-                    <th class="px-4 py-2 text-left">称重改价</th>
-                    <th class="px-4 py-2 text-left">预警值</th>
-                    <th class="px-4 py-2 text-left">状态</th>
+                    @foreach($visibleCols as $col)
+                    <th class="px-4 py-2 text-left">{{ $col['label'] }}</th>
+                    @endforeach
                     <th class="px-4 py-2 text-left w-24">操作</th>
                 </tr>
             </thead>
@@ -67,15 +68,42 @@
                 @forelse($products as $product)
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="product-{{ $product->id }}">
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $product->id }}" wire:model.live="selectedIds" class="rounded" /></td>
-                    <td class="px-4 py-2 text-muted-foreground">{{ $product->id }}</td>
-                    <td class="px-4 py-2 font-medium text-foreground truncate">{{ $product->name }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $product->category?->name ?? '-' }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $product->unit }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $product->is_weight_priced ? '是' : '否' }}</td>
-                    <td class="px-4 py-2 text-foreground">{{ $product->stock_warning_value }}</td>
-                    <td class="px-4 py-2">
-                        {!! status_badge($product->status, 'active') !!}
-                    </td>
+                    @foreach($visibleCols as $col)
+                    @switch($col['key'])
+                        @case('id')
+                            <td class="px-4 py-2 text-muted-foreground">{{ $product->id }}</td>
+                            @break
+                        @case('supplier_id')
+                            <td class="px-4 py-2 text-foreground">{{ $product->supplier?->name ?? '-' }}</td>
+                            @break
+                        @case('name')
+                            <td class="px-4 py-2 font-medium text-foreground truncate">{{ $product->name }}</td>
+                            @break
+                        @case('category_id')
+                            <td class="px-4 py-2 text-foreground">{{ $product->category?->name ?? '-' }}</td>
+                            @break
+                        @case('unit')
+                            <td class="px-4 py-2 text-foreground">{{ $product->unit }}</td>
+                            @break
+                        @case('is_weight_priced')
+                            <td class="px-4 py-2 text-foreground">{{ $product->is_weight_priced ? '是' : '否' }}</td>
+                            @break
+                        @case('stock_warning_value')
+                            <td class="px-4 py-2 text-foreground">{{ $product->stock_warning_value }}</td>
+                            @break
+                        @case('status')
+                            <td class="px-4 py-2">{!! status_badge($product->status, 'active') !!}</td>
+                            @break
+                        @case('description')
+                            <td class="px-4 py-2 text-muted-foreground truncate">{{ $product->description ?: '-' }}</td>
+                            @break
+                        @case('created_at')
+                            <td class="px-4 py-2 text-foreground">{{ $product->created_at?->format('Y-m-d H:i') }}</td>
+                            @break
+                        @default
+                            <td class="px-4 py-2 text-foreground truncate">{{ $product->{$col['key']} ?? '-' }}</td>
+                    @endswitch
+                    @endforeach
                     <td class="px-4 py-2">
                         <div class="flex items-center gap-2">
                             @can('product.product.edit')
@@ -88,7 +116,7 @@
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="9" class="px-6 py-12 text-center text-muted-foreground">暂无商品数据</td></tr>
+                <tr><td colspan="{{ $colspan }}" class="px-6 py-12 text-center text-muted-foreground">暂无商品数据</td></tr>
                 @endforelse
             </tbody>
         </table>
