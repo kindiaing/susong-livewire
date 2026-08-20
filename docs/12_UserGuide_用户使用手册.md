@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'f89a0952-7e62-40b0-a18b-7ddd4be13ec4'
-  PropagateID: 'f89a0952-7e62-40b0-a18b-7ddd4be13ec4'
-  ReservedCode1: '5c664c58-981b-44fc-96c7-3bcdfb198771'
-  ReservedCode2: '5c664c58-981b-44fc-96c7-3bcdfb198771'
+  ProduceID: 'ea0e911d-6492-4347-a454-e84f17daabcb'
+  PropagateID: 'ea0e911d-6492-4347-a454-e84f17daabcb'
+  ReservedCode1: '652c3549-6e94-412b-ab9f-9f494b79ce63'
+  ReservedCode2: '652c3549-6e94-412b-ab9f-9f494b79ce63'
 ---
 
 # 本地速送管理后台 — 用户使用手册
@@ -1358,7 +1358,3 @@ php artisan admin:seed                  # 运行所有 Seeder
 php artisan admin:seed --system        # 仅导入系统数据（角色/权限/用户/配置）
 php artisan admin:seed --demo          # 仅导入业务测试数据
 ```
-
----
-
-> AI生成
