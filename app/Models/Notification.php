@@ -16,6 +16,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $content 内容
  * @property array|null $data 扩展数据
  * @property int $is_read 是否已读：0未读，1已读
+ * @property int $hidden 是否从Drawer隐藏：0正常，1已隐藏
  * @property Carbon|null $read_at 已读时间
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
@@ -40,6 +41,7 @@ class Notification extends Model
         'data',
         'is_read',
         'read_at',
+        'hidden',
     ];
 
     protected function casts(): array
@@ -50,6 +52,7 @@ class Notification extends Model
             'type' => 'integer',
             'data' => 'array',
             'is_read' => 'integer',
+            'hidden' => 'integer',
             'read_at' => 'datetime',
         ];
     }
@@ -139,6 +142,35 @@ class Notification extends Model
                 'read_at' => now(),
             ]);
         }
+    }
+
+    /**
+     * 标记为未读
+     */
+    public function markAsUnread(): void
+    {
+        if ($this->is_read === 1) {
+            $this->update([
+                'is_read' => 0,
+                'read_at' => null,
+            ]);
+        }
+    }
+
+    /**
+     * 从 Drawer 隐藏
+     */
+    public function dismiss(): void
+    {
+        $this->update(['hidden' => 1]);
+    }
+
+    /**
+     * 作用域：未被 Drawer 隐藏的
+     */
+    public function scopeVisible($query)
+    {
+        return $query->where('hidden', 0);
     }
 
     /**

@@ -7,16 +7,15 @@
     x-data="{
         notificationPanelOpen: false,
         init() {
-            // 监听 Reverb 私有频道：用户通知
+            // 监听 Pusher 私有频道：用户通知
             if (window.Echo && window.Laravel?.userId) {
                 window.Echo.private(`notifications.${window.Laravel.userId}`)
                     .listen('.notification.created', () => {
-                        // 通知 Livewire 刷新数据
                         this.$wire.handleNotificationReceived();
                     });
             }
 
-            // 监听 Reverb 公共频道：全站广播
+            // 监听 Pusher 公共频道：全站广播
             if (window.Echo) {
                 window.Echo.channel('notifications')
                     .listen('.notification.created', () => {
@@ -108,7 +107,7 @@
                 {{-- 通知列表 --}}
                 <div class="overflow-y-auto flex-1" style="max-height: calc(100vh - 110px);">
                     @forelse($notifications as $n)
-                        <div class="px-4 py-3 hover:bg-accent/50 transition-colors cursor-pointer border-b border-border/50 last:border-0 {{ $n->is_read === 0 ? 'bg-primary/5' : '' }}"
+                        <div class="group px-4 py-3 hover:bg-accent/50 transition-colors cursor-pointer border-b border-border/50 last:border-0 {{ $n->is_read === 0 ? 'bg-primary/5' : '' }}"
                              wire:click="markRead({{ $n->id }})">
                             <div class="flex gap-3">
                                 {{-- 类型图标 --}}
@@ -139,10 +138,44 @@
                                 {{-- 内容 --}}
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-start justify-between gap-2">
-                                        <p class="text-sm font-medium truncate">{{ $n->title }}</p>
-                                        @if($n->is_read === 0)
-                                            <span class="shrink-0 mt-1 h-2 w-2 rounded-full bg-primary"></span>
-                                        @endif
+                                        <div class="flex items-center gap-1.5 min-w-0">
+                                            <p class="text-sm font-medium truncate">{{ $n->title }}</p>
+                                            @if($n->is_read === 0)
+                                                <span class="shrink-0 mt-1 h-2 w-2 rounded-full bg-primary"></span>
+                                            @endif
+                                        </div>
+                                        {{-- 右上角操作按钮 --}}
+                                        <div class="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            {{-- 标记已读/未读 --}}
+                                            @if($n->is_read === 1)
+                                                <button type="button" wire:click="markUnread({{ $n->id }})" wire:click.stop
+                                                        class="rounded p-0.5 hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                                                        title="标记未读"
+                                                        onclick="event.stopPropagation()">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                                    </svg>
+                                                </button>
+                                            @else
+                                                <button type="button" wire:click="markRead({{ $n->id }})" wire:click.stop
+                                                        class="rounded p-0.5 hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                                                        title="标记已读"
+                                                        onclick="event.stopPropagation()">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                    </svg>
+                                                </button>
+                                            @endif
+                                            {{-- 关闭（隐藏） --}}
+                                            <button type="button" wire:click="dismissNotification({{ $n->id }})" wire:click.stop
+                                                    class="rounded p-0.5 hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+                                                    title="关闭"
+                                                    onclick="event.stopPropagation()">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
                                     @if($n->content)
                                         <p class="text-xs text-muted-foreground mt-0.5 line-clamp-2">{{ $n->content }}</p>

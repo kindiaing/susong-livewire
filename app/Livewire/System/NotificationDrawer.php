@@ -25,6 +25,7 @@ class NotificationDrawer extends Component
     public function updateUnreadCount(): void
     {
         $this->unreadCount = Notification::forUser(auth()->id())
+            ->visible()
             ->unread()
             ->count();
     }
@@ -32,6 +33,7 @@ class NotificationDrawer extends Component
     public function getNotificationsProperty()
     {
         $query = Notification::forUser(auth()->id())
+            ->visible()
             ->latestFirst()
             ->limit(50);
 
@@ -47,6 +49,30 @@ class NotificationDrawer extends Component
         $notification = Notification::forUser(auth()->id())->find($id);
         if ($notification && $notification->is_read === 0) {
             $notification->markAsRead();
+            $this->updateUnreadCount();
+        }
+    }
+
+    /**
+     * 标记单条通知为未读
+     */
+    public function markUnread(int $id): void
+    {
+        $notification = Notification::forUser(auth()->id())->find($id);
+        if ($notification && $notification->is_read === 1) {
+            $notification->markAsUnread();
+            $this->updateUnreadCount();
+        }
+    }
+
+    /**
+     * 从 Drawer 隐藏单条通知（不删除，历史通知页可查看）
+     */
+    public function dismissNotification(int $id): void
+    {
+        $notification = Notification::forUser(auth()->id())->find($id);
+        if ($notification) {
+            $notification->dismiss();
             $this->updateUnreadCount();
         }
     }

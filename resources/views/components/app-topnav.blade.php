@@ -140,6 +140,13 @@
                         </span>
                     </a>
 
+                    <a href="{{ route('notifications.history') }}" class="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground">
+                        <span class="flex items-center gap-2">
+                            <x-ui.icon name="bell" class="w-4 h-4" />
+                            历史通知
+                        </span>
+                    </a>
+
                     <div role="separator" class="-mx-1 my-1 h-px bg-border"></div>
 
                     <button type="button" onclick="document.getElementById('logout-form').submit();"

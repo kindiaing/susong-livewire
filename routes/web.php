@@ -91,6 +91,9 @@ Route::middleware(['auth', 'permission'])->group(function () {
     // 个人中心
     Route::get('/profile', Profile::class)->name('profile');
 
+    // 历史通知
+    Route::get('/notifications', \App\Livewire\System\NotificationHistory::class)->name('notifications.history');
+
     // ── 用户权限 ──
     Route::get('/users', UserList::class)->name('users');
     Route::get('/roles', RoleList::class)->name('roles');

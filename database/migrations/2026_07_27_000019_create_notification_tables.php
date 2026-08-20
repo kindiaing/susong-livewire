@@ -19,12 +19,14 @@ return new class extends Migration
             $table->json('data')->nullable()->comment('扩展数据');
             $table->tinyInteger('is_read')->unsigned()->default(0)->comment('是否已读：0未读，1已读');
             $table->timestamp('read_at')->nullable()->comment('已读时间');
+            $table->tinyInteger('hidden')->unsigned()->default(0)->comment('是否从Drawer隐藏：0正常，1已隐藏');
             $table->timestamps();
 
             $table->index('user_id');
             $table->index('merchant_id');
             $table->index('type');
             $table->index('is_read');
+            $table->index('hidden');
             $table->index('created_at');
             $table->comment('通知/消息表');
         });
