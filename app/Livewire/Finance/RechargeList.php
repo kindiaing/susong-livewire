@@ -9,9 +9,12 @@ use App\Livewire\Traits\WithListCrud;
 use App\Livewire\Traits\WithMoneyConversion;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
+use App\Models\AuditLog;
 use App\Models\Merchant;
+use App\Models\MerchantAccount;
 use App\Models\Recharge;
 use App\Services\NotificationService;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -185,7 +188,33 @@ class RechargeList extends Component
 
             return;
         }
-        $item->update(['status' => 2]);
+
+        DB::transaction(function () use ($item) {
+            $item->update([
+                'status' => 2,
+                'approval_status' => Recharge::APPROVAL_APPROVED,
+            ]);
+
+            // 入账：更新商家账户余额与总充值（无账户则创建）
+            $account = MerchantAccount::firstOrCreate(
+                ['merchant_id' => $item->merchant_id],
+                ['balance' => 0, 'total_recharge' => 0, 'total_consumption' => 0]
+            );
+            $account->increment('balance', $item->amount);
+            $account->increment('total_recharge', $item->amount);
+
+            AuditLog::log(
+                modelType: Recharge::class,
+                modelId: $item->id,
+                action: 'approve',
+                beforeData: ['status' => 1],
+                afterData: [
+                    'status' => 2,
+                    'amount' => $item->amount,
+                    'balance_after' => $account->balance,
+                ],
+            );
+        });
 
         // 通知商家：充值到账
         if ($item->merchant_id) {
@@ -196,7 +225,7 @@ class RechargeList extends Component
             );
         }
 
-        $this->toastSuccess('充值已确认成功');
+        $this->toastSuccess('充值已确认成功，金额已入账');
     }
 
     public function reject(int $id): void
@@ -207,7 +236,7 @@ class RechargeList extends Component
 
             return;
         }
-        $item->update(['status' => 3]);
+        $item->update(['status' => 3, 'approval_status' => Recharge::APPROVAL_REJECTED]);
         $this->toastSuccess('充值已拒绝');
     }
 

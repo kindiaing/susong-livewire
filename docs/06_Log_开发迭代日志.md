@@ -1171,3 +1171,28 @@
 | 分支 | bugfix |
 | 提交 | 见本次提交 |
 | 验证 | Pint 通过；测试套件 9 个失败为迁移索引重复（idx_model）既有问题，与本次无关 |
+
+---
+
+## V2.0.2 — 迁移索引修复 + 充值确认入账
+
+### 变更概述
+
+1. 修复 `model_has_roles` / `model_has_permissions` 同名索引 `idx_model` 冲突（SQLite 测试库要求索引名全局唯一），后者改名 `idx_model_permission`，测试套件恢复可运行。
+2. 按 `03_DB` 6.11.2 节设计补上充值确认入账：审核通过后事务内更新 `merchant_accounts.balance` 和 `total_recharge`（无账户则创建），并记录审计日志；拒绝时同步 `approval_status=3`。
+
+### 变更明细
+
+| 操作 | 文件 | 说明 |
+| :--- | :--- | :--- |
+| 修复 | 2026_07_27_000001_create_users_and_permissions_tables.php | `model_has_permissions` 索引 `idx_model` → `idx_model_permission`（改 create 迁移，符合"无 alter"规范；存量 MySQL 库不受影响） |
+| 完善 | Finance\RechargeList::approve | 事务内：状态→成功 + approval_status→已通过 + MerchantAccount 入账（balance/total_recharge 原子 increment）+ AuditLog |
+| 完善 | Finance\RechargeList::reject | 同步 approval_status→已拒绝 |
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | bugfix → 合并 main |
+| 提交 | 见本次提交 |
+| 验证 | 测试 9 通过 / 1 失败（UnitConversionServiceTest 三级换算断言为既有问题，与本次无关）；Pint 通过 |
