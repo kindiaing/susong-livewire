@@ -204,7 +204,7 @@
                 @endforeach
                 <div class="flex items-center gap-2">
                     @can('order.order-return.edit')
-                    @if($item->status === 1)
+                    @if($item->canEdit())
                     <button type="button" wire:click="openEditModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
@@ -225,7 +225,7 @@
                     @endif
                     @endcan
                     @can('order.order-return.delete')
-                    @if($item->status === 1)
+                    @if($item->canEdit())
                     <button type="button" wire:click="confirmDelete({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
@@ -244,7 +244,11 @@
         <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-foreground">{{ $editingId ? '编辑退货单' : '新增退货' }}</h2>
+                <h2 class="text-lg font-semibold text-foreground">{{ $editingId ? '编辑退货单' : '新增退货' }}
+                    @if($editingStatusLabel)
+                    <span class="ml-2 inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-{{ $editingStatusColor }}-100 text-{{ $editingStatusColor }}-700">{{ $editingStatusLabel }}</span>
+                    @endif
+                </h2>
                 <button type="button" wire:click="closeModal" class="text-muted-foreground hover:text-foreground transition-colors">
                     <x-ui.icon name="x-mark" class="w-5 h-5" />
                 </button>

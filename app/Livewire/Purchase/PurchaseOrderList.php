@@ -41,12 +41,14 @@ class PurchaseOrderList extends Component
     public function openEditModal(int $id): void
     {
         $order = PurchaseOrder::findOrFail($id);
-        if ($order->status !== PurchaseOrder::STATUS_PENDING) {
+        if (! $order->canEdit()) {
             $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
 
             return;
         }
         $this->editingId = $id;
+        $this->editingStatusLabel = $order->status_label;
+        $this->editingStatusColor = 'yellow';
         $this->formSupplierId = $order->supplier_id;
         $this->formPurchaseDate = $order->purchase_date?->format('Y-m-d') ?? '';
         $this->formRemark = $order->remark ?? '';
@@ -69,7 +71,7 @@ class PurchaseOrderList extends Component
 
         if ($this->editingId) {
             $order = PurchaseOrder::findOrFail($this->editingId);
-            if ($order->status !== PurchaseOrder::STATUS_PENDING) {
+            if (! $order->canEdit()) {
                 $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
                 $this->showModal = false;
                 $this->resetForm();
@@ -95,7 +97,7 @@ class PurchaseOrderList extends Component
     {
         $order = PurchaseOrder::findOrFail($this->deletingId);
 
-        if ($order->status !== PurchaseOrder::STATUS_PENDING) {
+        if (! $order->canEdit()) {
             $this->toastError('当前状态不可删除，仅待接单状态的采购单可删除');
             $this->showDeleteConfirm = false;
             $this->deletingId = null;

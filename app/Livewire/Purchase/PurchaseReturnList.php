@@ -47,12 +47,14 @@ class PurchaseReturnList extends Component
     public function openEditModal(int $id): void
     {
         $item = PurchaseReturn::findOrFail($id);
-        if ($item->status !== PurchaseReturn::STATUS_PENDING) {
+        if (! $item->canEdit()) {
             $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
 
             return;
         }
         $this->editingId = $id;
+        $this->editingStatusLabel = $item->status_label;
+        $this->editingStatusColor = 'yellow';
         $this->formPurchaseOrderId = $item->purchase_order_id;
         $this->formSupplierId = $item->supplier_id;
         $this->formWarehouseId = $item->warehouse_id;
@@ -84,7 +86,7 @@ class PurchaseReturnList extends Component
 
         if ($this->editingId) {
             $item = PurchaseReturn::findOrFail($this->editingId);
-            if ($item->status !== PurchaseReturn::STATUS_PENDING) {
+            if (! $item->canEdit()) {
                 $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
                 $this->showModal = false;
                 $this->resetForm();
@@ -107,7 +109,7 @@ class PurchaseReturnList extends Component
     public function delete(): void
     {
         $item = PurchaseReturn::findOrFail($this->deletingId);
-        if ($item->status !== PurchaseReturn::STATUS_PENDING) {
+        if (! $item->canEdit()) {
             $this->toastError('当前状态不可删除，仅待审核状态的退货单可删除');
             $this->showDeleteConfirm = false;
             $this->deletingId = null;

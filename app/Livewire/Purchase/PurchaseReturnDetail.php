@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Purchase;
 
+use App\Models\AuditLog;
 use App\Models\PurchaseReturn;
 use App\Services\PurchaseReturnService;
 use App\Livewire\Traits\WithToast;
@@ -22,6 +23,11 @@ class PurchaseReturnDetail extends Component
     public function mount(int $id): void
     {
         $this->loadReturn($id);
+    }
+
+    public function getIsSuperAdminProperty(): bool
+    {
+        return can_rollback_status();
     }
 
     public function loadReturn(int $id): void
@@ -60,10 +66,41 @@ class PurchaseReturnDetail extends Component
         $this->showConfirmModal = true;
     }
 
+    // ── 超管状态回退 ──
+
+    public function confirmRollback(string $toStatus): void
+    {
+        $statusLabels = PurchaseReturn::statusMap();
+        $this->confirmAction = 'rollback_'.$toStatus;
+        $this->confirmTitle = "确认回退到【{$statusLabels[$toStatus]}】状态？";
+        $this->showConfirmModal = true;
+    }
+
     public function executeConfirm(): void
     {
         try {
             $service = app(PurchaseReturnService::class);
+
+            // 超管状态回退
+            if (str_starts_with($this->confirmAction, 'rollback_')) {
+                $toStatus = (int) substr($this->confirmAction, 9);
+                $oldStatus = $this->return->status;
+                $this->return->update(['status' => $toStatus]);
+
+                AuditLog::log(
+                    modelType: PurchaseReturn::class,
+                    modelId: $this->return->id,
+                    action: 'rollback',
+                    beforeData: ['status' => $oldStatus],
+                    afterData: ['status' => $toStatus],
+                );
+
+                $this->loadReturn($this->return->id);
+                $this->showConfirmModal = false;
+                $this->toastSuccess('状态已回退');
+
+                return;
+            }
 
             match ($this->confirmAction) {
                 'approve' => $service->approve($this->return),
@@ -89,7 +126,9 @@ class PurchaseReturnDetail extends Component
 
     public function render()
     {
-        return view('livewire.purchase.purchase-return-detail')
+        $isSuperAdmin = $this->isSuperAdmin;
+
+        return view('livewire.purchase.purchase-return-detail', compact('isSuperAdmin'))
             ->layout('components.app-layout')
             ->title("退货单 {$this->return->return_no}");
     }

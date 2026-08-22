@@ -123,12 +123,14 @@ class InvoiceList extends Component
     public function openEditModal(int $id): void
     {
         $item = Invoice::findOrFail($id);
-        if ($item->status !== 1) {
+        if (! $item->canEdit()) {
             $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
 
             return;
         }
         $this->editingId = $id;
+        $this->editingStatusLabel = self::$statusMap[$item->status] ?? '';
+        $this->editingStatusColor = self::$statusColorMap[$item->status] ?? 'yellow';
         $this->formMerchantId = $item->target_id;
         $this->formAmount = $this->centsToYuan($item->amount);
         $this->formType = $item->type;
@@ -155,7 +157,7 @@ class InvoiceList extends Component
 
         if ($this->editingId) {
             $item = Invoice::findOrFail($this->editingId);
-            if ($item->status !== 1) {
+            if (! $item->canEdit()) {
                 $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
                 $this->showModal = false;
                 $this->resetForm();
@@ -220,7 +222,7 @@ class InvoiceList extends Component
     public function delete(): void
     {
         $item = Invoice::findOrFail($this->deletingId);
-        if ($item->status !== 1) {
+        if (! $item->canEdit()) {
             $this->toastError('当前状态不可删除，仅待开具状态的发票可删除');
             $this->showDeleteConfirm = false;
             $this->deletingId = null;

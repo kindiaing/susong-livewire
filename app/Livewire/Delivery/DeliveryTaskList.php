@@ -122,12 +122,14 @@ class DeliveryTaskList extends Component
     public function openEditModal(int $id): void
     {
         $item = DeliveryTask::findOrFail($id);
-        if ($item->status !== DeliveryTask::STATUS_PENDING) {
+        if (! $item->canEdit()) {
             $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
 
             return;
         }
         $this->editingId = $id;
+        $this->editingStatusLabel = self::$statusMap[$item->status] ?? '';
+        $this->editingStatusColor = self::$statusColorMap[$item->status] ?? 'yellow';
         $this->formDriverId = $item->driver_id ?? 0;
         $this->formVehicleId = $item->vehicle_id ?? 0;
         $this->formBatch = $item->batch;
@@ -145,7 +147,7 @@ class DeliveryTaskList extends Component
         ]);
 
         $task = DeliveryTask::findOrFail($this->editingId);
-        if ($task->status !== DeliveryTask::STATUS_PENDING) {
+        if (! $task->canEdit()) {
             $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
             $this->showModal = false;
             $this->resetForm();
@@ -486,7 +488,7 @@ class DeliveryTaskList extends Component
     public function delete(): void
     {
         $task = DeliveryTask::findOrFail($this->deletingId);
-        if ($task->status !== DeliveryTask::STATUS_PENDING) {
+        if (! $task->canEdit()) {
             $this->toastError('当前状态不可删除，仅待配送状态的任务可删除');
             $this->showDeleteConfirm = false;
             $this->deletingId = null;

@@ -233,6 +233,37 @@ class Order extends Model
     }
 
     /**
+     * 是否可编辑（仅初始状态可编辑）
+     */
+    public function canEdit(): bool
+    {
+        return $this->status === self::STATUS_PICKING_WAIT;
+    }
+
+    /**
+     * 是否可回退状态（除初始和作废状态外均可回退）
+     */
+    public function canRollbackStatus(): bool
+    {
+        return !in_array($this->status, [self::STATUS_PICKING_WAIT, self::STATUS_CANCELLED]);
+    }
+
+    /**
+     * 可回退的目标状态列表
+     */
+    public function rollbackTargets(): array
+    {
+        if (!$this->canRollbackStatus()) {
+            return [];
+        }
+
+        $all = self::statusMap();
+        unset($all[self::STATUS_CANCELLED]);
+
+        return array_filter($all, fn($status) => $status < $this->status, ARRAY_FILTER_USE_KEY);
+    }
+
+    /**
      * 作用域：按状态
      */
     public function scopeByStatus($query, int $status)

@@ -20,6 +20,18 @@
             @if(in_array($return->status, [1, 2]))
                 <button type="button" wire:click="confirmCancel" class="rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">作废</button>
             @endif
+
+            {{-- 超管状态回退 --}}
+            @if($isSuperAdmin && !in_array($return->status, [1, 9]))
+                <div class="relative" x-data="{open: false}">
+                    <button type="button" @click="open = !open" class="rounded-md border border-purple-300 px-3 py-1.5 text-sm font-medium text-purple-600 hover:bg-purple-50 transition-colors">回退</button>
+                    <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 mt-1 w-36 rounded-md border bg-background shadow-lg z-10 py-1">
+                        @if($return->status > 1)<button type="button" wire:click="confirmRollback(1)" class="block w-full text-left px-3 py-1.5 text-sm hover:bg-accent transition-colors" @click="open = false">回退到待审核</button>@endif
+                        @if($return->status > 2)<button type="button" wire:click="confirmRollback(2)" class="block w-full text-left px-3 py-1.5 text-sm hover:bg-accent transition-colors" @click="open = false">回退到已审核</button>@endif
+                        @if($return->status > 3)<button type="button" wire:click="confirmRollback(3)" class="block w-full text-left px-3 py-1.5 text-sm hover:bg-accent transition-colors" @click="open = false">回退到已出库</button>@endif
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 

@@ -140,4 +140,32 @@ class Recharge extends Model
     {
         return $query->where('status', $status);
     }
+
+    /**
+     * 是否可编辑（仅初始状态可编辑）
+     */
+    public function canEdit(): bool
+    {
+        return $this->status === self::STATUS_PENDING;
+    }
+
+    /**
+     * 是否可回退状态（除初始状态外均可回退，充值无作废状态）
+     */
+    public function canRollbackStatus(): bool
+    {
+        return $this->status !== self::STATUS_PENDING;
+    }
+
+    /**
+     * 可回退的目标状态列表
+     */
+    public function rollbackTargets(): array
+    {
+        if (!$this->canRollbackStatus()) {
+            return [];
+        }
+
+        return array_filter(self::statusMap(), fn($status) => $status < $this->status, ARRAY_FILTER_USE_KEY);
+    }
 }

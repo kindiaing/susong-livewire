@@ -121,12 +121,14 @@ class OrderReturnList extends Component
     public function openEditModal(int $id): void
     {
         $item = OrderReturn::findOrFail($id);
-        if ($item->status !== OrderReturn::STATUS_PENDING) {
+        if (! $item->canEdit()) {
             $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
 
             return;
         }
         $this->editingId = $id;
+        $this->editingStatusLabel = self::$statusMap[$item->status] ?? '';
+        $this->editingStatusColor = self::$statusColorMap[$item->status] ?? 'yellow';
         $this->formReason = $item->reason ?? '';
         $this->formNote = $item->note ?? '';
         $this->showModal = true;
@@ -136,7 +138,7 @@ class OrderReturnList extends Component
     {
         if ($this->editingId) {
             $item = OrderReturn::findOrFail($this->editingId);
-            if ($item->status !== OrderReturn::STATUS_PENDING) {
+            if (! $item->canEdit()) {
                 $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
                 $this->showModal = false;
                 $this->resetForm();
@@ -224,7 +226,7 @@ class OrderReturnList extends Component
     public function delete(): void
     {
         $item = OrderReturn::findOrFail($this->deletingId);
-        if ($item->status !== OrderReturn::STATUS_PENDING) {
+        if (! $item->canEdit()) {
             $this->toastError('当前状态不可删除，仅待审核状态的退货单可删除');
             $this->showDeleteConfirm = false;
             $this->deletingId = null;

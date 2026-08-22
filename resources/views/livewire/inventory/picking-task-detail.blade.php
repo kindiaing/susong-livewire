@@ -25,6 +25,20 @@
             @if($pickingTask->status === 2)
             <button type="button" wire:click="completePicking" class="rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 transition-colors">完成拣货</button>
             @endif
+
+            {{-- 超管状态回退 --}}
+            @if($isSuperAdmin && !in_array($pickingTask->status, [1]))
+                <div class="relative" x-data="{open: false}">
+                    <button type="button" @click="open = !open" class="rounded-md border border-purple-300 px-3 py-1.5 text-sm font-medium text-purple-600 hover:bg-purple-50 transition-colors">回退</button>
+                    <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 mt-1 w-36 rounded-md border bg-background shadow-lg z-10 py-1">
+                        @if($pickingTask->status > 1)<button type="button" wire:click="confirmRollback(1)" class="block w-full text-left px-3 py-1.5 text-sm hover:bg-accent transition-colors" @click="open = false">回退到待分配</button>@endif
+                        @if($pickingTask->status > 2)<button type="button" wire:click="confirmRollback(2)" class="block w-full text-left px-3 py-1.5 text-sm hover:bg-accent transition-colors" @click="open = false">回退到拣货中</button>@endif
+                    </div>
+                </div>
+            @endif
+        </div>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -258,6 +272,26 @@
             <div class="flex justify-end gap-3 mt-6">
                 <button type="button" wire:click="closePickedModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
                 <button type="button" wire:click="savePickedQuantity" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- 状态确认弹窗 --}}
+    @if($showConfirmModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">确认操作</h2>
+                <button type="button" wire:click="closeConfirmModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
+            <p class="text-sm text-muted-foreground mb-6">{{ $confirmTitle }}</p>
+            <div class="flex justify-end gap-3">
+                <button type="button" wire:click="closeConfirmModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="executeConfirm" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">确认</button>
             </div>
         </div>
     </div>

@@ -3,6 +3,7 @@
 namespace App\Livewire\Inventory;
 
 use App\Livewire\Traits\WithToast;
+use App\Models\AuditLog;
 use App\Models\Discrepancy;
 use App\Models\PickingTask;
 use App\Models\PickingTaskItem;
@@ -37,10 +38,20 @@ class PickingTaskDetail extends Component
 
     public string $inputDiffReason = '';
 
+    // 状态操作确认
+    public bool $showConfirmModal = false;
+    public string $confirmAction = '';
+    public string $confirmTitle = '';
+
     public function mount(int $id): void
     {
         $this->pickingTaskId = $id;
         $this->loadPickingTask();
+    }
+
+    public function getIsSuperAdminProperty(): bool
+    {
+        return can_rollback_status();
     }
 
     private function loadPickingTask(): void
@@ -412,14 +423,58 @@ class PickingTaskDetail extends Component
         }
     }
 
+    // ── 超管状态回退 ──
+
+    public function confirmRollback(string $toStatus): void
+    {
+        $statusLabels = PickingTask::statusMap();
+        $this->confirmAction = 'rollback_'.$toStatus;
+        $this->confirmTitle = "确认回退到【{$statusLabels[$toStatus]}】状态？";
+        $this->showConfirmModal = true;
+    }
+
+    public function closeConfirmModal(): void
+    {
+        $this->showConfirmModal = false;
+        $this->resetErrorBag();
+    }
+
+    public function executeConfirm(): void
+    {
+        try {
+            if (str_starts_with($this->confirmAction, 'rollback_')) {
+                $toStatus = (int) substr($this->confirmAction, 9);
+                $oldStatus = $this->pickingTask->status;
+                $this->pickingTask->update(['status' => $toStatus]);
+
+                AuditLog::log(
+                    modelType: PickingTask::class,
+                    modelId: $this->pickingTaskId,
+                    action: 'rollback',
+                    beforeData: ['status' => $oldStatus],
+                    afterData: ['status' => $toStatus],
+                );
+
+                $this->loadPickingTask();
+                $this->showConfirmModal = false;
+                $this->toastSuccess('状态已回退');
+
+                return;
+            }
+        } catch (\Exception $e) {
+            $this->toastError($e->getMessage());
+        }
+    }
+
     public function render()
     {
         $pickingTask = $this->pickingTask;
         $skuSummary = $this->getSkuSummary();
         $merchantGroups = $this->getMerchantGroups();
+        $isSuperAdmin = $this->isSuperAdmin;
 
         return view('livewire.inventory.picking-task-detail', compact(
-            'pickingTask', 'skuSummary', 'merchantGroups'
+            'pickingTask', 'skuSummary', 'merchantGroups', 'isSuperAdmin'
         ))
             ->layout('components.app-layout')
             ->title('拣货总单详情 - '.($pickingTask->task_no ?? ''));

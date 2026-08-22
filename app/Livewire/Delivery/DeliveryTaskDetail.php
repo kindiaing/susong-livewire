@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Delivery;
 
+use App\Models\AuditLog;
 use App\Models\DeliveryTask;
 use App\Models\DeliveryTaskSequence;
 use App\Livewire\Traits\WithToast;
@@ -32,6 +33,11 @@ class DeliveryTaskDetail extends Component
     {
         $this->taskId = $id;
         $this->loadTask();
+    }
+
+    public function getIsSuperAdminProperty(): bool
+    {
+        return can_rollback_status();
     }
 
     private function loadTask(): void
@@ -113,6 +119,53 @@ class DeliveryTaskDetail extends Component
         $this->toastSuccess('配送任务已作废');
     }
 
+    // ── 超管状态回退 ──
+
+    public bool $showConfirmModal = false;
+    public string $confirmAction = '';
+    public string $confirmTitle = '';
+
+    public function confirmRollback(string $toStatus): void
+    {
+        $statusLabels = DeliveryTask::statusMap();
+        $this->confirmAction = 'rollback_'.$toStatus;
+        $this->confirmTitle = "确认回退到【{$statusLabels[$toStatus]}】状态？";
+        $this->showConfirmModal = true;
+    }
+
+    public function closeConfirmModal(): void
+    {
+        $this->showConfirmModal = false;
+        $this->resetErrorBag();
+    }
+
+    public function executeConfirm(): void
+    {
+        try {
+            if (str_starts_with($this->confirmAction, 'rollback_')) {
+                $toStatus = (int) substr($this->confirmAction, 9);
+                $oldStatus = $this->task->status;
+                $this->task->update(['status' => $toStatus]);
+
+                AuditLog::log(
+                    modelType: DeliveryTask::class,
+                    modelId: $this->taskId,
+                    action: 'rollback',
+                    beforeData: ['status' => $oldStatus],
+                    afterData: ['status' => $toStatus],
+                );
+
+                $this->loadTask();
+                $this->showConfirmModal = false;
+                $this->toastSuccess('状态已回退');
+
+                return;
+            }
+        } catch (\Exception $e) {
+            $this->toastError($e->getMessage());
+        }
+    }
+
     // ========== 顺序表操作 ==========
 
     public function toggleUrgent(int $sequenceId): void
@@ -147,9 +200,10 @@ class DeliveryTaskDetail extends Component
         $statusMap = self::$statusMap;
         $statusColorMap = self::$statusColorMap;
         $batchMap = self::$batchMap;
+        $isSuperAdmin = $this->isSuperAdmin;
 
         return view('livewire.delivery.delivery-task-detail', compact(
-            'task', 'statusMap', 'statusColorMap', 'batchMap'
+            'task', 'statusMap', 'statusColorMap', 'batchMap', 'isSuperAdmin'
         ))
             ->layout('components.app-layout')
             ->title('配送任务详情 - ' . $task->task_no);

@@ -51,12 +51,14 @@ class LossOrderList extends Component
     public function openEditModal(int $id): void
     {
         $item = LossOrder::findOrFail($id);
-        if ($item->status !== LossOrder::STATUS_PENDING) {
+        if (! $item->canEdit()) {
             $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
 
             return;
         }
         $this->editingId = $id;
+        $this->editingStatusLabel = $item->status_label;
+        $this->editingStatusColor = 'yellow';
         $this->formWarehouseId = $item->warehouse_id;
         $this->formLossType = $item->loss_type;
         $this->formReason = $item->reason ?? '';
@@ -82,7 +84,7 @@ class LossOrderList extends Component
 
         if ($this->editingId) {
             $item = LossOrder::findOrFail($this->editingId);
-            if ($item->status !== LossOrder::STATUS_PENDING) {
+            if (! $item->canEdit()) {
                 $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
                 $this->showModal = false;
                 $this->resetForm();
@@ -109,7 +111,7 @@ class LossOrderList extends Component
     public function delete(): void
     {
         $item = LossOrder::findOrFail($this->deletingId);
-        if ($item->status !== LossOrder::STATUS_PENDING) {
+        if (! $item->canEdit()) {
             $this->toastError('当前状态不可删除，仅待审核状态的损耗单可删除');
             $this->showDeleteConfirm = false;
             $this->deletingId = null;
