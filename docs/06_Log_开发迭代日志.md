@@ -1399,3 +1399,23 @@
 | 分支 | feature/discrepancy-loss |
 | 提交 | 见本次提交 |
 | 验证 | 测试 27 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint / view:cache 通过 |
+
+---
+
+## V2.0.8 — 供应商结算交互修复 + 演示数据对齐
+
+> 开发者：Kimi。用户实测反馈修复。
+
+### 变更概述
+
+1. **修复弹窗关闭失效**：详情/付款弹窗使用 `wire:click="showXxx = false"` 赋值语法（Livewire 不执行），5 处全部改为 `closeDetailModal()` / `closePaymentModal()` 方法调用。
+2. **结算单号链接化**：与其他列表页一致——蓝色字体 hover 下划线，点击单号打开详情弹窗；移除操作列的眼睛预览图标。
+3. **演示数据对齐周期结算**：PO-20260725-00001 补 stocked_at/completed_at 与土豆明细 discrepancy_quantity=200；新增 PO-20260726-00003（丰润肉业·无差异 160000）与 PO-20260727-00004（丰润肉业·鲜虾短缺 200 有差异，订 120000 实收 100000），两单已入库；SS-20260728-00002 补两条结算明细，汇总 260000 − 服务费 3000 = 应付 257000，与结算单头一致。
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | feature/discrepancy-loss |
+| 提交 | 见本次提交 |
+| 验证 | 测试 27 通过 / 1 失败（既有问题）；Pint / view:cache 通过；migrate:fresh + DemoDataSeeder 重跑验证数据一致 |

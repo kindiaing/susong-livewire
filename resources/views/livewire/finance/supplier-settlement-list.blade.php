@@ -66,7 +66,9 @@
                  style="grid-template-columns: {{ $gridCols }}"
                  wire:key="supplier-settlement-{{ $item->id }}">
                 <div><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm font-mono font-medium text-foreground truncate">{{ $item->settlement_no }}</div>
+                <div>
+                    <button type="button" wire:click="openDetailModal({{ $item->id }})" class="text-sm font-mono font-medium text-blue-600 hover:underline">{{ $item->settlement_no }}</button>
+                </div>
                 @foreach($visibleCols as $col)
                     @switch($col['key'])
                         @case('id')
@@ -107,7 +109,6 @@
                     @endswitch
                 @endforeach
                 <div class="flex items-center gap-2">
-                    <button type="button" wire:click="openDetailModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="详情"><x-ui.icon name="eye" class="w-3.5 h-3.5" /></button>
                     @can('finance.supplier-settlement.create')
                     @if($item->status === 1 || $item->status === 2)
                     <button type="button" wire:click="openPartialPayment({{ $item->id }})" class="text-green-600 hover:text-green-700 text-sm">付款</button>
@@ -186,7 +187,7 @@
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-foreground">确认付款</h2>
-                <button type="button" wire:click="showPaymentModal = false" class="text-muted-foreground hover:text-foreground transition-colors">
+                <button type="button" wire:click="closePaymentModal" class="text-muted-foreground hover:text-foreground transition-colors">
                     <x-ui.icon name="x-mark" class="w-5 h-5" />
                 </button>
             </div>
@@ -202,7 +203,7 @@
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">
-                <button type="button" wire:click="showPaymentModal = false" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="closePaymentModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
                 <button type="button" wire:click="submitPartialPayment" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">确认付款</button>
             </div>
         </div>
@@ -212,11 +213,11 @@
     {{-- 详情弹窗 --}}
     @if($showDetailModal && $detailItem)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" aria-hidden="true" wire:click="showDetailModal = false"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true" wire:click="closeDetailModal"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-foreground">结算详情</h2>
-                <button type="button" wire:click="showDetailModal = false" class="text-muted-foreground hover:text-foreground transition-colors">
+                <button type="button" wire:click="closeDetailModal" class="text-muted-foreground hover:text-foreground transition-colors">
                     <x-ui.icon name="x-mark" class="w-5 h-5" />
                 </button>
             </div>
@@ -258,7 +259,7 @@
                 @endif
             </div>
             <div class="flex justify-end gap-3 mt-6">
-                <button type="button" wire:click="showDetailModal = false" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">关闭</button>
+                <button type="button" wire:click="closeDetailModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">关闭</button>
             </div>
         </div>
     </div>

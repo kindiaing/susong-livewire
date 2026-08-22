@@ -237,6 +237,20 @@ class SupplierSettlementList extends Component
         $this->showDetailModal = true;
     }
 
+    public function closeDetailModal(): void
+    {
+        $this->showDetailModal = false;
+        $this->detailId = null;
+    }
+
+    public function closePaymentModal(): void
+    {
+        $this->showPaymentModal = false;
+        $this->paymentSettlementId = 0;
+        $this->paymentAmount = '';
+        $this->paymentRemark = '';
+    }
+
     public function delete(): void
     {
         $item = SupplierSettlement::findOrFail($this->deletingId);

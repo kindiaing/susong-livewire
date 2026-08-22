@@ -26,7 +26,7 @@ class PurchaseDemoSeeder extends Seeder
         $supplierMeat = DB::table('suppliers')->where('name', '丰润肉业有限公司')->first();
         $unitXiang = DB::table('units')->where('name', '箱')->value('id');
 
-        // 采购单1：绿野蔬菜 - 已完成
+        // 采购单1：绿野蔬菜 - 已完成（有入库差异：土豆短缺 200）
         $po1Id = null;
         if ($supplierGreen && ! DB::table('purchase_orders')->where('order_no', 'PO-20260725-00001')->exists()) {
             $po1Id = DB::table('purchase_orders')->insertGetId([
@@ -36,6 +36,8 @@ class PurchaseDemoSeeder extends Seeder
                 'total_amount' => 450000,
                 'actual_amount' => 440000,
                 'remark' => '日常蔬菜采购',
+                'stocked_at' => '2026-07-25 10:00:00',
+                'completed_at' => '2026-07-26 09:00:00',
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);
@@ -46,21 +48,27 @@ class PurchaseDemoSeeder extends Seeder
 
             if ($product1) {
                 $sku1 = DB::table('skus')->where('product_id', $product1->id)->first();
-                if ($sku1) DB::table('purchase_order_items')->insert([
-                    'purchase_order_id' => $po1Id, 'sku_id' => $sku1->id, 'quantity' => 50000, 'unit_id' => $unitXiang, 'unit_quantity' => 1000, 'price' => 8000, 'actual_quantity' => 50000, 'actual_price' => 8000, 'amount' => 400000, 'actual_amount' => 400000, 'strategy_price' => 0, 'strategy_amount' => 0, 'created_at' => $now, 'updated_at' => $now,
-                ]);
+                if ($sku1) {
+                    DB::table('purchase_order_items')->insert([
+                        'purchase_order_id' => $po1Id, 'sku_id' => $sku1->id, 'quantity' => 50000, 'unit_id' => $unitXiang, 'unit_quantity' => 1000, 'price' => 8000, 'actual_quantity' => 50000, 'actual_price' => 8000, 'amount' => 400000, 'actual_amount' => 400000, 'strategy_price' => 0, 'strategy_amount' => 0, 'created_at' => $now, 'updated_at' => $now,
+                    ]);
+                }
             }
             if ($product2) {
                 $sku2 = DB::table('skus')->where('product_id', $product2->id)->first();
-                if ($sku2) DB::table('purchase_order_items')->insert([
-                    'purchase_order_id' => $po1Id, 'sku_id' => $sku2->id, 'quantity' => 3000, 'unit_id' => $unitXiang, 'unit_quantity' => 60, 'price' => 12000, 'actual_quantity' => 2800, 'actual_price' => 12000, 'amount' => 36000, 'actual_amount' => 33600, 'strategy_price' => 0, 'strategy_amount' => 0, 'discrepancy_reason' => '运输损耗5%', 'created_at' => $now, 'updated_at' => $now,
-                ]);
+                if ($sku2) {
+                    DB::table('purchase_order_items')->insert([
+                        'purchase_order_id' => $po1Id, 'sku_id' => $sku2->id, 'quantity' => 3000, 'unit_id' => $unitXiang, 'unit_quantity' => 60, 'price' => 12000, 'actual_quantity' => 2800, 'actual_price' => 12000, 'amount' => 36000, 'actual_amount' => 33600, 'strategy_price' => 0, 'strategy_amount' => 0, 'discrepancy_quantity' => 200, 'discrepancy_reason' => '运输损耗5%', 'created_at' => $now, 'updated_at' => $now,
+                    ]);
+                }
             }
             if ($product3) {
                 $sku3 = DB::table('skus')->where('product_id', $product3->id)->first();
-                if ($sku3) DB::table('purchase_order_items')->insert([
-                    'purchase_order_id' => $po1Id, 'sku_id' => $sku3->id, 'quantity' => 2000, 'unit_id' => $unitXiang, 'unit_quantity' => 40, 'price' => 25000, 'actual_quantity' => 2000, 'actual_price' => 25000, 'amount' => 50000, 'actual_amount' => 50000, 'strategy_price' => 0, 'strategy_amount' => 0, 'created_at' => $now, 'updated_at' => $now,
-                ]);
+                if ($sku3) {
+                    DB::table('purchase_order_items')->insert([
+                        'purchase_order_id' => $po1Id, 'sku_id' => $sku3->id, 'quantity' => 2000, 'unit_id' => $unitXiang, 'unit_quantity' => 40, 'price' => 25000, 'actual_quantity' => 2000, 'actual_price' => 25000, 'amount' => 50000, 'actual_amount' => 50000, 'strategy_price' => 0, 'strategy_amount' => 0, 'created_at' => $now, 'updated_at' => $now,
+                    ]);
+                }
             }
         }
 
@@ -80,9 +88,60 @@ class PurchaseDemoSeeder extends Seeder
             $product4 = DB::table('products')->where('name', '五花肉')->first();
             if ($product4) {
                 $sku4 = DB::table('skus')->where('product_id', $product4->id)->first();
-                if ($sku4) DB::table('purchase_order_items')->insert([
-                    'purchase_order_id' => $po2Id, 'sku_id' => $sku4->id, 'quantity' => 2000, 'unit_id' => $unitXiang, 'unit_quantity' => 40, 'price' => 130000, 'actual_quantity' => 0, 'actual_price' => 0, 'amount' => 260000, 'actual_amount' => 0, 'strategy_price' => 0, 'strategy_amount' => 0, 'created_at' => $now, 'updated_at' => $now,
-                ]);
+                if ($sku4) {
+                    DB::table('purchase_order_items')->insert([
+                        'purchase_order_id' => $po2Id, 'sku_id' => $sku4->id, 'quantity' => 2000, 'unit_id' => $unitXiang, 'unit_quantity' => 40, 'price' => 130000, 'actual_quantity' => 0, 'actual_price' => 0, 'amount' => 260000, 'actual_amount' => 0, 'strategy_price' => 0, 'strategy_amount' => 0, 'created_at' => $now, 'updated_at' => $now,
+                    ]);
+                }
+            }
+        }
+        // 采购单3：丰润肉业 - 已入库（无差异），对应结算单 SS-20260728-00002 明细
+        if ($supplierMeat && ! DB::table('purchase_orders')->where('order_no', 'PO-20260726-00003')->exists()) {
+            $po3Id = DB::table('purchase_orders')->insertGetId([
+                'order_no' => 'PO-20260726-00003',
+                'supplier_id' => $supplierMeat->id,
+                'status' => 4,
+                'total_amount' => 160000,
+                'actual_amount' => 160000,
+                'remark' => '肉类采购（无差异样例）',
+                'stocked_at' => '2026-07-26 14:00:00',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+
+            $product4 = DB::table('products')->where('name', '五花肉')->first();
+            if ($product4) {
+                $sku4 = DB::table('skus')->where('product_id', $product4->id)->first();
+                if ($sku4) {
+                    DB::table('purchase_order_items')->insert([
+                        'purchase_order_id' => $po3Id, 'sku_id' => $sku4->id, 'quantity' => 1600, 'unit_id' => $unitXiang, 'unit_quantity' => 32, 'price' => 10000, 'actual_quantity' => 1600, 'actual_price' => 10000, 'amount' => 160000, 'actual_amount' => 160000, 'strategy_price' => 0, 'strategy_amount' => 0, 'created_at' => $now, 'updated_at' => $now,
+                    ]);
+                }
+            }
+        }
+
+        // 采购单4：丰润肉业 - 已入库（有入库差异：鲜虾短缺 200），对应结算单 SS-20260728-00002 明细
+        if ($supplierMeat && ! DB::table('purchase_orders')->where('order_no', 'PO-20260727-00004')->exists()) {
+            $po4Id = DB::table('purchase_orders')->insertGetId([
+                'order_no' => 'PO-20260727-00004',
+                'supplier_id' => $supplierMeat->id,
+                'status' => 4,
+                'total_amount' => 120000,
+                'actual_amount' => 100000,
+                'remark' => '水产采购（有差异样例）',
+                'stocked_at' => '2026-07-27 09:30:00',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+
+            $product5 = DB::table('products')->where('name', '鲜虾')->first();
+            if ($product5) {
+                $sku5 = DB::table('skus')->where('product_id', $product5->id)->first();
+                if ($sku5) {
+                    DB::table('purchase_order_items')->insert([
+                        'purchase_order_id' => $po4Id, 'sku_id' => $sku5->id, 'quantity' => 1200, 'unit_id' => $unitXiang, 'unit_quantity' => 24, 'price' => 10000, 'actual_quantity' => 1000, 'actual_price' => 10000, 'amount' => 120000, 'actual_amount' => 100000, 'strategy_price' => 0, 'strategy_amount' => 0, 'discrepancy_quantity' => 200, 'discrepancy_reason' => '部分化冻变质，实收短缺', 'created_at' => $now, 'updated_at' => $now,
+                    ]);
+                }
             }
         }
     }
@@ -91,9 +150,13 @@ class PurchaseDemoSeeder extends Seeder
     {
         $now = now();
         $product = DB::table('products')->where('name', '鲜虾')->first();
-        if (! $product) return;
+        if (! $product) {
+            return;
+        }
         $sku = DB::table('skus')->where('product_id', $product->id)->first();
-        if (! $sku) return;
+        if (! $sku) {
+            return;
+        }
         $unitXiang = DB::table('units')->where('name', '箱')->value('id');
 
         if (! DB::table('purchase_items')->where('sku_id', $sku->id)->exists()) {
