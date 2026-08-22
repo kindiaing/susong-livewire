@@ -290,13 +290,16 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-foreground mb-1">出库仓库 <span class="text-red-500">*</span></label>
-                        <select wire:model="formWarehouseId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" {{ $formReturnType === 2 && ! $editingId ? 'disabled' : '' }}>
+                        <select wire:model="formWarehouseId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
                             <option value="0">请选择</option>
                             @foreach($warehouses as $w)
                                 <option value="{{ $w->id }}">{{ $w->name }}</option>
                             @endforeach
                         </select>
                         @error('formWarehouseId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        @if($formReturnType === 2 && ! $editingId)
+                        <p class="text-xs text-muted-foreground mt-1">默认取采购单入库仓库，可改仓退货</p>
+                        @endif
                     </div>
                 </div>
 
@@ -307,7 +310,7 @@
                 @endif
 
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">退货原因 <span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-foreground mb-1">退货原因</label>
                     <input type="text" wire:model="formReason" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="请输入退货原因" />
                     @error('formReason') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>

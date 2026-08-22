@@ -96,7 +96,7 @@ class PurchaseReturnList extends Component
             $validated = $this->validate([
                 'formSupplierId' => 'required|integer|min:1|exists:suppliers,id',
                 'formWarehouseId' => 'required|integer|min:1|exists:warehouses,id',
-                'formReason' => 'required|string|max:255',
+                'formReason' => 'nullable|string|max:255',
                 'formRemark' => 'nullable|string|max:500',
             ]);
 
@@ -123,7 +123,7 @@ class PurchaseReturnList extends Component
 
         // 创建模式：只存单头，保存后跳转详情页整理明细
         $this->validate([
-            'formReason' => 'required|string|max:255',
+            'formReason' => 'nullable|string|max:255',
             'formRemark' => 'nullable|string|max:500',
         ]);
 
@@ -133,10 +133,11 @@ class PurchaseReturnList extends Component
             if ($this->formReturnType === PurchaseReturn::TYPE_LINKED) {
                 $this->validate([
                     'formPurchaseOrderId' => 'required|integer|min:1|exists:purchase_orders,id',
+                    'formWarehouseId' => 'required|integer|min:1|exists:warehouses,id',
                 ]);
 
                 $order = PurchaseOrder::findOrFail($this->formPurchaseOrderId);
-                $return = $service->createLinked($order, [], $this->formReason);
+                $return = $service->createLinked($order, [], $this->formReason, $this->formWarehouseId);
             } else {
                 $this->validate([
                     'formSupplierId' => 'required|integer|min:1|exists:suppliers,id',

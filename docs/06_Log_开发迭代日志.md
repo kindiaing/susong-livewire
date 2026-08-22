@@ -1534,3 +1534,22 @@
 | 分支 | feature/discrepancy-loss |
 | 提交 | 见本次提交 |
 | 验证 | 售后退货测试 7 通过；全量测试、Pint、view:cache 见提交时状态；migrate:fresh + DemoDataSeeder 重跑验证 |
+
+---
+
+## V2.0.12 — 退货表单 bugfix：原因非必填 + 关联退货改仓
+
+> 开发者：Kimi。用户实测反馈修复。
+
+### 变更概述
+
+1. **退货原因非必填**：采购退货（创建/编辑）与售后退货（创建）表单校验由 required 改 nullable，弹窗去除必填星标。
+2. **关联退货出库仓库开放手选**：原禁用状态导致无法改仓——现默认带出采购单入库仓库、允许改仓退货；createLinked() 新增 warehouseId 参数；出库扣库存统一以退货单头 warehouse_id 为准（原来关联退货取采购单仓库，会忽略单头改动）。
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | feature/discrepancy-loss |
+| 提交 | 见本次提交 |
+| 验证 | 全量 44 通过 / 1 失败（既有问题）；Pint / view:cache 通过 |

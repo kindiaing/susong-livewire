@@ -165,7 +165,7 @@ class OrderReturnList extends Component
         // 创建模式：只存单头（商家自动取自订单），保存后跳转详情页整理明细
         $validated = $this->validate([
             'formOrderId' => 'required|integer|min:1|exists:orders,id',
-            'formReason' => 'required|string|max:255',
+            'formReason' => 'nullable|string|max:255',
             'formRemark' => 'nullable|string|max:500',
         ]);
 

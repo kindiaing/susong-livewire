@@ -276,7 +276,7 @@
                 </div>
                 @endif
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">退货原因 {{ !$editingId ? '<span class="text-red-500">*</span>' : '' }}</label>
+                    <label class="block text-sm font-medium text-foreground mb-1">退货原因</label>
                     <input type="text" wire:model="formReason" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="请输入退货原因" />
                     @error('formReason') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>

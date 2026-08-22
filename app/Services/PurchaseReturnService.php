@@ -27,12 +27,13 @@ class PurchaseReturnService
      * 创建关联退货单（关联采购单，调取采购单明细）
      *
      * @param  PurchaseOrder  $order  关联采购单
-     * @param  array  $items  退货明细 [{purchase_order_item_id, quantity, reason}]
+     * @param  array  $items  退货明细 [{purchase_order_item_id, quantity, reason}]，可为空（头先行，详情页补录）
      * @param  string  $reason  退货原因
+     * @param  int|null  $warehouseId  出库仓库（空则取采购单入库仓库，支持改仓退货）
      *
      * @throws \Exception
      */
-    public function createLinked(PurchaseOrder $order, array $items, string $reason = ''): PurchaseReturn
+    public function createLinked(PurchaseOrder $order, array $items, string $reason = '', ?int $warehouseId = null): PurchaseReturn
     {
         // 采购单必须已入库才能退货
         if (! in_array($order->status, [PurchaseOrder::STATUS_STOCKED, PurchaseOrder::STATUS_COMPLETED])) {
@@ -45,13 +46,13 @@ class PurchaseReturnService
         }
 
         // 明细可为空：先存单头，再到详情页整理明细；审核时才要求明细非空
-        return DB::transaction(function () use ($order, $items, $reason) {
+        return DB::transaction(function () use ($order, $items, $reason, $warehouseId) {
             $return = PurchaseReturn::create([
                 'return_no' => $this->generateReturnNo(),
                 'return_type' => PurchaseReturn::TYPE_LINKED,
                 'purchase_order_id' => $order->id,
                 'supplier_id' => $order->supplier_id,
-                'warehouse_id' => $order->warehouse_id,
+                'warehouse_id' => $warehouseId ?: $order->warehouse_id,
                 'status' => PurchaseReturn::STATUS_PENDING,
                 'total_amount' => 0,
                 'actual_amount' => 0,
@@ -236,9 +237,8 @@ class PurchaseReturnService
             throw new \Exception('仅已审核状态的退货单可出库');
         }
 
-        $order = $return->purchaseOrder;
-        // 普通退货无关联采购单，出库仓库取退货单头
-        $warehouseId = $order?->warehouse_id ?? $return->warehouse_id;
+        // 出库仓库以退货单头为准（创建时已写入：关联退货默认采购单仓库、可改仓；普通退货必填）
+        $warehouseId = $return->warehouse_id ?: $return->purchaseOrder?->warehouse_id;
 
         return DB::transaction(function () use ($return, $warehouseId, $actualItems) {
             foreach ($return->items as $item) {
