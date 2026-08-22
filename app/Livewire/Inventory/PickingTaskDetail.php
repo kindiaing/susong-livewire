@@ -40,7 +40,9 @@ class PickingTaskDetail extends Component
 
     // 状态操作确认
     public bool $showConfirmModal = false;
+
     public string $confirmAction = '';
+
     public string $confirmTitle = '';
 
     public function mount(int $id): void
@@ -340,6 +342,9 @@ class PickingTaskDetail extends Component
                     $discrepancyService->create([
                         'order_id' => $item->order_id,
                         'order_item_id' => $item->order_item_id,
+                        'picking_task_id' => $this->pickingTaskId,
+                        'sku_id' => $item->sku_id,
+                        'warehouse_id' => $this->pickingTask->warehouse_id,
                         'stage' => Discrepancy::STAGE_PICKING,
                         'type' => $this->inputDiffType,
                         'expected_quantity' => $item->required_quantity,

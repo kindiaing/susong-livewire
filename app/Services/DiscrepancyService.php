@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\AuditLog;
 use App\Models\Discrepancy;
+use App\Models\InventoryLog;
 use App\Models\LossOrder;
 use App\Models\LossOrderItem;
 use App\Models\OrderItem;
@@ -36,7 +37,7 @@ class DiscrepancyService
      *
      * 同一订单明细 + 同一环节存在未完结（待处理/处理中/争议中）差异单时，拒绝重复登记。
      *
-     * @param  array{order_id?: ?int, order_item_id?: ?int, stage: int, type: int, expected_quantity: int, actual_quantity: int, amount_diff?: int, reason?: ?string, remark?: ?string}  $data
+     * @param  array{order_id?: ?int, order_item_id?: ?int, purchase_order_id?: ?int, picking_task_id?: ?int, delivery_task_id?: ?int, delivery_note_item_id?: ?int, sku_id?: ?int, warehouse_id?: ?int, unit_id?: ?int, unit_quantity?: int, stage: int, type: int, expected_quantity: int, actual_quantity: int, amount_diff?: int, reason?: ?string, remark?: ?string}  $data
      */
     public function create(array $data): Discrepancy
     {
@@ -58,17 +59,27 @@ class DiscrepancyService
             $actual = (int) $data['actual_quantity'];
             $quantityDiff = $expected - $actual;
 
+            // 订单明细只查一次：金额估算与 sku_id 回填共用
+            $orderItem = $orderItemId ? OrderItem::find($orderItemId) : null;
+
             // 金额差异未显式传入时，按订单明细单价自动估算（厘）
             $amountDiff = $data['amount_diff'] ?? null;
-            if ($amountDiff === null && $orderItemId) {
-                $orderItem = OrderItem::find($orderItemId);
-                $amountDiff = $quantityDiff * (int) ($orderItem?->price ?? 0);
+            if ($amountDiff === null && $orderItem) {
+                $amountDiff = $quantityDiff * (int) ($orderItem->price ?? 0);
             }
 
             $discrepancy = Discrepancy::create([
                 'discrepancy_no' => generate_sequence_no('DIS', 'discrepancies', 'discrepancy_no'),
                 'order_id' => $data['order_id'] ?? null,
                 'order_item_id' => $orderItemId,
+                'purchase_order_id' => $data['purchase_order_id'] ?? null,
+                'picking_task_id' => $data['picking_task_id'] ?? null,
+                'delivery_task_id' => $data['delivery_task_id'] ?? null,
+                'delivery_note_item_id' => $data['delivery_note_item_id'] ?? null,
+                'sku_id' => $data['sku_id'] ?? $orderItem?->sku_id ?? null,
+                'warehouse_id' => $data['warehouse_id'] ?? null,
+                'unit_id' => $data['unit_id'] ?? null,
+                'unit_quantity' => (int) ($data['unit_quantity'] ?? 1),
                 'stage' => $stage,
                 'type' => (int) $data['type'],
                 'expected_quantity' => $expected,
@@ -175,6 +186,7 @@ class DiscrepancyService
                 sourceType: 'discrepancy',
                 sourceId: $discrepancy->id,
                 reason: "差异单 {$discrepancy->discrepancy_no} 拒收回库",
+                type: InventoryLog::TYPE_REJECT_RETURN,
             );
 
             $before = ['status' => $discrepancy->status, 'status_label' => $discrepancy->status_label];
@@ -226,6 +238,7 @@ class DiscrepancyService
                 'quantity' => $discrepancy->quantity_diff,
                 'cost_price' => $costPrice,
                 'responsible_party' => $lossParty,
+                'discrepancy_id' => $discrepancy->id,
                 'reason' => "差异单 {$discrepancy->discrepancy_no} 报损".($discrepancy->reason ? "：{$discrepancy->reason}" : ''),
             ]],
             reason: "差异单 {$discrepancy->discrepancy_no} 决策报损自动生成",
@@ -235,11 +248,11 @@ class DiscrepancyService
     }
 
     /**
-     * 从订单明细解析 SKU ID
+     * 解析 SKU ID：优先差异单自包含的 sku_id，其次从订单明细间接获取
      */
     private function resolveSkuId(Discrepancy $discrepancy): ?int
     {
-        return $discrepancy->orderItem?->sku_id;
+        return $discrepancy->sku_id ?? $discrepancy->orderItem?->sku_id;
     }
 
     /**

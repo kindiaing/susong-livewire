@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithToast;
 use App\Models\DeliveryNote;
 use App\Models\DeliveryNoteItem;
 use App\Models\Discrepancy;
+use App\Models\OrderItem;
 use App\Services\DiscrepancyService;
 use Livewire\Component;
 
@@ -152,10 +153,17 @@ class DeliveryNoteDetail extends Component
             return;
         }
 
+        // 反查订单明细：送货单明细有 order_id + sku_id，回填 order_item_id 以便金额估算与溯源
+        $orderItem = $item->order_id
+            ? OrderItem::where('order_id', $item->order_id)->where('sku_id', $item->sku_id)->latest('id')->first()
+            : null;
+
         try {
             app(DiscrepancyService::class)->create([
                 'order_id' => $item->order_id,
-                'order_item_id' => null,
+                'order_item_id' => $orderItem?->id,
+                'delivery_note_item_id' => $item->id,
+                'sku_id' => $item->sku_id,
                 'stage' => Discrepancy::STAGE_RECEIVING,
                 'type' => $this->diffType,
                 'expected_quantity' => $this->diffExpectedQty,

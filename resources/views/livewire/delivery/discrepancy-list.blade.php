@@ -162,7 +162,7 @@
                 </div>
                 <div class="flex justify-between">
                     <span class="text-muted-foreground">SKU</span>
-                    <span class="text-foreground">{{ $processing->orderItem?->sku?->sku_name ?? '-' }}</span>
+                    <span class="text-foreground">{{ $processing->sku?->sku_name ?? $processing->orderItem?->sku?->sku_name ?? '-' }}</span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-muted-foreground">关联订单</span>

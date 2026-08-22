@@ -1234,3 +1234,51 @@
 | 分支 | bugfix |
 | 提交 | 见本次提交 |
 | 验证 | 测试 15 通过 / 1 失败（UnitConversionServiceTest 三级换算断言为既有问题，与本次无关）；Pint 通过；view:cache 通过 |
+
+---
+
+## V2.0.4 — 差异功能一期加固：单据溯源字段 + 库存日志语义化 + 损耗执行扣库存修复
+
+> 开发者：Kimi（差异/库存链路）。同期另一工具完成单据状态锁定改造（见 `f6e5160` / `ca2bf51`）。
+> 决策依据：`docs/research/11_差异损耗留痕与账务持平设计.md` 第 11 章（决策 1 方案 A 全量字段 / 决策 3 损耗明细溯源 / 决策 4 方案 B 日志类型细分由调用方显式传入）。
+
+### 变更概述
+
+1. **修复严重 Bug**：损耗单列表页「执行」直接改状态不扣库存，改为调用 `LossOrderService::execute()` 走库存扣减。
+2. **差异单自包含上下文**：`discrepancies` 表新增 8 个关联字段，各环节登记时回填，处理/对账不再依赖间接关联。
+3. **损耗明细可溯源差异单**：`loss_order_items.discrepancy_id`，差异报损自动写入。
+4. **库存日志语义化**：新增类型 7 报损出库 / 8 拒收回库 / 9 售后退库（预留），`stockIn/stockOut` 支持显式传类型，损耗执行与拒收回库已适配。
+
+### 变更明细
+
+| 操作 | 文件 | 说明 |
+| :--- | :--- | :--- |
+| 修复 | Loss/LossOrderList::execute | 改走 `LossOrderService::execute()`，执行时真实扣减库存（事务内） |
+| 调整 | 000011_create_discrepancy_tables | 新增 purchase_order_id / picking_task_id / delivery_task_id / delivery_note_item_id / sku_id / warehouse_id / unit_id / unit_quantity + 4 个索引 |
+| 调整 | 000008_create_loss_tables | loss_order_items 新增 discrepancy_id + 索引 |
+| 完善 | Models/Discrepancy | 新字段 fillable/casts + sku() 关联 |
+| 完善 | Models/LossOrderItem | discrepancy_id fillable/casts |
+| 完善 | Models/InventoryLog | 新增 TYPE_LOSS_REPORT=7 / TYPE_REJECT_RETURN=8 / TYPE_AFTER_SALES_RETURN=9 + 类型映射 |
+| 完善 | Services/InventoryService | stockIn/stockOut 新增 `?int $type` 参数（默认 TYPE_IN/TYPE_OUT，向后兼容） |
+| 完善 | Services/LossOrderService | execute 传 TYPE_LOSS_REPORT；create 写入明细 discrepancy_id |
+| 完善 | Services/DiscrepancyService | create 接收并回填 8 个关联字段；resolveSkuId 优先直读 sku_id；createLossOrder 传 discrepancy_id；restockToWarehouse 传 TYPE_REJECT_RETURN |
+| 完善 | Inventory/PickingTaskDetail | 拣货差异登记回填 picking_task_id / sku_id / warehouse_id |
+| 完善 | Delivery/DeliveryNoteDetail | 实收差异登记按订单+SKU 反查回填 order_item_id，回填 delivery_note_item_id / sku_id |
+| 完善 | Delivery/DiscrepancyList | 处理弹窗 SKU 优先直读差异单 sku 关联 |
+| 测试 | tests/Feature/DiscrepancyServiceTest | 补关联字段回填、损耗明细 discrepancy_id、日志类型 7/8 断言；新增全链路用例（差异→报损→审核→执行→库存扣减） |
+
+### 决策记录
+
+| 决策 | 选择 | 说明 |
+| :--- | :--- | :--- |
+| 差异单关联字段 | 全量 8 字段 | 差异单自包含，对账效率最高 |
+| 日志类型传入方式 | 调用方显式传 | 控制精确，默认参数保持向后兼容 |
+| 回库审核闸门 | 不加（现状） | 处理台回库操作人即仓管确认，仅审计留痕；二期可加开关 |
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | bugfix（差异损耗工作分支，待用户确认后合并 main） |
+| 提交 | 见本次提交 |
+| 验证 | 测试 16 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint 通过；view:cache 通过；开发库需 migrate:fresh --seed 生效新字段 |

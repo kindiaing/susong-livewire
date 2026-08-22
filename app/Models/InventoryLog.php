@@ -27,11 +27,22 @@ class InventoryLog extends Model
 
     // 变动类型常量
     public const TYPE_IN = 1;
+
     public const TYPE_OUT = 2;
+
     public const TYPE_TRANSFER = 3;
+
     public const TYPE_LOSS = 4;
+
     public const TYPE_OVER = 5;
+
     public const TYPE_ADJUST = 6;
+
+    public const TYPE_LOSS_REPORT = 7;
+
+    public const TYPE_REJECT_RETURN = 8;
+
+    public const TYPE_AFTER_SALES_RETURN = 9;
 
     protected $fillable = [
         'warehouse_id',
@@ -72,6 +83,9 @@ class InventoryLog extends Model
             self::TYPE_LOSS => '报损',
             self::TYPE_OVER => '报溢',
             self::TYPE_ADJUST => '调整',
+            self::TYPE_LOSS_REPORT => '报损出库',
+            self::TYPE_REJECT_RETURN => '拒收回库',
+            self::TYPE_AFTER_SALES_RETURN => '售后退库',
         ];
     }
 

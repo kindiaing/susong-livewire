@@ -2,6 +2,7 @@
 
 use App\Models\Discrepancy;
 use App\Models\Inventory;
+use App\Models\InventoryLog;
 use App\Models\LossOrder;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -33,6 +34,7 @@ it('creates a discrepancy with auto computed diffs', function () {
     $discrepancy = app(DiscrepancyService::class)->create([
         'order_id' => $order->id,
         'order_item_id' => $orderItem->id,
+        'picking_task_id' => 99,
         'stage' => Discrepancy::STAGE_PICKING,
         'type' => Discrepancy::TYPE_SHORT,
         'expected_quantity' => 10,
@@ -43,7 +45,9 @@ it('creates a discrepancy with auto computed diffs', function () {
     expect($discrepancy->discrepancy_no)->toStartWith('DIS-')
         ->and($discrepancy->quantity_diff)->toBe(3)
         ->and($discrepancy->amount_diff)->toBe(300)
-        ->and($discrepancy->status)->toBe(Discrepancy::STATUS_PENDING);
+        ->and($discrepancy->status)->toBe(Discrepancy::STATUS_PENDING)
+        ->and($discrepancy->sku_id)->toBe($orderItem->sku_id)
+        ->and($discrepancy->picking_task_id)->toBe(99);
 });
 
 it('rejects duplicate open discrepancy for same item and stage', function () {
@@ -88,7 +92,8 @@ it('creates a pending loss order when decision is loss', function () {
         ->and($lossOrder)->not->toBeNull()
         ->and($lossOrder->status)->toBe(LossOrder::STATUS_PENDING)
         ->and($lossOrder->items)->toHaveCount(1)
-        ->and($lossOrder->items->first()->quantity)->toBe(2);
+        ->and($lossOrder->items->first()->quantity)->toBe(2)
+        ->and($lossOrder->items->first()->discrepancy_id)->toBe($discrepancy->id);
 });
 
 it('deducts inventory through the full loss chain: discrepancy → loss order → approve → execute', function () {
@@ -129,8 +134,12 @@ it('deducts inventory through the full loss chain: discrepancy → loss order �
 
     $inventory = Inventory::where('warehouse_id', $warehouse->id)->where('sku_id', $sku->id)->first();
 
+    $lossLog = InventoryLog::where('source_type', 'loss_order')->where('source_id', $lossOrder->id)->first();
+
     expect($lossOrder->fresh()->status)->toBe(LossOrder::STATUS_EXECUTED)
-        ->and($inventory->total_stock)->toBe(8);
+        ->and($inventory->total_stock)->toBe(8)
+        ->and($lossLog)->not->toBeNull()
+        ->and($lossLog->type)->toBe(InventoryLog::TYPE_LOSS_REPORT);
 });
 
 it('closes discrepancy directly when decision is ignore', function () {
@@ -170,9 +179,13 @@ it('restocks rejected goods back to warehouse inventory', function () {
 
     $inventory = Inventory::where('warehouse_id', $warehouse->id)->where('sku_id', $sku->id)->first();
 
+    $restockLog = InventoryLog::where('source_type', 'discrepancy')->where('source_id', $discrepancy->id)->first();
+
     expect($processed->status)->toBe(Discrepancy::STATUS_RESOLVED)
         ->and($inventory)->not->toBeNull()
-        ->and($inventory->total_stock)->toBe(4);
+        ->and($inventory->total_stock)->toBe(4)
+        ->and($restockLog)->not->toBeNull()
+        ->and($restockLog->type)->toBe(InventoryLog::TYPE_REJECT_RETURN);
 });
 
 it('refuses to process an already resolved discrepancy', function () {

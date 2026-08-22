@@ -34,44 +34,70 @@ class Discrepancy extends Model
 
     // 差异环节常量
     public const STAGE_PICKING = 1;
+
     public const STAGE_DELIVERY = 2;
+
     public const STAGE_RECEIVING = 3;
 
     // 差异类型常量
     public const TYPE_SHORT = 1;
+
     public const TYPE_REJECT = 2;
+
     public const TYPE_DEFECT = 3;
+
     public const TYPE_OTHER = 4;
 
     // 责任方常量
     public const PARTY_SUPPLIER = 1;
+
     public const PARTY_PLATFORM = 2;
+
     public const PARTY_DRIVER = 3;
+
     public const PARTY_MERCHANT = 4;
 
     // 处理决策常量
     public const DECISION_RESTOCK = 1;
+
     public const DECISION_REFUND = 2;
+
     public const DECISION_DEDUCT = 3;
+
     public const DECISION_LOSS = 4;
+
     public const DECISION_IGNORE = 5;
 
     // 状态常量
     public const STATUS_PENDING = 1;
+
     public const STATUS_PROCESSING = 2;
+
     public const STATUS_RESOLVED = 3;
+
     public const STATUS_CLOSED = 4;
+
     public const STATUS_DISPUTED = 5;
 
     // 审核状态常量
     public const APPROVAL_PENDING = 1;
+
     public const APPROVAL_APPROVED = 2;
+
     public const APPROVAL_REJECTED = 3;
 
     protected $fillable = [
         'discrepancy_no',
         'order_id',
         'order_item_id',
+        'purchase_order_id',
+        'picking_task_id',
+        'delivery_task_id',
+        'delivery_note_item_id',
+        'sku_id',
+        'warehouse_id',
+        'unit_id',
+        'unit_quantity',
         'stage',
         'type',
         'expected_quantity',
@@ -95,6 +121,14 @@ class Discrepancy extends Model
         return [
             'order_id' => 'integer',
             'order_item_id' => 'integer',
+            'purchase_order_id' => 'integer',
+            'picking_task_id' => 'integer',
+            'delivery_task_id' => 'integer',
+            'delivery_note_item_id' => 'integer',
+            'sku_id' => 'integer',
+            'warehouse_id' => 'integer',
+            'unit_id' => 'integer',
+            'unit_quantity' => 'integer',
             'stage' => 'integer',
             'type' => 'integer',
             'expected_quantity' => 'integer',
@@ -197,6 +231,14 @@ class Discrepancy extends Model
     public function orderItem()
     {
         return $this->belongsTo(OrderItem::class);
+    }
+
+    /**
+     * 关联 SKU
+     */
+    public function sku()
+    {
+        return $this->belongsTo(Sku::class);
     }
 
     /**

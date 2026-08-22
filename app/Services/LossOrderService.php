@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\InventoryLog;
 use App\Models\LossOrder;
 use App\Models\LossOrderItem;
 use App\Models\PurchaseOrder;
@@ -92,7 +93,7 @@ class LossOrderService
      *
      * @param  int  $warehouseId  仓库ID
      * @param  int  $lossType  损耗类型
-     * @param  array  $items  [{sku_id, quantity, cost_price, responsible_party, supplier_id, reason}]
+     * @param  array  $items  [{sku_id, quantity, cost_price, responsible_party, supplier_id, discrepancy_id, reason}]
      * @param  string  $reason  原因
      * @param  string  $sourceType  来源类型（manual/discrepancy 等）
      * @param  int|null  $sourceId  来源单据ID
@@ -129,6 +130,7 @@ class LossOrderService
                     'loss_amount' => $lossAmount,
                     'responsible_party' => $item['responsible_party'] ?? LossOrderItem::PARTY_PLATFORM,
                     'supplier_id' => $item['supplier_id'] ?? null,
+                    'discrepancy_id' => $item['discrepancy_id'] ?? null,
                     'reason' => $item['reason'] ?? null,
                 ]);
 
@@ -201,6 +203,7 @@ class LossOrderService
                         sourceType: 'loss_order',
                         sourceId: $lossOrder->id,
                         reason: "损耗单 {$lossOrder->loss_no} 执行扣减",
+                        type: InventoryLog::TYPE_LOSS_REPORT,
                     );
                 }
             }

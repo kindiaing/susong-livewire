@@ -228,7 +228,7 @@ class DiscrepancyList extends Component
 
     public function render()
     {
-        $query = Discrepancy::with(['orderItem.sku'])->orderBy('id', 'desc');
+        $query = Discrepancy::with(['orderItem.sku', 'sku'])->orderBy('id', 'desc');
 
         if ($this->search) {
             $query->where('discrepancy_no', 'like', "%{$this->search}%");

@@ -40,6 +40,7 @@ return new class extends Migration
             $table->unsignedBigInteger('loss_order_id')->comment('损耗单ID');
             $table->unsignedBigInteger('purchase_order_item_id')->nullable()->comment('采购单明细ID（入库差异来源）');
             $table->unsignedBigInteger('purchase_order_id')->nullable()->comment('采购单ID（入库差异来源）');
+            $table->unsignedBigInteger('discrepancy_id')->nullable()->comment('差异单ID（差异报损来源）');
             $table->unsignedBigInteger('sku_id')->comment('SKU ID');
             $table->tinyInteger('loss_type')->unsigned()->default(1)->comment('损耗类型：1存储腐坏，2称重失水，3过期报废，4加工损耗，5盘点差异，6其他');
             $table->bigInteger('quantity')->default(0)->comment('损耗数量');
@@ -56,6 +57,7 @@ return new class extends Migration
             $table->index('supplier_id');
             $table->index('purchase_order_item_id');
             $table->index('purchase_order_id');
+            $table->index('discrepancy_id');
             $table->comment('损耗单明细表');
         });
     }

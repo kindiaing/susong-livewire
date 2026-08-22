@@ -26,12 +26,14 @@ class LossOrderItem extends Model
 {
     // 责任方常量
     public const PARTY_PLATFORM = 1;
+
     public const PARTY_SUPPLIER = 2;
 
     protected $fillable = [
         'loss_order_id',
         'purchase_order_item_id',
         'purchase_order_id',
+        'discrepancy_id',
         'sku_id',
         'loss_type',
         'quantity',
@@ -49,6 +51,7 @@ class LossOrderItem extends Model
             'loss_order_id' => 'integer',
             'purchase_order_item_id' => 'integer',
             'purchase_order_id' => 'integer',
+            'discrepancy_id' => 'integer',
             'sku_id' => 'integer',
             'loss_type' => 'integer',
             'quantity' => 'integer',

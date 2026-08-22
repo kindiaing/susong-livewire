@@ -13,6 +13,14 @@ return new class extends Migration
             $table->string('discrepancy_no', 50)->unique()->comment('差异单号');
             $table->unsignedBigInteger('order_id')->nullable()->comment('关联订单ID');
             $table->unsignedBigInteger('order_item_id')->nullable()->comment('关联订单明细ID');
+            $table->unsignedBigInteger('purchase_order_id')->nullable()->comment('关联采购单ID（入库环节）');
+            $table->unsignedBigInteger('picking_task_id')->nullable()->comment('关联拣货任务ID（拣货环节）');
+            $table->unsignedBigInteger('delivery_task_id')->nullable()->comment('关联配送任务ID（配送环节）');
+            $table->unsignedBigInteger('delivery_note_item_id')->nullable()->comment('关联送货单明细ID（实收环节）');
+            $table->unsignedBigInteger('sku_id')->nullable()->comment('差异SKU ID');
+            $table->unsignedBigInteger('warehouse_id')->nullable()->comment('仓库ID');
+            $table->unsignedBigInteger('unit_id')->nullable()->comment('展示单位ID');
+            $table->bigInteger('unit_quantity')->default(1)->comment('单位换算倍率');
             $table->tinyInteger('stage')->unsigned()->comment('差异环节：1拣货，2配送，3实收');
             $table->tinyInteger('type')->unsigned()->default(1)->comment('差异类型：1少收，2拒收，3残次，4其他');
             $table->bigInteger('expected_quantity')->default(0)->comment('预期数量');
@@ -34,6 +42,10 @@ return new class extends Migration
 
             $table->index('order_id');
             $table->index('order_item_id');
+            $table->index('sku_id');
+            $table->index('warehouse_id');
+            $table->index('picking_task_id');
+            $table->index('delivery_task_id');
             $table->index('stage');
             $table->index('status');
             $table->index('approval_status');
