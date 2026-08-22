@@ -35,7 +35,9 @@ class OrderDemoSeeder extends Seeder
 
         foreach ($addresses as $item) {
             $merchant = DB::table('merchants')->where('name', $item['merchant'])->first();
-            if (! $merchant) continue;
+            if (! $merchant) {
+                continue;
+            }
             if (! DB::table('merchant_addresses')->where('merchant_id', $merchant->id)->where('address', $item['address'])->exists()) {
                 DB::table('merchant_addresses')->insert([
                     'merchant_id' => $merchant->id,
@@ -62,14 +64,20 @@ class OrderDemoSeeder extends Seeder
             $cartId = DB::table('carts')->insertGetId(['merchant_id' => $merchant1->id, 'created_at' => $now, 'updated_at' => $now]);
             $sku1 = DB::table('skus')->where('sku_code', 'SKU-0001')->first();
             $sku2 = DB::table('skus')->where('sku_code', 'SKU-0002')->first();
-            if ($sku1) DB::table('cart_items')->insert(['cart_id' => $cartId, 'sku_id' => $sku1->id, 'quantity' => 2000, 'unit_id' => $unitJin, 'unit_quantity' => 2000, 'price' => 9200, 'created_at' => $now, 'updated_at' => $now]);
-            if ($sku2) DB::table('cart_items')->insert(['cart_id' => $cartId, 'sku_id' => $sku2->id, 'quantity' => 1000, 'unit_id' => $unitJin, 'unit_quantity' => 1000, 'price' => 13800, 'created_at' => $now, 'updated_at' => $now]);
+            if ($sku1) {
+                DB::table('cart_items')->insert(['cart_id' => $cartId, 'sku_id' => $sku1->id, 'quantity' => 2000, 'unit_id' => $unitJin, 'unit_quantity' => 2000, 'price' => 9200, 'created_at' => $now, 'updated_at' => $now]);
+            }
+            if ($sku2) {
+                DB::table('cart_items')->insert(['cart_id' => $cartId, 'sku_id' => $sku2->id, 'quantity' => 1000, 'unit_id' => $unitJin, 'unit_quantity' => 1000, 'price' => 13800, 'created_at' => $now, 'updated_at' => $now]);
+            }
         }
 
         if ($merchant2 && ! DB::table('carts')->where('merchant_id', $merchant2->id)->exists()) {
             $cartId = DB::table('carts')->insertGetId(['merchant_id' => $merchant2->id, 'created_at' => $now, 'updated_at' => $now]);
             $sku4 = DB::table('skus')->where('sku_code', 'SKU-0004')->first();
-            if ($sku4) DB::table('cart_items')->insert(['cart_id' => $cartId, 'sku_id' => $sku4->id, 'quantity' => 500, 'unit_id' => $unitJin, 'unit_quantity' => 500, 'price' => 149500, 'created_at' => $now, 'updated_at' => $now]);
+            if ($sku4) {
+                DB::table('cart_items')->insert(['cart_id' => $cartId, 'sku_id' => $sku4->id, 'quantity' => 500, 'unit_id' => $unitJin, 'unit_quantity' => 500, 'price' => 149500, 'created_at' => $now, 'updated_at' => $now]);
+            }
         }
     }
 
@@ -117,8 +125,12 @@ class OrderDemoSeeder extends Seeder
         ];
 
         foreach ($orders as $orderData) {
-            if (! $orderData['merchant']) continue;
-            if (DB::table('orders')->where('order_no', $orderData['order_no'])->exists()) continue;
+            if (! $orderData['merchant']) {
+                continue;
+            }
+            if (DB::table('orders')->where('order_no', $orderData['order_no'])->exists()) {
+                continue;
+            }
 
             $orderId = DB::table('orders')->insertGetId([
                 'order_no' => $orderData['order_no'], 'merchant_id' => $orderData['merchant']->id,
@@ -133,9 +145,13 @@ class OrderDemoSeeder extends Seeder
 
             foreach ($orderData['items'] as $item) {
                 $product = DB::table('products')->where('name', $item['product'])->first();
-                if (! $product) continue;
+                if (! $product) {
+                    continue;
+                }
                 $sku = DB::table('skus')->where('product_id', $product->id)->first();
-                if (! $sku) continue;
+                if (! $sku) {
+                    continue;
+                }
                 $subtotal = $item['quantity'] * $item['price'];
                 $actualSubtotal = $item['actual_quantity'] * $item['actual_price'];
 
@@ -155,7 +171,9 @@ class OrderDemoSeeder extends Seeder
     {
         $now = now();
         $merchant1 = DB::table('merchants')->where('name', '味之初餐饮店')->first();
-        if (! $merchant1) return;
+        if (! $merchant1) {
+            return;
+        }
 
         $frequentlyItems = [
             ['product' => '大白菜', 'buy_count' => 15],
@@ -165,9 +183,13 @@ class OrderDemoSeeder extends Seeder
 
         foreach ($frequentlyItems as $item) {
             $product = DB::table('products')->where('name', $item['product'])->first();
-            if (! $product) continue;
+            if (! $product) {
+                continue;
+            }
             $sku = DB::table('skus')->where('product_id', $product->id)->first();
-            if (! $sku) continue;
+            if (! $sku) {
+                continue;
+            }
 
             if (! DB::table('frequently_bought')->where('merchant_id', $merchant1->id)->where('sku_id', $sku->id)->exists()) {
                 DB::table('frequently_bought')->insert([
@@ -183,7 +205,9 @@ class OrderDemoSeeder extends Seeder
     {
         $now = now();
         $merchant1 = DB::table('merchants')->where('name', '味之初餐饮店')->first();
-        if (! $merchant1) return;
+        if (! $merchant1) {
+            return;
+        }
 
         if (! DB::table('repurchase_templates')->where('merchant_id', $merchant1->id)->where('name', '日常蔬菜采购')->exists()) {
             $templateId = DB::table('repurchase_templates')->insertGetId([
@@ -198,9 +222,13 @@ class OrderDemoSeeder extends Seeder
             ];
             foreach ($items as $item) {
                 $product = DB::table('products')->where('name', $item['product'])->first();
-                if (! $product) continue;
+                if (! $product) {
+                    continue;
+                }
                 $sku = DB::table('skus')->where('product_id', $product->id)->first();
-                if (! $sku) continue;
+                if (! $sku) {
+                    continue;
+                }
 
                 DB::table('repurchase_template_items')->insert([
                     'template_id' => $templateId, 'sku_id' => $sku->id,
@@ -218,7 +246,7 @@ class OrderDemoSeeder extends Seeder
         if ($order1 && ! DB::table('order_returns')->where('return_no', 'RT-20260729-00001')->exists()) {
             $returnId = DB::table('order_returns')->insertGetId([
                 'return_no' => 'RT-20260729-00001', 'order_id' => $order1->id, 'merchant_id' => $order1->merchant_id,
-                'status' => 1, 'total_amount' => 6900, 'refund_amount' => 0,
+                'status' => 1, 'total_amount' => 6900000, 'refund_amount' => 0,
                 'reason' => '土豆质量问题退货', 'operator_id' => DB::table('users')->where('username', 'operator1')->value('id'),
                 'created_at' => $now, 'updated_at' => $now,
             ]);

@@ -70,6 +70,9 @@ return new class extends Migration
             $table->unsignedBigInteger('operator_id')->nullable()->comment('经办人ID');
             $table->unsignedBigInteger('audited_by')->nullable()->comment('审核人ID');
             $table->timestamp('audited_at')->nullable()->comment('审核时间');
+            $table->timestamp('returned_at')->nullable()->comment('退货时间');
+            $table->timestamp('refunded_at')->nullable()->comment('退款时间');
+            $table->timestamp('cancelled_at')->nullable()->comment('作废时间');
             $table->text('remark')->nullable()->comment('备注');
             $table->timestamps();
             $table->softDeletes();

@@ -7,10 +7,10 @@ use App\Livewire\Delivery\DeliveryRouteDetail;
 use App\Livewire\Delivery\DeliveryRouteList;
 use App\Livewire\Delivery\DeliveryTaskDetail;
 use App\Livewire\Delivery\DeliveryTaskList;
-use App\Livewire\Delivery\VehicleIssueList;
 use App\Livewire\Delivery\DiscrepancyList;
 use App\Livewire\Delivery\SignatureList;
 use App\Livewire\Delivery\TemperatureList;
+use App\Livewire\Delivery\VehicleIssueList;
 use App\Livewire\Finance\CorrectionAuthorizationList;
 use App\Livewire\Finance\InvoiceList;
 use App\Livewire\Finance\MerchantAccountList;
@@ -21,32 +21,33 @@ use App\Livewire\Finance\RechargeList;
 use App\Livewire\Finance\SupplierSettlementList;
 use App\Livewire\Inventory\InventoryList;
 use App\Livewire\Inventory\InventoryLogList;
+use App\Livewire\Inventory\PickingTaskDetail;
+use App\Livewire\Inventory\PickingTaskList;
 use App\Livewire\Inventory\WarehouseList;
 use App\Livewire\Loss\LossOrderList;
 use App\Livewire\Merchant\MerchantAddressList;
 use App\Livewire\Merchant\MerchantFavoriteList;
-use App\Livewire\Org\DriverList;
-use App\Livewire\Org\SupplierList;
-use App\Livewire\Org\VehicleList;
 use App\Livewire\Order\CartList;
 use App\Livewire\Order\FrequentlyBoughtList;
 use App\Livewire\Order\OrderDetail;
 use App\Livewire\Order\OrderList;
+use App\Livewire\Order\OrderReturnDetail;
 use App\Livewire\Order\OrderReturnList;
 use App\Livewire\Order\RepurchaseTemplateList;
-use App\Livewire\Inventory\PickingTaskDetail;
-use App\Livewire\Inventory\PickingTaskList;
+use App\Livewire\Org\DriverList;
+use App\Livewire\Org\MerchantList;
+use App\Livewire\Org\SupplierList;
+use App\Livewire\Org\VehicleList;
 use App\Livewire\Price\PriceChangeLogList;
-use App\Livewire\Price\PricingConfig;
 use App\Livewire\Price\PromotionSettings;
 use App\Livewire\Product\CategoryList;
 use App\Livewire\Product\KeywordList;
+use App\Livewire\Product\MerchantSkuVisibilityList;
 use App\Livewire\Product\ProductList;
+use App\Livewire\Product\RestockReminderList;
 use App\Livewire\Product\SkuBarcodeList;
 use App\Livewire\Product\SkuList;
-use App\Livewire\Product\RestockReminderList;
 use App\Livewire\Product\SkuSupplierList;
-use App\Livewire\Product\MerchantSkuVisibilityList;
 use App\Livewire\Product\TagList;
 use App\Livewire\Purchase\PurchaseItemList;
 use App\Livewire\Purchase\PurchaseOrderDetail;
@@ -58,12 +59,13 @@ use App\Livewire\System\Approvals;
 use App\Livewire\System\AuditLogs;
 use App\Livewire\System\AuditSettings;
 use App\Livewire\System\BannerList;
-use App\Livewire\System\LoginLogList;
-use App\Livewire\System\OperationLogs;
 use App\Livewire\System\FinanceSettings;
+use App\Livewire\System\LoginLogList;
+use App\Livewire\System\NotificationHistory;
+use App\Livewire\System\OperationLogs;
 use App\Livewire\System\Settings;
-use App\Livewire\System\WechatUserList;
 use App\Livewire\System\UnitList;
+use App\Livewire\System\WechatUserList;
 use App\Livewire\User\PermissionList;
 use App\Livewire\User\Profile;
 use App\Livewire\User\RoleList;
@@ -81,6 +83,7 @@ Route::middleware(['auth'])->post('/logout', function () {
     auth()->logout();
     session()->invalidate();
     session()->regenerateToken();
+
     return redirect()->route('home');
 })->name('logout');
 
@@ -92,7 +95,7 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::get('/profile', Profile::class)->name('profile');
 
     // 历史通知
-    Route::get('/notifications', \App\Livewire\System\NotificationHistory::class)->name('notifications.history');
+    Route::get('/notifications', NotificationHistory::class)->name('notifications.history');
 
     // ── 用户权限 ──
     Route::get('/users', UserList::class)->name('users');
@@ -101,7 +104,7 @@ Route::middleware(['auth', 'permission'])->group(function () {
 
     // ── 组织主体 ──
     Route::get('/suppliers', SupplierList::class)->name('suppliers');
-    Route::get('/merchants', \App\Livewire\Org\MerchantList::class)->name('merchants');
+    Route::get('/merchants', MerchantList::class)->name('merchants');
     Route::get('/drivers', DriverList::class)->name('drivers');
     Route::get('/vehicles', VehicleList::class)->name('vehicles');
 
@@ -130,6 +133,7 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::get('/frequently-bought', FrequentlyBoughtList::class)->name('frequently-bought');
     Route::get('/repurchase-templates', RepurchaseTemplateList::class)->name('repurchase-templates');
     Route::get('/order-returns', OrderReturnList::class)->name('order-returns');
+    Route::get('/order-returns/{id}', OrderReturnDetail::class)->name('order-returns.detail');
 
     // ── 库存拣货 ──
     Route::get('/warehouses', WarehouseList::class)->name('warehouses');

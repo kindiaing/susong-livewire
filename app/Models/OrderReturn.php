@@ -26,9 +26,13 @@ class OrderReturn extends Model
 
     // 状态常量
     public const STATUS_PENDING = 1;
+
     public const STATUS_APPROVED = 2;
+
     public const STATUS_RETURNED = 3;
+
     public const STATUS_REFUNDED = 4;
+
     public const STATUS_CANCELLED = 9;
 
     protected $fillable = [
@@ -42,6 +46,9 @@ class OrderReturn extends Model
         'operator_id',
         'audited_by',
         'audited_at',
+        'returned_at',
+        'refunded_at',
+        'cancelled_at',
         'remark',
     ];
 
@@ -56,6 +63,9 @@ class OrderReturn extends Model
             'operator_id' => 'integer',
             'audited_by' => 'integer',
             'audited_at' => 'datetime',
+            'returned_at' => 'datetime',
+            'refunded_at' => 'datetime',
+            'cancelled_at' => 'datetime',
         ];
     }
 
@@ -139,7 +149,7 @@ class OrderReturn extends Model
      */
     public function canRollbackStatus(): bool
     {
-        return !in_array($this->status, [self::STATUS_PENDING, self::STATUS_CANCELLED]);
+        return ! in_array($this->status, [self::STATUS_PENDING, self::STATUS_CANCELLED]);
     }
 
     /**
@@ -147,13 +157,13 @@ class OrderReturn extends Model
      */
     public function rollbackTargets(): array
     {
-        if (!$this->canRollbackStatus()) {
+        if (! $this->canRollbackStatus()) {
             return [];
         }
 
         $all = self::statusMap();
         unset($all[self::STATUS_CANCELLED]);
 
-        return array_filter($all, fn($status) => $status < $this->status, ARRAY_FILTER_USE_KEY);
+        return array_filter($all, fn ($status) => $status < $this->status, ARRAY_FILTER_USE_KEY);
     }
 }

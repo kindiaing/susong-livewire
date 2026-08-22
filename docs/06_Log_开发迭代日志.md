@@ -1496,3 +1496,41 @@
 | 分支 | feature/discrepancy-loss |
 | 提交 | 见本次提交 |
 | 验证 | 退货测试 10 通过；全量 37 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint / view:cache 通过 |
+
+---
+
+## V2.0.11 — 售后退货重构：对齐采购退货「头先行 + 详情页明细」模式
+
+> 开发者：Kimi。用户拍板：售后退货统一为采购退货同款交互。
+
+### 变更概述
+
+1. **补齐缺失层**：售后退货此前无服务层、无详情页、明细从不写入（创建仅订单+商家+原因），且组件写 `note` 幻影字段（表字段为 remark，静默丢失）——本次全部修复。
+2. **新建 OrderReturnService**：空头建单（仅已签收/已锁定订单，商家自动取自订单）；updateItems() 整单替换（仅待审核）；数量上限 = 客户实收数量（actual_quantity ?: quantity），单价取实收单价；approve 拦截无明细单据；markReturned / refund（退款金额=退货总金额，明细 refund_amount 同步）/ cancel 全状态流转 + 审计日志。
+3. **新增详情页**：`/order-returns/{id}` 路由 + OrderReturnDetail 组件——摘要、待审核可编辑明细（订单明细下拉选行，自动带出可退上限/单价）、只读明细、状态按钮、超管回退、时间线（审核/退货/退款/作废时间）。
+4. **列表页配套**：退货单号蓝色链接进详情；新增弹窗头先行（选订单自动带商家，保存后跳详情页）；状态操作全部委托服务层；修 note→remark（列表列/导出/导入映射/表单）；列表新增退货金额列。
+5. **杂项修复**：迁移补 returned_at/refunded_at/cancelled_at 时间戳；helpers 补 order_return 状态徽章；演示数据 RT-20260729-00001 头金额 6900 → 6900000（与明细 500×13800 一致）。
+
+### 变更明细
+
+| 操作 | 文件 | 说明 |
+| :--- | :--- | :--- |
+| 修改 | 迁移 000016_create_return_tables | order_returns 补 returned_at/refunded_at/cancelled_at |
+| 完善 | Models/OrderReturn | 三个时间戳入 fillable/casts |
+| 新增 | Services/OrderReturnService | create/updateItems/approve/markReturned/refund/cancel + 审计日志 |
+| 重写 | Livewire/Order/OrderReturnList | 头先行创建+跳转；状态流转委托服务层；note→remark 幻影字段修复 |
+| 新增 | Livewire/Order/OrderReturnDetail | 明细编辑（addItemRow/pickOrderItem/removeItemRow/exportItems/saveItems）+ 状态流转 + 回退 |
+| 修改 | order-return-list.blade | 单号链接化；弹窗头先行；remark 修复；退货金额列 |
+| 新增 | order-return-detail.blade | 待审核可编辑明细 + 只读明细 + 时间线 |
+| 修改 | helpers.php / routes/web.php | order_return 状态徽章；详情路由 |
+| 修复 | Demo/OrderDemoSeeder | RT-20260729-00001 头金额与明细对齐 |
+| 测试 | tests/Feature/OrderReturnFlowTest | 7 用例：空头建单/未签收拦截/实收计价+超量拦截/updateItems+状态拦截/空头审核拦截/全流程退款同步/组件建单跳转 |
+| 文档 | docs/07、docs/12 | TC-ORDER-006 系列 5 条（统计 127→131）；用户手册 4.8 重写 |
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | feature/discrepancy-loss |
+| 提交 | 见本次提交 |
+| 验证 | 售后退货测试 7 通过；全量测试、Pint、view:cache 见提交时状态；migrate:fresh + DemoDataSeeder 重跑验证 |
