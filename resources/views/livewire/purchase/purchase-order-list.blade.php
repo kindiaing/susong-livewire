@@ -175,7 +175,20 @@
                         @switch($col['key'])
                             @case('order_no')
                                 <td class="px-4 py-2">
-                                    <a href="{{ route('purchase-orders.detail', $order->id) }}" class="font-mono text-blue-600 hover:underline">{{ $order->order_no }}</a>
+                                    <div class="flex items-center gap-1.5">
+                                        <a href="{{ route('purchase-orders.detail', $order->id) }}" class="font-mono text-blue-600 hover:underline">{{ $order->order_no }}</a>
+                                        @if(($order->discrepancy_total ?? 0) > 0)
+                                        @if(($order->discrepancy_loss_count ?? 0) > 0)
+                                        <span class="inline-flex text-red-500 cursor-help" title="入库差异已生成损耗单待审核：{{ $order->discrepancy_item_count }} 条明细共短缺 {{ $order->discrepancy_total }}，点击查看详情">
+                                            <x-ui.icon name="exclamation-triangle" class="w-3.5 h-3.5" />
+                                        </span>
+                                        @else
+                                        <span class="inline-flex text-orange-400 cursor-help" title="入库差异在允差阈值内仅留痕：{{ $order->discrepancy_item_count }} 条明细共短缺 {{ $order->discrepancy_total }}">
+                                            <x-ui.icon name="exclamation-triangle" class="w-3.5 h-3.5" />
+                                        </span>
+                                        @endif
+                                        @endif
+                                    </div>
                                 </td>
                                 @break
                             @case('supplier_id')
@@ -204,13 +217,13 @@
                         <div class="inline-flex items-center gap-0.5">
                             {{-- 编辑 --}}
                             @can('purchase.purchase-order.edit')
-                            @if($order->status === 1)
+                            @if($order->canEdit())
                             <button type="button" wire:click="openEditModal({{ $order->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
                             @endif
                             @endcan
                             {{-- 删除（仅初始状态可删除） --}}
                             @can('purchase.purchase-order.delete')
-                            @if($order->status === 1)
+                            @if($order->canEdit())
                                 <button type="button" wire:click="confirmDelete({{ $order->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
                             @endif
                             @endcan
@@ -232,7 +245,11 @@
         <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-foreground">{{ $editingId ? '编辑采购单' : '新增采购单' }}</h2>
+                <h2 class="text-lg font-semibold text-foreground">{{ $editingId ? '编辑采购单' : '新增采购单' }}
+                    @if($editingStatusLabel)
+                    <span class="ml-2 inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-{{ $editingStatusColor }}-100 text-{{ $editingStatusColor }}-700">{{ $editingStatusLabel }}</span>
+                    @endif
+                </h2>
                 <button type="button" wire:click="closeModal" class="text-muted-foreground hover:text-foreground transition-colors">
                     <x-ui.icon name="x-mark" class="w-5 h-5" />
                 </button>

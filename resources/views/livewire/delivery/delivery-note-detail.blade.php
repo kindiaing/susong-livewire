@@ -152,6 +152,12 @@
                     <td class="px-4 py-2 text-center">
                         @php $ic = $itemStatusColorMap[$item->status] ?? 'gray'; @endphp
                         <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $ic }}-100 text-{{ $ic }}-700">{{ $itemStatusMap[$item->status] ?? '-' }}</span>
+                        @if(isset($itemDiscrepancies[$item->id]))
+                        @php $disc = $itemDiscrepancies[$item->id]; @endphp
+                        <a href="{{ route('discrepancies') }}" class="block mt-1 text-[11px] text-blue-600 hover:text-blue-700 transition-colors" title="差异原因：{{ $disc->reason ?? '-' }}">
+                            {{ $disc->discrepancy_no }} · {{ $disc->status_label }}
+                        </a>
+                        @endif
                     </td>
                 </tr>
                 @endforeach
@@ -162,4 +168,52 @@
         <div class="px-6 py-8 text-center text-sm text-muted-foreground">暂无送货单明细数据</div>
         @endif
     </div>
+
+    {{-- 实收差异登记弹窗（遮罩不可点击关闭） --}}
+    @if($showDiffModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">登记实收差异</h2>
+                <button type="button" wire:click="closeDiffModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div class="rounded-md bg-muted p-3 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-muted-foreground">SKU</span>
+                        <span class="text-foreground font-medium">{{ $diffSkuName }}</span>
+                    </div>
+                    <div class="flex justify-between mt-1">
+                        <span class="text-muted-foreground">应送 / 实收</span>
+                        <span class="text-foreground font-medium">{{ $diffExpectedQty }} / {{ $diffActualQty }}</span>
+                    </div>
+                    <div class="flex justify-between mt-1">
+                        <span class="text-muted-foreground">差异数量</span>
+                        <span class="text-red-600 font-medium">{{ $diffExpectedQty - $diffActualQty }}</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">差异类型</label>
+                    <select wire:model="diffType" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        <option value="1">少收</option>
+                        <option value="2">拒收</option>
+                        <option value="3">残次</option>
+                        <option value="4">其他</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">差异原因 <span class="text-red-500">*</span></label>
+                    <textarea wire:model="diffReason" rows="2" maxlength="255" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="请说明差异原因，将生成差异单由处理台统一跟进"></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" wire:click="closeDiffModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">暂不登记</button>
+                <button type="button" wire:click="saveItemDiscrepancy" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">登记差异</button>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>

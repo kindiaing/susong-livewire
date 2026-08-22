@@ -8,8 +8,9 @@ use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithListCrud;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
-use App\Models\Merchant;
+use App\Models\Order;
 use App\Models\OrderReturn;
+use App\Services\OrderReturnService;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -31,11 +32,9 @@ class OrderReturnList extends Component
 
     public int $formOrderId = 0;
 
-    public int $formMerchantId = 0;
-
     public string $formReason = '';
 
-    public string $formNote = '';
+    public string $formRemark = '';
 
     public static array $statusMap = [
         1 => '待审核', 2 => '已审核', 3 => '已退货',
@@ -60,8 +59,9 @@ class OrderReturnList extends Component
             ['key' => 'merchant_id', 'label' => '商家', 'sortable' => false, 'exportable' => true],
             ['key' => 'reason', 'label' => '退货原因', 'sortable' => false, 'exportable' => true],
             ['key' => 'status', 'label' => '状态', 'sortable' => true, 'exportable' => true],
+            ['key' => 'total_amount', 'label' => '退货金额', 'sortable' => true, 'exportable' => true],
             ['key' => 'refund_amount', 'label' => '退款金额', 'sortable' => true, 'exportable' => true],
-            ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => false],
+            ['key' => 'remark', 'label' => '备注', 'sortable' => false, 'exportable' => false],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
         ];
     }
@@ -87,8 +87,8 @@ class OrderReturnList extends Component
             '订单ID' => 'order_id',
             '商家ID' => 'merchant_id',
             '退货原因' => 'reason',
-            '退款金额(分)' => 'refund_amount',
-            '备注' => 'note',
+            '退款金额(厘)' => 'refund_amount',
+            '备注' => 'remark',
         ];
     }
 
@@ -106,8 +106,9 @@ class OrderReturnList extends Component
                 'merchant_id' => $row->merchant?->name ?? '',
                 'reason' => $row->reason ?? '',
                 'status' => self::$statusMap[$row->status] ?? '',
+                'total_amount' => money_format($row->total_amount, false),
                 'refund_amount' => money_format($row->refund_amount, false),
-                'note' => $row->note ?? '',
+                'remark' => $row->remark ?? '',
                 'created_at' => $row->created_at?->format('Y-m-d H:i:s'),
             ];
         };
@@ -121,22 +122,25 @@ class OrderReturnList extends Component
     public function openEditModal(int $id): void
     {
         $item = OrderReturn::findOrFail($id);
-        if ($item->status !== OrderReturn::STATUS_PENDING) {
+        if (! $item->canEdit()) {
             $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
 
             return;
         }
         $this->editingId = $id;
+        $this->editingStatusLabel = self::$statusMap[$item->status] ?? '';
+        $this->editingStatusColor = self::$statusColorMap[$item->status] ?? 'yellow';
         $this->formReason = $item->reason ?? '';
-        $this->formNote = $item->note ?? '';
+        $this->formRemark = $item->remark ?? '';
         $this->showModal = true;
     }
 
     public function save(): void
     {
+        // 编辑模式：仅允许修改头字段（明细在详情页维护）
         if ($this->editingId) {
             $item = OrderReturn::findOrFail($this->editingId);
-            if ($item->status !== OrderReturn::STATUS_PENDING) {
+            if (! $item->canEdit()) {
                 $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
                 $this->showModal = false;
                 $this->resetForm();
@@ -145,92 +149,99 @@ class OrderReturnList extends Component
             }
             $validated = $this->validate([
                 'formReason' => 'nullable|string|max:255',
-                'formNote' => 'nullable|string|max:500',
+                'formRemark' => 'nullable|string|max:500',
             ]);
             $item->update([
                 'reason' => $validated['formReason'],
-                'note' => $validated['formNote'],
+                'remark' => $validated['formRemark'],
             ]);
             $this->toastSuccess('退货单已更新');
-        } else {
-            $validated = $this->validate([
-                'formOrderId' => 'required|integer|exists:orders,id',
-                'formMerchantId' => 'required|integer|exists:merchants,id',
-                'formReason' => 'required|string|max:255',
-            ]);
-            OrderReturn::create([
-                'return_no' => generate_sequence_no('RT', 'order_returns', 'return_no'),
-                'order_id' => $validated['formOrderId'],
-                'merchant_id' => $validated['formMerchantId'],
-                'reason' => $validated['formReason'],
-                'status' => 1,
-                'refund_amount' => 0,
-            ]);
-            $this->toastSuccess('退货单已创建');
-        }
-
-        $this->showModal = false;
-        $this->resetForm();
-    }
-
-    public function approveReturn(int $id): void
-    {
-        $item = OrderReturn::findOrFail($id);
-        if ($item->status != 1) {
-            $this->toastError('只有待审核退货单可审核通过');
+            $this->showModal = false;
+            $this->resetForm();
 
             return;
         }
-        $item->update(['status' => 2]);
-        $this->toastSuccess('退货单已审核通过');
+
+        // 创建模式：只存单头（商家自动取自订单），保存后跳转详情页整理明细
+        $validated = $this->validate([
+            'formOrderId' => 'required|integer|min:1|exists:orders,id',
+            'formReason' => 'nullable|string|max:255',
+            'formRemark' => 'nullable|string|max:500',
+        ]);
+
+        try {
+            $order = Order::findOrFail($validated['formOrderId']);
+            $return = app(OrderReturnService::class)->create($order, [], $validated['formReason']);
+
+            if (($validated['formRemark'] ?? '') !== '') {
+                $return->update(['remark' => $validated['formRemark']]);
+            }
+        } catch (\Exception $e) {
+            $this->toastError($e->getMessage());
+
+            return;
+        }
+
+        $this->toastSuccess("退货单 {$return->return_no} 已创建，请添加退货明细");
+        $this->showModal = false;
+        $this->resetForm();
+
+        $this->redirect(route('order-returns.detail', $return->id));
+    }
+
+    // ── 状态流转（委托服务层） ──
+
+    public function approveReturn(int $id): void
+    {
+        try {
+            app(OrderReturnService::class)->approve(OrderReturn::findOrFail($id));
+            $this->toastSuccess('退货单已审核通过');
+        } catch (\Exception $e) {
+            $this->toastError($e->getMessage());
+        }
     }
 
     public function rejectReturn(int $id): void
     {
-        $item = OrderReturn::findOrFail($id);
-        if ($item->status != 1) {
-            $this->toastError('只有待审核退货单可拒绝');
-
-            return;
+        try {
+            app(OrderReturnService::class)->cancel(OrderReturn::findOrFail($id), '审核拒绝');
+            $this->toastSuccess('退货单已拒绝');
+        } catch (\Exception $e) {
+            $this->toastError($e->getMessage());
         }
-        $item->update(['status' => 9]);
-        $this->toastSuccess('退货单已拒绝');
     }
 
     public function startReturn(int $id): void
     {
-        $item = OrderReturn::findOrFail($id);
-        if ($item->status != 2) {
-            $this->toastError('只有已审核的退货单可开始退货');
-
-            return;
+        try {
+            app(OrderReturnService::class)->markReturned(OrderReturn::findOrFail($id));
+            $this->toastSuccess('退货单已确认退货');
+        } catch (\Exception $e) {
+            $this->toastError($e->getMessage());
         }
-        $item->update(['status' => 3]);
-        $this->toastSuccess('退货单已开始退货');
     }
 
     public function completeReturn(int $id): void
     {
-        $item = OrderReturn::findOrFail($id);
-        if ($item->status != 3) {
-            $this->toastError('只有已退货的单据可完成退款');
-
-            return;
+        try {
+            app(OrderReturnService::class)->refund(OrderReturn::findOrFail($id));
+            $this->toastSuccess('退款已完成');
+        } catch (\Exception $e) {
+            $this->toastError($e->getMessage());
         }
-        $item->update(['status' => 4]);
-        $this->toastSuccess('退货单已完成');
     }
 
     public function delete(): void
     {
         $item = OrderReturn::findOrFail($this->deletingId);
-        if ($item->status !== OrderReturn::STATUS_PENDING) {
+        if (! $item->canEdit()) {
             $this->toastError('当前状态不可删除，仅待审核状态的退货单可删除');
             $this->showDeleteConfirm = false;
             $this->deletingId = null;
 
             return;
         }
+        $item->items()->delete();
         $item->delete();
         $this->toastSuccess('退货单已删除');
         $this->showDeleteConfirm = false;
@@ -271,7 +282,11 @@ class OrderReturnList extends Component
             $this->toastError("{$skipped} 条非待审核状态退货单不可删除，已跳过");
         }
         if (! empty($deletable)) {
-            OrderReturn::whereIn('id', $deletable)->delete();
+            foreach ($deletable as $id) {
+                $return = OrderReturn::find($id);
+                $return?->items()->delete();
+                $return?->delete();
+            }
             $this->toastSuccess('已删除 '.count($deletable).' 条退货单');
         }
         $this->clearSelection();
@@ -281,9 +296,8 @@ class OrderReturnList extends Component
     {
         $this->editingId = null;
         $this->formOrderId = 0;
-        $this->formMerchantId = 0;
         $this->formReason = '';
-        $this->formNote = '';
+        $this->formRemark = '';
     }
 
     private function buildQuery()
@@ -292,11 +306,12 @@ class OrderReturnList extends Component
 
         if ($this->search) {
             $query->where(function ($q) {
-                $q->whereHas('order', function ($oq) {
-                    $oq->where('order_no', 'like', "%{$this->search}%");
-                })->orWhereHas('merchant', function ($mq) {
-                    $mq->where('name', 'like', "%{$this->search}%");
-                });
+                $q->where('return_no', 'like', "%{$this->search}%")
+                    ->orWhereHas('order', function ($oq) {
+                        $oq->where('order_no', 'like', "%{$this->search}%");
+                    })->orWhereHas('merchant', function ($mq) {
+                        $mq->where('name', 'like', "%{$this->search}%");
+                    });
             });
         }
 
@@ -310,11 +325,13 @@ class OrderReturnList extends Component
     public function render()
     {
         $items = $this->buildQuery()->paginate(setting('per_page', 10));
-        $merchants = Merchant::orderBy('name')->get();
+        // 仅已签收/已锁定的订单可发起售后退货
+        $orders = Order::whereIn('status', [Order::STATUS_SIGNED, Order::STATUS_LOCKED])
+            ->orderBy('id', 'desc')->limit(100)->get();
 
         return view('livewire.order.order-return-list', [
             'items' => $items,
-            'merchants' => $merchants,
+            'orders' => $orders,
             'allColumns' => $this->getAllColumns(),
             'selectedCount' => $this->getSelectedCount(),
             'batchActions' => $this->getBatchActions(),

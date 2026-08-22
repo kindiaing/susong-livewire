@@ -32,13 +32,23 @@ class PurchaseReturn extends Model
 
     // 状态常量
     public const STATUS_PENDING = 1;
+
     public const STATUS_APPROVED = 2;
+
     public const STATUS_SHIPPED = 3;
+
     public const STATUS_COMPLETED = 4;
+
     public const STATUS_CANCELLED = 9;
+
+    // 退货类型常量
+    public const TYPE_NORMAL = 1;
+
+    public const TYPE_LINKED = 2;
 
     protected $fillable = [
         'return_no',
+        'return_type',
         'purchase_order_id',
         'supplier_id',
         'warehouse_id',
@@ -59,6 +69,7 @@ class PurchaseReturn extends Model
     {
         return [
             'purchase_order_id' => 'integer',
+            'return_type' => 'integer',
             'supplier_id' => 'integer',
             'warehouse_id' => 'integer',
             'status' => 'integer',
@@ -90,6 +101,22 @@ class PurchaseReturn extends Model
     public function getStatusLabelAttribute(): string
     {
         return self::statusMap()[$this->status] ?? '未知';
+    }
+
+    /**
+     * 退货类型映射
+     */
+    public static function typeMap(): array
+    {
+        return [
+            self::TYPE_NORMAL => '普通退货',
+            self::TYPE_LINKED => '关联退货',
+        ];
+    }
+
+    public function getReturnTypeLabelAttribute(): string
+    {
+        return self::typeMap()[$this->return_type] ?? '未知';
     }
 
     /**
@@ -146,5 +173,36 @@ class PurchaseReturn extends Model
     public function scopePending($query)
     {
         return $query->where('status', self::STATUS_PENDING);
+    }
+
+    /**
+     * 是否可编辑（仅初始状态可编辑）
+     */
+    public function canEdit(): bool
+    {
+        return $this->status === self::STATUS_PENDING;
+    }
+
+    /**
+     * 是否可回退状态（除初始和作废状态外均可回退）
+     */
+    public function canRollbackStatus(): bool
+    {
+        return ! in_array($this->status, [self::STATUS_PENDING, self::STATUS_CANCELLED]);
+    }
+
+    /**
+     * 可回退的目标状态列表
+     */
+    public function rollbackTargets(): array
+    {
+        if (! $this->canRollbackStatus()) {
+            return [];
+        }
+
+        $all = self::statusMap();
+        unset($all[self::STATUS_CANCELLED]);
+
+        return array_filter($all, fn ($status) => $status < $this->status, ARRAY_FILTER_USE_KEY);
     }
 }

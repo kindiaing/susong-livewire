@@ -1,14 +1,17 @@
 <?php
 
+use App\Support\Setting;
+use Illuminate\Contracts\Auth\Authenticatable;
+
 /**
  * 金额格式化：厘 → 显示字符串
  *
  * 三层分离架构：存储层（厘）→ 计算层（厘）→ 显示层（可配置精度+舍入）
  * 汇总金额永远是后端厘级求和的结果，不是前端把显示值加起来。
  *
- * @param int|float|null $cents      厘值（数据库存储单位）
- * @param bool           $withSymbol 是否带¥符号
- * @param string|null    $module     模块名（null=用全局默认舍入），如 'order'/'purchase'/'recharge'
+ * @param  int|float|null  $cents  厘值（数据库存储单位）
+ * @param  bool  $withSymbol  是否带¥符号
+ * @param  string|null  $module  模块名（null=用全局默认舍入），如 'order'/'purchase'/'recharge'
  * @return string
  *
  * 调用方式完全向后兼容：
@@ -22,7 +25,8 @@ function money_format(int|float|null $cents, bool $withSymbol = true, ?string $m
 
     if ($cents === null) {
         $zero = number_format(0, $precision, '.', ',');
-        return $withSymbol ? '¥' . $zero : $zero;
+
+        return $withSymbol ? '¥'.$zero : $zero;
     }
 
     $roundMode = $module
@@ -32,7 +36,7 @@ function money_format(int|float|null $cents, bool $withSymbol = true, ?string $m
     $yuan = money_round($cents, $precision, $roundMode);
 
     return $withSymbol
-        ? '¥' . number_format($yuan, $precision, '.', ',')
+        ? '¥'.number_format($yuan, $precision, '.', ',')
         : number_format($yuan, $precision, '.', '');
 }
 
@@ -45,9 +49,9 @@ function money_format(int|float|null $cents, bool $withSymbol = true, ?string $m
  *   round_down — 向下取整（¥3.149 → ¥3.14）
  *   truncate   — 截断抹零（2位精度下同 round_down，3位精度下直接截断）
  *
- * @param int|float $cents     厘值
- * @param int       $precision 显示精度（2=分级，3=厘级）
- * @param string    $mode      舍入模式：round/round_up/round_down/truncate
+ * @param  int|float  $cents  厘值
+ * @param  int  $precision  显示精度（2=分级，3=厘级）
+ * @param  string  $mode  舍入模式：round/round_up/round_down/truncate
  * @return float 元值
  */
 function money_round(int|float $cents, int $precision = 2, string $mode = 'round'): float
@@ -56,11 +60,11 @@ function money_round(int|float $cents, int $precision = 2, string $mode = 'round
     $factor = pow(10, $precision);
 
     return match ($mode) {
-        'round'      => round($yuan, $precision),
-        'round_up'   => ceil($yuan * $factor) / $factor,
+        'round' => round($yuan, $precision),
+        'round_up' => ceil($yuan * $factor) / $factor,
         'round_down' => floor($yuan * $factor) / $factor,
-        'truncate'   => floor($yuan * $factor) / $factor,
-        default      => round($yuan, $precision),
+        'truncate' => floor($yuan * $factor) / $factor,
+        default => round($yuan, $precision),
     };
 }
 
@@ -75,6 +79,7 @@ function money_to_cents(string|float|null $yuan): int
     if ($yuan === null || $yuan === '') {
         return 0;
     }
+
     return (int) round((float) $yuan * 1000);
 }
 
@@ -83,10 +88,9 @@ function money_to_cents(string|float|null $yuan): int
  *
  * 称重数量精度与金额显示精度是两个独立维度，可分别配置。
  *
- * @param int|float|null $liangin   厘斤值（数据库存储单位）
- * @param bool           $withUnit  是否带"斤"单位
- * @param int|null       $precision 精度（null=用系统配置 money.weighing_precision）
- * @return string
+ * @param  int|float|null  $liangin  厘斤值（数据库存储单位）
+ * @param  bool  $withUnit  是否带"斤"单位
+ * @param  int|null  $precision  精度（null=用系统配置 money.weighing_precision）
  */
 function weight_format(int|float|null $liangin, bool $withUnit = false, ?int $precision = null): string
 {
@@ -96,7 +100,8 @@ function weight_format(int|float|null $liangin, bool $withUnit = false, ?int $pr
     $p = $precision ?? setting('money.weighing_precision', 3);
     $jin = $liangin / 1000;
     $str = number_format($jin, $p, '.', '');
-    return $withUnit ? $str . '斤' : $str;
+
+    return $withUnit ? $str.'斤' : $str;
 }
 
 /**
@@ -109,6 +114,7 @@ function weight_to_liangin(string|float|null $jin): int
     if ($jin === null || $jin === '') {
         return 0;
     }
+
     return (int) round((float) $jin * 1000);
 }
 
@@ -118,16 +124,15 @@ function weight_to_liangin(string|float|null $jin): int
  */
 function setting(string $key, mixed $default = null): mixed
 {
-    return \App\Support\Setting::get($key, $default);
+    return Setting::get($key, $default);
 }
 
 /**
  * 状态 Badge 渲染（通用）
  *
- * @param int        $status 状态值
- * @param string     $type   映射类型：active/order/payment/audit/driver_online/cold_chain/visibility/loss_approval/loss_status/purchase_item/purchase_return/sku_approval/target_type/inventory_log
- * @param string     $label  自定义文字（覆盖映射中的默认文字）
- * @return string
+ * @param  int  $status  状态值
+ * @param  string  $type  映射类型：active/order/payment/audit/driver_online/cold_chain/visibility/loss_approval/loss_status/purchase_item/purchase_return/sku_approval/target_type/inventory_log
+ * @param  string  $label  自定义文字（覆盖映射中的默认文字）
  */
 function status_badge(int|string $status, string $type = 'default', string $label = ''): string
 {
@@ -183,13 +188,20 @@ function status_badge(int|string $status, string $type = 'default', string $labe
             4 => ['完成', 'bg-green-100 text-green-700'],
             9 => ['已作废', 'bg-gray-100 text-gray-600'],
         ],
+        'order_return' => [
+            1 => ['待审核', 'bg-yellow-100 text-yellow-700'],
+            2 => ['已审核', 'bg-blue-100 text-blue-700'],
+            3 => ['已退货', 'bg-orange-100 text-orange-700'],
+            4 => ['退款完成', 'bg-green-100 text-green-700'],
+            9 => ['已作废', 'bg-gray-100 text-gray-600'],
+        ],
         'sku_approval' => [
             1 => ['待审核', 'bg-yellow-100 text-yellow-700'],
             2 => ['已通过', 'bg-green-100 text-green-700'],
             3 => ['已拒绝', 'bg-red-100 text-red-700'],
         ],
         'inventory_log' => [
-            'in'  => ['入库', 'bg-green-100 text-green-700'],
+            'in' => ['入库', 'bg-green-100 text-green-700'],
             'out' => ['出库', 'bg-red-100 text-red-700'],
         ],
         'vehicle' => [
@@ -210,21 +222,22 @@ function status_badge(int|string $status, string $type = 'default', string $labe
 
     $item = $map[$status] ?? ['未知', 'bg-gray-100 text-gray-600'];
     $text = $label !== '' ? $label : $item[0];
-    return '<span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium ' . $item[1] . '">' . $text . '</span>';
+
+    return '<span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium '.$item[1].'">'.$text.'</span>';
 }
 
 /**
  * 判断用户是否有状态回退权限（超级管理员或管理员）
  *
- * @param \Illuminate\Contracts\Auth\Authenticatable|null $user
- * @return bool
+ * @param  Authenticatable|null  $user
  */
 function can_rollback_status($user = null): bool
 {
     $user = $user ?? auth()->user();
-    if (!$user) {
+    if (! $user) {
         return false;
     }
+
     return $user->hasRole('super_admin') || $user->hasRole('admin');
 }
 
@@ -237,19 +250,18 @@ function can_rollback_status($user = null): bool
  * 序号按「前缀+日期」维度独立递增，每日从 1 开始。
  * 通过 LIKE 查询当日最大序号 +1，保证递增且不碰撞。
  *
- * @param string $prefix   单据前缀（如 ORD/PO/PR/LO/RT/SS/RC/INV）
- * @param string $table    数据表名（用于查询最大序号）
- * @param string $column   编号字段名（如 order_no/return_no/loss_no）
- * @param string|null $date 日期字符串（null=当天）
- * @return string
+ * @param  string  $prefix  单据前缀（如 ORD/PO/PR/LO/RT/SS/RC/INV）
+ * @param  string  $table  数据表名（用于查询最大序号）
+ * @param  string  $column  编号字段名（如 order_no/return_no/loss_no）
+ * @param  string|null  $date  日期字符串（null=当天）
  */
 function generate_sequence_no(string $prefix, string $table, string $column, ?string $date = null): string
 {
     $date = $date ?? now()->format('Ymd');
     $prefixWithDate = "{$prefix}-{$date}-";
 
-    $lastNo = \DB::table($table)
-        ->where($column, 'like', $prefixWithDate . '%')
+    $lastNo = DB::table($table)
+        ->where($column, 'like', $prefixWithDate.'%')
         ->orderByDesc('id')
         ->value($column);
 
@@ -259,5 +271,5 @@ function generate_sequence_no(string $prefix, string $table, string $column, ?st
         $seq = $lastSeq + 1;
     }
 
-    return $prefixWithDate . str_pad((string) $seq, 5, '0', STR_PAD_LEFT);
+    return $prefixWithDate.str_pad((string) $seq, 5, '0', STR_PAD_LEFT);
 }

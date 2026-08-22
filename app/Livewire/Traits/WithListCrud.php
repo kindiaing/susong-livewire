@@ -26,6 +26,10 @@ trait WithListCrud
     public string $deleteWarning = '';
     public bool $canDelete = true;
 
+    // 编辑弹窗状态标签
+    public string $editingStatusLabel = '';
+    public string $editingStatusColor = '';
+
     /**
      * 获取弹窗属性名（组件可覆盖）
      * 默认 'showModal'，组件如用其他属性名则覆盖此方法
@@ -49,6 +53,8 @@ trait WithListCrud
     public function openCreateModal(): void
     {
         $this->editingId = null;
+        $this->editingStatusLabel = '';
+        $this->editingStatusColor = '';
         $this->resetForm();
         $this->{$this->getModalPropertyName()} = true;
     }
@@ -60,6 +66,8 @@ trait WithListCrud
     {
         $this->{$this->getModalPropertyName()} = false;
         $this->editingId = null;
+        $this->editingStatusLabel = '';
+        $this->editingStatusColor = '';
         $this->resetErrorBag();
         $this->resetForm();
     }

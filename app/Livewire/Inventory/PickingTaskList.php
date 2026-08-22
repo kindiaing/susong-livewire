@@ -378,12 +378,14 @@ class PickingTaskList extends Component
     public function openEditModal(int $id): void
     {
         $item = PickingTask::findOrFail($id);
-        if ($item->status !== PickingTask::STATUS_PENDING) {
+        if (! $item->canEdit()) {
             $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
 
             return;
         }
         $this->editingId = $id;
+        $this->editingStatusLabel = self::$statusMap[$item->status] ?? '';
+        $this->editingStatusColor = self::$statusColorMap[$item->status] ?? 'yellow';
         $this->formWarehouseId = $item->warehouse_id ?? 0;
         $this->formPickerId = $item->picker_id ?? 0;
         $this->formRemark = $item->remark ?? '';
@@ -399,7 +401,7 @@ class PickingTaskList extends Component
         ]);
 
         $task = PickingTask::findOrFail($this->editingId);
-        if ($task->status !== PickingTask::STATUS_PENDING) {
+        if (! $task->canEdit()) {
             $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
             $this->showModal = false;
             $this->resetForm();
@@ -421,7 +423,7 @@ class PickingTaskList extends Component
     {
         $task = PickingTask::findOrFail($this->deletingId);
 
-        if ($task->status !== PickingTask::STATUS_PENDING) {
+        if (! $task->canEdit()) {
             $this->toastError('仅待分配状态的拣货任务可删除');
             $this->showDeleteConfirm = false;
             $this->deletingId = null;

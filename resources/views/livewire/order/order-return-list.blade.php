@@ -171,7 +171,9 @@
                  style="grid-template-columns: {{ $gridCols }}"
                  wire:key="order-return-{{ $item->id }}">
                 <div><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm font-mono font-medium text-foreground truncate">{{ $item->return_no }}</div>
+                <div>
+                    <a href="{{ route('order-returns.detail', $item->id) }}" class="text-sm font-mono font-medium text-blue-600 hover:underline truncate">{{ $item->return_no }}</a>
+                </div>
                 @foreach($visibleCols as $col)
                     @switch($col['key'])
                         @case('id')
@@ -189,11 +191,14 @@
                                 <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $c }}-100 text-{{ $c }}-700">{{ \App\Livewire\Order\OrderReturnList::$statusMap[$item->status] ?? '-' }}</span>
                             </div>
                             @break
+                        @case('total_amount')
+                            <div class="text-sm text-foreground">{{ money_format($item->total_amount) }}</div>
+                            @break
                         @case('refund_amount')
                             <div class="text-sm text-foreground">{{ money_format($item->refund_amount) }}</div>
                             @break
-                        @case('note')
-                            <div class="text-sm text-foreground truncate max-w-[200px]">{{ $item->note ?: '-' }}</div>
+                        @case('remark')
+                            <div class="text-sm text-foreground truncate max-w-[200px]">{{ $item->remark ?: '-' }}</div>
                             @break
                         @case('created_at')
                             <div class="text-sm text-foreground">{{ $item->created_at?->format('Y-m-d H:i') }}</div>
@@ -204,7 +209,7 @@
                 @endforeach
                 <div class="flex items-center gap-2">
                     @can('order.order-return.edit')
-                    @if($item->status === 1)
+                    @if($item->canEdit())
                     <button type="button" wire:click="openEditModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
@@ -225,7 +230,7 @@
                     @endif
                     @endcan
                     @can('order.order-return.delete')
-                    @if($item->status === 1)
+                    @if($item->canEdit())
                     <button type="button" wire:click="confirmDelete({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
@@ -244,7 +249,11 @@
         <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-foreground">{{ $editingId ? '编辑退货单' : '新增退货' }}</h2>
+                <h2 class="text-lg font-semibold text-foreground">{{ $editingId ? '编辑退货单' : '新增退货' }}
+                    @if($editingStatusLabel)
+                    <span class="ml-2 inline-flex items-center rounded px-2 py-0.5 text-xs font-medium bg-{{ $editingStatusColor }}-100 text-{{ $editingStatusColor }}-700">{{ $editingStatusLabel }}</span>
+                    @endif
+                </h2>
                 <button type="button" wire:click="closeModal" class="text-muted-foreground hover:text-foreground transition-colors">
                     <x-ui.icon name="x-mark" class="w-5 h-5" />
                 </button>
@@ -252,35 +261,29 @@
             <div class="space-y-4">
                 @if(!$editingId)
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">订单 <span class="text-red-500">*</span></label>
-                    <select wire:model="formOrderId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                        <option value="0">请选择订单</option>
-                        @foreach(\App\Models\Order::orderBy('id', 'desc')->limit(100)->get() as $o)
-                        <option value="{{ $o->id }}">{{ $o->order_no }}</option>
+                    <label class="block text-sm font-medium text-foreground mb-1">关联订单 <span class="text-red-500">*</span></label>
+                    <select wire:model.live="formOrderId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        <option value="0">请选择订单（仅已签收/已锁定）</option>
+                        @foreach($orders as $o)
+                        <option value="{{ $o->id }}">{{ $o->order_no }}（{{ $o->merchant?->name ?? '' }}）</option>
                         @endforeach
                     </select>
                     @error('formOrderId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    <p class="text-xs text-muted-foreground mt-1">商家自动取自订单，无需手选</p>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">商家 <span class="text-red-500">*</span></label>
-                    <select wire:model="formMerchantId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                        <option value="0">请选择商家</option>
-                        @foreach($merchants as $m)
-                        <option value="{{ $m->id }}">{{ $m->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('formMerchantId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                <div class="rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-700">
+                    保存后将跳转到退货单详情页，在详情页添加 / 导出退货明细。
                 </div>
                 @endif
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">退货原因 {{ !$editingId ? '<span class="text-red-500">*</span>' : '' }}</label>
+                    <label class="block text-sm font-medium text-foreground mb-1">退货原因</label>
                     <input type="text" wire:model="formReason" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="请输入退货原因" />
                     @error('formReason') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">备注</label>
-                    <textarea wire:model="formNote" rows="2" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="可选"></textarea>
-                    @error('formNote') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    <textarea wire:model="formRemark" rows="2" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="可选"></textarea>
+                    @error('formRemark') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">

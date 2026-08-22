@@ -166,12 +166,14 @@ class OrderList extends Component
     public function openEditModal(int $id): void
     {
         $order = Order::findOrFail($id);
-        if ($order->status !== Order::STATUS_PICKING_WAIT) {
+        if (! $order->canEdit()) {
             $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
 
             return;
         }
         $this->editingId = $id;
+        $this->editingStatusLabel = $order->status_label;
+        $this->editingStatusColor = 'yellow';
         $this->formRemark = $order->remark ?? '';
         $this->showModal = true;
     }
@@ -180,7 +182,7 @@ class OrderList extends Component
     {
         if ($this->editingId) {
             $order = Order::findOrFail($this->editingId);
-            if ($order->status !== Order::STATUS_PICKING_WAIT) {
+            if (! $order->canEdit()) {
                 $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
                 $this->showModal = false;
                 $this->resetForm();
@@ -336,7 +338,7 @@ class OrderList extends Component
     public function delete(): void
     {
         $order = Order::findOrFail($this->deletingId);
-        if ($order->status !== Order::STATUS_PICKING_WAIT) {
+        if (! $order->canEdit()) {
             $this->toastError('当前状态不可删除，仅待拣货状态的订单可删除');
             $this->showDeleteConfirm = false;
             $this->deletingId = null;

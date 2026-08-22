@@ -11,8 +11,8 @@ return new class extends Migration
         Schema::create('loss_orders', function (Blueprint $table) {
             $table->id()->comment('主键');
             $table->string('loss_no', 50)->unique()->comment('损耗单号');
-            $table->string('source_type', 50)->nullable()->comment('来源类型：purchase_order=采购入库差异');
-            $table->unsignedBigInteger('source_id')->nullable()->comment('来源业务ID（如采购单ID）');
+            $table->string('source_type', 50)->nullable()->comment('来源类型：manual=手动，purchase_order=采购入库差异，discrepancy=差异单报损');
+            $table->unsignedBigInteger('source_id')->nullable()->comment('来源业务ID（如采购单ID/差异单ID）');
             $table->unsignedBigInteger('warehouse_id')->comment('仓库ID');
             $table->bigInteger('total_amount')->default(0)->comment('损耗总金额');
             $table->tinyInteger('loss_type')->unsigned()->default(1)->comment('主要损耗类型：1存储腐坏，2称重失水，3过期报废，4加工损耗，5盘点差异，6其他');
@@ -40,6 +40,7 @@ return new class extends Migration
             $table->unsignedBigInteger('loss_order_id')->comment('损耗单ID');
             $table->unsignedBigInteger('purchase_order_item_id')->nullable()->comment('采购单明细ID（入库差异来源）');
             $table->unsignedBigInteger('purchase_order_id')->nullable()->comment('采购单ID（入库差异来源）');
+            $table->unsignedBigInteger('discrepancy_id')->nullable()->comment('差异单ID（差异报损来源）');
             $table->unsignedBigInteger('sku_id')->comment('SKU ID');
             $table->tinyInteger('loss_type')->unsigned()->default(1)->comment('损耗类型：1存储腐坏，2称重失水，3过期报废，4加工损耗，5盘点差异，6其他');
             $table->bigInteger('quantity')->default(0)->comment('损耗数量');
@@ -56,6 +57,7 @@ return new class extends Migration
             $table->index('supplier_id');
             $table->index('purchase_order_item_id');
             $table->index('purchase_order_id');
+            $table->index('discrepancy_id');
             $table->comment('损耗单明细表');
         });
     }

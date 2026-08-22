@@ -4,9 +4,8 @@ namespace App\Services;
 
 use App\Models\Inventory;
 use App\Models\InventoryLog;
-use App\Models\User;
-use App\Models\Warehouse;
 use App\Models\Sku;
+use App\Models\Warehouse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -21,14 +20,15 @@ class InventoryService
     /**
      * 入库
      *
-     * @param Warehouse|int $warehouse 仓库或仓库ID
-     * @param Sku|int $sku SKU或SKU ID
-     * @param int $quantity 入库数量（正数）
-     * @param string $batchNo 批次号
-     * @param string|null $sourceType 业务来源类型（如 purchase_order）
-     * @param int|null $sourceId 业务来源ID
-     * @param string|null $reason 原因
-     * @param string|null $expiryDate 效期 (Y-m-d)
+     * @param  Warehouse|int  $warehouse  仓库或仓库ID
+     * @param  Sku|int  $sku  SKU或SKU ID
+     * @param  int  $quantity  入库数量（正数）
+     * @param  string  $batchNo  批次号
+     * @param  string|null  $sourceType  业务来源类型（如 purchase_order）
+     * @param  int|null  $sourceId  业务来源ID
+     * @param  string|null  $reason  原因
+     * @param  string|null  $expiryDate  效期 (Y-m-d)
+     * @param  int|null  $type  日志类型（默认 TYPE_IN，拒收回库传 TYPE_REJECT_RETURN 等）
      * @return Inventory 更新后的库存记录
      */
     public function stockIn(
@@ -40,11 +40,12 @@ class InventoryService
         ?int $sourceId = null,
         ?string $reason = null,
         ?string $expiryDate = null,
+        ?int $type = null,
     ): Inventory {
         $warehouseId = is_int($warehouse) ? $warehouse : $warehouse->id;
         $skuId = is_int($sku) ? $sku : $sku->id;
 
-        return DB::transaction(function () use ($warehouseId, $skuId, $quantity, $batchNo, $sourceType, $sourceId, $reason, $expiryDate) {
+        return DB::transaction(function () use ($warehouseId, $skuId, $quantity, $batchNo, $sourceType, $sourceId, $reason, $expiryDate, $type) {
             // 查找或创建库存记录（按仓库+SKU+批次唯一）
             $inventory = Inventory::where('warehouse_id', $warehouseId)
                 ->where('sku_id', $skuId)
@@ -77,7 +78,7 @@ class InventoryService
             $this->writeLog(
                 warehouseId: $warehouseId,
                 skuId: $skuId,
-                type: InventoryLog::TYPE_IN,
+                type: $type ?? InventoryLog::TYPE_IN,
                 quantity: $quantity,
                 beforeStock: $beforeStock,
                 afterStock: $afterStock,
@@ -93,14 +94,12 @@ class InventoryService
     /**
      * 出库
      *
-     * @param Warehouse|int $warehouse
-     * @param Sku|int $sku
-     * @param int $quantity 出库数量（正数）
-     * @param string|null $batchNo 指定批次号（null则从最早批次出库 FIFO）
-     * @param string|null $sourceType
-     * @param int|null $sourceId
-     * @param string|null $reason
-     * @return bool
+     * @param  Warehouse|int  $warehouse
+     * @param  Sku|int  $sku
+     * @param  int  $quantity  出库数量（正数）
+     * @param  string|null  $batchNo  指定批次号（null则从最早批次出库 FIFO）
+     * @param  int|null  $type  日志类型（默认 TYPE_OUT，报损出库传 TYPE_LOSS_REPORT 等）
+     *
      * @throws \Exception 库存不足时抛出异常
      */
     public function stockOut(
@@ -111,11 +110,12 @@ class InventoryService
         ?string $sourceType = null,
         ?int $sourceId = null,
         ?string $reason = null,
+        ?int $type = null,
     ): bool {
         $warehouseId = is_int($warehouse) ? $warehouse : $warehouse->id;
         $skuId = is_int($sku) ? $sku : $sku->id;
 
-        return DB::transaction(function () use ($warehouseId, $skuId, $quantity, $batchNo, $sourceType, $sourceId, $reason) {
+        return DB::transaction(function () use ($warehouseId, $skuId, $quantity, $batchNo, $sourceType, $sourceId, $reason, $type) {
             $query = Inventory::where('warehouse_id', $warehouseId)
                 ->where('sku_id', $skuId)
                 ->where('available_stock', '>=', 1);
@@ -128,8 +128,8 @@ class InventoryService
                 ->lockForUpdate()
                 ->first();
 
-            if (!$inventory || $inventory->available_stock < $quantity) {
-                throw new \Exception("库存不足：仓库ID {$warehouseId}，SKU ID {$skuId}，需出库 {$quantity}，可用库存 " . ($inventory?->available_stock ?? 0));
+            if (! $inventory || $inventory->available_stock < $quantity) {
+                throw new \Exception("库存不足：仓库ID {$warehouseId}，SKU ID {$skuId}，需出库 {$quantity}，可用库存 ".($inventory?->available_stock ?? 0));
             }
 
             $beforeStock = $inventory->total_stock;
@@ -142,7 +142,7 @@ class InventoryService
             $this->writeLog(
                 warehouseId: $warehouseId,
                 skuId: $skuId,
-                type: InventoryLog::TYPE_OUT,
+                type: $type ?? InventoryLog::TYPE_OUT,
                 quantity: -$quantity,
                 beforeStock: $beforeStock,
                 afterStock: $afterStock,
@@ -158,14 +158,10 @@ class InventoryService
     /**
      * 库存调整
      *
-     * @param Warehouse|int $warehouse
-     * @param Sku|int $sku
-     * @param int $diff 调整差额（正数=增加，负数=减少）
-     * @param string $reason 调整原因（必填）
-     * @param string|null $batchNo
-     * @param string|null $sourceType
-     * @param int|null $sourceId
-     * @return Inventory
+     * @param  Warehouse|int  $warehouse
+     * @param  Sku|int  $sku
+     * @param  int  $diff  调整差额（正数=增加，负数=减少）
+     * @param  string  $reason  调整原因（必填）
      */
     public function adjust(
         $warehouse,
@@ -182,11 +178,11 @@ class InventoryService
         return DB::transaction(function () use ($warehouseId, $skuId, $diff, $reason, $batchNo, $sourceType, $sourceId) {
             $inventory = Inventory::where('warehouse_id', $warehouseId)
                 ->where('sku_id', $skuId)
-                ->when($batchNo !== '', fn($q) => $q->where('batch_no', $batchNo))
+                ->when($batchNo !== '', fn ($q) => $q->where('batch_no', $batchNo))
                 ->lockForUpdate()
                 ->first();
 
-            if (!$inventory) {
+            if (! $inventory) {
                 throw new \Exception("库存记录不存在：仓库ID {$warehouseId}，SKU ID {$skuId}");
             }
 

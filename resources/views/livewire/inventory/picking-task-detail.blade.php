@@ -25,6 +25,17 @@
             @if($pickingTask->status === 2)
             <button type="button" wire:click="completePicking" class="rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 transition-colors">完成拣货</button>
             @endif
+
+            {{-- 超管状态回退 --}}
+            @if($isSuperAdmin && !in_array($pickingTask->status, [1]))
+                <div class="relative" x-data="{open: false}">
+                    <button type="button" @click="open = !open" class="rounded-md border border-purple-300 px-3 py-1.5 text-sm font-medium text-purple-600 hover:bg-purple-50 transition-colors">回退</button>
+                    <div x-show="open" @click.away="open = false" x-transition class="absolute right-0 mt-1 w-36 rounded-md border bg-background shadow-lg z-10 py-1">
+                        @if($pickingTask->status > 1)<button type="button" wire:click="confirmRollback(1)" class="block w-full text-left px-3 py-1.5 text-sm hover:bg-accent transition-colors" @click="open = false">回退到待分配</button>@endif
+                        @if($pickingTask->status > 2)<button type="button" wire:click="confirmRollback(2)" class="block w-full text-left px-3 py-1.5 text-sm hover:bg-accent transition-colors" @click="open = false">回退到拣货中</button>@endif
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 
@@ -125,6 +136,9 @@
                     <th class="px-4 py-2 text-right w-24">需求数量</th>
                     <th class="px-4 py-2 text-right w-24">已拣数量</th>
                     <th class="px-4 py-2 text-center w-24">状态</th>
+                    @if($pickingTask->status === 2)
+                    <th class="px-4 py-2 text-center w-24">操作</th>
+                    @endif
                 </tr>
             </thead>
             <tbody class="divide-y">
@@ -140,6 +154,11 @@
                         @php $ic = $itemColorMap[$item['status']] ?? 'gray'; @endphp
                         <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $ic }}-100 text-{{ $ic }}-700">{{ $itemStatusMap[$item['status']] ?? '-' }}</span>
                     </td>
+                    @if($pickingTask->status === 2)
+                    <td class="px-4 py-2 text-center">
+                        <button type="button" wire:click="openPickedModal({{ $item['sku_id'] }})" class="rounded-md border border-input px-2 py-1 text-xs hover:bg-accent transition-colors">录入实拣</button>
+                    </td>
+                    @endif
                 </tr>
                 @endforeach
             </tbody>
@@ -202,6 +221,120 @@
             </div>
         </div>
         @endforeach
+    </div>
+    @endif
+
+    {{-- 本任务差异单（就近可视） --}}
+    @if($discrepancies->isNotEmpty())
+    <div class="rounded-lg border bg-card mt-4">
+        <div class="px-6 py-4 border-b flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-foreground">本任务差异单（{{ $discrepancies->count() }}）</h3>
+            <a href="{{ route('discrepancies') }}" class="text-xs text-blue-600 hover:text-blue-700 transition-colors">前往差异处理台 →</a>
+        </div>
+        <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-muted/20">
+                <tr class="text-xs text-muted-foreground uppercase tracking-wider">
+                    <th class="px-4 py-2 text-left">差异单号</th>
+                    <th class="px-4 py-2 text-left">SKU名称</th>
+                    <th class="px-4 py-2 text-left w-20">类型</th>
+                    <th class="px-4 py-2 text-right w-20">应拣</th>
+                    <th class="px-4 py-2 text-right w-20">实拣</th>
+                    <th class="px-4 py-2 text-right w-20">差异量</th>
+                    <th class="px-4 py-2 text-center w-24">状态</th>
+                    <th class="px-4 py-2 text-left">原因</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y">
+                @foreach($discrepancies as $disc)
+                <tr class="hover:bg-muted/30 transition-colors">
+                    <td class="px-4 py-2 text-foreground font-medium">{{ $disc->discrepancy_no }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $disc->sku?->sku_name ?? '-' }}</td>
+                    <td class="px-4 py-2 text-muted-foreground">{{ $disc->type_label }}</td>
+                    <td class="px-4 py-2 text-right text-foreground">{{ $disc->expected_quantity }}</td>
+                    <td class="px-4 py-2 text-right text-foreground">{{ $disc->actual_quantity }}</td>
+                    <td class="px-4 py-2 text-right text-red-600 font-medium">{{ $disc->expected_quantity - $disc->actual_quantity }}</td>
+                    <td class="px-4 py-2 text-center">
+                        @php $discColorMap = [1 => 'orange', 2 => 'blue', 3 => 'green', 4 => 'gray', 5 => 'red']; @endphp
+                        @php $dc = $discColorMap[$disc->status] ?? 'gray'; @endphp
+                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $dc }}-100 text-{{ $dc }}-700">{{ $disc->status_label }}</span>
+                    </td>
+                    <td class="px-4 py-2 text-muted-foreground">{{ $disc->reason ?? '-' }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+        </div>
+    </div>
+    @endif
+
+    {{-- 实拣录入弹窗（遮罩不可点击关闭） --}}
+    @if($showPickedModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">录入实拣数量</h2>
+                <button type="button" wire:click="closePickedModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div class="rounded-md bg-muted p-3 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-muted-foreground">SKU</span>
+                        <span class="text-foreground font-medium">{{ $editingSkuName }}</span>
+                    </div>
+                    <div class="flex justify-between mt-1">
+                        <span class="text-muted-foreground">需求数量</span>
+                        <span class="text-foreground font-medium">{{ $editingRequiredQty }}</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">实拣数量 <span class="text-red-500">*</span></label>
+                    <input type="number" wire:model="inputPickedQty" min="0" max="{{ $editingRequiredQty }}" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                </div>
+                @if((int) $inputPickedQty < $editingRequiredQty)
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">差异类型</label>
+                    <select wire:model="inputDiffType" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        <option value="1">少收（库存不足）</option>
+                        <option value="3">残次（无法出库）</option>
+                        <option value="4">其他</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">差异原因 <span class="text-red-500">*</span></label>
+                    <textarea wire:model="inputDiffReason" rows="2" maxlength="255" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="实拣少于需求时必填，将生成差异单待处理"></textarea>
+                </div>
+                <p class="text-xs text-muted-foreground">缺口 {{ $editingRequiredQty - (int) $inputPickedQty }} 将按订单明细分摊并生成拣货差异单，差异处理台统一跟进</p>
+                @endif
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" wire:click="closePickedModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="savePickedQuantity" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- 状态确认弹窗 --}}
+    @if($showConfirmModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">确认操作</h2>
+                <button type="button" wire:click="closeConfirmModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
+            <p class="text-sm text-muted-foreground mb-6">{{ $confirmTitle }}</p>
+            <div class="flex justify-end gap-3">
+                <button type="button" wire:click="closeConfirmModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="executeConfirm" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">确认</button>
+            </div>
+        </div>
     </div>
     @endif
 </div>

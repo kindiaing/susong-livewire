@@ -142,10 +142,20 @@
                         </div>
                     </td>
                 </tr>
-                @if($item->discrepancy_reason)
+                @if($item->discrepancy_quantity > 0 || $item->discrepancy_reason)
                 <tr>
                     <td colspan="8" class="px-3 py-0.5 bg-orange-50 text-[11px] text-orange-700">
-                        差异：{{ $item->discrepancy_reason }}
+                        @if($item->discrepancy_quantity > 0)
+                        <span class="font-medium">入库差异 {{ $item->discrepancy_quantity }}</span>
+                        @endif
+                        @if($item->discrepancy_reason)
+                        <span>原因：{{ $item->discrepancy_reason }}</span>
+                        @endif
+                        @if($item->loss_order_id)
+                        <span class="ml-2 text-orange-800">损耗单：{{ $item->lossOrder?->loss_no ?? "#{$item->loss_order_id}" }}</span>
+                        @elseif($item->discrepancy_quantity > 0)
+                        <span class="ml-2">差异率在允差阈值内，仅留痕</span>
+                        @endif
                     </td>
                 </tr>
                 @endif

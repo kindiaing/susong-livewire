@@ -1196,3 +1196,360 @@
 | 分支 | bugfix → 合并 main |
 | 提交 | 见本次提交 |
 | 验证 | 测试 9 通过 / 1 失败（UnitConversionServiceTest 三级换算断言为既有问题，与本次无关）；Pint 通过 |
+---
+
+## V2.0.3 — 差异功能一期：登记入口 + 处理台（先货后钱）
+
+### 变更概述
+
+按 `docs/research/11_差异损耗留痕与账务持平设计.md` 落地差异功能一期：差异（事实登记，不动库存和钱）与损耗（处置，动库存成本）分离。拣货/实收环节登记差异单，差异处理台统一跟进：定责任方 + 处理决策（补货/退款/扣款/报损/不计），报损自动生成待审核损耗单，拒收/残次支持回库回补库存。退款/扣款本期只登记决策不动钱，金额调整为二期。
+
+### 变更明细
+
+| 操作 | 文件 | 说明 |
+| :--- | :--- | :--- |
+| 新增 | Services/DiscrepancyService | 差异单全生命周期：create（登记+唯一性校验+按订单明细单价估算金额差异）、process（责任方+决策分流）、restockToWarehouse（拒收回库 TYPE_IN 留痕）；审计受 audit_discrepancy 开关控制 |
+| 完善 | Services/LossOrderService::create | 新增 sourceType/sourceId 参数（默认 manual/null，向后兼容），支持来源=差异单 |
+| 完善 | Inventory/PickingTaskDetail | SKU 汇总行「录入实拣」弹窗：实拣按订单明细顺序分摊，缺口自动生成拣货差异单（stage=1） |
+| 完善 | Delivery/DeliveryNoteDetail | 实收少于应送时弹出差异登记（实收 0 默认拒收，stage=3），生成差异单待处理 |
+| 重构 | Delivery/DiscrepancyList | 裸列表升级为处理台：环节/状态筛选、责任方+决策处理弹窗、拒收回库弹窗；修复列配置 amount→amount_diff，补环节/数量差异/责任方/决策列 |
+| 新增 | tests/Feature/DiscrepancyServiceTest | 6 条用例：登记/重复拦截/报损联动损耗单/不计关闭/回库回补库存/重复处理拦截 |
+
+### 数据库变更
+
+| 变更 | 表名 | 字段 | 说明 |
+| :--- | :--- | :--- | :--- |
+| 调整 | discrepancies | order_id | 改为可空（送货单明细可能无关联订单） |
+| 新增配置 | system_configs | discrepancy_auto_create_loss | 差异报损自动生成损耗单开关（inventory 组，默认开启） |
+| 新增配置 | system_configs | audit_discrepancy | 差异单登记/处理/回库审计开关（audit 组，默认开启） |
+
+### 权限设计
+
+按钮级控制复用现有权限点，未新增：处理决策按按钮映射（补货→delivery.discrepancy.restock，退款/扣款→refund，报损→writeoff，不计→任一决策权限），回库→restock；审核类开关走 system_configs 配置。
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | bugfix |
+| 提交 | 见本次提交 |
+| 验证 | 测试 15 通过 / 1 失败（UnitConversionServiceTest 三级换算断言为既有问题，与本次无关）；Pint 通过；view:cache 通过 |
+
+---
+
+## V2.0.4 — 差异功能一期加固：单据溯源字段 + 库存日志语义化 + 损耗执行扣库存修复
+
+> 开发者：Kimi（差异/库存链路）。同期另一工具完成单据状态锁定改造（见 `f6e5160` / `ca2bf51`）。
+> 决策依据：`docs/research/11_差异损耗留痕与账务持平设计.md` 第 11 章（决策 1 方案 A 全量字段 / 决策 3 损耗明细溯源 / 决策 4 方案 B 日志类型细分由调用方显式传入）。
+
+### 变更概述
+
+1. **修复严重 Bug**：损耗单列表页「执行」直接改状态不扣库存，改为调用 `LossOrderService::execute()` 走库存扣减。
+2. **差异单自包含上下文**：`discrepancies` 表新增 8 个关联字段，各环节登记时回填，处理/对账不再依赖间接关联。
+3. **损耗明细可溯源差异单**：`loss_order_items.discrepancy_id`，差异报损自动写入。
+4. **库存日志语义化**：新增类型 7 报损出库 / 8 拒收回库 / 9 售后退库（预留），`stockIn/stockOut` 支持显式传类型，损耗执行与拒收回库已适配。
+
+### 变更明细
+
+| 操作 | 文件 | 说明 |
+| :--- | :--- | :--- |
+| 修复 | Loss/LossOrderList::execute | 改走 `LossOrderService::execute()`，执行时真实扣减库存（事务内） |
+| 调整 | 000011_create_discrepancy_tables | 新增 purchase_order_id / picking_task_id / delivery_task_id / delivery_note_item_id / sku_id / warehouse_id / unit_id / unit_quantity + 4 个索引 |
+| 调整 | 000008_create_loss_tables | loss_order_items 新增 discrepancy_id + 索引 |
+| 完善 | Models/Discrepancy | 新字段 fillable/casts + sku() 关联 |
+| 完善 | Models/LossOrderItem | discrepancy_id fillable/casts |
+| 完善 | Models/InventoryLog | 新增 TYPE_LOSS_REPORT=7 / TYPE_REJECT_RETURN=8 / TYPE_AFTER_SALES_RETURN=9 + 类型映射 |
+| 完善 | Services/InventoryService | stockIn/stockOut 新增 `?int $type` 参数（默认 TYPE_IN/TYPE_OUT，向后兼容） |
+| 完善 | Services/LossOrderService | execute 传 TYPE_LOSS_REPORT；create 写入明细 discrepancy_id |
+| 完善 | Services/DiscrepancyService | create 接收并回填 8 个关联字段；resolveSkuId 优先直读 sku_id；createLossOrder 传 discrepancy_id；restockToWarehouse 传 TYPE_REJECT_RETURN |
+| 完善 | Inventory/PickingTaskDetail | 拣货差异登记回填 picking_task_id / sku_id / warehouse_id |
+| 完善 | Delivery/DeliveryNoteDetail | 实收差异登记按订单+SKU 反查回填 order_item_id，回填 delivery_note_item_id / sku_id |
+| 完善 | Delivery/DiscrepancyList | 处理弹窗 SKU 优先直读差异单 sku 关联 |
+| 测试 | tests/Feature/DiscrepancyServiceTest | 补关联字段回填、损耗明细 discrepancy_id、日志类型 7/8 断言；新增全链路用例（差异→报损→审核→执行→库存扣减） |
+
+### 决策记录
+
+| 决策 | 选择 | 说明 |
+| :--- | :--- | :--- |
+| 差异单关联字段 | 全量 8 字段 | 差异单自包含，对账效率最高 |
+| 日志类型传入方式 | 调用方显式传 | 控制精确，默认参数保持向后兼容 |
+| 回库审核闸门 | 不加（现状） | 处理台回库操作人即仓管确认，仅审计留痕；二期可加开关 |
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | bugfix（差异损耗工作分支，待用户确认后合并 main） |
+| 提交 | 见本次提交 |
+| 验证 | 测试 16 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint 通过；view:cache 通过；开发库需 migrate:fresh --seed 生效新字段 |
+
+---
+
+## V2.0.5 — 差异流程开关化 + 允差阈值：四环节独立管控与差异就近可视
+
+> 开发者：Kimi。决策依据：用户拍板「全环节默认宽松模式 + 允差阈值本期落地，阈值支持自定义」；`docs/research/11_差异损耗留痕与账务持平设计.md` 差异管控章节。
+
+### 变更概述
+
+1. **四环节差异策略开关**：采购入库 / 拣货 / 配送分货 / 实收签收各有独立「允许差异」开关（默认全开=宽松模式）。关闭即严格模式：该环节收发必须一致，录入差异直接阻断并提示出口（调整订单 / 售后退货 / 管理员回退）。
+2. **允差阈值（%）**：采购 / 拣货 / 实收各自可配置阈值（0~100，默认 0=任何差异都生成单据）。差异率 ≤ 阈值时只标记留痕（明细标差异 / 记录差异数量），不生成差异单 / 损耗单；超阈值正常生成。
+3. **差异就近可视**：拣货总单详情新增「本任务差异单」区块；送货单明细行标注差异单号与处理状态；采购单明细子行显示差异数量与关联损耗单号（阈值内显示「仅留痕」）；登记差异后的 toast 均带差异单号。
+4. **采购单完成校验阈值化**：阈值内留痕的入库差异不再阻断采购单完成（此前 loss_order_id 为空即阻断，会导致阈值内差异永远无法完成）。
+
+### 变更明细
+
+| 操作 | 文件 | 说明 |
+| :--- | :--- | :--- |
+| 调整 | 000013_create_system_tables | 新增 8 个配置项：inventory 组 purchase/picking 开关+阈值（sort 34-37），delivery 组 delivery/receiving 开关+阈值（sort 13-16）；配置计数注释 26→34 |
+| 完善 | Inventory/PickingTaskDetail::savePickedQuantity | 严格模式阻断（不保存）；差异率 ≤ 阈值只分摊标记不建差异单；超阈值建单并收集单号，toast 分三种场景（阈值留痕/建单带单号/正常） |
+| 完善 | Delivery/DeliveryNoteDetail::confirmItemDelivery | 严格模式阻断（不保存明细）；阈值内只标记 STATUS_DISCREPANCY 不弹窗；超阈值维持弹窗登记 |
+| 完善 | Delivery/DeliveryNoteDetail::markDelivered | 分货前检查差异明细：严格模式阻断，宽松模式 toast 警告差异条数后放行 |
+| 完善 | Delivery/DeliveryNoteDetail::saveItemDiscrepancy / render | toast 带差异单号；render 输出明细级差异单映射（按 delivery_note_item_id） |
+| 完善 | Services/PurchaseService::stockIn | 严格模式任一行实际≠采购数量即 throw 阻断；createFromDiscrepancy 传入 purchase 阈值 |
+| 完善 | Services/PurchaseService::complete | 未处理差异校验改为阈值感知：差异率 ≤ 阈值视为已留痕处理 |
+| 完善 | Services/LossOrderService::createFromDiscrepancy | 新增 `?int $thresholdPct` 参数（默认 null 不过滤，向后兼容），按差异率过滤阈值内明细 |
+| 完善 | Inventory/PickingTaskDetail::render + blade | 「本任务差异单」区块（单号/SKU/类型/应拣/实拣/差异量/状态/原因 + 处理台链接） |
+| 完善 | delivery-note-detail.blade | 明细行状态列下标注差异单号与处理状态 |
+| 完善 | purchase-order-detail.blade | 差异子行补充差异数量与损耗单号展示，阈值内显示「仅留痕」 |
+| 测试 | tests/Feature/DiscrepancyThresholdTest | 4 条用例：严格阻断 / 阈值免单（含完成不阻断）/ 超阈值建单 / 默认配置兜底断言 |
+
+### 决策记录
+
+| 决策 | 选择 | 说明 |
+| :--- | :--- | :--- |
+| 默认模式 | 全宽松 | 用户拍板；严格模式通过系统设置逐环节开启 |
+| 允差阈值 | 本期落地 | 阈值可自定义修改（0~100%），0=任何差异都生成单据 |
+| 配送环节挂点 | markDelivered 确认分货 | 分货是配送侧唯一数量确认动作 |
+| 阈值内差异留痕方式 | 只标记不建单 | 明细标差异状态/记录差异数量，不产生差异单损耗单，采购单可正常完成 |
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | bugfix（差异损耗工作分支，待用户确认后合并 main） |
+| 提交 | 见本次提交 |
+| 验证 | 测试 20 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint 通过；view:cache 通过；开发库需 migrate:fresh --seed 生效新配置 |
+
+---
+
+## V2.0.6 — 采购差异损耗单仅账务留痕（不扣库存）+ 采购单列表差异警示图标
+
+> 开发者：Kimi。用户拍板「B 为主 A 兜底」：采购入库差异的损耗单审核即终态，服务层再兜底防误扣。
+
+### 变更概述
+
+1. **修复隐患**：采购入库差异自动生成的损耗单，差异部分的货未入库，「执行」再扣库存属双重扣减。现改为：列表页对来源=采购单的损耗单不显示「执行」按钮（B 为主），审核通过后可直接「关闭」；`LossOrderService::execute()` 对来源=采购单跳过库存扣减（A 兜底，防接口误调）。
+2. **采购单列表警示图标**：单号旁警示图标分色——红色=已生成损耗单待审核，橙色=允差阈值内仅留痕；hover 提示差异明细条数与短缺总量。
+
+### 变更明细
+
+| 操作 | 文件 | 说明 |
+| :--- | :--- | :--- |
+| 完善 | Services/LossOrderService::execute | 来源=采购单跳过 stockOut，仅留账（注释说明防双重扣减） |
+| 完善 | Loss/LossOrderList::close | 来源=采购单且已审核的损耗单允许直接关闭 |
+| 完善 | loss-order-list.blade | 来源=采购单隐藏执行按钮；审核后显示关闭按钮（title 说明仅留痕） |
+| 完善 | Purchase/PurchaseOrderList + blade | withSum/withCount 预统计差异；警示图标分红（待审核损耗单）/橙（仅留痕）两色 + hover 摘要 |
+| 测试 | tests/Feature/DiscrepancyThresholdTest | 新增用例：采购来源损耗单执行后库存仍为实收数量 |
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | bugfix（待用户确认后合并 main） |
+| 提交 | 见本次提交 |
+| 验证 | 测试 21 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint / view:cache 通过 |
+
+---
+
+## V2.0.7 — 供应商结算修复：周期结算模式落地 + 账务持平联动
+
+> 开发者：Kimi。用户拍板：方向一（贴回表结构的周期结算）+ 口径 A（应付=实际入库金额−退货−服务费）。
+
+### 变更概述
+
+1. **修复断裂**：结算组件按表中不存在的幻影字段（purchase_order_id/settlement_date/note）实现，创建结算单必报 SQL 错误。重写为表结构设计的周期结算模式：供应商 + 结算周期 → 自动汇总周期内已入库/已完成采购单（按入库时间）生成结算明细，已结算采购单防重复计入。
+2. **账务持平（口径 A）**：应付 = Σ 实际入库金额 − 周期内已完成采购退货实际出库金额 − 服务费。入库差异按实收计价天然持平（少收的货不付钱），差异损耗单作留痕证据。
+3. **付款闭环**：移除不建付款记录的 confirmPayment 捷径；部分付款统一写 settlement_payments + 累计 paid_amount + 满额自动结清；新增超付拦截；仅待结算状态可删除（明细连带清理）。
+4. **详情弹窗**：补结算明细（采购单号+计价金额，有差异标注原订单金额）与付款记录；列表列改为周期/汇总/退货扣减/服务费/应付/已付。
+5. **模型清理**：SupplierSettlement 移除幻影 fillable/casts 与 purchaseOrder 关联（结算单与采购单为一对多，走 settlement_items）。
+
+### 变更明细
+
+| 操作 | 文件 | 说明 |
+| :--- | :--- | :--- |
+| 新增 | Services/SupplierSettlementService | generate()：周期内已入库采购单汇总（排除已结算）+ 退货扣减 + 服务费，事务建单+明细 |
+| 重写 | Finance/SupplierSettlementList | 表单改周期结算；列配置对齐真实字段；付款闭环+超付拦截；删除限制待结算 |
+| 完善 | Models/SupplierSettlement | 清理幻影字段 fillable/casts/purchaseOrder 关联 |
+| 完善 | supplier-settlement-list.blade | 表单/列表列/详情弹窗对齐周期结算；修复付款记录区 SettlementPayment 非限定类名隐患 |
+| 测试 | tests/Feature/SupplierSettlementTest | 6 条用例：周期汇总口径/防重复结算/空周期报错/组件表单建单/部分付款+超付拦截+结清/删除限制 |
+
+### 决策记录
+
+| 决策 | 选择 | 说明 |
+| :--- | :--- | :--- |
+| 结算模式 | 周期结算（方向一） | 表结构+种子数据均按周期设计，组件是跑偏方 |
+| 应付口径 | 实际入库金额（口径 A） | 差异天然持平，扣减路径最短 |
+| 退货扣减口径 | 已完成退货的实际出库金额 | 与入库口径对称 |
+| 付款审核流 | 二期 | approval_status 字段保留，暂不接审核管理 |
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | feature/discrepancy-loss |
+| 提交 | 见本次提交 |
+| 验证 | 测试 27 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint / view:cache 通过 |
+
+---
+
+## V2.0.8 — 供应商结算交互修复 + 演示数据对齐
+
+> 开发者：Kimi。用户实测反馈修复。
+
+### 变更概述
+
+1. **修复弹窗关闭失效**：详情/付款弹窗使用 `wire:click="showXxx = false"` 赋值语法（Livewire 不执行），5 处全部改为 `closeDetailModal()` / `closePaymentModal()` 方法调用。
+2. **结算单号链接化**：与其他列表页一致——蓝色字体 hover 下划线，点击单号打开详情弹窗；移除操作列的眼睛预览图标。
+3. **演示数据对齐周期结算**：PO-20260725-00001 补 stocked_at/completed_at 与土豆明细 discrepancy_quantity=200；新增 PO-20260726-00003（丰润肉业·无差异 160000）与 PO-20260727-00004（丰润肉业·鲜虾短缺 200 有差异，订 120000 实收 100000），两单已入库；SS-20260728-00002 补两条结算明细，汇总 260000 − 服务费 3000 = 应付 257000，与结算单头一致。
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | feature/discrepancy-loss |
+| 提交 | 见本次提交 |
+| 验证 | 测试 27 通过 / 1 失败（既有问题）；Pint / view:cache 通过；migrate:fresh + DemoDataSeeder 重跑验证数据一致 |
+
+---
+
+## V2.0.9 — 采购退货双模式：关联退货 + 普通退货
+
+> 开发者：Kimi。用户拍板：1A（数量上限=实际入库数量）、2A（普通退货供应商+仓库必填）、3A（普通退货单价明细行手工填写）。
+
+### 变更概述
+
+1. **双模式退货**：新增 `return_type`（1 普通 / 2 关联，默认关联）。关联退货沿用采购单明细调取；普通退货不关联采购单（`purchase_order_id` 可空），明细完全自定义。
+2. **关联退货上限修正**：退货数量拦截口径从订购数量收紧为**实际入库数量**——含入库差异时，少送的货不允许被退，保证退的货在库里。
+3. **普通退货明细工具**：创建弹窗支持逐行添加（SKU 下拉 + 数量 + 单价(元) + 原因）、下载 Excel 导入模板、按 SKU 编码匹配导入（未识别编码汇总提示）、导出明细 CSV（带 BOM）。
+4. **无单流程适配**：出库仓库普通退货取退货单头 `warehouse_id`；完成/作废时 `purchaseOrder?->updateReturnStatus()` 空安全，普通退货不触发采购单退货状态更新。
+5. **结算口径不变**：供应商结算 return_amount 按 supplier + completed_at 汇总已完成退货，天然兼容普通退货，无需改动。
+6. **详情页适配**：普通退货显示「普通退货（无关联采购单）」替代采购单链接，新增类型徽章。
+
+### 变更明细
+
+| 操作 | 文件 | 说明 |
+| :--- | :--- | :--- |
+| 修改 | 迁移 000016_create_return_tables | `purchase_order_id` / `purchase_return_items.purchase_order_item_id` 可空；新增 `return_type` tinyint default 2 |
+| 完善 | Models/PurchaseReturn | TYPE_NORMAL/TYPE_LINKED 常量、typeMap、return_type_label 访问器 |
+| 完善 | Services/PurchaseReturnService | 原 create() 改名 createLinked()（超实际入库数量拦截）；新增 createNormal()；ship/complete/cancel 无单空安全 |
+| 重写 | Livewire/Purchase/PurchaseReturnList | 类型切换、formItems 明细行编辑、addItemRow/removeItemRow、Excel 导入/模板下载/明细导出、列表新增类型列 |
+| 修改 | purchase-return-list.blade | 创建弹窗双模式 UI；类型徽章列 |
+| 修改 | purchase-return-detail.blade | 普通退货无采购单时的显示与类型徽章 |
+| 测试 | tests/Feature/PurchaseReturnFlowTest | 7 条用例：关联创建计价/超实入拦截/未入库拦截/普通创建/空明细与零数量拦截/普通退货全流程扣库存/结算汇总口径 |
+| 文档 | docs/07、docs/12 | 采购退货章节补双模式用例与操作说明（07 用例统计 122→126） |
+
+### 决策记录
+
+| 决策 | 选择 | 说明 |
+| :--- | :--- | :--- |
+| 1A 关联退货数量上限 | 实际入库数量 | 退的货必须在库里，与入库差异口径一致 |
+| 2A 普通退货必填项 | 供应商 + 仓库 | 供应商必填保证结算汇总口径；仓库必填保证出库扣库存有目标 |
+| 3A 普通退货单价 | 明细行手工填写 | 元输入、厘存储，灵活覆盖历史/零散退货价格 |
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | feature/discrepancy-loss |
+| 提交 | 见本次提交 |
+| 验证 | 新增测试 7 通过；全量 34 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint / view:cache 通过；migrate:fresh + DemoDataSeeder 重跑验证 |
+
+---
+
+## V2.0.10 — 采购退货交互重构：头先行 + 详情页维护明细
+
+> 开发者：Kimi。用户实测反馈：创建弹窗太小，不适合整理明细——改为先存单头、保存后跳详情页再添加/导入/导出明细。
+
+### 变更概述
+
+1. **两步建单**：新增弹窗只填单头（类型 / 关联采购单 或 供应商+仓库 / 原因备注），保存后自动跳转退货单详情页。
+2. **明细维护迁移至详情页**：待审核状态下明细表格可编辑——添加/删除行、普通退货下载导入模板 + Excel/CSV 导入（按 SKU 编码匹配）+ 导出明细 CSV，「保存明细」整单替换生效；非待审核状态只读。
+3. **服务层配套**：createLinked/createNormal 允许空头创建；新增 updateItems()（仅待审核，先删后建 + 重算金额，关联模式复用实际入库数量上限校验与重复行拦截）；approve() 拦截无明细单据（"请先添加退货明细再审核"）。
+4. **关联模式选行交互**：详情页明细行从采购单明细下拉选择，自动带出 SKU、可退上限（实际入库数量）、单价。
+
+### 变更明细
+
+| 操作 | 文件 | 说明 |
+| :--- | :--- | :--- |
+| 完善 | Services/PurchaseReturnService | 空头创建；updateItems()；明细行创建提取为 createLinkedItem/createNormalItem；审核校验明细非空 |
+| 重写 | Livewire/Purchase/PurchaseReturnList | 移除明细行/导入导出逻辑；save() 创建后 redirect 详情页 |
+| 重写 | Livewire/Purchase/PurchaseReturnDetail | 迁入明细编辑：formItems 同步、addItemRow/pickOrderItem/removeItemRow/importItems/exportItemsTemplate/exportItems/saveItems |
+| 修改 | purchase-return-list.blade | 弹窗去除明细区，改为跳转提示 |
+| 修改 | purchase-return-detail.blade | 待审核可编辑明细表格（含工具栏），非待审核只读 |
+| 测试 | tests/Feature/PurchaseReturnFlowTest | 调整空头用例为审核拦截；新增 updateItems 整单替换+状态拦截、列表组件建单跳转，共 10 用例 |
+| 文档 | docs/07、docs/12 | 采购退货用例改两步流程+新增 TC-PUR-006e 空头审核拦截（统计 126→127）；用户手册 4.7 两步操作说明 |
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | feature/discrepancy-loss |
+| 提交 | 见本次提交 |
+| 验证 | 退货测试 10 通过；全量 37 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint / view:cache 通过 |
+
+---
+
+## V2.0.11 — 售后退货重构：对齐采购退货「头先行 + 详情页明细」模式
+
+> 开发者：Kimi。用户拍板：售后退货统一为采购退货同款交互。
+
+### 变更概述
+
+1. **补齐缺失层**：售后退货此前无服务层、无详情页、明细从不写入（创建仅订单+商家+原因），且组件写 `note` 幻影字段（表字段为 remark，静默丢失）——本次全部修复。
+2. **新建 OrderReturnService**：空头建单（仅已签收/已锁定订单，商家自动取自订单）；updateItems() 整单替换（仅待审核）；数量上限 = 客户实收数量（actual_quantity ?: quantity），单价取实收单价；approve 拦截无明细单据；markReturned / refund（退款金额=退货总金额，明细 refund_amount 同步）/ cancel 全状态流转 + 审计日志。
+3. **新增详情页**：`/order-returns/{id}` 路由 + OrderReturnDetail 组件——摘要、待审核可编辑明细（订单明细下拉选行，自动带出可退上限/单价）、只读明细、状态按钮、超管回退、时间线（审核/退货/退款/作废时间）。
+4. **列表页配套**：退货单号蓝色链接进详情；新增弹窗头先行（选订单自动带商家，保存后跳详情页）；状态操作全部委托服务层；修 note→remark（列表列/导出/导入映射/表单）；列表新增退货金额列。
+5. **杂项修复**：迁移补 returned_at/refunded_at/cancelled_at 时间戳；helpers 补 order_return 状态徽章；演示数据 RT-20260729-00001 头金额 6900 → 6900000（与明细 500×13800 一致）。
+
+### 变更明细
+
+| 操作 | 文件 | 说明 |
+| :--- | :--- | :--- |
+| 修改 | 迁移 000016_create_return_tables | order_returns 补 returned_at/refunded_at/cancelled_at |
+| 完善 | Models/OrderReturn | 三个时间戳入 fillable/casts |
+| 新增 | Services/OrderReturnService | create/updateItems/approve/markReturned/refund/cancel + 审计日志 |
+| 重写 | Livewire/Order/OrderReturnList | 头先行创建+跳转；状态流转委托服务层；note→remark 幻影字段修复 |
+| 新增 | Livewire/Order/OrderReturnDetail | 明细编辑（addItemRow/pickOrderItem/removeItemRow/exportItems/saveItems）+ 状态流转 + 回退 |
+| 修改 | order-return-list.blade | 单号链接化；弹窗头先行；remark 修复；退货金额列 |
+| 新增 | order-return-detail.blade | 待审核可编辑明细 + 只读明细 + 时间线 |
+| 修改 | helpers.php / routes/web.php | order_return 状态徽章；详情路由 |
+| 修复 | Demo/OrderDemoSeeder | RT-20260729-00001 头金额与明细对齐 |
+| 测试 | tests/Feature/OrderReturnFlowTest | 7 用例：空头建单/未签收拦截/实收计价+超量拦截/updateItems+状态拦截/空头审核拦截/全流程退款同步/组件建单跳转 |
+| 文档 | docs/07、docs/12 | TC-ORDER-006 系列 5 条（统计 127→131）；用户手册 4.8 重写 |
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | feature/discrepancy-loss |
+| 提交 | 见本次提交 |
+| 验证 | 售后退货测试 7 通过；全量测试、Pint、view:cache 见提交时状态；migrate:fresh + DemoDataSeeder 重跑验证 |
+
+---
+
+## V2.0.12 — 退货表单 bugfix：原因非必填 + 关联退货改仓
+
+> 开发者：Kimi。用户实测反馈修复。
+
+### 变更概述
+
+1. **退货原因非必填**：采购退货（创建/编辑）与售后退货（创建）表单校验由 required 改 nullable，弹窗去除必填星标。
+2. **关联退货出库仓库开放手选**：原禁用状态导致无法改仓——现默认带出采购单入库仓库、允许改仓退货；createLinked() 新增 warehouseId 参数；出库扣库存统一以退货单头 warehouse_id 为准（原来关联退货取采购单仓库，会忽略单头改动）。
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | feature/discrepancy-loss |
+| 提交 | 见本次提交 |
+| 验证 | 全量 44 通过 / 1 失败（既有问题）；Pint / view:cache 通过 |

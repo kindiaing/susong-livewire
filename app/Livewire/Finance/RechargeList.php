@@ -122,12 +122,14 @@ class RechargeList extends Component
     public function openEditModal(int $id): void
     {
         $item = Recharge::findOrFail($id);
-        if ($item->status !== 1) {
+        if (! $item->canEdit()) {
             $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
 
             return;
         }
         $this->editingId = $id;
+        $this->editingStatusLabel = self::$statusMap[$item->status] ?? '';
+        $this->editingStatusColor = self::$statusColorMap[$item->status] ?? 'yellow';
         $this->formMerchantId = $item->merchant_id;
         $this->formAmount = $this->centsToYuan($item->amount);
         $this->formPaymentMethod = $item->payment_method;
@@ -151,7 +153,7 @@ class RechargeList extends Component
 
         if ($this->editingId) {
             $item = Recharge::findOrFail($this->editingId);
-            if ($item->status !== 1) {
+            if (! $item->canEdit()) {
                 $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
                 $this->showModal = false;
                 $this->resetForm();
@@ -255,7 +257,7 @@ class RechargeList extends Component
     public function delete(): void
     {
         $item = Recharge::findOrFail($this->deletingId);
-        if ($item->status !== 1) {
+        if (! $item->canEdit()) {
             $this->toastError('当前状态不可删除，仅待确认状态的充值记录可删除');
             $this->showDeleteConfirm = false;
             $this->deletingId = null;

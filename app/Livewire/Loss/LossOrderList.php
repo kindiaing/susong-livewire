@@ -10,6 +10,7 @@ use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
 use App\Models\LossOrder;
 use App\Models\Warehouse;
+use App\Services\LossOrderService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -51,12 +52,14 @@ class LossOrderList extends Component
     public function openEditModal(int $id): void
     {
         $item = LossOrder::findOrFail($id);
-        if ($item->status !== LossOrder::STATUS_PENDING) {
+        if (! $item->canEdit()) {
             $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
 
             return;
         }
         $this->editingId = $id;
+        $this->editingStatusLabel = $item->status_label;
+        $this->editingStatusColor = 'yellow';
         $this->formWarehouseId = $item->warehouse_id;
         $this->formLossType = $item->loss_type;
         $this->formReason = $item->reason ?? '';
@@ -82,7 +85,7 @@ class LossOrderList extends Component
 
         if ($this->editingId) {
             $item = LossOrder::findOrFail($this->editingId);
-            if ($item->status !== LossOrder::STATUS_PENDING) {
+            if (! $item->canEdit()) {
                 $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
                 $this->showModal = false;
                 $this->resetForm();
@@ -109,7 +112,7 @@ class LossOrderList extends Component
     public function delete(): void
     {
         $item = LossOrder::findOrFail($this->deletingId);
-        if ($item->status !== LossOrder::STATUS_PENDING) {
+        if (! $item->canEdit()) {
             $this->toastError('当前状态不可删除，仅待审核状态的损耗单可删除');
             $this->showDeleteConfirm = false;
             $this->deletingId = null;
@@ -177,27 +180,22 @@ class LossOrderList extends Component
 
     public function execute(int $id): void
     {
-        $item = LossOrder::findOrFail($id);
-
-        if ($item->status !== LossOrder::STATUS_APPROVED) {
-            $this->toastError('只有已通过的单据可执行');
-
-            return;
+        try {
+            app(LossOrderService::class)->execute(LossOrder::findOrFail($id));
+            $this->toastSuccess('损耗单已执行，库存已扣减');
+        } catch (\Exception $e) {
+            $this->toastError($e->getMessage());
         }
-
-        $item->update([
-            'status' => LossOrder::STATUS_EXECUTED,
-            'executed_at' => now(),
-        ]);
-
-        $this->toastSuccess('损耗单已执行');
     }
 
     public function close(int $id): void
     {
         $item = LossOrder::findOrFail($id);
 
-        if ($item->status !== LossOrder::STATUS_EXECUTED) {
+        // 采购入库差异的损耗单仅账务留痕（货未入库不扣库存），审核通过后可直接关闭
+        $purchaseTraceClosable = $item->status === LossOrder::STATUS_APPROVED && $item->source_type === 'purchase_order';
+
+        if ($item->status !== LossOrder::STATUS_EXECUTED && ! $purchaseTraceClosable) {
             $this->toastError('只有已执行的单据可关闭');
 
             return;

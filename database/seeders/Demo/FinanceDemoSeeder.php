@@ -34,8 +34,12 @@ class FinanceDemoSeeder extends Seeder
 
         foreach ($recharges as $item) {
             $merchant = DB::table('merchants')->where('name', $item['merchant'])->first();
-            if (! $merchant) continue;
-            if (DB::table('recharges')->where('transaction_no', $item['transaction_no'])->exists()) continue;
+            if (! $merchant) {
+                continue;
+            }
+            if (DB::table('recharges')->where('transaction_no', $item['transaction_no'])->exists()) {
+                continue;
+            }
 
             DB::table('recharges')->insert([
                 'merchant_id' => $merchant->id, 'amount' => $item['amount'],
@@ -80,13 +84,29 @@ class FinanceDemoSeeder extends Seeder
         }
 
         if ($supplierMeat && ! DB::table('supplier_settlements')->where('settlement_no', 'SS-20260728-00002')->exists()) {
-            DB::table('supplier_settlements')->insert([
+            $ss2Id = DB::table('supplier_settlements')->insertGetId([
                 'settlement_no' => 'SS-20260728-00002', 'supplier_id' => $supplierMeat->id,
                 'start_date' => '2026-07-01', 'end_date' => '2026-07-28',
                 'total_amount' => 260000, 'service_fee' => 3000, 'payable_amount' => 257000,
                 'return_amount' => 0, 'paid_amount' => 0, 'status' => 1,
                 'created_at' => $now, 'updated_at' => $now,
             ]);
+
+            // 结算明细：PO-...03 无差异 160000 + PO-...04 有差异按实收 100000（订 120000），合计 260000
+            $po3 = DB::table('purchase_orders')->where('order_no', 'PO-20260726-00003')->first();
+            $po4 = DB::table('purchase_orders')->where('order_no', 'PO-20260727-00004')->first();
+            if ($po3) {
+                DB::table('supplier_settlement_items')->insert([
+                    'supplier_settlement_id' => $ss2Id, 'purchase_order_id' => $po3->id,
+                    'amount' => 160000, 'created_at' => $now, 'updated_at' => $now,
+                ]);
+            }
+            if ($po4) {
+                DB::table('supplier_settlement_items')->insert([
+                    'supplier_settlement_id' => $ss2Id, 'purchase_order_id' => $po4->id,
+                    'amount' => 100000, 'created_at' => $now, 'updated_at' => $now,
+                ]);
+            }
         }
     }
 

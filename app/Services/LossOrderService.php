@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\InventoryLog;
 use App\Models\LossOrder;
 use App\Models\LossOrderItem;
 use App\Models\PurchaseOrder;
-use App\Models\PurchaseOrderItem;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -26,18 +26,31 @@ class LossOrderService
     /**
      * 从采购入库差异自动创建损耗单
      *
-     * 当实际入库数量 < 采购数量时，差异部分生成损耗单
+     * 当实际入库数量 < 采购数量时，差异部分生成损耗单。
+     * 传入允差阈值（%）时，差异率不超过阈值的明细只留痕不纳入损耗单。
      *
-     * @param PurchaseOrder $order 采购单
+     * @param  PurchaseOrder  $order  采购单
+     * @param  int|null  $thresholdPct  允差阈值（差异率%），null 表示不过滤
      * @return LossOrder|null 如果没有差异返回null
      */
-    public function createFromDiscrepancy(PurchaseOrder $order): ?LossOrder
+    public function createFromDiscrepancy(PurchaseOrder $order, ?int $thresholdPct = null): ?LossOrder
     {
         // 收集有差异的明细
         $discrepancyItems = $order->items()
             ->where('discrepancy_quantity', '>', 0)
             ->whereNull('loss_order_id')
             ->get();
+
+        // 允差阈值过滤：差异率 ≤ 阈值的明细仅留痕，不生成损耗单
+        if ($thresholdPct !== null) {
+            $discrepancyItems = $discrepancyItems->filter(function ($item) use ($thresholdPct) {
+                if ($item->quantity <= 0) {
+                    return true;
+                }
+
+                return $item->discrepancy_quantity / $item->quantity * 100 > $thresholdPct;
+            })->values();
+        }
 
         if ($discrepancyItems->isEmpty()) {
             return null;
@@ -91,21 +104,22 @@ class LossOrderService
     /**
      * 手动创建损耗单
      *
-     * @param int $warehouseId 仓库ID
-     * @param int $lossType 损耗类型
-     * @param array $items [{sku_id, quantity, cost_price, responsible_party, supplier_id, reason}]
-     * @param string $reason 原因
-     * @return LossOrder
+     * @param  int  $warehouseId  仓库ID
+     * @param  int  $lossType  损耗类型
+     * @param  array  $items  [{sku_id, quantity, cost_price, responsible_party, supplier_id, discrepancy_id, reason}]
+     * @param  string  $reason  原因
+     * @param  string  $sourceType  来源类型（manual/discrepancy 等）
+     * @param  int|null  $sourceId  来源单据ID
      */
-    public function create(int $warehouseId, int $lossType, array $items, string $reason = ''): LossOrder
+    public function create(int $warehouseId, int $lossType, array $items, string $reason = '', string $sourceType = 'manual', ?int $sourceId = null): LossOrder
     {
-        return DB::transaction(function () use ($warehouseId, $lossType, $items, $reason) {
+        return DB::transaction(function () use ($warehouseId, $lossType, $items, $reason, $sourceType, $sourceId) {
             $totalAmount = 0;
 
             $lossOrder = LossOrder::create([
                 'loss_no' => $this->generateLossNo(),
-                'source_type' => 'manual',
-                'source_id' => null,
+                'source_type' => $sourceType,
+                'source_id' => $sourceId,
                 'warehouse_id' => $warehouseId,
                 'total_amount' => 0,
                 'loss_type' => $lossType,
@@ -129,6 +143,7 @@ class LossOrderService
                     'loss_amount' => $lossAmount,
                     'responsible_party' => $item['responsible_party'] ?? LossOrderItem::PARTY_PLATFORM,
                     'supplier_id' => $item['supplier_id'] ?? null,
+                    'discrepancy_id' => $item['discrepancy_id'] ?? null,
                     'reason' => $item['reason'] ?? null,
                 ]);
 
@@ -183,7 +198,9 @@ class LossOrderService
     /**
      * 执行损耗（已通过→已执行）
      *
-     * 核心断链修复：调用 InventoryService::stockOut() 扣减库存
+     * 核心断链修复：调用 InventoryService::stockOut() 扣减库存。
+     * 兜底保护：来源=采购入库差异的损耗单只作账务留痕（差异部分的货未入库），
+     * 执行时不扣库存，防止双重扣减。
      */
     public function execute(LossOrder $lossOrder): LossOrder
     {
@@ -191,9 +208,11 @@ class LossOrderService
             throw new \Exception('仅已通过状态的损耗单可执行');
         }
 
-        return DB::transaction(function () use ($lossOrder) {
+        $skipStockOut = $lossOrder->source_type === 'purchase_order';
+
+        return DB::transaction(function () use ($lossOrder, $skipStockOut) {
             foreach ($lossOrder->items as $item) {
-                if ($item->quantity > 0) {
+                if ($item->quantity > 0 && ! $skipStockOut) {
                     $this->inventoryService->stockOut(
                         warehouse: $lossOrder->warehouse_id,
                         sku: $item->sku_id,
@@ -201,6 +220,7 @@ class LossOrderService
                         sourceType: 'loss_order',
                         sourceId: $lossOrder->id,
                         reason: "损耗单 {$lossOrder->loss_no} 执行扣减",
+                        type: InventoryLog::TYPE_LOSS_REPORT,
                     );
                 }
             }

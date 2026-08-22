@@ -29,6 +29,9 @@ class PurchaseReturnList extends Component
 
     public int $filterStatus = -1;
 
+    // 表单：退货类型（1普通/2关联）
+    public int $formReturnType = PurchaseReturn::TYPE_LINKED;
+
     public int $formPurchaseOrderId = 0;
 
     public int $formSupplierId = 0;
@@ -47,13 +50,16 @@ class PurchaseReturnList extends Component
     public function openEditModal(int $id): void
     {
         $item = PurchaseReturn::findOrFail($id);
-        if ($item->status !== PurchaseReturn::STATUS_PENDING) {
+        if (! $item->canEdit()) {
             $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
 
             return;
         }
         $this->editingId = $id;
-        $this->formPurchaseOrderId = $item->purchase_order_id;
+        $this->editingStatusLabel = $item->status_label;
+        $this->editingStatusColor = 'yellow';
+        $this->formReturnType = $item->return_type ?? PurchaseReturn::TYPE_LINKED;
+        $this->formPurchaseOrderId = $item->purchase_order_id ?? 0;
         $this->formSupplierId = $item->supplier_id;
         $this->formWarehouseId = $item->warehouse_id;
         $this->formReason = $item->reason ?? '';
@@ -61,59 +67,113 @@ class PurchaseReturnList extends Component
         $this->showModal = true;
     }
 
+    /**
+     * 切换退货类型：清空已选采购单
+     */
+    public function updatedFormReturnType(): void
+    {
+        $this->formPurchaseOrderId = 0;
+    }
+
+    /**
+     * 关联模式：选中采购单后自动带出供应商与入库仓库
+     */
+    public function updatedFormPurchaseOrderId($value): void
+    {
+        $order = PurchaseOrder::find((int) $value);
+        if (! $order) {
+            return;
+        }
+
+        $this->formSupplierId = (int) $order->supplier_id;
+        $this->formWarehouseId = (int) ($order->warehouse_id ?? 0);
+    }
+
     public function save(): void
     {
-        $validated = $this->validate([
-            'formPurchaseOrderId' => 'required|integer|exists:purchase_orders,id',
-            'formSupplierId' => 'required|integer|exists:suppliers,id',
-            'formWarehouseId' => 'required|integer|exists:warehouses,id',
-            'formReason' => 'required|string|max:255',
-            'formRemark' => 'nullable|string|max:500',
-        ]);
-
-        $data = [
-            'purchase_order_id' => $validated['formPurchaseOrderId'],
-            'supplier_id' => $validated['formSupplierId'],
-            'warehouse_id' => $validated['formWarehouseId'],
-            'reason' => $validated['formReason'],
-            'remark' => $validated['formRemark'],
-            'status' => PurchaseReturn::STATUS_PENDING,
-            'total_amount' => 0,
-            'actual_amount' => 0,
-        ];
-
+        // 编辑模式：仅允许修改头字段（明细在详情页维护）
         if ($this->editingId) {
+            $validated = $this->validate([
+                'formSupplierId' => 'required|integer|min:1|exists:suppliers,id',
+                'formWarehouseId' => 'required|integer|min:1|exists:warehouses,id',
+                'formReason' => 'nullable|string|max:255',
+                'formRemark' => 'nullable|string|max:500',
+            ]);
+
             $item = PurchaseReturn::findOrFail($this->editingId);
-            if ($item->status !== PurchaseReturn::STATUS_PENDING) {
+            if (! $item->canEdit()) {
                 $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
                 $this->showModal = false;
                 $this->resetForm();
 
                 return;
             }
-            unset($data['status'], $data['total_amount'], $data['actual_amount']);
-            $item->update($data);
+            $item->update([
+                'supplier_id' => $validated['formSupplierId'],
+                'warehouse_id' => $validated['formWarehouseId'],
+                'reason' => $validated['formReason'],
+                'remark' => $validated['formRemark'],
+            ]);
             $this->toastSuccess('退货单已更新');
-        } else {
-            $data['return_no'] = generate_sequence_no('PR', 'purchase_returns', 'return_no');
-            PurchaseReturn::create($data);
-            $this->toastSuccess('退货单已创建');
+            $this->showModal = false;
+            $this->resetForm();
+
+            return;
         }
 
+        // 创建模式：只存单头，保存后跳转详情页整理明细
+        $this->validate([
+            'formReason' => 'nullable|string|max:255',
+            'formRemark' => 'nullable|string|max:500',
+        ]);
+
+        $service = app(PurchaseReturnService::class);
+
+        try {
+            if ($this->formReturnType === PurchaseReturn::TYPE_LINKED) {
+                $this->validate([
+                    'formPurchaseOrderId' => 'required|integer|min:1|exists:purchase_orders,id',
+                    'formWarehouseId' => 'required|integer|min:1|exists:warehouses,id',
+                ]);
+
+                $order = PurchaseOrder::findOrFail($this->formPurchaseOrderId);
+                $return = $service->createLinked($order, [], $this->formReason, $this->formWarehouseId);
+            } else {
+                $this->validate([
+                    'formSupplierId' => 'required|integer|min:1|exists:suppliers,id',
+                    'formWarehouseId' => 'required|integer|min:1|exists:warehouses,id',
+                ]);
+
+                $return = $service->createNormal($this->formSupplierId, $this->formWarehouseId, [], $this->formReason);
+            }
+
+            if ($this->formRemark !== '') {
+                $return->update(['remark' => $this->formRemark]);
+            }
+        } catch (\Exception $e) {
+            $this->toastError($e->getMessage());
+
+            return;
+        }
+
+        $this->toastSuccess("退货单 {$return->return_no} 已创建（{$return->return_type_label}），请添加退货明细");
         $this->showModal = false;
         $this->resetForm();
+
+        $this->redirect(route('purchase-returns.detail', $return->id));
     }
 
     public function delete(): void
     {
         $item = PurchaseReturn::findOrFail($this->deletingId);
-        if ($item->status !== PurchaseReturn::STATUS_PENDING) {
+        if (! $item->canEdit()) {
             $this->toastError('当前状态不可删除，仅待审核状态的退货单可删除');
             $this->showDeleteConfirm = false;
             $this->deletingId = null;
 
             return;
         }
+        $item->items()->delete();
         $item->delete();
         $this->toastSuccess('退货单已删除');
         $this->showDeleteConfirm = false;
@@ -130,6 +190,7 @@ class PurchaseReturnList extends Component
     public function resetForm(): void
     {
         $this->editingId = null;
+        $this->formReturnType = PurchaseReturn::TYPE_LINKED;
         $this->formPurchaseOrderId = 0;
         $this->formSupplierId = 0;
         $this->formWarehouseId = 0;
@@ -189,7 +250,7 @@ class PurchaseReturnList extends Component
 
     public function getDefaultColumns(): array
     {
-        return ['return_no', 'supplier_id', 'warehouse_id', 'status', 'total_amount', 'actual_amount'];
+        return ['return_no', 'return_type', 'supplier_id', 'warehouse_id', 'status', 'total_amount', 'actual_amount'];
     }
 
     public function getExportRowCallback(): callable
@@ -198,6 +259,7 @@ class PurchaseReturnList extends Component
             return [
                 'id' => $row->id,
                 'return_no' => $row->return_no,
+                'return_type' => $row->return_type_label,
                 'purchase_order_id' => $row->purchaseOrder?->order_no ?? '',
                 'supplier_id' => $row->supplier?->name ?? '',
                 'warehouse_id' => $row->warehouse?->name ?? '',
@@ -216,7 +278,7 @@ class PurchaseReturnList extends Component
 
     public function getImportRequiredFields(): array
     {
-        return ['采购单ID', '供应商ID', '仓库ID', '退货原因'];
+        return ['供应商ID', '仓库ID', '退货原因'];
     }
 
     public function getImportValueMap(): array
@@ -229,6 +291,7 @@ class PurchaseReturnList extends Component
         return [
             ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
             ['key' => 'return_no', 'label' => '退货单号', 'sortable' => true, 'exportable' => true],
+            ['key' => 'return_type', 'label' => '类型', 'sortable' => true, 'exportable' => true],
             ['key' => 'purchase_order_id', 'label' => '采购单', 'sortable' => true, 'exportable' => true],
             ['key' => 'supplier_id', 'label' => '供应商', 'sortable' => true, 'exportable' => true],
             ['key' => 'warehouse_id', 'label' => '仓库', 'sortable' => true, 'exportable' => true],
@@ -242,7 +305,7 @@ class PurchaseReturnList extends Component
 
     public function getExportQuery()
     {
-        return PurchaseReturn::with(['supplier', 'warehouse'])->orderBy('id', 'desc');
+        return PurchaseReturn::with(['supplier', 'warehouse', 'purchaseOrder'])->orderBy('id', 'desc');
     }
 
     public function getExportFileName(): string
@@ -258,7 +321,6 @@ class PurchaseReturnList extends Component
     public function getImportColumnMap(): array
     {
         return [
-            '采购单ID' => 'purchase_order_id',
             '供应商ID' => 'supplier_id',
             '仓库ID' => 'warehouse_id',
             '退货原因' => 'reason',
@@ -272,7 +334,7 @@ class PurchaseReturnList extends Component
 
     public function render()
     {
-        $query = PurchaseReturn::with(['supplier', 'warehouse'])->orderBy('id', 'desc');
+        $query = PurchaseReturn::with(['supplier', 'warehouse', 'purchaseOrder'])->orderBy('id', 'desc');
 
         if ($this->search) {
             $query->where('return_no', 'like', "%{$this->search}%");
@@ -283,7 +345,9 @@ class PurchaseReturnList extends Component
         }
 
         $items = $query->paginate(setting('per_page', 10));
-        $purchaseOrders = PurchaseOrder::orderBy('id', 'desc')->limit(50)->get();
+        // 关联退货只能选已入库/已完成的采购单
+        $purchaseOrders = PurchaseOrder::whereIn('status', [PurchaseOrder::STATUS_STOCKED, PurchaseOrder::STATUS_COMPLETED])
+            ->orderBy('id', 'desc')->limit(50)->get();
         $suppliers = Supplier::enabled()->orderBy('name')->get();
         $warehouses = Warehouse::enabled()->get();
         $allColumns = $this->getAllColumns();
