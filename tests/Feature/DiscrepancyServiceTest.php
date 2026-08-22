@@ -8,6 +8,8 @@ use App\Models\OrderItem;
 use App\Models\Sku;
 use App\Models\Warehouse;
 use App\Services\DiscrepancyService;
+use App\Services\InventoryService;
+use App\Services\LossOrderService;
 
 function createDiscrepancyFixtures(): array
 {
@@ -87,6 +89,48 @@ it('creates a pending loss order when decision is loss', function () {
         ->and($lossOrder->status)->toBe(LossOrder::STATUS_PENDING)
         ->and($lossOrder->items)->toHaveCount(1)
         ->and($lossOrder->items->first()->quantity)->toBe(2);
+});
+
+it('deducts inventory through the full loss chain: discrepancy → loss order → approve → execute', function () {
+    ['warehouse' => $warehouse, 'sku' => $sku, 'orderItem' => $orderItem] = createDiscrepancyFixtures();
+
+    // 先入库 10 件，作为报损扣减的基数
+    app(InventoryService::class)->stockIn(
+        warehouse: $warehouse->id,
+        sku: $sku->id,
+        quantity: 10,
+        batchNo: 'B-001',
+        sourceType: 'test',
+        sourceId: 1,
+        reason: '测试入库',
+    );
+
+    $discrepancy = app(DiscrepancyService::class)->create([
+        'order_item_id' => $orderItem->id,
+        'stage' => Discrepancy::STAGE_RECEIVING,
+        'type' => Discrepancy::TYPE_DEFECT,
+        'expected_quantity' => 10,
+        'actual_quantity' => 8,
+        'reason' => '破损',
+    ]);
+
+    app(DiscrepancyService::class)->process(
+        discrepancy: $discrepancy,
+        responsibleParty: Discrepancy::PARTY_PLATFORM,
+        decision: Discrepancy::DECISION_LOSS,
+        warehouseId: $warehouse->id,
+    );
+
+    $lossOrder = LossOrder::where('source_type', 'discrepancy')->where('source_id', $discrepancy->id)->firstOrFail();
+
+    $lossOrderService = app(LossOrderService::class);
+    $lossOrderService->approve($lossOrder);
+    $lossOrderService->execute($lossOrder->fresh());
+
+    $inventory = Inventory::where('warehouse_id', $warehouse->id)->where('sku_id', $sku->id)->first();
+
+    expect($lossOrder->fresh()->status)->toBe(LossOrder::STATUS_EXECUTED)
+        ->and($inventory->total_stock)->toBe(8);
 });
 
 it('closes discrepancy directly when decision is ignore', function () {

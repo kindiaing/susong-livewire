@@ -10,6 +10,7 @@ use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
 use App\Models\LossOrder;
 use App\Models\Warehouse;
+use App\Services\LossOrderService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -179,20 +180,12 @@ class LossOrderList extends Component
 
     public function execute(int $id): void
     {
-        $item = LossOrder::findOrFail($id);
-
-        if ($item->status !== LossOrder::STATUS_APPROVED) {
-            $this->toastError('只有已通过的单据可执行');
-
-            return;
+        try {
+            app(LossOrderService::class)->execute(LossOrder::findOrFail($id));
+            $this->toastSuccess('损耗单已执行，库存已扣减');
+        } catch (\Exception $e) {
+            $this->toastError($e->getMessage());
         }
-
-        $item->update([
-            'status' => LossOrder::STATUS_EXECUTED,
-            'executed_at' => now(),
-        ]);
-
-        $this->toastSuccess('损耗单已执行');
     }
 
     public function close(int $id): void
