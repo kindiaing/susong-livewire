@@ -192,7 +192,10 @@ class LossOrderList extends Component
     {
         $item = LossOrder::findOrFail($id);
 
-        if ($item->status !== LossOrder::STATUS_EXECUTED) {
+        // 采购入库差异的损耗单仅账务留痕（货未入库不扣库存），审核通过后可直接关闭
+        $purchaseTraceClosable = $item->status === LossOrder::STATUS_APPROVED && $item->source_type === 'purchase_order';
+
+        if ($item->status !== LossOrder::STATUS_EXECUTED && ! $purchaseTraceClosable) {
             $this->toastError('只有已执行的单据可关闭');
 
             return;

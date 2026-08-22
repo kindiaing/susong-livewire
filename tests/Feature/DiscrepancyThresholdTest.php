@@ -1,10 +1,12 @@
 <?php
 
+use App\Models\Inventory;
 use App\Models\LossOrder;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\Sku;
 use App\Models\Warehouse;
+use App\Services\LossOrderService;
 use App\Services\PurchaseService;
 use App\Support\Setting;
 
@@ -92,4 +94,23 @@ it('defaults to loose mode with zero threshold from seeded configs', function ()
         ->and(setting('delivery_allow_discrepancy', null))->toBeTrue()
         ->and(setting('receiving_allow_discrepancy', null))->toBeTrue()
         ->and(setting('receiving_discrepancy_threshold', null))->toBe(0);
+});
+
+it('does not deduct inventory when executing a purchase-sourced loss order', function () {
+    ['warehouse' => $warehouse, 'sku' => $sku, 'order' => $order, 'item' => $item] = createPurchaseStockInFixtures(10);
+
+    // 阈值默认 0：订 10 收 8，自动生成 2 件差异的损耗单
+    app(PurchaseService::class)->stockIn($order, $warehouse->id, stockInPayload($item, 8), 'B-001');
+
+    $lossOrder = LossOrder::where('source_type', 'purchase_order')->where('source_id', $order->id)->firstOrFail();
+
+    $lossOrderService = app(LossOrderService::class);
+    $lossOrderService->approve($lossOrder);
+    $lossOrderService->execute($lossOrder->fresh());
+
+    $inventory = Inventory::where('warehouse_id', $warehouse->id)->where('sku_id', $sku->id)->first();
+
+    // 差异部分的货未入库，执行仅账务留痕不扣库存：仍为实收的 8
+    expect($lossOrder->fresh()->status)->toBe(LossOrder::STATUS_EXECUTED)
+        ->and($inventory->total_stock)->toBe(8);
 });

@@ -1329,3 +1329,32 @@
 | 分支 | bugfix（差异损耗工作分支，待用户确认后合并 main） |
 | 提交 | 见本次提交 |
 | 验证 | 测试 20 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint 通过；view:cache 通过；开发库需 migrate:fresh --seed 生效新配置 |
+
+---
+
+## V2.0.6 — 采购差异损耗单仅账务留痕（不扣库存）+ 采购单列表差异警示图标
+
+> 开发者：Kimi。用户拍板「B 为主 A 兜底」：采购入库差异的损耗单审核即终态，服务层再兜底防误扣。
+
+### 变更概述
+
+1. **修复隐患**：采购入库差异自动生成的损耗单，差异部分的货未入库，「执行」再扣库存属双重扣减。现改为：列表页对来源=采购单的损耗单不显示「执行」按钮（B 为主），审核通过后可直接「关闭」；`LossOrderService::execute()` 对来源=采购单跳过库存扣减（A 兜底，防接口误调）。
+2. **采购单列表警示图标**：单号旁警示图标分色——红色=已生成损耗单待审核，橙色=允差阈值内仅留痕；hover 提示差异明细条数与短缺总量。
+
+### 变更明细
+
+| 操作 | 文件 | 说明 |
+| :--- | :--- | :--- |
+| 完善 | Services/LossOrderService::execute | 来源=采购单跳过 stockOut，仅留账（注释说明防双重扣减） |
+| 完善 | Loss/LossOrderList::close | 来源=采购单且已审核的损耗单允许直接关闭 |
+| 完善 | loss-order-list.blade | 来源=采购单隐藏执行按钮；审核后显示关闭按钮（title 说明仅留痕） |
+| 完善 | Purchase/PurchaseOrderList + blade | withSum/withCount 预统计差异；警示图标分红（待审核损耗单）/橙（仅留痕）两色 + hover 摘要 |
+| 测试 | tests/Feature/DiscrepancyThresholdTest | 新增用例：采购来源损耗单执行后库存仍为实收数量 |
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | bugfix（待用户确认后合并 main） |
+| 提交 | 见本次提交 |
+| 验证 | 测试 21 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint / view:cache 通过 |

@@ -234,6 +234,7 @@ class PurchaseOrderList extends Component
         $query = PurchaseOrder::with('supplier')
             ->withSum('items as discrepancy_total', 'discrepancy_quantity')
             ->withCount(['items as discrepancy_item_count' => fn ($q) => $q->where('discrepancy_quantity', '>', 0)])
+            ->withCount(['items as discrepancy_loss_count' => fn ($q) => $q->where('discrepancy_quantity', '>', 0)->whereNotNull('loss_order_id')])
             ->orderBy('id', 'desc');
 
         if ($this->search) {

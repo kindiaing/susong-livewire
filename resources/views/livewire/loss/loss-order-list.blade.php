@@ -210,11 +210,11 @@
                             @if($item->approval_status === 1)
                                 <button type="button" wire:click="confirmApprove({{ $item->id }})" class="text-green-600 hover:text-green-700 text-sm">审核</button>
                             @endif
-                            @if($item->status === 2)
+                            @if($item->status === 2 && $item->source_type !== 'purchase_order')
                                 <button type="button" wire:click="execute({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">执行</button>
                             @endif
-                            @if($item->status === 3)
-                                <button type="button" wire:click="close({{ $item->id }})" class="text-orange-600 hover:text-orange-700 text-sm">关闭</button>
+                            @if($item->status === 3 || ($item->status === 2 && $item->source_type === 'purchase_order'))
+                                <button type="button" wire:click="close({{ $item->id }})" class="text-orange-600 hover:text-orange-700 text-sm" title="{{ $item->source_type === 'purchase_order' && $item->status === 2 ? '采购入库差异仅账务留痕不扣库存，审核后可直接关闭' : '' }}">关闭</button>
                             @endif
                             @if($item->canEdit())
                                 <button type="button" wire:click="openEditModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>

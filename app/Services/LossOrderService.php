@@ -198,7 +198,9 @@ class LossOrderService
     /**
      * 执行损耗（已通过→已执行）
      *
-     * 核心断链修复：调用 InventoryService::stockOut() 扣减库存
+     * 核心断链修复：调用 InventoryService::stockOut() 扣减库存。
+     * 兜底保护：来源=采购入库差异的损耗单只作账务留痕（差异部分的货未入库），
+     * 执行时不扣库存，防止双重扣减。
      */
     public function execute(LossOrder $lossOrder): LossOrder
     {
@@ -206,9 +208,11 @@ class LossOrderService
             throw new \Exception('仅已通过状态的损耗单可执行');
         }
 
-        return DB::transaction(function () use ($lossOrder) {
+        $skipStockOut = $lossOrder->source_type === 'purchase_order';
+
+        return DB::transaction(function () use ($lossOrder, $skipStockOut) {
             foreach ($lossOrder->items as $item) {
-                if ($item->quantity > 0) {
+                if ($item->quantity > 0 && ! $skipStockOut) {
                     $this->inventoryService->stockOut(
                         warehouse: $lossOrder->warehouse_id,
                         sku: $item->sku_id,
