@@ -37,9 +37,6 @@
                 </div>
             @endif
         </div>
-                </div>
-            @endif
-        </div>
     </div>
 
     {{-- 基本信息卡片 --}}
