@@ -75,23 +75,29 @@
                         @case('supplier')
                             <div class="text-sm text-foreground truncate">{{ $item->supplier?->name ?? '-' }}</div>
                             @break
-                        @case('purchaseOrder')
-                            <div class="text-sm text-foreground">{{ $item->purchaseOrder?->order_no ?? '-' }}</div>
+                        @case('date_range')
+                            <div class="text-sm text-foreground">{{ $item->start_date?->format('Y-m-d') ?? '-' }} ~ {{ $item->end_date?->format('Y-m-d') ?? '-' }}</div>
+                            @break
+                        @case('total_amount')
+                            <div class="text-sm text-foreground">{{ money_format($item->total_amount) }}</div>
+                            @break
+                        @case('return_amount')
+                            <div class="text-sm {{ $item->return_amount > 0 ? 'text-orange-600' : 'text-muted-foreground' }}">{{ $item->return_amount > 0 ? '-'.money_format($item->return_amount) : '-' }}</div>
+                            @break
+                        @case('service_fee')
+                            <div class="text-sm {{ $item->service_fee > 0 ? 'text-foreground' : 'text-muted-foreground' }}">{{ $item->service_fee > 0 ? '-'.money_format($item->service_fee) : '-' }}</div>
                             @break
                         @case('payable_amount')
-                            <div class="text-sm text-foreground">{{ money_format($item->payable_amount) }}</div>
+                            <div class="text-sm text-foreground font-medium">{{ money_format($item->payable_amount) }}</div>
+                            @break
+                        @case('paid_amount')
+                            <div class="text-sm text-foreground">{{ money_format($item->paid_amount) }}</div>
                             @break
                         @case('status')
                             <div>
                                 @php $c = $statusColorMap[$item->status] ?? 'gray'; @endphp
                                 <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $c }}-100 text-{{ $c }}-700">{{ \App\Livewire\Finance\SupplierSettlementList::$statusMap[$item->status] ?? '-' }}</span>
                             </div>
-                            @break
-                        @case('settlement_date')
-                            <div class="text-sm text-foreground">{{ $item->settlement_date ?? '-' }}</div>
-                            @break
-                        @case('note')
-                            <div class="text-sm text-foreground truncate max-w-[200px]">{{ $item->note ?: '-' }}</div>
                             @break
                         @case('created_at')
                             <div class="text-sm text-foreground">{{ $item->created_at?->format('Y-m-d H:i') }}</div>
@@ -141,30 +147,26 @@
                     </select>
                     @error('formSupplierId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">采购单 <span class="text-red-500">*</span></label>
-                    <select wire:model="formPurchaseOrderId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                        <option value="0">请选择采购单</option>
-                        @foreach($purchaseOrders as $po)
-                        <option value="{{ $po->id }}">{{ $po->order_no ?? 'PO-' . $po->id }}</option>
-                        @endforeach
-                    </select>
-                    @error('formPurchaseOrderId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">周期开始 <span class="text-red-500">*</span></label>
+                        <input type="date" wire:model="formStartDate" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                        @error('formStartDate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">周期结束 <span class="text-red-500">*</span></label>
+                        <input type="date" wire:model="formEndDate" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                        @error('formEndDate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">金额（元） <span class="text-red-500">*</span></label>
-                    <input type="text" wire:model="formAmount" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="请输入结算金额（元）" />
-                    @error('formAmount') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    <label class="block text-sm font-medium text-foreground mb-1">服务费（元）</label>
+                    <input type="text" wire:model="formServiceFee" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="可选，将从应付中扣减" />
+                    @error('formServiceFee') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">结算日期 <span class="text-red-500">*</span></label>
-                    <input type="date" wire:model="formSettlementDate" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
-                    @error('formSettlementDate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">备注</label>
-                    <textarea wire:model="formNote" rows="2" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="可选"></textarea>
-                    @error('formNote') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                <div class="rounded-md bg-muted p-3 text-xs text-muted-foreground space-y-1">
+                    <p>应付金额 = 周期内已入库采购单的<strong>实际入库金额</strong>合计 − 周期内采购退货扣减 − 服务费</p>
+                    <p>入库差异按实收计价天然持平（少收的货不付钱），差异损耗单作为留痕证据；已结算过的采购单不会重复计入。</p>
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">
@@ -221,18 +223,34 @@
             <div class="space-y-3 text-sm">
                 <div class="flex"><span class="w-24 text-muted-foreground">结算单号</span><span class="text-foreground font-mono">{{ $detailItem->settlement_no }}</span></div>
                 <div class="flex"><span class="w-24 text-muted-foreground">供应商</span><span class="text-foreground">{{ $detailItem->supplier?->name ?? '-' }}</span></div>
-                <div class="flex"><span class="w-24 text-muted-foreground">应付金额</span><span class="text-foreground">{{ money_format($detailItem->payable_amount) }}</span></div>
+                <div class="flex"><span class="w-24 text-muted-foreground">结算周期</span><span class="text-foreground">{{ $detailItem->start_date?->format('Y-m-d') ?? '-' }} ~ {{ $detailItem->end_date?->format('Y-m-d') ?? '-' }}</span></div>
+                <div class="flex"><span class="w-24 text-muted-foreground">汇总金额</span><span class="text-foreground">{{ money_format($detailItem->total_amount) }}</span></div>
+                <div class="flex"><span class="w-24 text-muted-foreground">退货扣减</span><span class="{{ $detailItem->return_amount > 0 ? 'text-orange-600' : 'text-foreground' }}">{{ $detailItem->return_amount > 0 ? '-'.money_format($detailItem->return_amount) : '-' }}</span></div>
+                <div class="flex"><span class="w-24 text-muted-foreground">服务费</span><span class="text-foreground">{{ $detailItem->service_fee > 0 ? '-'.money_format($detailItem->service_fee) : '-' }}</span></div>
+                <div class="flex"><span class="w-24 text-muted-foreground">应付金额</span><span class="text-foreground font-medium">{{ money_format($detailItem->payable_amount) }}</span></div>
                 <div class="flex"><span class="w-24 text-muted-foreground">已付金额</span><span class="text-foreground">{{ money_format($detailItem->paid_amount) }}</span></div>
                 <div class="flex"><span class="w-24 text-muted-foreground">状态</span><span class="text-foreground">{{ $statusMap[$detailItem->status] ?? '-' }}</span></div>
-                <div class="flex"><span class="w-24 text-muted-foreground">结算日期</span><span class="text-foreground">{{ $detailItem->settlement_date ?? '-' }}</span></div>
-                <div class="flex"><span class="w-24 text-muted-foreground">备注</span><span class="text-foreground">{{ $detailItem->note ?: '-' }}</span></div>
+                @if($detailItem->items->count())
+                <div class="mt-3">
+                    <p class="text-muted-foreground mb-2">结算明细（{{ $detailItem->items->count() }} 张采购单，按实际入库金额计价）</p>
+                    @foreach($detailItem->items as $si)
+                    <div class="flex text-xs border-b py-1.5 gap-4">
+                        <span class="font-mono">{{ $si->purchaseOrder?->order_no ?? "PO-{$si->purchase_order_id}" }}</span>
+                        <span>{{ money_format($si->amount) }}</span>
+                        @if($si->purchaseOrder && $si->purchaseOrder->actual_amount != $si->purchaseOrder->total_amount)
+                        <span class="text-orange-600" title="入库差异已按实收计价">订 {{ money_format($si->purchaseOrder->total_amount) }}</span>
+                        @endif
+                    </div>
+                    @endforeach
+                </div>
+                @endif
                 @if($detailItem->payments->count())
                 <div class="mt-3">
                     <p class="text-muted-foreground mb-2">付款记录</p>
                     @foreach($detailItem->payments as $p)
                     <div class="flex text-xs border-b py-1.5 gap-4">
                         <span>{{ money_format($p->amount) }}</span>
-                        <span>{{ SettlementPayment::paymentMethodMap()[$p->payment_method] ?? '-' }}</span>
+                        <span>{{ \App\Models\SettlementPayment::paymentMethodMap()[$p->payment_method] ?? '-' }}</span>
                         <span class="text-muted-foreground">{{ $p->created_at?->format('Y-m-d H:i') }}</span>
                     </div>
                     @endforeach

@@ -1358,3 +1358,44 @@
 | 分支 | bugfix（待用户确认后合并 main） |
 | 提交 | 见本次提交 |
 | 验证 | 测试 21 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint / view:cache 通过 |
+
+---
+
+## V2.0.7 — 供应商结算修复：周期结算模式落地 + 账务持平联动
+
+> 开发者：Kimi。用户拍板：方向一（贴回表结构的周期结算）+ 口径 A（应付=实际入库金额−退货−服务费）。
+
+### 变更概述
+
+1. **修复断裂**：结算组件按表中不存在的幻影字段（purchase_order_id/settlement_date/note）实现，创建结算单必报 SQL 错误。重写为表结构设计的周期结算模式：供应商 + 结算周期 → 自动汇总周期内已入库/已完成采购单（按入库时间）生成结算明细，已结算采购单防重复计入。
+2. **账务持平（口径 A）**：应付 = Σ 实际入库金额 − 周期内已完成采购退货实际出库金额 − 服务费。入库差异按实收计价天然持平（少收的货不付钱），差异损耗单作留痕证据。
+3. **付款闭环**：移除不建付款记录的 confirmPayment 捷径；部分付款统一写 settlement_payments + 累计 paid_amount + 满额自动结清；新增超付拦截；仅待结算状态可删除（明细连带清理）。
+4. **详情弹窗**：补结算明细（采购单号+计价金额，有差异标注原订单金额）与付款记录；列表列改为周期/汇总/退货扣减/服务费/应付/已付。
+5. **模型清理**：SupplierSettlement 移除幻影 fillable/casts 与 purchaseOrder 关联（结算单与采购单为一对多，走 settlement_items）。
+
+### 变更明细
+
+| 操作 | 文件 | 说明 |
+| :--- | :--- | :--- |
+| 新增 | Services/SupplierSettlementService | generate()：周期内已入库采购单汇总（排除已结算）+ 退货扣减 + 服务费，事务建单+明细 |
+| 重写 | Finance/SupplierSettlementList | 表单改周期结算；列配置对齐真实字段；付款闭环+超付拦截；删除限制待结算 |
+| 完善 | Models/SupplierSettlement | 清理幻影字段 fillable/casts/purchaseOrder 关联 |
+| 完善 | supplier-settlement-list.blade | 表单/列表列/详情弹窗对齐周期结算；修复付款记录区 SettlementPayment 非限定类名隐患 |
+| 测试 | tests/Feature/SupplierSettlementTest | 6 条用例：周期汇总口径/防重复结算/空周期报错/组件表单建单/部分付款+超付拦截+结清/删除限制 |
+
+### 决策记录
+
+| 决策 | 选择 | 说明 |
+| :--- | :--- | :--- |
+| 结算模式 | 周期结算（方向一） | 表结构+种子数据均按周期设计，组件是跑偏方 |
+| 应付口径 | 实际入库金额（口径 A） | 差异天然持平，扣减路径最短 |
+| 退货扣减口径 | 已完成退货的实际出库金额 | 与入库口径对称 |
+| 付款审核流 | 二期 | approval_status 字段保留，暂不接审核管理 |
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | feature/discrepancy-loss |
+| 提交 | 见本次提交 |
+| 验证 | 测试 27 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint / view:cache 通过 |
