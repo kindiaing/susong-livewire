@@ -26,18 +26,31 @@ class LossOrderService
     /**
      * 从采购入库差异自动创建损耗单
      *
-     * 当实际入库数量 < 采购数量时，差异部分生成损耗单
+     * 当实际入库数量 < 采购数量时，差异部分生成损耗单。
+     * 传入允差阈值（%）时，差异率不超过阈值的明细只留痕不纳入损耗单。
      *
      * @param  PurchaseOrder  $order  采购单
+     * @param  int|null  $thresholdPct  允差阈值（差异率%），null 表示不过滤
      * @return LossOrder|null 如果没有差异返回null
      */
-    public function createFromDiscrepancy(PurchaseOrder $order): ?LossOrder
+    public function createFromDiscrepancy(PurchaseOrder $order, ?int $thresholdPct = null): ?LossOrder
     {
         // 收集有差异的明细
         $discrepancyItems = $order->items()
             ->where('discrepancy_quantity', '>', 0)
             ->whereNull('loss_order_id')
             ->get();
+
+        // 允差阈值过滤：差异率 ≤ 阈值的明细仅留痕，不生成损耗单
+        if ($thresholdPct !== null) {
+            $discrepancyItems = $discrepancyItems->filter(function ($item) use ($thresholdPct) {
+                if ($item->quantity <= 0) {
+                    return true;
+                }
+
+                return $item->discrepancy_quantity / $item->quantity * 100 > $thresholdPct;
+            })->values();
+        }
 
         if ($discrepancyItems->isEmpty()) {
             return null;

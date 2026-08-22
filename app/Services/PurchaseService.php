@@ -171,6 +171,19 @@ class PurchaseService
             throw new \Exception('当前状态不允许入库');
         }
 
+        // 严格模式（不允许差异）：实际入库数量必须与采购数量一致
+        if (! setting('purchase_allow_discrepancy', true)) {
+            foreach ($items as $item) {
+                $orderItem = PurchaseOrderItem::findOrFail($item['id']);
+                $actualQuantity = (int) $item['actual_quantity'];
+                if ($actualQuantity !== (int) $orderItem->quantity) {
+                    $skuName = $orderItem->sku?->sku_name ?? "SKU#{$orderItem->sku_id}";
+
+                    throw new \Exception("当前设置为收发一致模式，不允许入库差异。明细 {$skuName} 采购 {$orderItem->quantity}，实入 {$actualQuantity}，请调整一致后再入库");
+                }
+            }
+        }
+
         return DB::transaction(function () use ($order, $warehouseId, $items, $batchNo) {
             // 更新采购单仓库和状态
             $order->update([
@@ -217,10 +230,13 @@ class PurchaseService
             // 审计日志
             $this->auditStatusChange($order, 'stock_in', PurchaseOrder::STATUS_SHIPPED, PurchaseOrder::STATUS_STOCKED);
 
-            // 断链修复：当存在入库差异且系统配置开启时，自动创建损耗单
+            // 断链修复：当存在入库差异且系统配置开启时，自动创建损耗单（差异率 ≤ 允差阈值的明细只留痕不生成）
             $autoCreateLoss = (bool) setting('stockin_auto_create_loss', true);
             if ($autoCreateLoss) {
-                $this->lossOrderService->createFromDiscrepancy($order->fresh());
+                $this->lossOrderService->createFromDiscrepancy(
+                    $order->fresh(),
+                    (int) setting('purchase_discrepancy_threshold', 0)
+                );
             }
 
             return $order->fresh();
@@ -238,11 +254,20 @@ class PurchaseService
             throw new \Exception('当前状态不允许完成');
         }
 
-        // 断链修复：检查是否有未处理的入库差异
-        $unresolvedDiscrepancy = $order->items()
+        // 断链修复：检查是否有未处理的入库差异（差异率 ≤ 允差阈值的明细视为已留痕处理，不阻断完成）
+        $thresholdPct = (int) setting('purchase_discrepancy_threshold', 0);
+        $unresolvedItems = $order->items()
             ->where('discrepancy_quantity', '>', 0)
             ->whereNull('loss_order_id')
-            ->exists();
+            ->get();
+
+        $unresolvedDiscrepancy = $unresolvedItems->contains(function ($item) use ($thresholdPct) {
+            if ($item->quantity <= 0) {
+                return true;
+            }
+
+            return $item->discrepancy_quantity / $item->quantity * 100 > $thresholdPct;
+        });
 
         if ($unresolvedDiscrepancy) {
             throw new \Exception('存在未处理的入库差异，请先处理损耗单后再完成');

@@ -152,6 +152,12 @@
                     <td class="px-4 py-2 text-center">
                         @php $ic = $itemStatusColorMap[$item->status] ?? 'gray'; @endphp
                         <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $ic }}-100 text-{{ $ic }}-700">{{ $itemStatusMap[$item->status] ?? '-' }}</span>
+                        @if(isset($itemDiscrepancies[$item->id]))
+                        @php $disc = $itemDiscrepancies[$item->id]; @endphp
+                        <a href="{{ route('discrepancies') }}" class="block mt-1 text-[11px] text-blue-600 hover:text-blue-700 transition-colors" title="差异原因：{{ $disc->reason ?? '-' }}">
+                            {{ $disc->discrepancy_no }} · {{ $disc->status_label }}
+                        </a>
+                        @endif
                     </td>
                 </tr>
                 @endforeach

@@ -1282,3 +1282,50 @@
 | 分支 | bugfix（差异损耗工作分支，待用户确认后合并 main） |
 | 提交 | 见本次提交 |
 | 验证 | 测试 16 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint 通过；view:cache 通过；开发库需 migrate:fresh --seed 生效新字段 |
+
+---
+
+## V2.0.5 — 差异流程开关化 + 允差阈值：四环节独立管控与差异就近可视
+
+> 开发者：Kimi。决策依据：用户拍板「全环节默认宽松模式 + 允差阈值本期落地，阈值支持自定义」；`docs/research/11_差异损耗留痕与账务持平设计.md` 差异管控章节。
+
+### 变更概述
+
+1. **四环节差异策略开关**：采购入库 / 拣货 / 配送分货 / 实收签收各有独立「允许差异」开关（默认全开=宽松模式）。关闭即严格模式：该环节收发必须一致，录入差异直接阻断并提示出口（调整订单 / 售后退货 / 管理员回退）。
+2. **允差阈值（%）**：采购 / 拣货 / 实收各自可配置阈值（0~100，默认 0=任何差异都生成单据）。差异率 ≤ 阈值时只标记留痕（明细标差异 / 记录差异数量），不生成差异单 / 损耗单；超阈值正常生成。
+3. **差异就近可视**：拣货总单详情新增「本任务差异单」区块；送货单明细行标注差异单号与处理状态；采购单明细子行显示差异数量与关联损耗单号（阈值内显示「仅留痕」）；登记差异后的 toast 均带差异单号。
+4. **采购单完成校验阈值化**：阈值内留痕的入库差异不再阻断采购单完成（此前 loss_order_id 为空即阻断，会导致阈值内差异永远无法完成）。
+
+### 变更明细
+
+| 操作 | 文件 | 说明 |
+| :--- | :--- | :--- |
+| 调整 | 000013_create_system_tables | 新增 8 个配置项：inventory 组 purchase/picking 开关+阈值（sort 34-37），delivery 组 delivery/receiving 开关+阈值（sort 13-16）；配置计数注释 26→34 |
+| 完善 | Inventory/PickingTaskDetail::savePickedQuantity | 严格模式阻断（不保存）；差异率 ≤ 阈值只分摊标记不建差异单；超阈值建单并收集单号，toast 分三种场景（阈值留痕/建单带单号/正常） |
+| 完善 | Delivery/DeliveryNoteDetail::confirmItemDelivery | 严格模式阻断（不保存明细）；阈值内只标记 STATUS_DISCREPANCY 不弹窗；超阈值维持弹窗登记 |
+| 完善 | Delivery/DeliveryNoteDetail::markDelivered | 分货前检查差异明细：严格模式阻断，宽松模式 toast 警告差异条数后放行 |
+| 完善 | Delivery/DeliveryNoteDetail::saveItemDiscrepancy / render | toast 带差异单号；render 输出明细级差异单映射（按 delivery_note_item_id） |
+| 完善 | Services/PurchaseService::stockIn | 严格模式任一行实际≠采购数量即 throw 阻断；createFromDiscrepancy 传入 purchase 阈值 |
+| 完善 | Services/PurchaseService::complete | 未处理差异校验改为阈值感知：差异率 ≤ 阈值视为已留痕处理 |
+| 完善 | Services/LossOrderService::createFromDiscrepancy | 新增 `?int $thresholdPct` 参数（默认 null 不过滤，向后兼容），按差异率过滤阈值内明细 |
+| 完善 | Inventory/PickingTaskDetail::render + blade | 「本任务差异单」区块（单号/SKU/类型/应拣/实拣/差异量/状态/原因 + 处理台链接） |
+| 完善 | delivery-note-detail.blade | 明细行状态列下标注差异单号与处理状态 |
+| 完善 | purchase-order-detail.blade | 差异子行补充差异数量与损耗单号展示，阈值内显示「仅留痕」 |
+| 测试 | tests/Feature/DiscrepancyThresholdTest | 4 条用例：严格阻断 / 阈值免单（含完成不阻断）/ 超阈值建单 / 默认配置兜底断言 |
+
+### 决策记录
+
+| 决策 | 选择 | 说明 |
+| :--- | :--- | :--- |
+| 默认模式 | 全宽松 | 用户拍板；严格模式通过系统设置逐环节开启 |
+| 允差阈值 | 本期落地 | 阈值可自定义修改（0~100%），0=任何差异都生成单据 |
+| 配送环节挂点 | markDelivered 确认分货 | 分货是配送侧唯一数量确认动作 |
+| 阈值内差异留痕方式 | 只标记不建单 | 明细标差异状态/记录差异数量，不产生差异单损耗单，采购单可正常完成 |
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | bugfix（差异损耗工作分支，待用户确认后合并 main） |
+| 提交 | 见本次提交 |
+| 验证 | 测试 20 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint 通过；view:cache 通过；开发库需 migrate:fresh --seed 生效新配置 |

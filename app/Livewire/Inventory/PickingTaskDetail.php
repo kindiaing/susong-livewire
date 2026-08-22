@@ -310,11 +310,26 @@ class PickingTaskDetail extends Component
         }
 
         $hasDiff = $pickedQty < $this->editingRequiredQty;
+
+        // 严格模式（不允许差异）：直接阻断，须收发一致
+        if ($hasDiff && ! setting('picking_allow_discrepancy', true)) {
+            $this->toastError('当前设置为收发一致模式，不允许拣货差异。请联系运营调整订单或由管理员回退处理');
+
+            return;
+        }
+
         if ($hasDiff && trim($this->inputDiffReason) === '') {
             $this->toastError('实拣数量少于需求数量时，请填写差异原因');
 
             return;
         }
+
+        // 允差阈值：差异率不超过阈值时只标记留痕，不生成差异单
+        $thresholdPct = (int) setting('picking_discrepancy_threshold', 0);
+        $diffRatePct = $this->editingRequiredQty > 0
+            ? round(($this->editingRequiredQty - $pickedQty) / $this->editingRequiredQty * 100, 2)
+            : 0;
+        $withinThreshold = $hasDiff && $diffRatePct <= $thresholdPct;
 
         $items = PickingTaskItem::where('picking_task_id', $this->pickingTaskId)
             ->where('sku_id', $this->editingSkuId)
@@ -323,7 +338,7 @@ class PickingTaskDetail extends Component
 
         $discrepancyService = app(DiscrepancyService::class);
         $remaining = $pickedQty;
-        $diffCount = 0;
+        $diffNos = [];
 
         foreach ($items as $item) {
             $alloc = min($remaining, $item->required_quantity);
@@ -336,10 +351,10 @@ class PickingTaskDetail extends Component
                     : PickingTaskItem::STATUS_DISCREPANCY,
             ]);
 
-            // 分摊后仍有缺口：登记差异单（同明细同环节未完结时跳过，由服务层唯一性兜底）
-            if ($alloc < $item->required_quantity) {
+            // 分摊后仍有缺口且超出允差阈值：登记差异单（同明细同环节未完结时跳过，由服务层唯一性兜底）
+            if (! $withinThreshold && $alloc < $item->required_quantity) {
                 try {
-                    $discrepancyService->create([
+                    $discrepancy = $discrepancyService->create([
                         'order_id' => $item->order_id,
                         'order_item_id' => $item->order_item_id,
                         'picking_task_id' => $this->pickingTaskId,
@@ -351,7 +366,7 @@ class PickingTaskDetail extends Component
                         'actual_quantity' => $alloc,
                         'reason' => trim($this->inputDiffReason),
                     ]);
-                    $diffCount++;
+                    $diffNos[] = $discrepancy->discrepancy_no;
                 } catch (\Exception $e) {
                     // 已存在未完结差异单等情况，跳过不阻断主流程
                 }
@@ -373,9 +388,13 @@ class PickingTaskDetail extends Component
         $this->closePickedModal();
         $this->loadPickingTask();
 
-        $this->toastSuccess($hasDiff
-            ? "实拣已保存，登记 {$diffCount} 条差异单待处理"
-            : '实拣数量已保存');
+        if ($withinThreshold) {
+            $this->toastSuccess("实拣已保存，差异率 {$diffRatePct}% 在允差阈值 {$thresholdPct}% 内，仅标记留痕");
+        } elseif ($diffNos !== []) {
+            $this->toastSuccess('实拣已保存，登记差异单 '.implode('、', $diffNos).' 待处理');
+        } else {
+            $this->toastSuccess('实拣数量已保存');
+        }
     }
 
     /**
@@ -478,8 +497,14 @@ class PickingTaskDetail extends Component
         $merchantGroups = $this->getMerchantGroups();
         $isSuperAdmin = $this->isSuperAdmin;
 
+        // 本任务产生的差异单（就近可视，处理进度一目了然）
+        $discrepancies = Discrepancy::where('picking_task_id', $this->pickingTaskId)
+            ->with('sku')
+            ->latest('id')
+            ->get();
+
         return view('livewire.inventory.picking-task-detail', compact(
-            'pickingTask', 'skuSummary', 'merchantGroups', 'isSuperAdmin'
+            'pickingTask', 'skuSummary', 'merchantGroups', 'isSuperAdmin', 'discrepancies'
         ))
             ->layout('components.app-layout')
             ->title('拣货总单详情 - '.($pickingTask->task_no ?? ''));

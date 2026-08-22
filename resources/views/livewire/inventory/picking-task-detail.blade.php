@@ -224,6 +224,50 @@
     </div>
     @endif
 
+    {{-- 本任务差异单（就近可视） --}}
+    @if($discrepancies->isNotEmpty())
+    <div class="rounded-lg border bg-card mt-4">
+        <div class="px-6 py-4 border-b flex items-center justify-between">
+            <h3 class="text-sm font-semibold text-foreground">本任务差异单（{{ $discrepancies->count() }}）</h3>
+            <a href="{{ route('discrepancies') }}" class="text-xs text-blue-600 hover:text-blue-700 transition-colors">前往差异处理台 →</a>
+        </div>
+        <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead class="bg-muted/20">
+                <tr class="text-xs text-muted-foreground uppercase tracking-wider">
+                    <th class="px-4 py-2 text-left">差异单号</th>
+                    <th class="px-4 py-2 text-left">SKU名称</th>
+                    <th class="px-4 py-2 text-left w-20">类型</th>
+                    <th class="px-4 py-2 text-right w-20">应拣</th>
+                    <th class="px-4 py-2 text-right w-20">实拣</th>
+                    <th class="px-4 py-2 text-right w-20">差异量</th>
+                    <th class="px-4 py-2 text-center w-24">状态</th>
+                    <th class="px-4 py-2 text-left">原因</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y">
+                @foreach($discrepancies as $disc)
+                <tr class="hover:bg-muted/30 transition-colors">
+                    <td class="px-4 py-2 text-foreground font-medium">{{ $disc->discrepancy_no }}</td>
+                    <td class="px-4 py-2 text-foreground">{{ $disc->sku?->sku_name ?? '-' }}</td>
+                    <td class="px-4 py-2 text-muted-foreground">{{ $disc->type_label }}</td>
+                    <td class="px-4 py-2 text-right text-foreground">{{ $disc->expected_quantity }}</td>
+                    <td class="px-4 py-2 text-right text-foreground">{{ $disc->actual_quantity }}</td>
+                    <td class="px-4 py-2 text-right text-red-600 font-medium">{{ $disc->expected_quantity - $disc->actual_quantity }}</td>
+                    <td class="px-4 py-2 text-center">
+                        @php $discColorMap = [1 => 'orange', 2 => 'blue', 3 => 'green', 4 => 'gray', 5 => 'red']; @endphp
+                        @php $dc = $discColorMap[$disc->status] ?? 'gray'; @endphp
+                        <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $dc }}-100 text-{{ $dc }}-700">{{ $disc->status_label }}</span>
+                    </td>
+                    <td class="px-4 py-2 text-muted-foreground">{{ $disc->reason ?? '-' }}</td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+        </div>
+    </div>
+    @endif
+
     {{-- 实拣录入弹窗（遮罩不可点击关闭） --}}
     @if($showPickedModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">

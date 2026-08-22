@@ -74,13 +74,24 @@ class DeliveryNoteDetail extends Component
 
             return;
         }
+
+        // 已录入差异明细（实收少于应送）时的开关控制
+        $diffCount = $note->items()->where('status', DeliveryNoteItem::STATUS_DISCREPANCY)->count();
+        if ($diffCount > 0 && ! setting('delivery_allow_discrepancy', true)) {
+            $this->toastError("存在 {$diffCount} 条实收差异明细，当前设置为收发一致模式，不允许确认分货。请先处理差异");
+
+            return;
+        }
+
         $note->update([
             'status' => DeliveryNote::STATUS_DELIVERED,
             'delivered_at' => now(),
         ]);
         $note->items()->update(['status' => DeliveryNoteItem::STATUS_DELIVERED]);
         $this->loadNote();
-        $this->toastSuccess('已确认分货');
+        $this->toastSuccess($diffCount > 0
+            ? "已确认分货（含 {$diffCount} 条实收差异，请关注差异处理进度）"
+            : '已确认分货');
     }
 
     public function markSigned(): void
@@ -115,6 +126,14 @@ class DeliveryNoteDetail extends Component
     {
         $item = DeliveryNoteItem::findOrFail($itemId);
         $pickedQty = max(0, min((int) $pickedQty, (int) $item->quantity));
+
+        // 严格模式（不允许差异）：直接阻断，拒收须走售后退货流程
+        if ($pickedQty < $item->quantity && ! setting('receiving_allow_discrepancy', true)) {
+            $this->toastError('当前设置为收发一致模式，不允许实收差异。如需拒收请走售后退货流程');
+
+            return;
+        }
+
         $item->picked_quantity = $pickedQty;
         $item->status = $pickedQty >= $item->quantity
             ? DeliveryNoteItem::STATUS_DELIVERED
@@ -122,8 +141,19 @@ class DeliveryNoteDetail extends Component
         $item->save();
         $this->loadNote();
 
-        // 实收少于应送：弹出差异登记（实收 0 默认按拒收）
+        // 实收少于应送：差异率在允差阈值内只标记留痕，否则弹出差异登记（实收 0 默认按拒收）
         if ($pickedQty < $item->quantity) {
+            $thresholdPct = (int) setting('receiving_discrepancy_threshold', 0);
+            $diffRatePct = $item->quantity > 0
+                ? round(($item->quantity - $pickedQty) / $item->quantity * 100, 2)
+                : 0;
+
+            if ($diffRatePct <= $thresholdPct) {
+                $this->toastSuccess("明细已更新，差异率 {$diffRatePct}% 在允差阈值 {$thresholdPct}% 内，仅标记留痕");
+
+                return;
+            }
+
             $this->diffItemId = $item->id;
             $this->diffSkuName = $item->sku_name ?? $item->sku?->sku_name ?? '';
             $this->diffExpectedQty = (int) $item->quantity;
@@ -159,7 +189,7 @@ class DeliveryNoteDetail extends Component
             : null;
 
         try {
-            app(DiscrepancyService::class)->create([
+            $discrepancy = app(DiscrepancyService::class)->create([
                 'order_id' => $item->order_id,
                 'order_item_id' => $orderItem?->id,
                 'delivery_note_item_id' => $item->id,
@@ -171,7 +201,7 @@ class DeliveryNoteDetail extends Component
                 'reason' => trim($this->diffReason),
                 'remark' => "送货单 {$this->note->note_no} 实收登记",
             ]);
-            $this->toastSuccess('差异已登记，待处理台跟进');
+            $this->toastSuccess("差异单 {$discrepancy->discrepancy_no} 已登记，待处理台跟进");
         } catch (\Exception $e) {
             $this->toastError($e->getMessage());
         }
@@ -197,8 +227,13 @@ class DeliveryNoteDetail extends Component
         $itemStatusMap = self::$itemStatusMap;
         $itemStatusColorMap = self::$itemStatusColorMap;
 
+        // 明细级差异单映射（就近可视：差异单号与处理状态直接标在明细行上）
+        $itemDiscrepancies = $note->items->isNotEmpty()
+            ? Discrepancy::whereIn('delivery_note_item_id', $note->items->pluck('id'))->get()->keyBy('delivery_note_item_id')
+            : collect();
+
         return view('livewire.delivery.delivery-note-detail', compact(
-            'note', 'statusMap', 'statusColorMap', 'itemStatusMap', 'itemStatusColorMap'
+            'note', 'statusMap', 'statusColorMap', 'itemStatusMap', 'itemStatusColorMap', 'itemDiscrepancies'
         ))
             ->layout('components.app-layout')
             ->title('送货单详情 - '.$note->note_no);
