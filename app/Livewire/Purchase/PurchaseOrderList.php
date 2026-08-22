@@ -231,7 +231,10 @@ class PurchaseOrderList extends Component
 
     public function render()
     {
-        $query = PurchaseOrder::with('supplier')->orderBy('id', 'desc');
+        $query = PurchaseOrder::with('supplier')
+            ->withSum('items as discrepancy_total', 'discrepancy_quantity')
+            ->withCount(['items as discrepancy_item_count' => fn ($q) => $q->where('discrepancy_quantity', '>', 0)])
+            ->orderBy('id', 'desc');
 
         if ($this->search) {
             $query->where(function ($q) {

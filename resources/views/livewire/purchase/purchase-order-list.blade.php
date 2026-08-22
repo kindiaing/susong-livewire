@@ -175,7 +175,14 @@
                         @switch($col['key'])
                             @case('order_no')
                                 <td class="px-4 py-2">
-                                    <a href="{{ route('purchase-orders.detail', $order->id) }}" class="font-mono text-blue-600 hover:underline">{{ $order->order_no }}</a>
+                                    <div class="flex items-center gap-1.5">
+                                        <a href="{{ route('purchase-orders.detail', $order->id) }}" class="font-mono text-blue-600 hover:underline">{{ $order->order_no }}</a>
+                                        @if(($order->discrepancy_total ?? 0) > 0)
+                                        <span class="inline-flex text-orange-500 cursor-help" title="入库差异：{{ $order->discrepancy_item_count }} 条明细共短缺 {{ $order->discrepancy_total }}，点击查看详情">
+                                            <x-ui.icon name="exclamation-triangle" class="w-3.5 h-3.5" />
+                                        </span>
+                                        @endif
+                                    </div>
                                 </td>
                                 @break
                             @case('supplier_id')
