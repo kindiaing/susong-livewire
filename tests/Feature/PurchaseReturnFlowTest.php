@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Purchase\PurchaseReturnList;
 use App\Models\Inventory;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
@@ -9,6 +10,7 @@ use App\Models\Supplier;
 use App\Models\Warehouse;
 use App\Services\InventoryService;
 use App\Services\PurchaseReturnService;
+use Livewire\Livewire;
 
 /**
  * 采购退货双模式（关联退货 / 普通退货）测试
@@ -94,19 +96,52 @@ it('creates a normal return with custom items and manual prices', function () {
         ->and($return->items->first()->purchase_order_item_id)->toBeNull();
 });
 
-it('rejects normal return with empty items or invalid quantity', function () {
+it('allows creating an empty return header but rejects approving without items', function () {
+    ['warehouse' => $warehouse, 'supplier' => $supplier] = createReturnFixtures();
+    $service = app(PurchaseReturnService::class);
+
+    // 头先行：空头创建合法（明细在详情页补录）
+    $return = $service->createNormal($supplier->id, $warehouse->id, [], '先存单头');
+    expect($return->items)->toHaveCount(0)
+        ->and($return->total_amount)->toBe(0);
+
+    // 无明细不可审核
+    $service->approve($return);
+})->throws(Exception::class, '请先添加退货明细再审核');
+
+it('replaces items via updateItems and recalculates amounts', function () {
     ['warehouse' => $warehouse, 'sku' => $sku, 'supplier' => $supplier] = createReturnFixtures();
     $service = app(PurchaseReturnService::class);
 
-    // 空明细
-    expect(fn () => $service->createNormal($supplier->id, $warehouse->id, []))
-        ->toThrow(Exception::class, '退货明细不能为空');
+    $return = $service->createNormal($supplier->id, $warehouse->id, [
+        ['sku_id' => $sku->id, 'quantity' => 3, 'price' => 4500],
+    ]);
+    expect($return->total_amount)->toBe(13500);
+
+    // 整单替换为 2 件 × 5000 厘
+    $return = $service->updateItems($return, [
+        ['sku_id' => $sku->id, 'quantity' => 2, 'price' => 5000, 'reason' => '改数量'],
+    ]);
+
+    expect($return->items)->toHaveCount(1)
+        ->and($return->total_amount)->toBe(10000)
+        ->and($return->items->first()->reason)->toBe('改数量');
+
+    // 审核后不可再改明细
+    $service->approve($return);
+    expect(fn () => $service->updateItems($return->fresh(), [
+        ['sku_id' => $sku->id, 'quantity' => 1, 'price' => 1000],
+    ]))->toThrow(Exception::class, '仅待审核状态的退货单可编辑明细');
+});
+
+it('rejects normal return items with invalid quantity', function () {
+    ['warehouse' => $warehouse, 'sku' => $sku, 'supplier' => $supplier] = createReturnFixtures();
 
     // 数量为 0
-    expect(fn () => $service->createNormal($supplier->id, $warehouse->id, [
+    app(PurchaseReturnService::class)->createNormal($supplier->id, $warehouse->id, [
         ['sku_id' => $sku->id, 'quantity' => 0, 'price' => 1000],
-    ]))->toThrow(Exception::class, '退货数量必须大于0');
-});
+    ]);
+})->throws(Exception::class, '退货数量必须大于0');
 
 it('ships a normal return and deducts inventory from the return warehouse', function () {
     ['warehouse' => $warehouse, 'sku' => $sku, 'supplier' => $supplier] = createReturnFixtures();
@@ -161,4 +196,21 @@ it('completed normal returns are included in settlement return amount', function
         ->sum('actual_amount');
 
     expect($returnAmount)->toBe(8000);
+});
+
+it('creates a header-only return from the list component and redirects to detail page', function () {
+    ['warehouse' => $warehouse, 'supplier' => $supplier] = createReturnFixtures();
+
+    Livewire::test(PurchaseReturnList::class)
+        ->set('formReturnType', PurchaseReturn::TYPE_NORMAL)
+        ->set('formSupplierId', $supplier->id)
+        ->set('formWarehouseId', $warehouse->id)
+        ->set('formReason', '滞销退回')
+        ->call('save')
+        ->assertRedirectContains('purchase-returns/');
+
+    $return = PurchaseReturn::where('supplier_id', $supplier->id)->latest('id')->first();
+    expect($return->return_type)->toBe(PurchaseReturn::TYPE_NORMAL)
+        ->and($return->items)->toHaveCount(0)
+        ->and($return->status)->toBe(PurchaseReturn::STATUS_PENDING);
 });

@@ -54,10 +54,108 @@
 
     {{-- 明细表格 --}}
     <div class="rounded-lg border bg-card">
-        <div class="px-4 py-2 border-b">
+        <div class="px-4 py-2 border-b flex items-center justify-between">
             <h2 class="text-sm font-semibold text-foreground">退货明细</h2>
+            @if($return->status === 1)
+            <div class="flex items-center gap-2">
+                <button type="button" wire:click="addItemRow" class="rounded-md border border-input px-2 py-1 text-xs hover:bg-accent transition-colors">+ 添加行</button>
+                @if($this->isLinked)
+                    @if(count($formItems) > 0)
+                    <button type="button" wire:click="exportItems" class="rounded-md border border-input px-2 py-1 text-xs hover:bg-accent transition-colors">导出明细</button>
+                    @endif
+                @else
+                <button type="button" wire:click="exportItemsTemplate" class="rounded-md border border-input px-2 py-1 text-xs hover:bg-accent transition-colors">下载模板</button>
+                <label class="rounded-md border border-input px-2 py-1 text-xs hover:bg-accent transition-colors cursor-pointer">
+                    导入明细
+                    <input type="file" wire:model="itemsImportFile" accept=".xlsx,.xls,.csv" class="hidden" />
+                </label>
+                @if($itemsImportFile)
+                <button type="button" wire:click="importItems" class="rounded-md bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700 transition-colors">确认导入</button>
+                @endif
+                @if(count($formItems) > 0)
+                <button type="button" wire:click="exportItems" class="rounded-md border border-input px-2 py-1 text-xs hover:bg-accent transition-colors">导出明细</button>
+                @endif
+                @endif
+                <button type="button" wire:click="saveItems" class="rounded-md bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700 transition-colors">保存明细</button>
+            </div>
+            @endif
         </div>
 
+        @if($return->status === 1)
+        {{-- 待审核：可编辑明细 --}}
+        @if(count($formItems) > 0)
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm min-w-[720px]">
+                <thead>
+                    <tr class="border-b text-[11px] font-medium text-muted-foreground bg-muted/30">
+                        <th class="px-3 py-1.5 text-left">SKU</th>
+                        @if($this->isLinked)<th class="px-3 py-1.5 text-right w-[80px]">可退数量</th>@endif
+                        <th class="px-3 py-1.5 text-right w-[110px]">退货数量</th>
+                        <th class="px-3 py-1.5 text-right w-[110px]">单价（元）</th>
+                        <th class="px-3 py-1.5 text-left w-[160px]">原因</th>
+                        <th class="px-3 py-1.5 text-center w-[50px]"></th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    @foreach($formItems as $i => $row)
+                    <tr wire:key="return-item-{{ $i }}">
+                        @if($this->isLinked)
+                        <td class="px-3 py-1.5">
+                            <select wire:change="pickOrderItem({{ $i }}, $event.target.value)" class="w-full h-8 rounded border border-input bg-background px-1.5 text-xs">
+                                <option value="0">选择采购明细</option>
+                                @foreach($orderItems as $oi)
+                                <option value="{{ $oi->id }}" @selected((int) ($row['purchase_order_item_id'] ?? 0) === $oi->id)>
+                                    {{ $oi->sku?->product?->name ?? 'SKU' }}（{{ $oi->sku?->sku_code }}）实入 {{ $oi->actual_quantity }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </td>
+                        <td class="px-3 py-1.5 text-right text-muted-foreground tabular-nums">{{ $row['max_quantity'] ?: '-' }}</td>
+                        <td class="px-3 py-1.5">
+                            <input type="number" wire:model="formItems.{{ $i }}.quantity" min="0" max="{{ $row['max_quantity'] }}" class="w-full h-8 rounded border border-input bg-background px-1.5 text-xs text-right" />
+                        </td>
+                        <td class="px-3 py-1.5 text-right text-muted-foreground tabular-nums">{{ number_format(($row['price'] ?? 0) / 1000, 2) }}</td>
+                        @else
+                        <td class="px-3 py-1.5">
+                            <select wire:model="formItems.{{ $i }}.sku_id" class="w-full h-8 rounded border border-input bg-background px-1.5 text-xs">
+                                <option value="0">选择 SKU</option>
+                                @foreach($skus as $sku)
+                                <option value="{{ $sku->id }}">{{ $sku->product?->name ?? 'SKU' }}（{{ $sku->sku_code }}）</option>
+                                @endforeach
+                            </select>
+                        </td>
+                        <td class="px-3 py-1.5">
+                            <input type="number" wire:model="formItems.{{ $i }}.quantity" min="0" class="w-full h-8 rounded border border-input bg-background px-1.5 text-xs text-right" />
+                        </td>
+                        <td class="px-3 py-1.5">
+                            <input type="text" wire:model="formItems.{{ $i }}.price_yuan" placeholder="0.00" class="w-full h-8 rounded border border-input bg-background px-1.5 text-xs text-right" />
+                        </td>
+                        @endif
+                        <td class="px-3 py-1.5">
+                            <input type="text" wire:model="formItems.{{ $i }}.reason" placeholder="可选" class="w-full h-8 rounded border border-input bg-background px-1.5 text-xs" />
+                        </td>
+                        <td class="px-3 py-1.5 text-center">
+                            <button type="button" wire:click="removeItemRow({{ $i }})" class="text-red-500 hover:text-red-700" title="删除行"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        <p class="px-4 py-2 text-xs text-muted-foreground border-t">
+            @if($this->isLinked)
+            退货数量不能超过实际入库数量；数量填 0 或删除行表示该明细不退货。编辑后请点击「保存明细」生效。
+            @else
+            普通退货：自选 SKU 并手工填写单价；支持 Excel/CSV 导入（SKU编码,数量,单价(元),原因）。编辑后请点击「保存明细」生效。
+            @endif
+        </p>
+        @else
+        <div class="px-4 py-8 text-center text-sm text-muted-foreground">
+            暂无明细。点击右上角「+ 添加行」{{ $this->isLinked ? '' : '或「导入明细」' }} 录入退货商品，保存明细后方可审核。
+        </div>
+        @endif
+        @else
+        {{-- 非待审核：只读明细 --}}
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b text-[11px] font-medium text-muted-foreground bg-muted/30">
@@ -89,6 +187,7 @@
                 @endforelse
             </tbody>
         </table>
+        @endif
     </div>
 
     {{-- 时间线 --}}

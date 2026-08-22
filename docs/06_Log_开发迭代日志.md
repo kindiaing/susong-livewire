@@ -1463,3 +1463,36 @@
 | 分支 | feature/discrepancy-loss |
 | 提交 | 见本次提交 |
 | 验证 | 新增测试 7 通过；全量 34 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint / view:cache 通过；migrate:fresh + DemoDataSeeder 重跑验证 |
+
+---
+
+## V2.0.10 — 采购退货交互重构：头先行 + 详情页维护明细
+
+> 开发者：Kimi。用户实测反馈：创建弹窗太小，不适合整理明细——改为先存单头、保存后跳详情页再添加/导入/导出明细。
+
+### 变更概述
+
+1. **两步建单**：新增弹窗只填单头（类型 / 关联采购单 或 供应商+仓库 / 原因备注），保存后自动跳转退货单详情页。
+2. **明细维护迁移至详情页**：待审核状态下明细表格可编辑——添加/删除行、普通退货下载导入模板 + Excel/CSV 导入（按 SKU 编码匹配）+ 导出明细 CSV，「保存明细」整单替换生效；非待审核状态只读。
+3. **服务层配套**：createLinked/createNormal 允许空头创建；新增 updateItems()（仅待审核，先删后建 + 重算金额，关联模式复用实际入库数量上限校验与重复行拦截）；approve() 拦截无明细单据（"请先添加退货明细再审核"）。
+4. **关联模式选行交互**：详情页明细行从采购单明细下拉选择，自动带出 SKU、可退上限（实际入库数量）、单价。
+
+### 变更明细
+
+| 操作 | 文件 | 说明 |
+| :--- | :--- | :--- |
+| 完善 | Services/PurchaseReturnService | 空头创建；updateItems()；明细行创建提取为 createLinkedItem/createNormalItem；审核校验明细非空 |
+| 重写 | Livewire/Purchase/PurchaseReturnList | 移除明细行/导入导出逻辑；save() 创建后 redirect 详情页 |
+| 重写 | Livewire/Purchase/PurchaseReturnDetail | 迁入明细编辑：formItems 同步、addItemRow/pickOrderItem/removeItemRow/importItems/exportItemsTemplate/exportItems/saveItems |
+| 修改 | purchase-return-list.blade | 弹窗去除明细区，改为跳转提示 |
+| 修改 | purchase-return-detail.blade | 待审核可编辑明细表格（含工具栏），非待审核只读 |
+| 测试 | tests/Feature/PurchaseReturnFlowTest | 调整空头用例为审核拦截；新增 updateItems 整单替换+状态拦截、列表组件建单跳转，共 10 用例 |
+| 文档 | docs/07、docs/12 | 采购退货用例改两步流程+新增 TC-PUR-006e 空头审核拦截（统计 126→127）；用户手册 4.7 两步操作说明 |
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | feature/discrepancy-loss |
+| 提交 | 见本次提交 |
+| 验证 | 退货测试 10 通过；全量 37 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint / view:cache 通过 |

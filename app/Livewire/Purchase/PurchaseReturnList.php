@@ -10,13 +10,11 @@ use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseReturn;
-use App\Models\Sku;
 use App\Models\Supplier;
 use App\Models\Warehouse;
 use App\Services\PurchaseReturnService;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Maatwebsite\Excel\Facades\Excel;
 
 class PurchaseReturnList extends Component
 {
@@ -44,16 +42,6 @@ class PurchaseReturnList extends Component
 
     public string $formRemark = '';
 
-    /**
-     * 退货明细行
-     * 关联模式：[{purchase_order_item_id, sku_id, sku_name, max_quantity, quantity, price(厘), reason}]
-     * 普通模式：[{sku_id, quantity, price_yuan(元), reason}]
-     */
-    public array $formItems = [];
-
-    // 明细导入文件（普通模式）
-    public $itemsImportFile = null;
-
     public function mount(): void
     {
         $this->initColumnVisibility();
@@ -76,147 +64,34 @@ class PurchaseReturnList extends Component
         $this->formWarehouseId = $item->warehouse_id;
         $this->formReason = $item->reason ?? '';
         $this->formRemark = $item->remark ?? '';
-        $this->formItems = [];
         $this->showModal = true;
     }
 
     /**
-     * 切换退货类型：清空已选采购单与明细行
+     * 切换退货类型：清空已选采购单
      */
     public function updatedFormReturnType(): void
     {
         $this->formPurchaseOrderId = 0;
-        $this->formItems = [];
-        $this->itemsImportFile = null;
     }
 
     /**
-     * 关联模式：选中采购单后拉取明细行（上限=实际入库数量）
+     * 关联模式：选中采购单后自动带出供应商与入库仓库
      */
     public function updatedFormPurchaseOrderId($value): void
     {
-        $this->formItems = [];
-        $order = PurchaseOrder::with(['items.sku.product'])->find((int) $value);
+        $order = PurchaseOrder::find((int) $value);
         if (! $order) {
             return;
         }
 
-        // 自动带出供应商与入库仓库
         $this->formSupplierId = (int) $order->supplier_id;
         $this->formWarehouseId = (int) ($order->warehouse_id ?? 0);
-
-        foreach ($order->items as $oi) {
-            if ($oi->actual_quantity <= 0) {
-                continue;
-            }
-            $this->formItems[] = [
-                'purchase_order_item_id' => $oi->id,
-                'sku_id' => $oi->sku_id,
-                'sku_name' => ($oi->sku?->product?->name ?? 'SKU').'（'.$oi->sku?->sku_code.'）',
-                'max_quantity' => (int) $oi->actual_quantity,
-                'quantity' => (int) $oi->actual_quantity,
-                'price' => (int) ($oi->actual_price ?: $oi->price),
-                'reason' => '',
-            ];
-        }
-    }
-
-    /**
-     * 普通模式：新增一行自定义明细
-     */
-    public function addItemRow(): void
-    {
-        $this->formItems[] = [
-            'sku_id' => 0,
-            'quantity' => '',
-            'price_yuan' => '',
-            'reason' => '',
-        ];
-    }
-
-    public function removeItemRow(int $index): void
-    {
-        unset($this->formItems[$index]);
-        $this->formItems = array_values($this->formItems);
-    }
-
-    /**
-     * 普通模式：导入明细（列：SKU编码 | 数量 | 单价(元) | 原因）
-     */
-    public function importItems(): void
-    {
-        $this->validate([
-            'itemsImportFile' => 'required|file|mimes:xlsx,xls,csv|max:10240',
-        ]);
-
-        $rows = Excel::toArray(null, $this->itemsImportFile)[0] ?? [];
-        $failures = [];
-        $added = 0;
-
-        foreach (array_slice($rows, 1) as $row) {
-            $code = trim((string) ($row[0] ?? ''));
-            if ($code === '') {
-                continue;
-            }
-            $sku = Sku::where('sku_code', $code)->first();
-            if (! $sku) {
-                $failures[] = $code;
-
-                continue;
-            }
-            $this->formItems[] = [
-                'sku_id' => $sku->id,
-                'quantity' => (string) (int) ($row[1] ?? 0),
-                'price_yuan' => (string) ($row[2] ?? ''),
-                'reason' => trim((string) ($row[3] ?? '')),
-            ];
-            $added++;
-        }
-
-        $this->itemsImportFile = null;
-
-        if ($failures !== []) {
-            $this->toastWarning("已导入 {$added} 行，未识别 SKU 编码：".implode('、', $failures));
-        } else {
-            $this->toastSuccess("已导入 {$added} 行明细");
-        }
-    }
-
-    /**
-     * 普通模式：下载明细导入模板
-     */
-    public function exportItemsTemplate()
-    {
-        return response()->streamDownload(function () {
-            echo "\xEF\xBB\xBF"."SKU编码,数量,单价(元),原因\n";
-            echo "示例SKU-001,10,5.5,破损退货\n";
-        }, '采购退货明细导入模板.csv');
-    }
-
-    /**
-     * 导出当前明细行（两种模式通用）
-     */
-    public function exportItems()
-    {
-        $isLinked = $this->formReturnType === PurchaseReturn::TYPE_LINKED;
-
-        return response()->streamDownload(function () use ($isLinked) {
-            echo "\xEF\xBB\xBF"."SKU编码,SKU名称,数量,单价(元),原因\n";
-            foreach ($this->formItems as $row) {
-                $sku = Sku::with('product')->find($row['sku_id'] ?? 0);
-                $name = $isLinked ? ($row['sku_name'] ?? '') : ($sku?->product?->name ?? '');
-                $code = $sku?->sku_code ?? '';
-                $priceYuan = $isLinked
-                    ? number_format(($row['price'] ?? 0) / 1000, 2, '.', '')
-                    : ($row['price_yuan'] ?? '');
-                echo implode(',', [$code, $name, $row['quantity'] ?? '', $priceYuan, $row['reason'] ?? ''])."\n";
-            }
-        }, '采购退货明细_'.now()->format('Ymd_His').'.csv');
     }
 
     public function save(): void
     {
-        // 编辑模式：仅允许修改头字段
+        // 编辑模式：仅允许修改头字段（明细在详情页维护）
         if ($this->editingId) {
             $validated = $this->validate([
                 'formSupplierId' => 'required|integer|min:1|exists:suppliers,id',
@@ -246,6 +121,7 @@ class PurchaseReturnList extends Component
             return;
         }
 
+        // 创建模式：只存单头，保存后跳转详情页整理明细
         $this->validate([
             'formReason' => 'required|string|max:255',
             'formRemark' => 'nullable|string|max:500',
@@ -260,40 +136,14 @@ class PurchaseReturnList extends Component
                 ]);
 
                 $order = PurchaseOrder::findOrFail($this->formPurchaseOrderId);
-                $payload = [];
-                foreach ($this->formItems as $row) {
-                    $qty = (int) ($row['quantity'] ?? 0);
-                    if ($qty <= 0) {
-                        continue;
-                    }
-                    $payload[] = [
-                        'purchase_order_item_id' => $row['purchase_order_item_id'],
-                        'quantity' => $qty,
-                        'reason' => $row['reason'] ?: null,
-                    ];
-                }
-
-                $return = $service->createLinked($order, $payload, $this->formReason);
+                $return = $service->createLinked($order, [], $this->formReason);
             } else {
                 $this->validate([
                     'formSupplierId' => 'required|integer|min:1|exists:suppliers,id',
                     'formWarehouseId' => 'required|integer|min:1|exists:warehouses,id',
                 ]);
 
-                $payload = [];
-                foreach ($this->formItems as $row) {
-                    if (! ($row['sku_id'] ?? 0)) {
-                        continue;
-                    }
-                    $payload[] = [
-                        'sku_id' => (int) $row['sku_id'],
-                        'quantity' => (int) ($row['quantity'] ?? 0),
-                        'price' => money_to_cents($row['price_yuan'] ?? ''),
-                        'reason' => ($row['reason'] ?? '') ?: null,
-                    ];
-                }
-
-                $return = $service->createNormal($this->formSupplierId, $this->formWarehouseId, $payload, $this->formReason);
+                $return = $service->createNormal($this->formSupplierId, $this->formWarehouseId, [], $this->formReason);
             }
 
             if ($this->formRemark !== '') {
@@ -305,9 +155,11 @@ class PurchaseReturnList extends Component
             return;
         }
 
-        $this->toastSuccess("退货单 {$return->return_no} 已创建（{$return->return_type_label}，".money_format($return->total_amount).'）');
+        $this->toastSuccess("退货单 {$return->return_no} 已创建（{$return->return_type_label}），请添加退货明细");
         $this->showModal = false;
         $this->resetForm();
+
+        $this->redirect(route('purchase-returns.detail', $return->id));
     }
 
     public function delete(): void
@@ -343,8 +195,6 @@ class PurchaseReturnList extends Component
         $this->formWarehouseId = 0;
         $this->formReason = '';
         $this->formRemark = '';
-        $this->formItems = [];
-        $this->itemsImportFile = null;
     }
 
     // ── 状态流转 ──
@@ -499,11 +349,10 @@ class PurchaseReturnList extends Component
             ->orderBy('id', 'desc')->limit(50)->get();
         $suppliers = Supplier::enabled()->orderBy('name')->get();
         $warehouses = Warehouse::enabled()->get();
-        $skus = Sku::with('product')->where('status', 1)->orderBy('id', 'desc')->limit(200)->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
 
-        return view('livewire.purchase.purchase-return-list', compact('items', 'purchaseOrders', 'suppliers', 'warehouses', 'skus', 'allColumns', 'selectedCount'))
+        return view('livewire.purchase.purchase-return-list', compact('items', 'purchaseOrders', 'suppliers', 'warehouses', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('采购退货');
     }
