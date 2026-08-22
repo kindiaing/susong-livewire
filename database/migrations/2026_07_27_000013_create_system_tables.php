@@ -2,8 +2,8 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -121,7 +121,7 @@ return new class extends Migration
             $table->comment('登录日志表');
         });
 
-        // 内置系统配置（24 条，含分组、类型、排序等完整字段）
+        // 内置系统配置（26 条，含分组、类型、排序等完整字段）
         $now = now();
         DB::table('system_configs')->insert([
             // ── 基础配置 ──────────────────────────
@@ -154,6 +154,7 @@ return new class extends Migration
             ['config_key' => 'inventory_warning_enabled', 'config_value' => '1', 'default_value' => '1', 'config_type' => 'boolean', 'config_group' => 'inventory', 'label' => '启用库存预警', 'hint' => '开启后低于预警值触发通知', 'options' => null, 'validation_rules' => 'required|boolean', 'sort_order' => 30, 'is_public' => 0, 'is_readonly' => 0, 'description' => '库存预警检测开关', 'created_at' => $now, 'updated_at' => $now],
             ['config_key' => 'inventory_warning_interval_minutes', 'config_value' => '5', 'default_value' => '5', 'config_type' => 'integer', 'config_group' => 'inventory', 'label' => '库存预警检测频率（分钟）', 'hint' => '定时任务检测间隔', 'options' => null, 'validation_rules' => 'required|integer|min:1|max:60', 'sort_order' => 31, 'is_public' => 0, 'is_readonly' => 0, 'description' => '库存预警定时检测周期', 'created_at' => $now, 'updated_at' => $now],
             ['config_key' => 'stockin_auto_create_loss', 'config_value' => '1', 'default_value' => '1', 'config_type' => 'boolean', 'config_group' => 'inventory', 'label' => '入库差异自动创建损耗单', 'hint' => '开启后采购入库差异自动生成损耗单，关闭则需手动创建', 'options' => null, 'validation_rules' => 'required|boolean', 'sort_order' => 32, 'is_public' => 0, 'is_readonly' => 0, 'description' => '采购入库数量少于采购数量时，自动创建损耗单扣减差异库存', 'created_at' => $now, 'updated_at' => $now],
+            ['config_key' => 'discrepancy_auto_create_loss', 'config_value' => '1', 'default_value' => '1', 'config_type' => 'boolean', 'config_group' => 'inventory', 'label' => '差异报损自动生成损耗单', 'hint' => '开启后差异单决策为报损时自动生成待审核损耗单，关闭则仅登记差异', 'options' => null, 'validation_rules' => 'required|boolean', 'sort_order' => 33, 'is_public' => 0, 'is_readonly' => 0, 'description' => '差异处理台决策为报损时，自动生成损耗单走审核执行流程', 'created_at' => $now, 'updated_at' => $now],
 
             // ── 审计配置 ──────────────────────────
             ['config_key' => 'audit_retention_days', 'config_value' => '90', 'default_value' => '90', 'config_type' => 'integer', 'config_group' => 'audit', 'label' => '审计日志保留天数', 'hint' => '0=永久保留，1-180天，到期每日定时清理', 'options' => null, 'validation_rules' => 'required|integer|min:0|max:180', 'sort_order' => 50, 'is_public' => 0, 'is_readonly' => 0, 'description' => '审计/日志保留天数', 'created_at' => $now, 'updated_at' => $now],
@@ -162,6 +163,7 @@ return new class extends Migration
             ['config_key' => 'audit_purchase_return', 'config_value' => '1', 'default_value' => '1', 'config_type' => 'boolean', 'config_group' => 'audit', 'label' => '采购退货状态审计', 'hint' => '开启后退货单状态变更将记录审计日志', 'options' => null, 'validation_rules' => 'required|boolean', 'sort_order' => 53, 'is_public' => 0, 'is_readonly' => 0, 'description' => '采购退货单状态变更审计开关', 'created_at' => $now, 'updated_at' => $now],
             ['config_key' => 'audit_loss_order', 'config_value' => '1', 'default_value' => '1', 'config_type' => 'boolean', 'config_group' => 'audit', 'label' => '损耗单状态审计', 'hint' => '开启后损耗单状态变更将记录审计日志', 'options' => null, 'validation_rules' => 'required|boolean', 'sort_order' => 54, 'is_public' => 0, 'is_readonly' => 0, 'description' => '损耗单状态变更审计开关', 'created_at' => $now, 'updated_at' => $now],
             ['config_key' => 'audit_price_change', 'config_value' => '1', 'default_value' => '1', 'config_type' => 'boolean', 'config_group' => 'audit', 'label' => '价格变更审计', 'hint' => '开启后SKU价格变更将记录审计日志', 'options' => null, 'validation_rules' => 'required|boolean', 'sort_order' => 55, 'is_public' => 0, 'is_readonly' => 0, 'description' => 'SKU价格变更审计开关', 'created_at' => $now, 'updated_at' => $now],
+            ['config_key' => 'audit_discrepancy', 'config_value' => '1', 'default_value' => '1', 'config_type' => 'boolean', 'config_group' => 'audit', 'label' => '差异单处理审计', 'hint' => '开启后差异单登记与处理将记录审计日志', 'options' => null, 'validation_rules' => 'required|boolean', 'sort_order' => 56, 'is_public' => 0, 'is_readonly' => 0, 'description' => '差异单登记/处理/回库审计开关', 'created_at' => $now, 'updated_at' => $now],
 
             // ── 取价配置 ──────────────────────────
             ['config_key' => 'pricing_mode', 'config_value' => 'lowest', 'default_value' => 'lowest', 'config_type' => 'enum', 'config_group' => 'finance', 'label' => '取价模式', 'hint' => 'lowest=最低价模式，first_hit=命中即止模式', 'options' => json_encode([['label' => '最低价模式', 'value' => 'lowest'], ['label' => '命中即止模式', 'value' => 'first_hit']]), 'validation_rules' => 'required|in:lowest,first_hit', 'sort_order' => 40, 'is_public' => 0, 'is_readonly' => 0, 'description' => '系统计算商品售价的策略', 'created_at' => $now, 'updated_at' => $now],

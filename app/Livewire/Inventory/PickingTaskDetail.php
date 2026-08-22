@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Inventory;
 
+use App\Livewire\Traits\WithToast;
+use App\Models\Discrepancy;
 use App\Models\PickingTask;
 use App\Models\PickingTaskItem;
 use App\Models\User;
-use App\Livewire\Traits\WithToast;
+use App\Services\DiscrepancyService;
 use App\Services\InventoryService;
 use App\Services\UnitConversionService;
 use Livewire\Component;
@@ -15,8 +17,25 @@ class PickingTaskDetail extends Component
     use WithToast;
 
     public int $pickingTaskId;
+
     public ?PickingTask $pickingTask = null;
+
     public string $viewMode = 'sku'; // 'sku' = SKU汇总, 'merchant' = 商家分组
+
+    // 实拣录入弹窗（SKU 汇总行）
+    public bool $showPickedModal = false;
+
+    public ?int $editingSkuId = null;
+
+    public string $editingSkuName = '';
+
+    public int $editingRequiredQty = 0;
+
+    public string $inputPickedQty = '';
+
+    public int $inputDiffType = 1; // 差异类型：1少收2拒收3残次4其他
+
+    public string $inputDiffReason = '';
 
     public function mount(int $id): void
     {
@@ -44,7 +63,7 @@ class PickingTaskDetail extends Component
      */
     public function getSkuSummary(): array
     {
-        if (!$this->pickingTask) {
+        if (! $this->pickingTask) {
             return [];
         }
 
@@ -56,8 +75,8 @@ class PickingTaskDetail extends Component
             $pickedQuantity = $items->sum('picked_quantity');
 
             // 状态判定：全部已拣货→已拣货，有差异→差异，否则待拣货
-            $allPicked = $items->every(fn($item) => $item->status === PickingTaskItem::STATUS_PICKED);
-            $anyDiscrepancy = $items->contains(fn($item) => $item->status === PickingTaskItem::STATUS_DISCREPANCY);
+            $allPicked = $items->every(fn ($item) => $item->status === PickingTaskItem::STATUS_PICKED);
+            $anyDiscrepancy = $items->contains(fn ($item) => $item->status === PickingTaskItem::STATUS_DISCREPANCY);
 
             $status = PickingTaskItem::STATUS_PENDING;
             if ($allPicked) {
@@ -95,7 +114,7 @@ class PickingTaskDetail extends Component
      */
     public function getMerchantGroups(): array
     {
-        if (!$this->pickingTask) {
+        if (! $this->pickingTask) {
             return [];
         }
 
@@ -106,8 +125,8 @@ class PickingTaskDetail extends Component
             $totalRequired = $items->sum('required_quantity');
             $totalPicked = $items->sum('picked_quantity');
 
-            $allPicked = $items->every(fn($item) => $item->status === PickingTaskItem::STATUS_PICKED);
-            $anyDiscrepancy = $items->contains(fn($item) => $item->status === PickingTaskItem::STATUS_DISCREPANCY);
+            $allPicked = $items->every(fn ($item) => $item->status === PickingTaskItem::STATUS_PICKED);
+            $anyDiscrepancy = $items->contains(fn ($item) => $item->status === PickingTaskItem::STATUS_DISCREPANCY);
 
             $status = PickingTaskItem::STATUS_PENDING;
             if ($allPicked) {
@@ -147,9 +166,9 @@ class PickingTaskDetail extends Component
                 })->values()->all(),
             ];
         })
-        ->sortBy('merchant_name')
-        ->values()
-        ->all();
+            ->sortBy('merchant_name')
+            ->values()
+            ->all();
     }
 
     /**
@@ -171,7 +190,7 @@ class PickingTaskDetail extends Component
 
         $this->pickingTask->update(['picker_id' => $pickerId]);
         $this->loadPickingTask();
-        $this->toastSuccess('已分配拣货员：' . $picker->name);
+        $this->toastSuccess('已分配拣货员：'.$picker->name);
     }
 
     /**
@@ -181,6 +200,7 @@ class PickingTaskDetail extends Component
     {
         if ($this->pickingTask->status !== PickingTask::STATUS_PENDING) {
             $this->toastError('仅待分配状态可开始拣货');
+
             return;
         }
 
@@ -226,12 +246,130 @@ class PickingTaskDetail extends Component
     }
 
     /**
+     * 打开 SKU 实拣录入弹窗
+     */
+    public function openPickedModal(int $skuId): void
+    {
+        if ($this->pickingTask->status !== PickingTask::STATUS_PICKING) {
+            $this->toastError('仅拣货中状态可录入实拣数量');
+
+            return;
+        }
+
+        $items = $this->pickingTask->items->where('sku_id', $skuId);
+        if ($items->isEmpty()) {
+            return;
+        }
+
+        $this->editingSkuId = $skuId;
+        $this->editingSkuName = $items->first()->sku?->sku_name ?? $items->first()->sku?->sku_code ?? '';
+        $this->editingRequiredQty = (int) $items->sum('required_quantity');
+        $this->inputPickedQty = (string) (int) $items->sum('picked_quantity');
+        $this->inputDiffType = Discrepancy::TYPE_SHORT;
+        $this->inputDiffReason = '';
+        $this->showPickedModal = true;
+    }
+
+    public function closePickedModal(): void
+    {
+        $this->showPickedModal = false;
+        $this->editingSkuId = null;
+        $this->inputPickedQty = '';
+        $this->inputDiffReason = '';
+    }
+
+    /**
+     * 保存 SKU 实拣数量：按订单明细顺序分摊，不足部分登记差异单
+     */
+    public function savePickedQuantity(): void
+    {
+        if ($this->pickingTask->status !== PickingTask::STATUS_PICKING || ! $this->editingSkuId) {
+            $this->toastError('当前状态不允许录入');
+
+            return;
+        }
+
+        $pickedQty = (int) $this->inputPickedQty;
+        if ($pickedQty < 0 || $pickedQty > $this->editingRequiredQty) {
+            $this->toastError("实拣数量须在 0 ~ {$this->editingRequiredQty} 之间");
+
+            return;
+        }
+
+        $hasDiff = $pickedQty < $this->editingRequiredQty;
+        if ($hasDiff && trim($this->inputDiffReason) === '') {
+            $this->toastError('实拣数量少于需求数量时，请填写差异原因');
+
+            return;
+        }
+
+        $items = PickingTaskItem::where('picking_task_id', $this->pickingTaskId)
+            ->where('sku_id', $this->editingSkuId)
+            ->orderBy('id')
+            ->get();
+
+        $discrepancyService = app(DiscrepancyService::class);
+        $remaining = $pickedQty;
+        $diffCount = 0;
+
+        foreach ($items as $item) {
+            $alloc = min($remaining, $item->required_quantity);
+            $remaining -= $alloc;
+
+            $item->update([
+                'picked_quantity' => $alloc,
+                'status' => $alloc >= $item->required_quantity
+                    ? PickingTaskItem::STATUS_PICKED
+                    : PickingTaskItem::STATUS_DISCREPANCY,
+            ]);
+
+            // 分摊后仍有缺口：登记差异单（同明细同环节未完结时跳过，由服务层唯一性兜底）
+            if ($alloc < $item->required_quantity) {
+                try {
+                    $discrepancyService->create([
+                        'order_id' => $item->order_id,
+                        'order_item_id' => $item->order_item_id,
+                        'stage' => Discrepancy::STAGE_PICKING,
+                        'type' => $this->inputDiffType,
+                        'expected_quantity' => $item->required_quantity,
+                        'actual_quantity' => $alloc,
+                        'reason' => trim($this->inputDiffReason),
+                    ]);
+                    $diffCount++;
+                } catch (\Exception $e) {
+                    // 已存在未完结差异单等情况，跳过不阻断主流程
+                }
+            }
+        }
+
+        // 全部明细已确认（已拣货或差异）则任务自动完成
+        $total = PickingTaskItem::where('picking_task_id', $this->pickingTaskId)->count();
+        $done = PickingTaskItem::where('picking_task_id', $this->pickingTaskId)
+            ->whereIn('status', [PickingTaskItem::STATUS_PICKED, PickingTaskItem::STATUS_DISCREPANCY])
+            ->count();
+        if ($total > 0 && $done === $total) {
+            $this->pickingTask->update([
+                'status' => PickingTask::STATUS_COMPLETED,
+                'completed_at' => now(),
+            ]);
+        }
+
+        $this->closePickedModal();
+        $this->loadPickingTask();
+
+        $this->toastSuccess($hasDiff
+            ? "实拣已保存，登记 {$diffCount} 条差异单待处理"
+            : '实拣数量已保存');
+    }
+
+    /**
      * 完成拣货：状态变更为已完成，并按拣货数量执行出库
      */
     public function completePicking(): void
     {
         if ($this->pickingTask->status !== PickingTask::STATUS_PICKING) {
             $this->toastError('仅拣货中状态可完成');
+
             return;
         }
 
@@ -254,10 +392,10 @@ class PickingTaskDetail extends Component
                     quantity: $item->picked_quantity,
                     sourceType: 'picking',
                     sourceId: $this->pickingTaskId,
-                    reason: '拣货出库 - ' . ($this->pickingTask->task_no ?? ''),
+                    reason: '拣货出库 - '.($this->pickingTask->task_no ?? ''),
                 );
             } catch (\Exception $e) {
-                $outErrors[] = $item->sku?->sku_code ?? "SKU#{$item->sku_id}" . ': ' . $e->getMessage();
+                $outErrors[] = $item->sku?->sku_code ?? "SKU#{$item->sku_id}".': '.$e->getMessage();
             }
         }
 
@@ -267,8 +405,8 @@ class PickingTaskDetail extends Component
         ]);
         $this->loadPickingTask();
 
-        if (!empty($outErrors)) {
-            $this->toastWarning('拣货已完成，部分出库异常：' . implode('；', $outErrors));
+        if (! empty($outErrors)) {
+            $this->toastWarning('拣货已完成，部分出库异常：'.implode('；', $outErrors));
         } else {
             $this->toastSuccess('拣货已完成，库存已出库');
         }
@@ -284,6 +422,6 @@ class PickingTaskDetail extends Component
             'pickingTask', 'skuSummary', 'merchantGroups'
         ))
             ->layout('components.app-layout')
-            ->title('拣货总单详情 - ' . ($pickingTask->task_no ?? ''));
+            ->title('拣货总单详情 - '.($pickingTask->task_no ?? ''));
     }
 }

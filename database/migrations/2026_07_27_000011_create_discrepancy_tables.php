@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('discrepancies', function (Blueprint $table) {
             $table->id()->comment('主键');
             $table->string('discrepancy_no', 50)->unique()->comment('差异单号');
-            $table->unsignedBigInteger('order_id')->comment('关联订单ID');
+            $table->unsignedBigInteger('order_id')->nullable()->comment('关联订单ID');
             $table->unsignedBigInteger('order_item_id')->nullable()->comment('关联订单明细ID');
             $table->tinyInteger('stage')->unsigned()->comment('差异环节：1拣货，2配送，3实收');
             $table->tinyInteger('type')->unsigned()->default(1)->comment('差异类型：1少收，2拒收，3残次，4其他');

@@ -1196,3 +1196,41 @@
 | 分支 | bugfix → 合并 main |
 | 提交 | 见本次提交 |
 | 验证 | 测试 9 通过 / 1 失败（UnitConversionServiceTest 三级换算断言为既有问题，与本次无关）；Pint 通过 |
+---
+
+## V2.0.3 — 差异功能一期：登记入口 + 处理台（先货后钱）
+
+### 变更概述
+
+按 `docs/research/11_差异损耗留痕与账务持平设计.md` 落地差异功能一期：差异（事实登记，不动库存和钱）与损耗（处置，动库存成本）分离。拣货/实收环节登记差异单，差异处理台统一跟进：定责任方 + 处理决策（补货/退款/扣款/报损/不计），报损自动生成待审核损耗单，拒收/残次支持回库回补库存。退款/扣款本期只登记决策不动钱，金额调整为二期。
+
+### 变更明细
+
+| 操作 | 文件 | 说明 |
+| :--- | :--- | :--- |
+| 新增 | Services/DiscrepancyService | 差异单全生命周期：create（登记+唯一性校验+按订单明细单价估算金额差异）、process（责任方+决策分流）、restockToWarehouse（拒收回库 TYPE_IN 留痕）；审计受 audit_discrepancy 开关控制 |
+| 完善 | Services/LossOrderService::create | 新增 sourceType/sourceId 参数（默认 manual/null，向后兼容），支持来源=差异单 |
+| 完善 | Inventory/PickingTaskDetail | SKU 汇总行「录入实拣」弹窗：实拣按订单明细顺序分摊，缺口自动生成拣货差异单（stage=1） |
+| 完善 | Delivery/DeliveryNoteDetail | 实收少于应送时弹出差异登记（实收 0 默认拒收，stage=3），生成差异单待处理 |
+| 重构 | Delivery/DiscrepancyList | 裸列表升级为处理台：环节/状态筛选、责任方+决策处理弹窗、拒收回库弹窗；修复列配置 amount→amount_diff，补环节/数量差异/责任方/决策列 |
+| 新增 | tests/Feature/DiscrepancyServiceTest | 6 条用例：登记/重复拦截/报损联动损耗单/不计关闭/回库回补库存/重复处理拦截 |
+
+### 数据库变更
+
+| 变更 | 表名 | 字段 | 说明 |
+| :--- | :--- | :--- | :--- |
+| 调整 | discrepancies | order_id | 改为可空（送货单明细可能无关联订单） |
+| 新增配置 | system_configs | discrepancy_auto_create_loss | 差异报损自动生成损耗单开关（inventory 组，默认开启） |
+| 新增配置 | system_configs | audit_discrepancy | 差异单登记/处理/回库审计开关（audit 组，默认开启） |
+
+### 权限设计
+
+按钮级控制复用现有权限点，未新增：处理决策按按钮映射（补货→delivery.discrepancy.restock，退款/扣款→refund，报损→writeoff，不计→任一决策权限），回库→restock；审核类开关走 system_configs 配置。
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | bugfix |
+| 提交 | 见本次提交 |
+| 验证 | 测试 15 通过 / 1 失败（UnitConversionServiceTest 三级换算断言为既有问题，与本次无关）；Pint 通过；view:cache 通过 |

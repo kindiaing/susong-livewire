@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Models\LossOrder;
 use App\Models\LossOrderItem;
 use App\Models\PurchaseOrder;
-use App\Models\PurchaseOrderItem;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -28,7 +27,7 @@ class LossOrderService
      *
      * 当实际入库数量 < 采购数量时，差异部分生成损耗单
      *
-     * @param PurchaseOrder $order 采购单
+     * @param  PurchaseOrder  $order  采购单
      * @return LossOrder|null 如果没有差异返回null
      */
     public function createFromDiscrepancy(PurchaseOrder $order): ?LossOrder
@@ -91,21 +90,22 @@ class LossOrderService
     /**
      * 手动创建损耗单
      *
-     * @param int $warehouseId 仓库ID
-     * @param int $lossType 损耗类型
-     * @param array $items [{sku_id, quantity, cost_price, responsible_party, supplier_id, reason}]
-     * @param string $reason 原因
-     * @return LossOrder
+     * @param  int  $warehouseId  仓库ID
+     * @param  int  $lossType  损耗类型
+     * @param  array  $items  [{sku_id, quantity, cost_price, responsible_party, supplier_id, reason}]
+     * @param  string  $reason  原因
+     * @param  string  $sourceType  来源类型（manual/discrepancy 等）
+     * @param  int|null  $sourceId  来源单据ID
      */
-    public function create(int $warehouseId, int $lossType, array $items, string $reason = ''): LossOrder
+    public function create(int $warehouseId, int $lossType, array $items, string $reason = '', string $sourceType = 'manual', ?int $sourceId = null): LossOrder
     {
-        return DB::transaction(function () use ($warehouseId, $lossType, $items, $reason) {
+        return DB::transaction(function () use ($warehouseId, $lossType, $items, $reason, $sourceType, $sourceId) {
             $totalAmount = 0;
 
             $lossOrder = LossOrder::create([
                 'loss_no' => $this->generateLossNo(),
-                'source_type' => 'manual',
-                'source_id' => null,
+                'source_type' => $sourceType,
+                'source_id' => $sourceId,
                 'warehouse_id' => $warehouseId,
                 'total_amount' => 0,
                 'loss_type' => $lossType,
