@@ -12,7 +12,8 @@ return new class extends Migration
         Schema::create('purchase_returns', function (Blueprint $table) {
             $table->id()->comment('主键');
             $table->string('return_no', 50)->unique()->comment('退货单号');
-            $table->unsignedBigInteger('purchase_order_id')->comment('关联采购单ID');
+            $table->tinyInteger('return_type')->unsigned()->default(2)->comment('退货类型：1普通退货（自定义明细），2关联退货（关联采购单）');
+            $table->unsignedBigInteger('purchase_order_id')->nullable()->comment('关联采购单ID（普通退货为空）');
             $table->unsignedBigInteger('supplier_id')->comment('供应商ID');
             $table->unsignedBigInteger('warehouse_id')->comment('出库仓库ID');
             $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待审核，2已审核，3已出库，4完成，9已作废');
@@ -39,7 +40,7 @@ return new class extends Migration
         Schema::create('purchase_return_items', function (Blueprint $table) {
             $table->id()->comment('主键');
             $table->unsignedBigInteger('purchase_return_id')->comment('采购退货单ID');
-            $table->unsignedBigInteger('purchase_order_item_id')->comment('采购单明细ID');
+            $table->unsignedBigInteger('purchase_order_item_id')->nullable()->comment('采购单明细ID（普通退货自定义明细为空）');
             $table->unsignedBigInteger('sku_id')->comment('SKU ID');
             $table->bigInteger('quantity')->default(0)->comment('退货数量');
             $table->bigInteger('price')->default(0)->comment('退货单价');

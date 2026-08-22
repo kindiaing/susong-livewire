@@ -166,6 +166,12 @@
                                     <a href="{{ route('purchase-returns.detail', $item->id) }}" class="font-mono text-blue-600 hover:underline">{{ $item->return_no }}</a>
                                 </td>
                                 @break
+                            @case('return_type')
+                                <td class="px-4 py-2">
+                                    @php $tc = ($item->return_type ?? 2) === 2 ? 'blue' : 'purple'; @endphp
+                                    <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $tc }}-100 text-{{ $tc }}-700">{{ $item->return_type_label }}</span>
+                                </td>
+                                @break
                             @case('purchase_order_id')
                                 <td class="px-4 py-2 text-foreground">{{ $item->purchaseOrder?->order_no ?? '-' }}</td>
                                 @break
@@ -243,20 +249,38 @@
                 </button>
             </div>
             <div class="space-y-4">
+                @if(! $editingId)
+                {{-- 创建模式：退货类型切换 --}}
+                <div class="flex items-center gap-2">
+                    <button type="button" wire:click="$set('formReturnType', 2)"
+                        class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors {{ $formReturnType === 2 ? 'bg-blue-600 text-white' : 'bg-card border text-muted-foreground hover:text-foreground' }}">
+                        关联退货
+                    </button>
+                    <button type="button" wire:click="$set('formReturnType', 1)"
+                        class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors {{ $formReturnType === 1 ? 'bg-purple-600 text-white' : 'bg-card border text-muted-foreground hover:text-foreground' }}">
+                        普通退货
+                    </button>
+                </div>
+                @endif
+
+                @if($formReturnType === 2)
+                {{-- 关联退货：选采购单拉取明细 --}}
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">关联采购单 <span class="text-red-500">*</span></label>
-                    <select wire:model="formPurchaseOrderId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                        <option value="0">请选择采购单</option>
+                    <select wire:model.live="formPurchaseOrderId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" {{ $editingId ? 'disabled' : '' }}>
+                        <option value="0">请选择采购单（仅已入库/已完成）</option>
                         @foreach($purchaseOrders as $po)
                             <option value="{{ $po->id }}">{{ $po->order_no }}</option>
                         @endforeach
                     </select>
                     @error('formPurchaseOrderId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
+                @endif
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-foreground mb-1">供应商 <span class="text-red-500">*</span></label>
-                        <select wire:model="formSupplierId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        <select wire:model="formSupplierId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" {{ $formReturnType === 2 && ! $editingId ? 'disabled' : '' }}>
                             <option value="0">请选择</option>
                             @foreach($suppliers as $s)
                                 <option value="{{ $s->id }}">{{ $s->name }}</option>
@@ -266,7 +290,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-foreground mb-1">出库仓库 <span class="text-red-500">*</span></label>
-                        <select wire:model="formWarehouseId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        <select wire:model="formWarehouseId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" {{ $formReturnType === 2 && ! $editingId ? 'disabled' : '' }}>
                             <option value="0">请选择</option>
                             @foreach($warehouses as $w)
                                 <option value="{{ $w->id }}">{{ $w->name }}</option>
@@ -275,6 +299,93 @@
                         @error('formWarehouseId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
+
+                @if(! $editingId)
+                {{-- 退货明细 --}}
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-sm font-medium text-foreground">退货明细 <span class="text-red-500">*</span></label>
+                        <div class="flex items-center gap-2">
+                            @if($formReturnType === 1)
+                            <button type="button" wire:click="addItemRow" class="rounded-md border border-input px-2 py-1 text-xs hover:bg-accent transition-colors">+ 添加行</button>
+                            <button type="button" wire:click="exportItemsTemplate" class="rounded-md border border-input px-2 py-1 text-xs hover:bg-accent transition-colors">下载模板</button>
+                            <label class="rounded-md border border-input px-2 py-1 text-xs hover:bg-accent transition-colors cursor-pointer">
+                                导入明细
+                                <input type="file" wire:model="itemsImportFile" accept=".xlsx,.xls,.csv" class="hidden" />
+                            </label>
+                            @if($itemsImportFile)
+                            <button type="button" wire:click="importItems" class="rounded-md bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700 transition-colors">确认导入</button>
+                            @endif
+                            @endif
+                            @if(count($formItems) > 0)
+                            <button type="button" wire:click="exportItems" class="rounded-md border border-input px-2 py-1 text-xs hover:bg-accent transition-colors">导出明细</button>
+                            @endif
+                        </div>
+                    </div>
+
+                    @if(count($formItems) > 0)
+                    <div class="rounded-md border overflow-x-auto">
+                        <table class="w-full text-xs min-w-[560px]">
+                            <thead class="bg-muted/20">
+                                <tr class="text-muted-foreground">
+                                    <th class="px-2 py-1.5 text-left">SKU</th>
+                                    @if($formReturnType === 2)<th class="px-2 py-1.5 text-right w-20">可退数量</th>@endif
+                                    <th class="px-2 py-1.5 text-right w-24">退货数量</th>
+                                    <th class="px-2 py-1.5 text-right w-24">单价（元）</th>
+                                    <th class="px-2 py-1.5 text-left w-28">原因</th>
+                                    <th class="px-2 py-1.5 text-center w-10"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                @foreach($formItems as $i => $row)
+                                <tr wire:key="return-item-{{ $i }}">
+                                    @if($formReturnType === 2)
+                                    <td class="px-2 py-1.5 text-foreground">{{ $row['sku_name'] }}</td>
+                                    <td class="px-2 py-1.5 text-right text-muted-foreground">{{ $row['max_quantity'] }}</td>
+                                    <td class="px-2 py-1.5">
+                                        <input type="number" wire:model="formItems.{{ $i }}.quantity" min="0" max="{{ $row['max_quantity'] }}" class="w-full h-7 rounded border border-input bg-background px-1.5 text-xs text-right" />
+                                    </td>
+                                    <td class="px-2 py-1.5 text-right text-muted-foreground">{{ number_format(($row['price'] ?? 0) / 1000, 2) }}</td>
+                                    @else
+                                    <td class="px-2 py-1.5">
+                                        <select wire:model="formItems.{{ $i }}.sku_id" class="w-full h-7 rounded border border-input bg-background px-1 text-xs">
+                                            <option value="0">选择SKU</option>
+                                            @foreach($skus as $sku)
+                                            <option value="{{ $sku->id }}">{{ $sku->product?->name ?? 'SKU' }}（{{ $sku->sku_code }}）</option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                    <td class="px-2 py-1.5">
+                                        <input type="number" wire:model="formItems.{{ $i }}.quantity" min="0" class="w-full h-7 rounded border border-input bg-background px-1.5 text-xs text-right" />
+                                    </td>
+                                    <td class="px-2 py-1.5">
+                                        <input type="text" wire:model="formItems.{{ $i }}.price_yuan" placeholder="0.00" class="w-full h-7 rounded border border-input bg-background px-1.5 text-xs text-right" />
+                                    </td>
+                                    @endif
+                                    <td class="px-2 py-1.5">
+                                        <input type="text" wire:model="formItems.{{ $i }}.reason" placeholder="可选" class="w-full h-7 rounded border border-input bg-background px-1.5 text-xs" />
+                                    </td>
+                                    <td class="px-2 py-1.5 text-center">
+                                        <button type="button" wire:click="removeItemRow({{ $i }})" class="text-red-500 hover:text-red-700" title="删除行"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    @if($formReturnType === 2)
+                    <p class="text-xs text-muted-foreground mt-1">退货数量不能超过实际入库数量；数量填 0 或删除行表示该明细不退货</p>
+                    @else
+                    <p class="text-xs text-muted-foreground mt-1">普通退货：自选 SKU 并手工填写单价；支持 Excel/CSV 导入（SKU编码,数量,单价(元),原因）</p>
+                    @endif
+                    @else
+                    <div class="rounded-md border border-dashed px-4 py-6 text-center text-xs text-muted-foreground">
+                        {{ $formReturnType === 2 ? '请选择采购单以拉取退货明细' : '点击「添加行」或「导入明细」录入退货商品' }}
+                    </div>
+                    @endif
+                </div>
+                @endif
+
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">退货原因 <span class="text-red-500">*</span></label>
                     <input type="text" wire:model="formReason" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="请输入退货原因" />

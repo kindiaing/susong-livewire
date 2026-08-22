@@ -1419,3 +1419,47 @@
 | 分支 | feature/discrepancy-loss |
 | 提交 | 见本次提交 |
 | 验证 | 测试 27 通过 / 1 失败（既有问题）；Pint / view:cache 通过；migrate:fresh + DemoDataSeeder 重跑验证数据一致 |
+
+---
+
+## V2.0.9 — 采购退货双模式：关联退货 + 普通退货
+
+> 开发者：Kimi。用户拍板：1A（数量上限=实际入库数量）、2A（普通退货供应商+仓库必填）、3A（普通退货单价明细行手工填写）。
+
+### 变更概述
+
+1. **双模式退货**：新增 `return_type`（1 普通 / 2 关联，默认关联）。关联退货沿用采购单明细调取；普通退货不关联采购单（`purchase_order_id` 可空），明细完全自定义。
+2. **关联退货上限修正**：退货数量拦截口径从订购数量收紧为**实际入库数量**——含入库差异时，少送的货不允许被退，保证退的货在库里。
+3. **普通退货明细工具**：创建弹窗支持逐行添加（SKU 下拉 + 数量 + 单价(元) + 原因）、下载 Excel 导入模板、按 SKU 编码匹配导入（未识别编码汇总提示）、导出明细 CSV（带 BOM）。
+4. **无单流程适配**：出库仓库普通退货取退货单头 `warehouse_id`；完成/作废时 `purchaseOrder?->updateReturnStatus()` 空安全，普通退货不触发采购单退货状态更新。
+5. **结算口径不变**：供应商结算 return_amount 按 supplier + completed_at 汇总已完成退货，天然兼容普通退货，无需改动。
+6. **详情页适配**：普通退货显示「普通退货（无关联采购单）」替代采购单链接，新增类型徽章。
+
+### 变更明细
+
+| 操作 | 文件 | 说明 |
+| :--- | :--- | :--- |
+| 修改 | 迁移 000016_create_return_tables | `purchase_order_id` / `purchase_return_items.purchase_order_item_id` 可空；新增 `return_type` tinyint default 2 |
+| 完善 | Models/PurchaseReturn | TYPE_NORMAL/TYPE_LINKED 常量、typeMap、return_type_label 访问器 |
+| 完善 | Services/PurchaseReturnService | 原 create() 改名 createLinked()（超实际入库数量拦截）；新增 createNormal()；ship/complete/cancel 无单空安全 |
+| 重写 | Livewire/Purchase/PurchaseReturnList | 类型切换、formItems 明细行编辑、addItemRow/removeItemRow、Excel 导入/模板下载/明细导出、列表新增类型列 |
+| 修改 | purchase-return-list.blade | 创建弹窗双模式 UI；类型徽章列 |
+| 修改 | purchase-return-detail.blade | 普通退货无采购单时的显示与类型徽章 |
+| 测试 | tests/Feature/PurchaseReturnFlowTest | 7 条用例：关联创建计价/超实入拦截/未入库拦截/普通创建/空明细与零数量拦截/普通退货全流程扣库存/结算汇总口径 |
+| 文档 | docs/07、docs/12 | 采购退货章节补双模式用例与操作说明（07 用例统计 122→126） |
+
+### 决策记录
+
+| 决策 | 选择 | 说明 |
+| :--- | :--- | :--- |
+| 1A 关联退货数量上限 | 实际入库数量 | 退的货必须在库里，与入库差异口径一致 |
+| 2A 普通退货必填项 | 供应商 + 仓库 | 供应商必填保证结算汇总口径；仓库必填保证出库扣库存有目标 |
+| 3A 普通退货单价 | 明细行手工填写 | 元输入、厘存储，灵活覆盖历史/零散退货价格 |
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | feature/discrepancy-loss |
+| 提交 | 见本次提交 |
+| 验证 | 新增测试 7 通过；全量 34 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint / view:cache 通过；migrate:fresh + DemoDataSeeder 重跑验证 |

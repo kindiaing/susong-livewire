@@ -37,7 +37,12 @@
 
     {{-- 单据摘要信息 --}}
     <div class="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-muted-foreground mb-4">
-        <span>采购单：<b class="text-foreground"><a href="{{ route('purchase-orders.detail', $return->purchase_order_id) }}" class="text-blue-600 hover:text-blue-700">{{ $return->purchaseOrder?->order_no ?? '-' }}</a></b></span>
+        <span>类型：<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $return->return_type === 1 ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700' }}">{{ $return->return_type_label }}</span></span>
+        @if($return->purchase_order_id)
+            <span>采购单：<b class="text-foreground"><a href="{{ route('purchase-orders.detail', $return->purchase_order_id) }}" class="text-blue-600 hover:text-blue-700">{{ $return->purchaseOrder?->order_no ?? '-' }}</a></b></span>
+        @else
+            <span>采购单：<b class="text-muted-foreground">普通退货（无关联采购单）</b></span>
+        @endif
         <span>供应商：<b class="text-foreground">{{ $return->supplier?->name ?? '-' }}</b></span>
         <span>仓库：<b class="text-foreground">{{ $return->warehouse?->name ?? '-' }}</b></span>
         @if($return->operator)<span>经办人：<b class="text-foreground">{{ $return->operator->name }}</b></span>@endif
