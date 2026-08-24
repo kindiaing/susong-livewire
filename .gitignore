@@ -62,10 +62,27 @@ ehthumbs.db
 
 # ---------- 截图文件（开发临时用） ----------
 *.png
-!public/images/*.png
+!public/**/*.png
 
 # ---------- 项目临时文件 ----------
 .temp/
+*.log
+
+# ---------- AI 工具本地缓存与配置 ----------
+.claude/
+.cursor/
+.aider*
+.windsurfrules
+.codeium/
+.continue/
+.serena/
+.gemini/
+.cline/
+.clinderules
+.roo/
+.amp/
+.devin/
+.chatite/
 
 # ---------- 其他 ----------
 .homestead
