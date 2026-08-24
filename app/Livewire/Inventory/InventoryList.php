@@ -396,6 +396,7 @@ class InventoryList extends Component
         $query = $this->buildFilteredQuery();
 
         $aggregated = (clone $query)
+            ->reorder()
             ->selectRaw('sku_id, COUNT(*) as record_count, SUM(total_stock) as total_stock, SUM(locked_stock) as locked_stock, SUM(available_stock) as available_stock')
             ->groupBy('sku_id')
             ->get();
