@@ -26,6 +26,7 @@ class MerchantAccount extends Model
     protected $fillable = [
         'merchant_id',
         'balance',
+        'frozen_amount',
         'total_recharge',
         'total_consumption',
         'credit_limit',
@@ -37,6 +38,7 @@ class MerchantAccount extends Model
         return [
             'merchant_id' => 'integer',
             'balance' => 'integer',
+            'frozen_amount' => 'integer',
             'total_recharge' => 'integer',
             'total_consumption' => 'integer',
             'credit_limit' => 'integer',

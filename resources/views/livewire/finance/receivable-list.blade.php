@@ -81,9 +81,12 @@
                             <div class="text-sm text-foreground">{{ money_format($item->received_amount) }}</div>
                             @break
                         @case('status')
-                            <div>
+                            <div class="flex items-center gap-1.5">
                                 @php $c = $statusColorMap[$item->status] ?? 'gray'; @endphp
                                 <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $c }}-100 text-{{ $c }}-700">{{ \App\Livewire\Finance\ReceivableList::$statusMap[$item->status] ?? '-' }}</span>
+                                @if($item->due_date && $item->due_date < \Carbon\Carbon::today() && !in_array($item->status, [\App\Models\Receivable::STATUS_SETTLED, \App\Models\Receivable::STATUS_CLOSED]))
+                                    <span class="inline-flex items-center rounded px-1 py-0.5 text-[10px] font-medium bg-red-100 text-red-700" title="到期日 {{ $item->due_date->format('Y-m-d') }}">超期</span>
+                                @endif
                             </div>
                             @break
                         @case('note')
@@ -97,9 +100,9 @@
                     @endswitch
                 @endforeach
                 <div class="flex items-center gap-2">
-                    <button type="button" wire:click="openDetailModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="详情"><x-ui.icon name="eye" class="w-3.5 h-3.5" /></button>
+                    <a href="{{ route('receivables.detail', $item->id) }}" class="text-sm text-blue-600 hover:underline" title="详情">详情</a>
                     @can('finance.receivable.create')
-                    @if(!in_array($item->status, [3, 5]))
+                    @if(!in_array($item->status, [\App\Models\Receivable::STATUS_SETTLED, \App\Models\Receivable::STATUS_CLOSED]))
                     <button type="button" wire:click="openReceiveModal({{ $item->id }})" class="text-green-600 hover:text-green-700 text-sm">收款</button>
                     @endif
                     @endcan

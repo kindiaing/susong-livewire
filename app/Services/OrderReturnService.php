@@ -8,6 +8,7 @@ use App\Models\OrderReturn;
 use App\Models\OrderReturnItem;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * 售后退货服务
@@ -187,6 +188,16 @@ class OrderReturnService
             ]);
 
             $this->auditStatusChange($return, 'refund', OrderReturn::STATUS_RETURNED, OrderReturn::STATUS_REFUNDED);
+
+            // 退款完成回写应收（B1 决策）
+            try {
+                app(ReceivableService::class)->applyReturnAmount(
+                    $return->order_id,
+                    (int) $return->refund_amount,
+                );
+            } catch (\Exception $e) {
+                Log::warning('应收回写失败（退货退款）', ['order_id' => $return->order_id, 'error' => $e->getMessage()]);
+            }
 
             return $return->fresh();
         });

@@ -200,6 +200,13 @@ function status_badge(int|string $status, string $type = 'default', string $labe
             2 => ['已通过', 'bg-green-100 text-green-700'],
             3 => ['已拒绝', 'bg-red-100 text-red-700'],
         ],
+        'receivable' => [
+            1 => ['未结算', 'bg-yellow-100 text-yellow-700'],
+            2 => ['部分收款', 'bg-blue-100 text-blue-700'],
+            3 => ['已结清', 'bg-green-100 text-green-700'],
+            4 => ['争议中', 'bg-orange-100 text-orange-700'],
+            5 => ['已办结', 'bg-gray-100 text-gray-600'],
+        ],
         'inventory_log' => [
             'in' => ['入库', 'bg-green-100 text-green-700'],
             'out' => ['出库', 'bg-red-100 text-red-700'],
