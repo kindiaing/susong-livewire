@@ -16,6 +16,7 @@ use App\Livewire\Finance\InvoiceList;
 use App\Livewire\Finance\MerchantAccountList;
 use App\Livewire\Finance\PriceApportionmentList;
 use App\Livewire\Finance\PromotionActivityList;
+use App\Livewire\Finance\ReceivableDetail;
 use App\Livewire\Finance\ReceivableList;
 use App\Livewire\Finance\RechargeList;
 use App\Livewire\Finance\SupplierSettlementList;
@@ -162,6 +163,7 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::get('/recharges', RechargeList::class)->name('recharges');
     Route::get('/supplier-settlements', SupplierSettlementList::class)->name('supplier-settlements');
     Route::get('/receivables', ReceivableList::class)->name('receivables');
+    Route::get('/receivables/{id}', ReceivableDetail::class)->name('receivables.detail');
     Route::get('/invoices', InvoiceList::class)->name('invoices');
     Route::get('/correction-authorizations', CorrectionAuthorizationList::class)->name('correction-authorizations');
     Route::get('/promotion-activities', PromotionActivityList::class)->name('promotion-activities');

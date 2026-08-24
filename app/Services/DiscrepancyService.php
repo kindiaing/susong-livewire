@@ -10,6 +10,7 @@ use App\Models\LossOrderItem;
 use App\Models\OrderItem;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * 差异单服务
@@ -150,6 +151,28 @@ class DiscrepancyService
                 'decision' => $decision,
                 'loss_order_no' => $lossOrder?->loss_no,
             ], $remark);
+
+            // 差异处理完成后回写应收（防重复：检查 is_amount_adjusted）
+            // 仅当有关联订单、金额差异非 0、且决策不是「不计」时回写
+            if ($discrepancy->order_id
+                && $discrepancy->amount_diff
+                && ! $discrepancy->is_amount_adjusted
+                && $decision !== Discrepancy::DECISION_IGNORE
+            ) {
+                try {
+                    app(ReceivableService::class)->applyDiscrepancyAmount(
+                        (int) $discrepancy->order_id,
+                        (int) $discrepancy->amount_diff,
+                    );
+                    $discrepancy->update(['is_amount_adjusted' => 1]);
+                } catch (\Exception $e) {
+                    Log::warning('差异回写应收失败', [
+                        'discrepancy_id' => $discrepancy->id,
+                        'order_id' => $discrepancy->order_id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
 
             return $discrepancy->fresh();
         });

@@ -10,6 +10,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Sku;
 use App\Services\PricingService;
+use App\Services\ReceivableService;
 use App\Services\UnitConversionService;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -195,6 +196,24 @@ class OrderDetail extends Component
                 beforeData: ['status' => $oldStatus],
                 afterData: ['status' => $newStatus],
             );
+
+            // 签收时自动生成应收单（A1 决策）
+            if ($this->confirmAction === 'sign') {
+                $receivableService = app(ReceivableService::class);
+                $receivable = $receivableService->createFromOrder($this->order);
+
+                // 预付款结算：签收即扣余额，不足转争议（C2 决策）
+                if ($receivable && (int) $this->order->settlement_type === Order::SETTLEMENT_PREPAID) {
+                    $result = $receivableService->tryPrepaidDeduction($receivable);
+                    if (! $result['success']) {
+                        $this->toastSuccess('签收成功，' . $result['message']);
+                        $this->loadOrder($this->order->id);
+                        $this->showConfirmModal = false;
+
+                        return;
+                    }
+                }
+            }
 
             $this->loadOrder($this->order->id);
             $this->showConfirmModal = false;

@@ -143,7 +143,7 @@ class ReceivableList extends Component
     public function openReceiveModal(int $id): void
     {
         $item = Receivable::findOrFail($id);
-        if (in_array($item->status, [3, 5])) {
+        if (in_array($item->status, [Receivable::STATUS_SETTLED, Receivable::STATUS_CLOSED])) {
             $this->toastError('已结清/已办结不可收款');
             return;
         }
@@ -167,13 +167,20 @@ class ReceivableList extends Component
             return;
         }
 
+        // 超额校验：累计已收 + 本次收款 不得超过应收余额
+        $remaining = $item->adjusted_amount - $item->received_amount;
+        if ($cents > $remaining) {
+            $this->toastError('收款金额超出应收余额 ' . money_format($remaining) . ' 元');
+            return;
+        }
+
         $newReceived = $item->received_amount + $cents;
-        $newStatus = $newReceived >= $item->adjusted_amount ? 3 : 2;
+        $newStatus = $newReceived >= $item->adjusted_amount ? Receivable::STATUS_SETTLED : Receivable::STATUS_PARTIAL;
 
         $item->update([
             'received_amount' => $newReceived,
             'status' => $newStatus,
-            'settled_at' => $newStatus === 3 ? now() : null,
+            'settled_at' => $newStatus === Receivable::STATUS_SETTLED ? now() : null,
         ]);
 
         // 创建收款记录
@@ -186,10 +193,10 @@ class ReceivableList extends Component
             'remark' => $this->receiveRemark ?: null,
         ]);
 
-        $this->toastSuccess($newStatus === 3 ? '已结清' : '部分收款已确认');
+        $this->toastSuccess($newStatus === Receivable::STATUS_SETTLED ? '已结清' : '部分收款已确认');
 
         // 通知当前用户：收款确认
-        if ($newStatus === 3) {
+        if ($newStatus === Receivable::STATUS_SETTLED) {
             app(NotificationService::class)->receivableCollected(
                 auth()->id(),
                 $item->receivable_no,
@@ -207,16 +214,30 @@ class ReceivableList extends Component
         $this->showDetailModal = true;
     }
 
+    public function closeDetailModal(): void
+    {
+        $this->showDetailModal = false;
+        $this->detailId = null;
+    }
+
+    public function closeReceiveModal(): void
+    {
+        $this->showReceiveModal = false;
+        $this->receiveId = 0;
+        $this->receiveAmount = '';
+        $this->receiveRemark = '';
+    }
+
     public function confirmReceived(int $id): void
     {
         $item = Receivable::findOrFail($id);
-        if ($item->status === 3) {
+        if ($item->status === Receivable::STATUS_SETTLED) {
             $this->toastError('该账款已结清');
             return;
         }
         $item->update([
             'received_amount' => $item->adjusted_amount,
-            'status' => 3,
+            'status' => Receivable::STATUS_SETTLED,
             'settled_at' => now(),
         ]);
         $this->toastSuccess('已确认收款');

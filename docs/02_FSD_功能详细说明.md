@@ -1,5 +1,4 @@
-
-# FSD 功能详细说明书
+﻿# FSD 功能详细说明书
 
 对应 PRD 版本：V1.0
 技术栈：Laravel 13 + Livewire 4.x + Alpine.js + Tailwind CSS 4.2+ + Blade 自定义组件 + MySQL 8.0 + Redis 7.x
@@ -171,18 +170,94 @@
 | 配送司机 | 订单配送（配送任务、签收存证） | 仅配送相关 |
 | 商家 | 无管理后台权限 | 仅使用小程序端 |
 
-### 1.3 通用数据表格组件
+### 1.3 通用列表页规范
 
-统一能力：
-- 超过10条数据显示分页（支持页码跳转 + 每页条数选择）
-- 查询加多条件筛选（文本搜索、下拉选择、日期范围、状态筛选）
-- 列配置，支持自定义显示/隐藏列，默认不显示ID，根据表格内容显示默认列，列配置支持全选和恢复默认
-- 排序（单击表头排序）
-- 批量操作（批量删除、批量导出）
-- 单条操作（查看详情、编辑、删除）
+#### 1.3.1 列表页布局
+
+- 页面顶部：标题 + 描述文字（左侧），新增按钮（右侧，权限控制 `@can`）
+- 搜索栏：文本搜索框（支持模糊匹配）+ 筛选下拉 + 工具按钮（列配置、导入、导出）
+- 已选行数提示：批量操作区显示「已选 N 项」+ 批量删除按钮 + 取消选择按钮
+- 列表区域：圆角卡片容器（`rounded-lg border bg-card`），表头 + 数据行
+- 分页：列表底部，支持页码跳转 + 每页条数选择（`setting('per_page', 10)`）
+
+#### 1.3.2 列配置
+
+- 支持自定义显示/隐藏列，弹窗形式
+- 默认不显示 ID 列，根据表格内容显示默认列
+- 列配置支持全选和恢复默认
+- 双模式存储：默认 localStorage，User 模块走 DB（`WithColumnVisibility` Trait）
+- 表头排序（单击切换升序/降序，`sortable` 列标记）
+
+#### 1.3.3 导入导出
+
 - 除了固定数据少的列表页都要支持导入导出 Excel
-- 空数据状态展示
-- 加载骨架屏
+- 导出：按当前查询条件导出，文件名含时间戳（`WithExcelExport` Trait）
+- 导入：支持 Excel/CSV 上传，列映射 + 金额字段自动转换（`WithExcelImport` Trait）
+- 工具按钮统一样式：`border border-input px-3 py-1.5 text-sm hover:bg-accent`
+
+#### 1.3.4 行操作按钮
+
+- 详情入口：蓝色文字链接 `<a>` 标签，`text-blue-600 hover:underline`，文字「详情」（非图标）
+- 编辑按钮：`@can` 权限控制 + `canEdit()` 状态锁定校验，14px SVG 图标
+- 删除按钮：`@can` 权限控制，红色 SVG 图标，点击弹确认弹窗
+- 状态相关按钮（如收款、审核等）：根据单据状态条件显示
+- 按钮间距：`gap-2`，操作列固定宽度 `120px`
+
+#### 1.3.5 行选择
+
+- 全选/部分选/全部选：表头复选框控制当前页，行复选框独立选择
+- 选中状态用 `selectedIds` 数组管理，跨页保持选中（`WithRowSelection` Trait）
+- 批量删除：需二次确认弹窗
+- 批量导出：按选中行导出
+
+#### 1.3.6 状态显示
+
+- 状态徽章：`bg-{color}-100 text-{color}-700`，11px 字号，圆角
+- 状态颜色映射：黄(yellow)=待处理、蓝(blue)=进行中、绿(green)=完成、橙(orange)=争议、灰(gray)=关闭、红(red)=异常/超期
+- 超期标记：`due_date < today` 且未结清 → 额外红色「超期」小标签
+
+#### 1.3.7 新增/编辑弹窗
+
+- 弹窗遮罩 `bg-black/50`，点击遮罩不可关闭（防误触）
+- 关闭按钮：右上角 X 图标 + 底部取消按钮
+- 必填字段：label 后红色 `*` 提示
+- 表单校验：Livewire `validate()` + `@error` 显示错误信息
+- 保存按钮：蓝色 `bg-blue-600`，保存后 Toast 提示 + 关闭弹窗 + 刷新列表
+- 编辑弹窗标题旁显示当前状态徽章（状态锁定提示）
+
+#### 1.3.8 空数据与加载
+
+- 空数据：居中文字「暂无数据」或「暂无 XX 数据」
+- 加载：Livewire `wire:loading` 骨架屏或 spinner
+
+### 1.3a 通用明细页规范
+
+#### 1.3a.1 明细页布局
+
+- 顶部：返回箭头（`<a>` 链接回列表页）+ 单据编号（标题）+ 状态徽章
+- 操作按钮区：右侧，按状态条件显示（审核、确认、完成退款等），`@can` 权限控制
+- 超管状态回退：紫色下拉菜单（`border-purple-300`），仅 `can_rollback_status()` 可见
+- 摘要信息行：关联单据链接 + 商家/供应商 + 金额 + 日期 + 经办人等，`flex flex-wrap gap-x-6 gap-y-1 text-sm`
+
+#### 1.3a.2 详情链接规则
+
+- 列表页跳详情页统一用 `<a href="{{ route('xxx.detail', $item->id) }}">` 标签
+- 样式：`text-blue-600 hover:underline`，文字「详情」（非 eye 图标）
+- 列表页原有的 `openDetailModal` 弹窗方式改为独立详情页路由
+
+#### 1.3a.3 明细表格
+
+- 明细行表格：圆角卡片容器 + 表头 + 数据行
+- 表头：`text-[11px] font-medium text-muted-foreground bg-muted/30`
+- 数据行：`divide-y` 分隔，可编辑状态显示 input，非编辑状态纯文本
+- 金额列右对齐，数量列右对齐
+
+#### 1.3a.4 状态回退
+
+- 仅 super_admin / admin 可操作（`can_rollback_status()`）
+- 紫色边框下拉菜单，列出可回退的目标状态
+- 回退操作需确认弹窗（`confirmRollback()` + `showConfirmModal`）
+- 回退后 `canEdit()` 恢复可编辑，刷新页面数据
 
 ### 1.4 通用表单组件
 
@@ -2376,3 +2451,5 @@ docs/
 | 价格策略 | PriceStrategyList ✅, PriceStrategyForm, PriceChangeLogList ✅ | PriceStrategyService | price/ ✅ | - | web ✅ |
 | 审核管理 | ApprovalConfig ✅, ApprovalPendingList, ApprovalReviewedList | ApprovalService | approval/ ✅ | - | web ✅ |
 | 系统支撑 | SystemConfig ✅, BannerList ✅, PromotionList ✅, OperationLogList ✅, AuditLogList ✅, LoginLogList ✅, WechatUserList ✅ | - | system/ ✅ | - | web ✅ |
+
+> AI生成

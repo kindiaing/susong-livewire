@@ -72,3 +72,8 @@ ehthumbs.db
 Homestead.json
 Homestead.yaml
 Vessel
+
+# TeleAgent backup
+.teleagent-backup/
+
+docs/handbook/teleagent-backup*.bat
