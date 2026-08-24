@@ -66,7 +66,7 @@
                  style="grid-template-columns: {{ $gridCols }}"
                  wire:key="recharge-{{ $item->id }}">
                 <div><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm font-mono font-medium text-foreground truncate">{{ $item->transaction_no }}</div>
+                <div class="text-sm font-mono font-medium text-foreground truncate"><a href="javascript:void(0)" wire:click="openDetailModal({{ $item->id }})" class="text-blue-600 hover:underline">{{ $item->transaction_no }}</a></div>
                 @foreach($visibleCols as $col)
                     @switch($col['key'])
                         @case('id')
@@ -98,7 +98,6 @@
                     @endswitch
                 @endforeach
                 <div class="flex items-center gap-2">
-                    <button type="button" wire:click="openDetailModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="详情"><x-ui.icon name="eye" class="w-3.5 h-3.5" /></button>
                     @can('finance.recharge.edit')
                     @if($item->canEdit())
                     <button type="button" wire:click="openEditModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
@@ -187,11 +186,11 @@
     {{-- 详情弹窗 --}}
     @if($showDetailModal && $detailItem)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" aria-hidden="true" wire:click="showDetailModal = false"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true" wire:click="closeDetailModal"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-foreground">充值详情</h2>
-                <button type="button" wire:click="showDetailModal = false" class="text-muted-foreground hover:text-foreground transition-colors">
+                <button type="button" wire:click="closeDetailModal" class="text-muted-foreground hover:text-foreground transition-colors">
                     <x-ui.icon name="x-mark" class="w-5 h-5" />
                 </button>
             </div>
@@ -205,7 +204,7 @@
                 <div class="flex"><span class="w-24 text-muted-foreground">创建时间</span><span class="text-foreground">{{ $detailItem->created_at?->format('Y-m-d H:i') }}</span></div>
             </div>
             <div class="flex justify-end gap-3 mt-6">
-                <button type="button" wire:click="showDetailModal = false" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">关闭</button>
+                <button type="button" wire:click="closeDetailModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">关闭</button>
             </div>
         </div>
     </div>

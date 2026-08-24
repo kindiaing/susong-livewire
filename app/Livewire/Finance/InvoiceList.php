@@ -145,6 +145,12 @@ class InvoiceList extends Component
         $this->showDetailModal = true;
     }
 
+    public function closeDetailModal(): void
+    {
+        $this->showDetailModal = false;
+        $this->detailId = null;
+    }
+
     public function save(): void
     {
         $this->validate([

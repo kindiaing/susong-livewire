@@ -214,6 +214,20 @@ class ReceivableList extends Component
         $this->showDetailModal = true;
     }
 
+    public function closeDetailModal(): void
+    {
+        $this->showDetailModal = false;
+        $this->detailId = null;
+    }
+
+    public function closeReceiveModal(): void
+    {
+        $this->showReceiveModal = false;
+        $this->receiveId = 0;
+        $this->receiveAmount = '';
+        $this->receiveRemark = '';
+    }
+
     public function confirmReceived(int $id): void
     {
         $item = Receivable::findOrFail($id);

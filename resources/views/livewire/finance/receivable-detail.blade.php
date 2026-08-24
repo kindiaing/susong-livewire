@@ -117,11 +117,11 @@
     {{-- 收款弹窗 --}}
     @if($showReceiveModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" aria-hidden="true" wire:click="showReceiveModal = false"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true" wire:click="closeReceiveModal"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-foreground">登记收款</h2>
-                <button type="button" wire:click="showReceiveModal = false" class="text-muted-foreground hover:text-foreground transition-colors">
+                <button type="button" wire:click="closeReceiveModal" class="text-muted-foreground hover:text-foreground transition-colors">
                     <x-ui.icon name="x-mark" class="w-5 h-5" />
                 </button>
             </div>
@@ -142,7 +142,7 @@
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">
-                <button type="button" wire:click="showReceiveModal = false" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="closeReceiveModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
                 <button type="button" wire:click="submitReceive" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">确认收款</button>
             </div>
         </div>
@@ -152,11 +152,11 @@
     {{-- 办结弹窗 --}}
     @if($showCloseModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" aria-hidden="true" wire:click="showCloseModal = false"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true" wire:click="closeCloseModal"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-foreground">确认办结</h2>
-                <button type="button" wire:click="showCloseModal = false" class="text-muted-foreground hover:text-foreground transition-colors">
+                <button type="button" wire:click="closeCloseModal" class="text-muted-foreground hover:text-foreground transition-colors">
                     <x-ui.icon name="x-mark" class="w-5 h-5" />
                 </button>
             </div>
@@ -170,7 +170,7 @@
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">
-                <button type="button" wire:click="showCloseModal = false" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="closeCloseModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
                 <button type="button" wire:click="submitClose" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">确认办结</button>
             </div>
         </div>

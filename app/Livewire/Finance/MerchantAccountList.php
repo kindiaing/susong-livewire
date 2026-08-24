@@ -30,6 +30,10 @@ class MerchantAccountList extends Component
     public int $formMerchantId = 0;
     public int $formCreditLimit = 0;
 
+    // 商家搜索
+    public string $merchantSearch = '';
+    public string $selectedMerchantName = '';
+
     // 详情弹窗
     public bool $showDetailModal = false;
     public ?int $detailId = null;
@@ -89,13 +93,10 @@ class MerchantAccountList extends Component
         $this->showDetailModal = true;
     }
 
-    public function openEditModal(int $id): void
+    public function closeDetailModal(): void
     {
-        $item = MerchantAccount::findOrFail($id);
-        $this->editingId = $id;
-        $this->formMerchantId = $item->merchant_id;
-        $this->formCreditLimit = $item->credit_limit;
-        $this->showModal = true;
+        $this->showDetailModal = false;
+        $this->detailId = null;
     }
 
     public function save(): void
@@ -139,6 +140,15 @@ class MerchantAccountList extends Component
         $this->editingId = null;
         $this->formMerchantId = 0;
         $this->formCreditLimit = 0;
+        $this->merchantSearch = '';
+        $this->selectedMerchantName = '';
+    }
+
+    public function selectMerchant(int $id, string $name): void
+    {
+        $this->formMerchantId = $id;
+        $this->merchantSearch = $name;
+        $this->selectedMerchantName = $name;
     }
 
     public function render()
@@ -150,12 +160,18 @@ class MerchantAccountList extends Component
         }
 
         $items = $query->paginate(setting('per_page', 10));
-        $merchants = Merchant::orderBy('name')->get();
+        $merchantResults = collect();
+        if (strlen($this->merchantSearch) >= 1 && !$this->editingId) {
+            $merchantResults = Merchant::where('name', 'like', "{$this->merchantSearch}%")
+                ->orderBy('name')
+                ->limit(10)
+                ->get();
+        }
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
         $detailItem = $this->detailId ? MerchantAccount::with('merchant')->find($this->detailId) : null;
 
-        return view('livewire.finance.merchant-account-list', compact('items', 'merchants', 'allColumns', 'selectedCount', 'detailItem'))
+        return view('livewire.finance.merchant-account-list', compact('items', 'merchantResults', 'allColumns', 'selectedCount', 'detailItem'))
             ->layout('components.app-layout')
             ->title('客户账户');
     }

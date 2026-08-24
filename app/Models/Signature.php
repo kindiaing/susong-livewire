@@ -30,6 +30,8 @@ class Signature extends Model
         'type',
         'image_url',
         'signer_name',
+        'signer_type',
+        'status',
         'signed_at',
     ];
 
@@ -39,6 +41,7 @@ class Signature extends Model
             'order_id' => 'integer',
             'delivery_task_id' => 'integer',
             'type' => 'integer',
+            'status' => 'integer',
             'signed_at' => 'datetime',
         ];
     }

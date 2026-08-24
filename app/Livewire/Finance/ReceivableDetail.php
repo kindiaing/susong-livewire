@@ -106,6 +106,13 @@ class ReceivableDetail extends Component
         $this->toastSuccess($newStatus === Receivable::STATUS_SETTLED ? '已结清' : '部分收款已确认');
     }
 
+    public function closeReceiveModal(): void
+    {
+        $this->showReceiveModal = false;
+        $this->receiveAmount = '';
+        $this->receiveRemark = '';
+    }
+
     public function openCloseModal(): void
     {
         if (in_array($this->receivable->status, [Receivable::STATUS_CLOSED])) {
@@ -115,6 +122,12 @@ class ReceivableDetail extends Component
         }
         $this->closeRemark = '';
         $this->showCloseModal = true;
+    }
+
+    public function closeCloseModal(): void
+    {
+        $this->showCloseModal = false;
+        $this->closeRemark = '';
     }
 
     public function submitClose(): void

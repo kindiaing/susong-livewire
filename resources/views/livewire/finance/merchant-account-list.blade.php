@@ -65,7 +65,7 @@
                  style="grid-template-columns: {{ $gridCols }}"
                  wire:key="merchant-account-{{ $item->id }}">
                 <div><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm font-medium text-foreground truncate">{{ $item->merchant?->name ?? '-' }}</div>
+                <div class="text-sm font-medium text-foreground truncate"><a href="javascript:void(0)" wire:click="openDetailModal({{ $item->id }})" class="text-blue-600 hover:underline">{{ $item->merchant?->name ?? '-' }}</a></div>
                 @foreach($visibleCols as $col)
                     @switch($col['key'])
                         @case('id')
@@ -88,12 +88,15 @@
                     @endswitch
                 @endforeach
                 <div class="flex items-center gap-2">
-                    <button type="button" wire:click="openDetailModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="详情"><x-ui.icon name="eye" class="w-3.5 h-3.5" /></button>
                     @can('finance.merchant-account.edit')
+                    @if($item->canEdit())
                     <button type="button" wire:click="openEditModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
+                    @endif
                     @endcan
                     @can('finance.merchant-account.delete')
+                    @if($item->canEdit())
                     <button type="button" wire:click="confirmDelete({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
+                    @endif
                     @endcan
                 </div>
             </div>
@@ -119,12 +122,19 @@
                 @if(!$editingId)
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">商家 <span class="text-red-500">*</span></label>
-                    <select wire:model="formMerchantId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                        <option value="0">请选择商家</option>
-                        @foreach($merchants as $m)
-                        <option value="{{ $m->id }}">{{ $m->name }}</option>
+                    <input type="text" wire:model.live.debounce.300ms="merchantSearch" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="输入商家名称搜索..." />
+                    @if($merchantResults->isNotEmpty())
+                    <div class="mt-1 max-h-40 overflow-y-auto rounded-md border border-input bg-background">
+                        @foreach($merchantResults as $m)
+                        <button type="button" wire:click="selectMerchant({{ $m->id }}, '{{ $m->name }}')" class="block w-full text-left px-3 py-1.5 text-sm hover:bg-muted transition-colors">{{ $m->name }}</button>
                         @endforeach
-                    </select>
+                    </div>
+                    @elseif($merchantSearch && strlen($merchantSearch) >= 1)
+                    <p class="text-xs text-muted-foreground mt-1">未找到匹配的商家</p>
+                    @endif
+                    @if($formMerchantId > 0)
+                    <p class="text-xs text-green-600 mt-1">已选择商家ID: {{ $formMerchantId }}</p>
+                    @endif
                     @error('formMerchantId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 @endif
@@ -147,11 +157,11 @@
     {{-- 详情弹窗 --}}
     @if($showDetailModal && $detailItem)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" aria-hidden="true" wire:click="showDetailModal = false"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true" wire:click="closeDetailModal"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-foreground">客户账户详情</h2>
-                <button type="button" wire:click="showDetailModal = false" class="text-muted-foreground hover:text-foreground transition-colors">
+                <button type="button" wire:click="closeDetailModal" class="text-muted-foreground hover:text-foreground transition-colors">
                     <x-ui.icon name="x-mark" class="w-5 h-5" />
                 </button>
             </div>
@@ -161,10 +171,11 @@
                 <div class="flex"><span class="w-24 text-muted-foreground">总充值</span><span class="text-foreground">{{ money_format($detailItem->total_recharge) }}</span></div>
                 <div class="flex"><span class="w-24 text-muted-foreground">总消费</span><span class="text-foreground">{{ money_format($detailItem->total_consumption) }}</span></div>
                 <div class="flex"><span class="w-24 text-muted-foreground">信用额度</span><span class="text-foreground">{{ money_format($detailItem->credit_limit) }}</span></div>
+                <div class="flex"><span class="w-24 text-muted-foreground">冻结金额</span><span class="text-foreground">{{ money_format($detailItem->frozen_amount) }}</span></div>
                 <div class="flex"><span class="w-24 text-muted-foreground">创建时间</span><span class="text-foreground">{{ $detailItem->created_at?->format('Y-m-d H:i') }}</span></div>
             </div>
             <div class="flex justify-end gap-3 mt-6">
-                <button type="button" wire:click="showDetailModal = false" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">关闭</button>
+                <button type="button" wire:click="closeDetailModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">关闭</button>
             </div>
         </div>
     </div>
