@@ -1,4 +1,15 @@
-﻿# FSD 功能详细说明书
+﻿---
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: 'd9dd550a-37fe-4ede-9d25-5b8f6c921e16'
+  PropagateID: 'd9dd550a-37fe-4ede-9d25-5b8f6c921e16'
+  ReservedCode1: '6fd54ea0-ac86-45d0-a6b0-ed5f09c40645'
+  ReservedCode2: '6fd54ea0-ac86-45d0-a6b0-ed5f09c40645'
+---
+
+# FSD 功能详细说明书
 
 对应 PRD 版本：V1.0
 技术栈：Laravel 13 + Livewire 4.x + Alpine.js + Tailwind CSS 4.2+ + Blade 自定义组件 + MySQL 8.0 + Redis 7.x

@@ -141,6 +141,97 @@
 
     <div class="mt-4">{{ $items->links() }}</div>
 
+    {{-- SKU 汇总 --}}
+    <div class="mt-6" x-data="{ tab: 'current' }">
+        <div class="flex items-center gap-2 mb-3">
+            <h2 class="text-lg font-semibold text-foreground">SKU 汇总</h2>
+            <button type="button" @click="tab = 'current'" :class="tab === 'current' ? 'bg-blue-600 text-white' : 'border border-input text-foreground hover:bg-accent'" class="rounded-md px-3 py-1 text-sm transition-colors">当前页汇总</button>
+            <button type="button" @click="tab = 'all'" :class="tab === 'all' ? 'bg-blue-600 text-white' : 'border border-input text-foreground hover:bg-accent'" class="rounded-md px-3 py-1 text-sm transition-colors">所有页汇总</button>
+        </div>
+
+        {{-- 当前页汇总 --}}
+        <div x-show="tab === 'current'" class="rounded-lg border bg-card overflow-x-auto">
+            <table class="w-full text-sm min-w-[700px]">
+                <thead>
+                    <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        <th class="px-4 py-2 text-left">SKU 编码</th>
+                        <th class="px-4 py-2 text-left">商品名称</th>
+                        <th class="px-4 py-2 text-right">记录数</th>
+                        <th class="px-4 py-2 text-right">总库存合计</th>
+                        <th class="px-4 py-2 text-right">锁定库存合计</th>
+                        <th class="px-4 py-2 text-right">可用库存合计</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($currentPageSummary['rows'] as $row)
+                    <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors">
+                        <td class="px-4 py-2 text-foreground font-mono">{{ $row['sku_code'] }}</td>
+                        <td class="px-4 py-2 text-foreground">{{ $row['product_name'] }}</td>
+                        <td class="px-4 py-2 text-right text-muted-foreground">{{ $row['record_count'] }}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{{ $row['total_stock'] }}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{{ $row['locked_stock'] }}</td>
+                        <td class="px-4 py-2 text-right {{ $row['available_stock'] <= 0 ? 'text-red-600 font-medium' : 'text-foreground' }}">{{ $row['available_stock'] }}</td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="6" class="px-6 py-8 text-center text-muted-foreground">暂无数据</td></tr>
+                    @endforelse
+                </tbody>
+                @if(!empty($currentPageSummary['rows']))
+                <tfoot>
+                    <tr class="border-t bg-muted/30 font-medium">
+                        <td class="px-4 py-2 text-foreground" colspan="2">合计（{{ $currentPageSummary['totals']['sku_count'] }} 个 SKU，{{ $currentPageSummary['totals']['record_count'] }} 条记录）</td>
+                        <td class="px-4 py-2 text-right text-foreground">{{ $currentPageSummary['totals']['record_count'] }}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{{ $currentPageSummary['totals']['total_stock'] }}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{{ $currentPageSummary['totals']['locked_stock'] }}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{{ $currentPageSummary['totals']['available_stock'] }}</td>
+                    </tr>
+                </tfoot>
+                @endif
+            </table>
+        </div>
+
+        {{-- 所有页汇总 --}}
+        <div x-show="tab === 'all'" class="rounded-lg border bg-card overflow-x-auto">
+            <table class="w-full text-sm min-w-[700px]">
+                <thead>
+                    <tr class="border-b text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        <th class="px-4 py-2 text-left">SKU 编码</th>
+                        <th class="px-4 py-2 text-left">商品名称</th>
+                        <th class="px-4 py-2 text-right">记录数</th>
+                        <th class="px-4 py-2 text-right">总库存合计</th>
+                        <th class="px-4 py-2 text-right">锁定库存合计</th>
+                        <th class="px-4 py-2 text-right">可用库存合计</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($allPageSummary['rows'] as $row)
+                    <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors">
+                        <td class="px-4 py-2 text-foreground font-mono">{{ $row['sku_code'] }}</td>
+                        <td class="px-4 py-2 text-foreground">{{ $row['product_name'] }}</td>
+                        <td class="px-4 py-2 text-right text-muted-foreground">{{ $row['record_count'] }}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{{ $row['total_stock'] }}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{{ $row['locked_stock'] }}</td>
+                        <td class="px-4 py-2 text-right {{ $row['available_stock'] <= 0 ? 'text-red-600 font-medium' : 'text-foreground' }}">{{ $row['available_stock'] }}</td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="6" class="px-6 py-8 text-center text-muted-foreground">暂无数据</td></tr>
+                    @endforelse
+                </tbody>
+                @if(!empty($allPageSummary['rows']))
+                <tfoot>
+                    <tr class="border-t bg-muted/30 font-medium">
+                        <td class="px-4 py-2 text-foreground" colspan="2">合计（{{ $allPageSummary['totals']['sku_count'] }} 个 SKU，{{ $allPageSummary['totals']['record_count'] }} 条记录）</td>
+                        <td class="px-4 py-2 text-right text-foreground">{{ $allPageSummary['totals']['record_count'] }}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{{ $allPageSummary['totals']['total_stock'] }}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{{ $allPageSummary['totals']['locked_stock'] }}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{{ $allPageSummary['totals']['available_stock'] }}</td>
+                    </tr>
+                </tfoot>
+                @endif
+            </table>
+        </div>
+    </div>
+
     {{-- 新增/编辑弹窗 --}}
     @if($showModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">

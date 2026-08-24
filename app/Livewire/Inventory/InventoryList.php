@@ -14,7 +14,6 @@ use App\Livewire\Traits\WithToast;
 use App\Livewire\Traits\WithListCrud;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Livewire\Attributes\Computed;
 
 class InventoryList extends Component
 {
@@ -330,7 +329,10 @@ class InventoryList extends Component
         return Inventory::orderBy('id', 'desc')->limit(20)->pluck('id')->toArray();
     }
 
-    public function render()
+    /**
+     * 构建带筛选条件的查询（复用）
+     */
+    private function buildFilteredQuery()
     {
         $query = Inventory::with(['warehouse', 'sku.product'])->orderBy('id', 'desc');
 
@@ -351,14 +353,95 @@ class InventoryList extends Component
             });
         }
 
+        return $query;
+    }
+
+    /**
+     * 当前页 SKU 汇总
+     */
+    private function calcCurrentPageSummary($items): array
+    {
+        $grouped = $items->groupBy('sku_id');
+
+        $rows = [];
+        foreach ($grouped as $skuId => $group) {
+            $first = $group->first();
+            $rows[] = [
+                'sku_code' => $first->sku?->sku_code ?? '-',
+                'product_name' => $first->sku?->product?->name ?? '-',
+                'record_count' => $group->count(),
+                'total_stock' => $group->sum('total_stock'),
+                'locked_stock' => $group->sum('locked_stock'),
+                'available_stock' => $group->sum('available_stock'),
+            ];
+        }
+
+        return [
+            'rows' => $rows,
+            'totals' => [
+                'sku_count' => count($rows),
+                'record_count' => $items->count(),
+                'total_stock' => $items->sum('total_stock'),
+                'locked_stock' => $items->sum('locked_stock'),
+                'available_stock' => $items->sum('available_stock'),
+            ],
+        ];
+    }
+
+    /**
+     * 全部数据 SKU 汇总（按当前筛选条件）
+     */
+    private function calcAllPageSummary(): array
+    {
+        $query = $this->buildFilteredQuery();
+
+        $aggregated = (clone $query)
+            ->selectRaw('sku_id, COUNT(*) as record_count, SUM(total_stock) as total_stock, SUM(locked_stock) as locked_stock, SUM(available_stock) as available_stock')
+            ->groupBy('sku_id')
+            ->get();
+
+        $skuIds = $aggregated->pluck('sku_id')->unique()->toArray();
+        $skuMap = Sku::with('product')->whereIn('id', $skuIds)->get()->keyBy('id');
+
+        $rows = [];
+        foreach ($aggregated as $row) {
+            $sku = $skuMap->get($row->sku_id);
+            $rows[] = [
+                'sku_code' => $sku?->sku_code ?? '-',
+                'product_name' => $sku?->product?->name ?? '-',
+                'record_count' => $row->record_count,
+                'total_stock' => $row->total_stock,
+                'locked_stock' => $row->locked_stock,
+                'available_stock' => $row->available_stock,
+            ];
+        }
+
+        return [
+            'rows' => $rows,
+            'totals' => [
+                'sku_count' => count($rows),
+                'record_count' => $aggregated->sum('record_count'),
+                'total_stock' => $aggregated->sum('total_stock'),
+                'locked_stock' => $aggregated->sum('locked_stock'),
+                'available_stock' => $aggregated->sum('available_stock'),
+            ],
+        ];
+    }
+
+    public function render()
+    {
+        $query = $this->buildFilteredQuery();
+
         $items = $query->paginate(setting('per_page', 10));
         $warehouses = Warehouse::enabled()->get();
         $categoryTree = Category::getTree();
         $skus = Sku::with('product')->orderBy('sku_code')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
+        $currentPageSummary = $this->calcCurrentPageSummary($items->getCollection());
+        $allPageSummary = $this->calcAllPageSummary();
 
-        return view('livewire.inventory.inventory-list', compact('items', 'warehouses', 'categoryTree', 'skus', 'allColumns', 'selectedCount'))
+        return view('livewire.inventory.inventory-list', compact('items', 'warehouses', 'categoryTree', 'skus', 'allColumns', 'selectedCount', 'currentPageSummary', 'allPageSummary'))
             ->layout('components.app-layout')
             ->title('实时库存');
     }
