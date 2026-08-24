@@ -54,7 +54,7 @@
     <div class="rounded-lg border bg-card">
         <div class="grid gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider" style="grid-template-columns: {{ $gridCols }}">
             <div><input type="checkbox" wire:model.live="selectAllPage" class="rounded" /></div>
-            <div>订单号</div>
+            <div>应收单号</div>
             <div>商家</div>
             @foreach($visibleCols as $col)
                 <div>{{ $col['label'] }}</div>
@@ -67,7 +67,7 @@
                  style="grid-template-columns: {{ $gridCols }}"
                  wire:key="receivable-{{ $item->id }}">
                 <div><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm font-mono text-foreground truncate">{{ $item->order?->order_no ?? '-' }}</div>
+                <div class="text-sm truncate"><a href="{{ route('receivables.detail', $item->id) }}" class="text-blue-600 hover:underline">{{ $item->receivable_no }}</a></div>
                 <div class="text-sm text-foreground truncate">{{ $item->merchant?->name ?? '-' }}</div>
                 @foreach($visibleCols as $col)
                     @switch($col['key'])
@@ -100,7 +100,6 @@
                     @endswitch
                 @endforeach
                 <div class="flex items-center gap-2">
-                    <a href="{{ route('receivables.detail', $item->id) }}" class="text-sm text-blue-600 hover:underline" title="详情">详情</a>
                     @can('finance.receivable.create')
                     @if(!in_array($item->status, [\App\Models\Receivable::STATUS_SETTLED, \App\Models\Receivable::STATUS_CLOSED]))
                     <button type="button" wire:click="openReceiveModal({{ $item->id }})" class="text-green-600 hover:text-green-700 text-sm">收款</button>
