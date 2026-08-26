@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '8b3a8d28-93d4-411b-aff1-5180d1f04d43'
-  PropagateID: '8b3a8d28-93d4-411b-aff1-5180d1f04d43'
-  ReservedCode1: '9f420574-758f-4320-9879-c3e53c959896'
-  ReservedCode2: '9f420574-758f-4320-9879-c3e53c959896'
+  ProduceID: 'b3a51a9c-3a95-462a-b076-14bff426ed96'
+  PropagateID: 'b3a51a9c-3a95-462a-b076-14bff426ed96'
+  ReservedCode1: 'f929cc4d-5382-42d0-8212-cb57a74cda86'
+  ReservedCode2: 'f929cc4d-5382-42d0-8212-cb57a74cda86'
 ---
 
 # 开发任务清单
@@ -69,6 +69,8 @@ AIGC:
 | :--- | :--- | :--- |
 | 1 | 补货决策生成补货单 | 当前仅登记决策，补货单生成待二期 |
 | 2 | 退款/扣款金额调整 | 当前仅登记决策，金额调整待财务二期执行 |
+| 3 | 回库审核闸门 | 当前回库操作人即仓管确认，二期可加审核开关 |
+| 4 | 付款审核流 | approval_status 字段已保留，二期接入审核管理 |
 
 ---
 
