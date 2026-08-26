@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\AuditLog;
+use App\Models\Discrepancy;
 use App\Models\PurchaseItem;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
@@ -20,6 +21,7 @@ class PurchaseService
     public function __construct(
         private InventoryService $inventoryService,
         private LossOrderService $lossOrderService,
+        private DiscrepancyService $discrepancyService,
     ) {}
 
     /**
@@ -209,6 +211,23 @@ class PurchaseService
                     'discrepancy_reason' => $item['discrepancy_reason'] ?? null,
                     'discrepancy_quantity' => $discrepancyQuantity,
                 ]);
+
+                // 断链修复：入库差异自动登记差异单，差异处理台统一处理
+                if ($discrepancyQuantity > 0) {
+                    $this->discrepancyService->create([
+                        'purchase_order_id' => $order->id,
+                        'purchase_order_item_id' => $orderItem->id,
+                        'sku_id' => $orderItem->sku_id,
+                        'warehouse_id' => $warehouseId,
+                        'unit_id' => $orderItem->unit_id,
+                        'unit_quantity' => $orderItem->unit_quantity,
+                        'stage' => Discrepancy::STAGE_PURCHASE,
+                        'type' => Discrepancy::TYPE_SHORT,
+                        'expected_quantity' => (int) $orderItem->quantity,
+                        'actual_quantity' => $actualQuantity,
+                        'reason' => $item['discrepancy_reason'] ?? '入库差异',
+                    ]);
+                }
 
                 // 入库数量 > 0 时才更新库存
                 if ($actualQuantity > 0) {

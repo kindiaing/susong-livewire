@@ -39,6 +39,8 @@ class Discrepancy extends Model
 
     public const STAGE_RECEIVING = 3;
 
+    public const STAGE_PURCHASE = 4;
+
     // 差异类型常量
     public const TYPE_SHORT = 1;
 
@@ -91,6 +93,7 @@ class Discrepancy extends Model
         'order_id',
         'order_item_id',
         'purchase_order_id',
+        'purchase_order_item_id',
         'picking_task_id',
         'delivery_task_id',
         'delivery_note_item_id',
@@ -122,6 +125,7 @@ class Discrepancy extends Model
             'order_id' => 'integer',
             'order_item_id' => 'integer',
             'purchase_order_id' => 'integer',
+            'purchase_order_item_id' => 'integer',
             'picking_task_id' => 'integer',
             'delivery_task_id' => 'integer',
             'delivery_note_item_id' => 'integer',
@@ -181,6 +185,7 @@ class Discrepancy extends Model
             self::STAGE_PICKING => '拣货',
             self::STAGE_DELIVERY => '配送',
             self::STAGE_RECEIVING => '实收',
+            self::STAGE_PURCHASE => '入库',
         ];
     }
 
@@ -239,6 +244,14 @@ class Discrepancy extends Model
     public function sku()
     {
         return $this->belongsTo(Sku::class);
+    }
+
+    /**
+     * 关联采购单明细
+     */
+    public function purchaseOrderItem()
+    {
+        return $this->belongsTo(PurchaseOrderItem::class);
     }
 
     /**

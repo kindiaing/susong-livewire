@@ -8,6 +8,7 @@ use App\Models\InventoryLog;
 use App\Models\LossOrder;
 use App\Models\LossOrderItem;
 use App\Models\OrderItem;
+use App\Models\PurchaseOrderItem;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -43,8 +44,10 @@ class DiscrepancyService
     public function create(array $data): Discrepancy
     {
         $orderItemId = $data['order_item_id'] ?? null;
+        $purchaseOrderItemId = $data['purchase_order_item_id'] ?? null;
         $stage = (int) $data['stage'];
 
+        // 重复登记检查：同一订单明细 + 同一环节，或同一采购明细 + 入库环节
         if ($orderItemId) {
             $exists = Discrepancy::where('order_item_id', $orderItemId)
                 ->where('stage', $stage)
@@ -53,9 +56,17 @@ class DiscrepancyService
             if ($exists) {
                 throw new \Exception('该明细在此环节已有未完结的差异单，请勿重复登记');
             }
+        } elseif ($purchaseOrderItemId) {
+            $exists = Discrepancy::where('purchase_order_item_id', $purchaseOrderItemId)
+                ->where('stage', $stage)
+                ->whereIn('status', [Discrepancy::STATUS_PENDING, Discrepancy::STATUS_PROCESSING, Discrepancy::STATUS_DISPUTED])
+                ->exists();
+            if ($exists) {
+                throw new \Exception('该采购明细已有未完结的差异单，请勿重复登记');
+            }
         }
 
-        return DB::transaction(function () use ($data, $orderItemId, $stage) {
+        return DB::transaction(function () use ($data, $orderItemId, $purchaseOrderItemId, $stage) {
             $expected = (int) $data['expected_quantity'];
             $actual = (int) $data['actual_quantity'];
             $quantityDiff = $expected - $actual;
@@ -63,21 +74,30 @@ class DiscrepancyService
             // 订单明细只查一次：金额估算与 sku_id 回填共用
             $orderItem = $orderItemId ? OrderItem::find($orderItemId) : null;
 
-            // 金额差异未显式传入时，按订单明细单价自动估算（厘）
+            // 采购明细只查一次：金额估算与 sku_id 回填共用
+            $purchaseOrderItem = $purchaseOrderItemId ? PurchaseOrderItem::find($purchaseOrderItemId) : null;
+
+            // 金额差异未显式传入时，按明细单价自动估算（厘）
             $amountDiff = $data['amount_diff'] ?? null;
             if ($amountDiff === null && $orderItem) {
                 $amountDiff = $quantityDiff * (int) ($orderItem->price ?? 0);
+            } elseif ($amountDiff === null && $purchaseOrderItem) {
+                $amountDiff = $quantityDiff * (int) ($purchaseOrderItem->actual_price ?: $purchaseOrderItem->price ?? 0);
             }
+
+            // sku_id 回填优先级：显式传入 > 订单明细 > 采购明细
+            $skuId = $data['sku_id'] ?? $orderItem?->sku_id ?? $purchaseOrderItem?->sku_id ?? null;
 
             $discrepancy = Discrepancy::create([
                 'discrepancy_no' => generate_sequence_no('DIS', 'discrepancies', 'discrepancy_no'),
                 'order_id' => $data['order_id'] ?? null,
                 'order_item_id' => $orderItemId,
                 'purchase_order_id' => $data['purchase_order_id'] ?? null,
+                'purchase_order_item_id' => $purchaseOrderItemId,
                 'picking_task_id' => $data['picking_task_id'] ?? null,
                 'delivery_task_id' => $data['delivery_task_id'] ?? null,
                 'delivery_note_item_id' => $data['delivery_note_item_id'] ?? null,
-                'sku_id' => $data['sku_id'] ?? $orderItem?->sku_id ?? null,
+                'sku_id' => $skuId,
                 'warehouse_id' => $data['warehouse_id'] ?? null,
                 'unit_id' => $data['unit_id'] ?? null,
                 'unit_quantity' => (int) ($data['unit_quantity'] ?? 1),
@@ -179,6 +199,62 @@ class DiscrepancyService
     }
 
     /**
+     * 标记为处理中（待处理 → 处理中）
+     */
+    public function markProcessing(Discrepancy $discrepancy, ?string $remark = null): Discrepancy
+    {
+        if ($discrepancy->status !== Discrepancy::STATUS_PENDING) {
+            throw new \Exception('仅待处理的差异单可标记为处理中');
+        }
+
+        return DB::transaction(function () use ($discrepancy, $remark) {
+            $before = ['status' => $discrepancy->status, 'status_label' => $discrepancy->status_label];
+
+            $discrepancy->update([
+                'status' => Discrepancy::STATUS_PROCESSING,
+                'handler_id' => Auth::id(),
+                'handled_at' => now(),
+                'remark' => $remark ?: $discrepancy->remark,
+            ]);
+
+            $this->audit($discrepancy, 'mark_processing', $before, [
+                'status' => Discrepancy::STATUS_PROCESSING,
+                'status_label' => '处理中',
+            ], $remark);
+
+            return $discrepancy->fresh();
+        });
+    }
+
+    /**
+     * 标记为争议中（待处理/处理中 → 争议中）
+     */
+    public function markDisputed(Discrepancy $discrepancy, ?string $remark = null): Discrepancy
+    {
+        if (! in_array($discrepancy->status, [Discrepancy::STATUS_PENDING, Discrepancy::STATUS_PROCESSING])) {
+            throw new \Exception('仅待处理/处理中的差异单可标记为争议中');
+        }
+
+        return DB::transaction(function () use ($discrepancy, $remark) {
+            $before = ['status' => $discrepancy->status, 'status_label' => $discrepancy->status_label];
+
+            $discrepancy->update([
+                'status' => Discrepancy::STATUS_DISPUTED,
+                'handler_id' => Auth::id(),
+                'handled_at' => now(),
+                'remark' => $remark ?: $discrepancy->remark,
+            ]);
+
+            $this->audit($discrepancy, 'mark_disputed', $before, [
+                'status' => Discrepancy::STATUS_DISPUTED,
+                'status_label' => '争议中',
+            ], $remark);
+
+            return $discrepancy->fresh();
+        });
+    }
+
+    /**
      * 拒收/残次货品回库（库存回补留痕）
      *
      * 货带回仓库、仓管确认可再售后调用；不可再售的走决策=报损。
@@ -246,7 +322,7 @@ class DiscrepancyService
             throw new \Exception('无法确定差异单关联的 SKU，不能生成损耗单');
         }
 
-        $costPrice = (int) ($discrepancy->orderItem?->price ?? 0);
+        $costPrice = (int) ($discrepancy->orderItem?->price ?? $discrepancy->purchaseOrderItem?->actual_price ?? $discrepancy->purchaseOrderItem?->price ?? 0);
 
         // 责任方枚举映射：差异单 1供应商/2平台/3司机/4商家 → 损耗单明细 2供应商/1平台（司机/商家暂归平台承担，原始责任方在损耗原因中留痕）
         $lossParty = $responsibleParty === Discrepancy::PARTY_SUPPLIER
@@ -275,7 +351,7 @@ class DiscrepancyService
      */
     private function resolveSkuId(Discrepancy $discrepancy): ?int
     {
-        return $discrepancy->sku_id ?? $discrepancy->orderItem?->sku_id;
+        return $discrepancy->sku_id ?? $discrepancy->orderItem?->sku_id ?? $discrepancy->purchaseOrderItem?->sku_id;
     }
 
     /**

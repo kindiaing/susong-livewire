@@ -108,34 +108,37 @@ class DiscrepancyList extends Component
         $this->processRemark = '';
     }
 
-    public function openRestock(int $id): void
-    {
-        abort_unless(auth()->user()?->can('delivery.discrepancy.restock'), 403);
-        $this->restockId = $id;
-        $this->restockWarehouseId = Warehouse::orderBy('id')->value('id');
-        $this->restockRemark = '';
-        $this->showRestockModal = true;
-    }
+    // ========== 状态流转（处理中/争议中） ==========
 
-    public function restock(): void
+    public function markProcessing(int $id): void
     {
-        abort_unless(auth()->user()?->can('delivery.discrepancy.restock'), 403);
+        abort_unless($this->canProcess(), 403);
 
         try {
-            app(DiscrepancyService::class)->restockToWarehouse(
-                discrepancy: Discrepancy::findOrFail($this->restockId),
-                warehouseId: (int) $this->restockWarehouseId,
-                remark: trim($this->restockRemark) ?: null,
-            );
-            $this->toastSuccess('已回库，库存已回补并留痕');
+            app(DiscrepancyService::class)->markProcessing(Discrepancy::findOrFail($id));
+            $this->toastSuccess('已标记为处理中');
         } catch (\Exception $e) {
             $this->toastError($e->getMessage());
-
-            return;
         }
+    }
 
+    public function markDisputed(int $id): void
+    {
+        abort_unless($this->canProcess(), 403);
+
+        try {
+            app(DiscrepancyService::class)->markDisputed(Discrepancy::findOrFail($id));
+            $this->toastSuccess('已标记为争议中');
+        } catch (\Exception $e) {
+            $this->toastError($e->getMessage());
+        }
+    }
+
+    public function closeRestockModal(): void
+    {
         $this->showRestockModal = false;
         $this->restockId = null;
+        $this->restockRemark = '';
     }
 
     /**
