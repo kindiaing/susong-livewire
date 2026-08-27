@@ -65,7 +65,7 @@
                  style="grid-template-columns: {{ $gridCols }}"
                  wire:key="merchant-account-{{ $item->id }}">
                 <div><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm font-medium text-foreground truncate"><a href="javascript:void(0)" wire:click="openDetailModal({{ $item->id }})" class="text-blue-600 hover:underline">{{ $item->merchant?->name ?? '-' }}</a></div>
+                <div class="text-sm font-medium text-foreground truncate"><a href="{{ route('merchant-accounts.detail', $item->id) }}" class="text-blue-600 hover:underline">{{ $item->merchant?->name ?? '-' }}</a></div>
                 @foreach($visibleCols as $col)
                     @switch($col['key'])
                         @case('id')
@@ -147,35 +147,6 @@
             <div class="flex justify-end gap-3 mt-6">
                 <button type="button" wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
                 <button type="button" wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
-            </div>
-        </div>
-    </div>
-    @endif
-
-    {{-- 删除确认弹窗 --}}
-
-    {{-- 详情弹窗 --}}
-    @if($showDetailModal && $detailItem)
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" aria-hidden="true" wire:click="closeDetailModal"></div>
-        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-foreground">客户账户详情</h2>
-                <button type="button" wire:click="closeDetailModal" class="text-muted-foreground hover:text-foreground transition-colors">
-                    <x-ui.icon name="x-mark" class="w-5 h-5" />
-                </button>
-            </div>
-            <div class="space-y-3 text-sm">
-                <div class="flex"><span class="w-24 text-muted-foreground">商家</span><span class="text-foreground">{{ $detailItem->merchant?->name ?? '-' }}</span></div>
-                <div class="flex"><span class="w-24 text-muted-foreground">余额</span><span class="text-foreground">{{ money_format($detailItem->balance) }}</span></div>
-                <div class="flex"><span class="w-24 text-muted-foreground">总充值</span><span class="text-foreground">{{ money_format($detailItem->total_recharge) }}</span></div>
-                <div class="flex"><span class="w-24 text-muted-foreground">总消费</span><span class="text-foreground">{{ money_format($detailItem->total_consumption) }}</span></div>
-                <div class="flex"><span class="w-24 text-muted-foreground">信用额度</span><span class="text-foreground">{{ money_format($detailItem->credit_limit) }}</span></div>
-                <div class="flex"><span class="w-24 text-muted-foreground">冻结金额</span><span class="text-foreground">{{ money_format($detailItem->frozen_amount) }}</span></div>
-                <div class="flex"><span class="w-24 text-muted-foreground">创建时间</span><span class="text-foreground">{{ $detailItem->created_at?->format('Y-m-d H:i') }}</span></div>
-            </div>
-            <div class="flex justify-end gap-3 mt-6">
-                <button type="button" wire:click="closeDetailModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">关闭</button>
             </div>
         </div>
     </div>

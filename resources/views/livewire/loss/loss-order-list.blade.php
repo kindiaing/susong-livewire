@@ -177,7 +177,7 @@
                             <td class="px-4 py-2 text-muted-foreground">{{ $item->id }}</td>
                             @break
                         @case('loss_no')
-                            <td class="px-4 py-2 font-medium text-foreground">{{ $item->loss_no }}</td>
+                            <td class="px-4 py-2 font-medium"><a href="{{ route('loss-orders.detail', $item->id) }}" class="text-blue-600 hover:underline">{{ $item->loss_no }}</a></td>
                             @break
                         @case('warehouse_id')
                             <td class="px-4 py-2 text-foreground">{{ $item->warehouse?->name ?? '-' }}</td>

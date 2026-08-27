@@ -14,6 +14,7 @@ use App\Models\Supplier;
 use App\Models\SupplierSettlement;
 use App\Services\NotificationService;
 use App\Services\SupplierSettlementService;
+use Illuminate\Support\Facades\Redirect;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -48,11 +49,6 @@ class SupplierSettlementList extends Component
     public string $paymentAmount = '';
 
     public string $paymentRemark = '';
-
-    // 详情弹窗
-    public bool $showDetailModal = false;
-
-    public ?int $detailId = null;
 
     public static array $statusMap = [
         1 => '待结算', 2 => '部分付款', 3 => '已结清', 4 => '已办结',
@@ -231,18 +227,6 @@ class SupplierSettlementList extends Component
         $this->paymentRemark = '';
     }
 
-    public function openDetailModal(int $id): void
-    {
-        $this->detailId = $id;
-        $this->showDetailModal = true;
-    }
-
-    public function closeDetailModal(): void
-    {
-        $this->showDetailModal = false;
-        $this->detailId = null;
-    }
-
     public function closePaymentModal(): void
     {
         $this->showPaymentModal = false;
@@ -296,11 +280,7 @@ class SupplierSettlementList extends Component
         $selectedCount = $this->getSelectedCount();
         $statusMap = self::$statusMap;
         $statusColorMap = self::$statusColorMap;
-        $detailItem = $this->detailId
-            ? SupplierSettlement::with(['supplier', 'items.purchaseOrder', 'payments'])->find($this->detailId)
-            : null;
-
-        return view('livewire.finance.supplier-settlement-list', compact('items', 'suppliers', 'allColumns', 'selectedCount', 'statusMap', 'statusColorMap', 'detailItem'))
+        return view('livewire.finance.supplier-settlement-list', compact('items', 'suppliers', 'allColumns', 'selectedCount', 'statusMap', 'statusColorMap'))
             ->layout('components.app-layout')
             ->title('供应商结算');
     }

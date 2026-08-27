@@ -34,10 +34,6 @@ class MerchantAccountList extends Component
     public string $merchantSearch = '';
     public string $selectedMerchantName = '';
 
-    // 详情弹窗
-    public bool $showDetailModal = false;
-    public ?int $detailId = null;
-
     public function mount(): void
     {
         $this->initColumnVisibility();
@@ -85,18 +81,6 @@ class MerchantAccountList extends Component
     public function getPageIds(): array
     {
         return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
-    }
-
-    public function openDetailModal(int $id): void
-    {
-        $this->detailId = $id;
-        $this->showDetailModal = true;
-    }
-
-    public function closeDetailModal(): void
-    {
-        $this->showDetailModal = false;
-        $this->detailId = null;
     }
 
     public function save(): void
@@ -169,9 +153,7 @@ class MerchantAccountList extends Component
         }
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
-        $detailItem = $this->detailId ? MerchantAccount::with('merchant')->find($this->detailId) : null;
-
-        return view('livewire.finance.merchant-account-list', compact('items', 'merchantResults', 'allColumns', 'selectedCount', 'detailItem'))
+        return view('livewire.finance.merchant-account-list', compact('items', 'merchantResults', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('客户账户');
     }

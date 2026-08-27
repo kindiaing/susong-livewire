@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '41667b2c-85ff-4684-99e8-1d62c73032fc'
-  PropagateID: '41667b2c-85ff-4684-99e8-1d62c73032fc'
-  ReservedCode1: 'e5a3cab8-0e78-4682-ad4e-8ca5a4b84e91'
-  ReservedCode2: 'e5a3cab8-0e78-4682-ad4e-8ca5a4b84e91'
+  ProduceID: 'd9635cda-3da5-4356-aa17-7733a4f1df26'
+  PropagateID: 'd9635cda-3da5-4356-aa17-7733a4f1df26'
+  ReservedCode1: '3bbbc95c-d631-4d6f-ac6b-712af3196da6'
+  ReservedCode2: '3bbbc95c-d631-4d6f-ac6b-712af3196da6'
 ---
 
 # 待开发任务清单
@@ -33,9 +33,9 @@ AIGC:
 
 | 序号 | 功能模块 | 任务内容 | 优先级 | 来源 |
 | :--- | :--- | :--- | :--- | :--- |
-| 1 | 损耗管理 | 效期管理：效期预警、自动触发损耗申报 | P2 | 06_Log V1.6.0 |
+| 1 | 损耗管理 | 效期管理：效期预警、自动触发损耗申报 — 用户决定暂不做 | ~~P2~~ 暂不做 | 06_Log V1.6.0 |
 | 2 | 损耗管理 | 损耗分析报表：按品类/供应商/时间维度损耗趋势分析 | P2 | 06_Log V1.6.0 |
-| 3 | 损耗管理 | 损耗单详情页（LossOrderDetail） | P1 | 13_TaskList 通用规范 |
+| 1 | 损耗管理 | 损耗单详情页（LossOrderDetail） | ✅ 已完成 08-27 | ~~P1~~ |
 
 ---
 
@@ -45,10 +45,10 @@ AIGC:
 
 | 序号 | 功能模块 | 任务内容 | 当前状态 | 优先级 |
 | :--- | :--- | :--- | :--- | :--- |
-| 1 | 供应商结算 | SupplierSettlementDetail 详情页（当前弹窗式） | 弹窗 → 详情页 | P1 |
-| 2 | 充值管理 | RechargeDetail 详情页（当前弹窗式） | 弹窗 → 详情页 | P1 |
-| 3 | 发票管理 | InvoiceDetail 详情页（当前弹窗式） | 弹窗 → 详情页 | P1 |
-| 4 | 客户账户 | MerchantAccountDetail 详情页（当前弹窗式） | 弹窗 → 详情页 | P1 |
+| 1 | 供应商结算 | SupplierSettlementDetail 详情页（当前弹窗式） | ✅ 已完成 08-27 | ~~P1~~ |
+| 2 | 充值管理 | RechargeDetail 详情页（当前弹窗式） | ✅ 已完成 08-27 | ~~P1~~ |
+| 3 | 发票管理 | InvoiceDetail 详情页（当前弹窗式） | ✅ 已完成 08-27 | ~~P1~~ |
+| 4 | 客户账户 | MerchantAccountDetail 详情页（当前弹窗式） | ✅ 已完成 08-27 | ~~P1~~ |
 | 5 | 车辆故障 | VehicleIssueDetail 详情页 | 无详情 | P2 |
 | 6 | 库存日志 | InventoryLogDetail 详情页 | 无详情 | P2 |
 | 7 | 仓库管理 | WarehouseDetail 详情页 | 无详情 | P2 |
@@ -60,7 +60,7 @@ AIGC:
 
 | 序号 | 功能模块 | 任务内容 | 优先级 | 来源 |
 | :--- | :--- | :--- | :--- | :--- |
-| 1 | 价格策略 | 断链3：价格策略联动 — 等断链1-2完成后用户再沟通 | P1 | 06_Log V1.8.0 待处理 |
+| 1 | 价格策略 | 断链3：价格策略联动 — 用户决定暂不做（PriceStrategy 已 deprecated，取价由 PricingService+Promotion 驱动） | ~~P1~~ 暂不做 | 06_Log V1.8.0 待处理 |
 
 ---
 

@@ -13,19 +13,24 @@ use App\Livewire\Delivery\SignatureList;
 use App\Livewire\Delivery\TemperatureList;
 use App\Livewire\Delivery\VehicleIssueList;
 use App\Livewire\Finance\CorrectionAuthorizationList;
+use App\Livewire\Finance\InvoiceDetail;
 use App\Livewire\Finance\InvoiceList;
+use App\Livewire\Finance\MerchantAccountDetail;
 use App\Livewire\Finance\MerchantAccountList;
 use App\Livewire\Finance\PriceApportionmentList;
 use App\Livewire\Finance\PromotionActivityList;
 use App\Livewire\Finance\ReceivableDetail;
 use App\Livewire\Finance\ReceivableList;
+use App\Livewire\Finance\RechargeDetail;
 use App\Livewire\Finance\RechargeList;
+use App\Livewire\Finance\SupplierSettlementDetail;
 use App\Livewire\Finance\SupplierSettlementList;
 use App\Livewire\Inventory\InventoryList;
 use App\Livewire\Inventory\InventoryLogList;
 use App\Livewire\Inventory\PickingTaskDetail;
 use App\Livewire\Inventory\PickingTaskList;
 use App\Livewire\Inventory\WarehouseList;
+use App\Livewire\Loss\LossOrderDetail;
 use App\Livewire\Loss\LossOrderList;
 use App\Livewire\Merchant\MerchantAddressList;
 use App\Livewire\Merchant\MerchantFavoriteList;
@@ -159,14 +164,19 @@ Route::middleware(['auth', 'permission'])->group(function () {
 
     // ── 损耗管理 ──
     Route::get('/loss-orders', LossOrderList::class)->name('loss-orders');
+    Route::get('/loss-orders/{id}', LossOrderDetail::class)->name('loss-orders.detail');
 
     // ── 财务对账 ──
     Route::get('/merchant-accounts', MerchantAccountList::class)->name('merchant-accounts');
+    Route::get('/merchant-accounts/{id}', MerchantAccountDetail::class)->name('merchant-accounts.detail');
     Route::get('/recharges', RechargeList::class)->name('recharges');
+    Route::get('/recharges/{id}', RechargeDetail::class)->name('recharges.detail');
     Route::get('/supplier-settlements', SupplierSettlementList::class)->name('supplier-settlements');
+    Route::get('/supplier-settlements/{id}', SupplierSettlementDetail::class)->name('supplier-settlements.detail');
     Route::get('/receivables', ReceivableList::class)->name('receivables');
     Route::get('/receivables/{id}', ReceivableDetail::class)->name('receivables.detail');
     Route::get('/invoices', InvoiceList::class)->name('invoices');
+    Route::get('/invoices/{id}', InvoiceDetail::class)->name('invoices.detail');
     Route::get('/correction-authorizations', CorrectionAuthorizationList::class)->name('correction-authorizations');
     Route::get('/promotion-activities', PromotionActivityList::class)->name('promotion-activities');
     Route::get('/price-apportionments', PriceApportionmentList::class)->name('price-apportionments');

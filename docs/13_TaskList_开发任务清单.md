@@ -3,15 +3,55 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: 'b3a51a9c-3a95-462a-b076-14bff426ed96'
-  PropagateID: 'b3a51a9c-3a95-462a-b076-14bff426ed96'
-  ReservedCode1: 'f929cc4d-5382-42d0-8212-cb57a74cda86'
-  ReservedCode2: 'f929cc4d-5382-42d0-8212-cb57a74cda86'
+  ProduceID: '328299e5-faae-4da1-8f9c-f83fecd78c37'
+  PropagateID: '328299e5-faae-4da1-8f9c-f83fecd78c37'
+  ReservedCode1: '842426cf-9cd4-49d6-b008-4cf39c7bc7c3'
+  ReservedCode2: '842426cf-9cd4-49d6-b008-4cf39c7bc7c3'
 ---
 
 # 开发任务清单
 
 > 按日为单位记录开发任务清单和待办清单，每完成一项标记状态。新增内容置于顶部（倒序）。
+
+---
+
+## 2026-08-27（P1 详情页补全）
+
+### 已完成任务
+
+| 序号 | 功能模块 | 任务内容 | 状态 |
+| :--- | :--- | :--- | :--- |
+| 1 | 供应商结算 | `SupplierSettlementDetail` 独立详情页：金额构成明细/结算明细（关联采购单）/付款记录时间线，付款+办结弹窗从列表迁移到详情页，列表蓝色链接跳转 | 完成 |
+| 2 | 充值管理 | `RechargeDetail` 独立详情页：充值金额/审核信息，审核通过/拒绝/确认到账操作按钮，列表蓝色链接跳转 | 完成 |
+| 3 | 发票管理 | `InvoiceDetail` 独立详情页：发票信息/状态轨迹（待开具→已开具→已寄出），开具/寄出操作按钮，列表蓝色链接跳转 | 完成 |
+| 4 | 客户账户 | `MerchantAccountDetail` 独立详情页：账户余额（余额−冻结=可用）/资金汇总（总充值/总消费/信用额度）/最近充值记录，列表蓝色链接跳转 | 完成 |
+| 5 | 损耗管理 | `LossOrderDetail` 独立详情页：损耗金额/损耗明细表格（SKU×数量×成本价×损耗金额×责任方）/状态轨迹，审核/执行/关闭操作按钮，列表蓝色链接跳转 | 完成 |
+
+### 涉及文件
+
+**新增（10 个文件）**：
+- `app/Livewire/Finance/SupplierSettlementDetail.php`
+- `app/Livewire/Finance/RechargeDetail.php`
+- `app/Livewire/Finance/InvoiceDetail.php`
+- `app/Livewire/Finance/MerchantAccountDetail.php`
+- `app/Livewire/Loss/LossOrderDetail.php`
+- `resources/views/livewire/finance/supplier-settlement-detail.blade.php`
+- `resources/views/livewire/finance/recharge-detail.blade.php`
+- `resources/views/livewire/finance/invoice-detail.blade.php`
+- `resources/views/livewire/finance/merchant-account-detail.blade.php`
+- `resources/views/livewire/loss/loss-order-detail.blade.php`
+
+**修改（10 个文件）**：
+- `app/Livewire/Finance/SupplierSettlementList.php` — 移除详情弹窗逻辑
+- `app/Livewire/Finance/RechargeList.php` — 移除详情弹窗逻辑
+- `app/Livewire/Finance/InvoiceList.php` — 移除详情弹窗逻辑，issued_at 日期格式化
+- `app/Livewire/Finance/MerchantAccountList.php` — 移除详情弹窗逻辑
+- `resources/views/livewire/finance/supplier-settlement-list.blade.php` — 弹窗→路由链接
+- `resources/views/livewire/finance/recharge-list.blade.php` — 弹窗→路由链接
+- `resources/views/livewire/finance/invoice-list.blade.php` — 弹窗→路由链接
+- `resources/views/livewire/finance/merchant-account-list.blade.php` — 弹窗→路由链接
+- `resources/views/livewire/loss/loss-order-list.blade.php` — 损耗单号改为蓝色链接
+- `routes/web.php` — 新增 5 个详情路由 + use 引用
 
 ---
 
