@@ -117,7 +117,7 @@
     {{-- 收款弹窗 --}}
     @if($showReceiveModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" aria-hidden="true" wire:click="closeReceiveModal"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-foreground">登记收款</h2>
@@ -152,7 +152,7 @@
     {{-- 办结弹窗 --}}
     @if($showCloseModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" aria-hidden="true" wire:click="closeCloseModal"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-foreground">确认办结</h2>

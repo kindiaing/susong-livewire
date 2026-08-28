@@ -63,6 +63,7 @@ class Receivable extends Model
         'closed_at',
         'closed_by',
         'approval_status',
+        'remark',
     ];
 
     protected function casts(): array
@@ -160,5 +161,33 @@ class Receivable extends Model
     public function scopeUnsettled($query)
     {
         return $query->where('status', self::STATUS_UNSETTLED);
+    }
+
+    /**
+     * 是否可编辑（仅未结算状态可编辑）
+     */
+    public function canEdit(): bool
+    {
+        return $this->status === self::STATUS_UNSETTLED;
+    }
+
+    /**
+     * 是否可回退状态（未结算与已办结为不可回退的边界状态）
+     */
+    public function canRollbackStatus(): bool
+    {
+        return ! in_array($this->status, [self::STATUS_UNSETTLED, self::STATUS_CLOSED]);
+    }
+
+    /**
+     * 可回退的目标状态列表（按状态值小于当前状态筛选）
+     */
+    public function rollbackTargets(): array
+    {
+        if (! $this->canRollbackStatus()) {
+            return [];
+        }
+
+        return array_filter(self::statusMap(), fn ($status) => $status < $this->status, ARRAY_FILTER_USE_KEY);
     }
 }

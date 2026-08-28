@@ -38,7 +38,6 @@
 
     {{-- 列表 --}}
     @php
-        $statusColorMap = [1 => 'yellow', 2 => 'blue', 3 => 'green', 4 => 'gray'];
         $allCols = collect($this->getAllColumns())
             ->filter(fn($col) => $col['key'] !== 'settlement_no')
             ->values();
@@ -81,25 +80,22 @@
                             <div class="text-sm text-foreground">{{ $item->start_date?->format('Y-m-d') ?? '-' }} ~ {{ $item->end_date?->format('Y-m-d') ?? '-' }}</div>
                             @break
                         @case('total_amount')
-                            <div class="text-sm text-foreground">{{ money_format($item->total_amount) }}</div>
+                            <div class="text-sm text-foreground text-right">{{ money_format($item->total_amount) }}</div>
                             @break
                         @case('return_amount')
-                            <div class="text-sm {{ $item->return_amount > 0 ? 'text-orange-600' : 'text-muted-foreground' }}">{{ $item->return_amount > 0 ? '-'.money_format($item->return_amount) : '-' }}</div>
+                            <div class="text-sm text-right {{ $item->return_amount > 0 ? 'text-orange-600' : 'text-muted-foreground' }}">{{ $item->return_amount > 0 ? '-'.money_format($item->return_amount) : '-' }}</div>
                             @break
                         @case('service_fee')
-                            <div class="text-sm {{ $item->service_fee > 0 ? 'text-foreground' : 'text-muted-foreground' }}">{{ $item->service_fee > 0 ? '-'.money_format($item->service_fee) : '-' }}</div>
+                            <div class="text-sm text-right {{ $item->service_fee > 0 ? 'text-foreground' : 'text-muted-foreground' }}">{{ $item->service_fee > 0 ? '-'.money_format($item->service_fee) : '-' }}</div>
                             @break
                         @case('payable_amount')
-                            <div class="text-sm text-foreground font-medium">{{ money_format($item->payable_amount) }}</div>
+                            <div class="text-sm text-foreground font-medium text-right">{{ money_format($item->payable_amount) }}</div>
                             @break
                         @case('paid_amount')
-                            <div class="text-sm text-foreground">{{ money_format($item->paid_amount) }}</div>
+                            <div class="text-sm text-foreground text-right">{{ money_format($item->paid_amount) }}</div>
                             @break
                         @case('status')
-                            <div>
-                                @php $c = $statusColorMap[$item->status] ?? 'gray'; @endphp
-                                <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $c }}-100 text-{{ $c }}-700">{{ \App\Livewire\Finance\SupplierSettlementList::$statusMap[$item->status] ?? '-' }}</span>
-                            </div>
+                            <div>{!! status_badge($item->status, 'supplier_settlement') !!}</div>
                             @break
                         @case('created_at')
                             <div class="text-sm text-foreground">{{ $item->created_at?->format('Y-m-d H:i') }}</div>

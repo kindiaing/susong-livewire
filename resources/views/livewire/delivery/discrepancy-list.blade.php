@@ -47,8 +47,6 @@
 
     {{-- 列表 --}}
     @php
-        $statusMap = [1 => '待处理', 2 => '处理中', 3 => '已处理', 4 => '已关闭', 5 => '争议中'];
-        $statusColorMap = [1 => 'yellow', 2 => 'orange', 3 => 'green', 4 => 'gray', 5 => 'red'];
         $stageMap = [1 => '拣货', 2 => '配送', 3 => '实收', 4 => '入库'];
         $typeMap = [1 => '少收', 2 => '拒收', 3 => '残次', 4 => '其他'];
         $partyMap = [1 => '供应商', 2 => '平台', 3 => '司机', 4 => '商家'];
@@ -96,7 +94,7 @@
                             <div class="text-sm text-foreground">{{ $item->expected_quantity }} → {{ $item->actual_quantity }}（差 {{ $item->quantity_diff }}）</div>
                             @break
                         @case('amount_diff')
-                            <div class="text-sm text-foreground">{{ money_format($item->amount_diff) }}</div>
+                            <div class="text-sm text-foreground text-right">{{ money_format($item->amount_diff) }}</div>
                             @break
                         @case('responsible_party')
                             <div class="text-sm text-foreground">{{ $partyMap[$item->responsible_party] ?? '-' }}</div>
@@ -105,10 +103,7 @@
                             <div class="text-sm text-foreground">{{ $decisionMap[$item->decision] ?? '-' }}</div>
                             @break
                         @case('status')
-                            <div>
-                                @php $c = $statusColorMap[$item->status] ?? 'gray'; @endphp
-                                <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $c }}-100 text-{{ $c }}-700">{{ $statusMap[$item->status] ?? '-' }}</span>
-                            </div>
+                            <div>{!! status_badge($item->status, 'discrepancy') !!}</div>
                             @break
                         @case('reason')
                             <div class="text-sm text-foreground truncate max-w-[200px]" title="{{ $item->reason }}">{{ $item->reason ?? '-' }}</div>

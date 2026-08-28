@@ -186,7 +186,7 @@
                             <td class="px-4 py-2 text-foreground">{{ \App\Models\LossOrder::typeMap()[$item->loss_type] ?? '-' }}</td>
                             @break
                         @case('total_amount')
-                            <td class="px-4 py-2 text-foreground">{{ money_format($item->total_amount) }}</td>
+                            <td class="px-4 py-2 text-foreground text-right">{{ money_format($item->total_amount) }}</td>
                             @break
                         @case('status')
                             <td class="px-4 py-2">{!! status_badge($item->status, 'loss_status') !!}</td>

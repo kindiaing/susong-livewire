@@ -208,7 +208,7 @@
     {{-- 审核弹窗 --}}
     @if($showApproveConfirm)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" aria-hidden="true" wire:click="closeApproveConfirm"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-foreground">审核损耗单</h2>

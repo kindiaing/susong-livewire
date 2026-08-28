@@ -126,4 +126,32 @@ class SupplierSettlement extends Model
     {
         return $query->where('status', self::STATUS_PENDING);
     }
+
+    /**
+     * 是否可编辑（仅待结算状态可编辑）
+     */
+    public function canEdit(): bool
+    {
+        return $this->status === self::STATUS_PENDING;
+    }
+
+    /**
+     * 是否可回退状态（待结算为初始状态不可回退，已办结为终态不可回退）
+     */
+    public function canRollbackStatus(): bool
+    {
+        return ! in_array($this->status, [self::STATUS_PENDING, self::STATUS_CLOSED]);
+    }
+
+    /**
+     * 可回退的目标状态列表（按状态值小于当前状态筛选）
+     */
+    public function rollbackTargets(): array
+    {
+        if (! $this->canRollbackStatus()) {
+            return [];
+        }
+
+        return array_filter(self::statusMap(), fn ($status) => $status < $this->status, ARRAY_FILTER_USE_KEY);
+    }
 }

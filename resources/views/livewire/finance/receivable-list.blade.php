@@ -38,7 +38,6 @@
 
     {{-- 列表 --}}
     @php
-        $statusColorMap = [1 => 'yellow', 2 => 'blue', 3 => 'green', 4 => 'orange', 5 => 'gray'];
         $allCols = collect($this->getAllColumns())
             ->filter(fn($col) => !in_array($col['key'], ['order', 'merchant']))
             ->values();
@@ -75,22 +74,21 @@
                             <div class="text-sm text-muted-foreground">{{ $item->id }}</div>
                             @break
                         @case('original_amount')
-                            <div class="text-sm text-foreground">{{ money_format($item->original_amount) }}</div>
+                            <div class="text-sm text-foreground text-right">{{ money_format($item->original_amount) }}</div>
                             @break
                         @case('received_amount')
-                            <div class="text-sm text-foreground">{{ money_format($item->received_amount) }}</div>
+                            <div class="text-sm text-foreground text-right">{{ money_format($item->received_amount) }}</div>
                             @break
                         @case('status')
                             <div class="flex items-center gap-1.5">
-                                @php $c = $statusColorMap[$item->status] ?? 'gray'; @endphp
-                                <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $c }}-100 text-{{ $c }}-700">{{ \App\Livewire\Finance\ReceivableList::$statusMap[$item->status] ?? '-' }}</span>
+                                {!! status_badge($item->status, 'receivable') !!}
                                 @if($item->due_date && $item->due_date < \Carbon\Carbon::today() && !in_array($item->status, [\App\Models\Receivable::STATUS_SETTLED, \App\Models\Receivable::STATUS_CLOSED]))
                                     <span class="inline-flex items-center rounded px-1 py-0.5 text-[10px] font-medium bg-red-100 text-red-700" title="到期日 {{ $item->due_date->format('Y-m-d') }}">超期</span>
                                 @endif
                             </div>
                             @break
-                        @case('note')
-                            <div class="text-sm text-foreground truncate max-w-[200px]">{{ $item->note ?: '-' }}</div>
+                        @case('remark')
+                            <div class="text-sm text-foreground truncate max-w-[200px]">{{ $item->remark ?: '-' }}</div>
                             @break
                         @case('created_at')
                             <div class="text-sm text-foreground">{{ $item->created_at?->format('Y-m-d H:i') }}</div>
@@ -168,7 +166,7 @@
     {{-- 部分收款弹窗 --}}
     @if($showReceiveModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" aria-hidden="true" wire:click="closeReceiveModal"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-foreground">确认收款</h2>

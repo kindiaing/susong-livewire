@@ -271,6 +271,34 @@ class Discrepancy extends Model
     }
 
     /**
+     * 是否可编辑（仅待处理状态可编辑，处理中/争议中不可直接编辑）
+     */
+    public function canEdit(): bool
+    {
+        return $this->status === self::STATUS_PENDING;
+    }
+
+    /**
+     * 是否可回退状态（处理中/争议中可回退到待处理；已处理/已关闭为终态不可回退）
+     */
+    public function canRollbackStatus(): bool
+    {
+        return in_array($this->status, [self::STATUS_PROCESSING, self::STATUS_DISPUTED]);
+    }
+
+    /**
+     * 可回退的目标状态列表（处理中/争议中 → 待处理）
+     */
+    public function rollbackTargets(): array
+    {
+        if (! $this->canRollbackStatus()) {
+            return [];
+        }
+
+        return [self::STATUS_PENDING => '待处理'];
+    }
+
+    /**
      * 作用域：按差异环节
      */
     public function scopeByStage($query, int $stage)

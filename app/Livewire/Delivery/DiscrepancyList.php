@@ -138,7 +138,53 @@ class DiscrepancyList extends Component
     {
         $this->showRestockModal = false;
         $this->restockId = null;
+        $this->restockWarehouseId = null;
         $this->restockRemark = '';
+    }
+
+    public function openRestock(int $id): void
+    {
+        $discrepancy = Discrepancy::findOrFail($id);
+        if (! in_array($discrepancy->type, [Discrepancy::TYPE_REJECT, Discrepancy::TYPE_DEFECT])) {
+            $this->toastError('仅拒收/残次类型的差异单支持回库');
+
+            return;
+        }
+        if ($discrepancy->quantity_diff <= 0) {
+            $this->toastError('差异数量必须大于 0 才可回库');
+
+            return;
+        }
+        if (! in_array($discrepancy->status, [Discrepancy::STATUS_PENDING, Discrepancy::STATUS_PROCESSING, Discrepancy::STATUS_DISPUTED])) {
+            $this->toastError('当前状态不允许回库');
+
+            return;
+        }
+
+        $this->restockId = $id;
+        $this->restockWarehouseId = $discrepancy->warehouse_id ?: Warehouse::orderBy('id')->value('id');
+        $this->restockRemark = '';
+        $this->showRestockModal = true;
+    }
+
+    public function restock(): void
+    {
+        abort_unless($this->canProcess() && auth()->user()?->can('delivery.discrepancy.restock'), 403);
+
+        try {
+            app(DiscrepancyService::class)->restockToWarehouse(
+                discrepancy: Discrepancy::findOrFail($this->restockId),
+                warehouseId: (int) $this->restockWarehouseId,
+                remark: trim($this->restockRemark) ?: null,
+            );
+            $this->toastSuccess('已回库：库存已回补并留痕');
+        } catch (\Exception $e) {
+            $this->toastError($e->getMessage());
+
+            return;
+        }
+
+        $this->closeRestockModal();
     }
 
     /**
@@ -166,6 +212,11 @@ class DiscrepancyList extends Component
         return (bool) ($user?->can('delivery.discrepancy.restock')
             || $user?->can('delivery.discrepancy.refund')
             || $user?->can('delivery.discrepancy.writeoff'));
+    }
+
+    public function resetFilters(): void
+    {
+        $this->reset('search', 'stageFilter', 'statusFilter');
     }
 
     // ========== 列表 ==========

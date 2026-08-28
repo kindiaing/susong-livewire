@@ -50,14 +50,6 @@ class SupplierSettlementList extends Component
 
     public string $paymentRemark = '';
 
-    public static array $statusMap = [
-        1 => '待结算', 2 => '部分付款', 3 => '已结清', 4 => '已办结',
-    ];
-
-    public static array $statusColorMap = [
-        1 => 'yellow', 2 => 'blue', 3 => 'green', 4 => 'gray',
-    ];
-
     public function mount(): void
     {
         $this->initColumnVisibility();
@@ -278,9 +270,7 @@ class SupplierSettlementList extends Component
         $suppliers = Supplier::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
-        $statusMap = self::$statusMap;
-        $statusColorMap = self::$statusColorMap;
-        return view('livewire.finance.supplier-settlement-list', compact('items', 'suppliers', 'allColumns', 'selectedCount', 'statusMap', 'statusColorMap'))
+        return view('livewire.finance.supplier-settlement-list', compact('items', 'suppliers', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('供应商结算');
     }

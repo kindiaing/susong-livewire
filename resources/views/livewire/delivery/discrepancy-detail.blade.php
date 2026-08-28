@@ -1,8 +1,4 @@
 <div class="">
-    @php
-        $statusColorMap = [1 => 'yellow', 2 => 'orange', 3 => 'green', 4 => 'gray', 5 => 'red'];
-    @endphp
-
     {{-- 顶部：返回 + 单号 + 状态 + 操作按钮 --}}
     <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
@@ -10,8 +6,7 @@
                 <x-ui.icon name="arrow-left" class="w-5 h-5" />
             </a>
             <h1 class="text-xl font-bold text-foreground">{{ $discrepancy->discrepancy_no }}</h1>
-            @php $c = $statusColorMap[$discrepancy->status] ?? 'gray'; @endphp
-            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $c }}-100 text-{{ $c }}-700">{{ $statusMap[$discrepancy->status] ?? '-' }}</span>
+            {!! status_badge($discrepancy->status, 'discrepancy') !!}
         </div>
         <div class="flex items-center gap-2">
             @if(in_array($discrepancy->status, [1, 2, 5]) && $this->canProcess())

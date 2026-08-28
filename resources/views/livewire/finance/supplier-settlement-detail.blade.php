@@ -6,8 +6,7 @@
                 <x-ui.icon name="arrow-left" class="w-5 h-5" />
             </a>
             <h1 class="text-xl font-bold text-foreground">{{ $settlement->settlement_no }}</h1>
-            @php $sc = $statusColorMap[$settlement->status] ?? 'gray'; @endphp
-            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $sc }}-100 text-{{ $sc }}-700">{{ $statusMap[$settlement->status] ?? '-' }}</span>
+            {!! status_badge($settlement->status, 'supplier_settlement') !!}
         </div>
         <div class="flex items-center gap-2">
             @can('finance.supplier-settlement.create')
@@ -133,7 +132,7 @@
     {{-- 付款弹窗 --}}
     @if($showPaymentModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" aria-hidden="true" wire:click="closePaymentModal"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-foreground">确认付款</h2>
@@ -168,7 +167,7 @@
     {{-- 办结弹窗 --}}
     @if($showCloseModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" aria-hidden="true" wire:click="closeCloseModal"></div>
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-foreground">确认办结</h2>

@@ -144,18 +144,11 @@ class SupplierSettlementDetail extends Component
 
     public function render()
     {
-        $statusMap = SupplierSettlement::statusMap();
-        $statusColorMap = [
-            SupplierSettlement::STATUS_PENDING => 'yellow',
-            SupplierSettlement::STATUS_PARTIAL => 'blue',
-            SupplierSettlement::STATUS_SETTLED => 'green',
-            SupplierSettlement::STATUS_CLOSED => 'gray',
-        ];
         $paymentMethodMap = SettlementPayment::paymentMethodMap();
         $remainingAmount = $this->remainingAmount;
 
         return view('livewire.finance.supplier-settlement-detail', compact(
-            'statusMap', 'statusColorMap', 'paymentMethodMap', 'remainingAmount'
+            'paymentMethodMap', 'remainingAmount'
         ))
             ->layout('components.app-layout')
             ->title("结算详情 {$this->settlement->settlement_no}");
