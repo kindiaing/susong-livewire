@@ -27,6 +27,7 @@ class CheckPermission
         // 基础
         'dashboard'           => null, // 仅需登录
         'profile'             => null, // 仅需登录
+        'notifications.history' => null, // 历史通知，所有登录用户可见
 
         // ── 用户权限 ──
         'users'               => 'user.user.view',
@@ -36,7 +37,7 @@ class CheckPermission
         // ── 组织管理 ──
         'suppliers'           => 'org.supplier.view',
         'merchants'           => 'org.merchant.view',
-        'delivery-routes'     => 'org.route.view',
+        'delivery-routes'     => 'delivery.route.view',
         'drivers'             => 'org.driver.view',
         'vehicles'            => 'org.vehicle.view',
 
@@ -56,6 +57,7 @@ class CheckPermission
         'purchase-orders'     => 'purchase.purchase-order.view',
         'purchase-orders.detail' => 'purchase.purchase-order.view',
         'purchase-returns'    => 'purchase.purchase-return.view',
+        'purchase-returns.detail' => 'purchase.purchase-return.view',
 
         // ── 订单管理 ──
         'orders'              => 'order.order.view',
@@ -63,33 +65,48 @@ class CheckPermission
         'frequently-bought'   => 'order.order.view',
         'repurchase-templates' => 'order.order.view',
         'order-returns'       => 'order.order-return.view',
+        'order-returns.detail' => 'order.order-return.view',
+        'orders.detail'       => 'order.order.view',
 
         // ── 库存管理 ──
         'warehouses'          => 'inventory.warehouse.view',
         'inventories'         => 'inventory.inventory.view',
         'inventory-logs'      => 'inventory.inventory-log.view',
-        'picking-tasks'       => 'inventory.warehouse.view',
+        'picking-tasks'       => 'inventory.picking-task.view',
+        'picking-tasks.detail' => 'inventory.picking-task.view',
 
         // ── 配送管理 ──
+        'delivery-routes.detail' => 'delivery.route.view',
         'delivery-tasks'      => 'delivery.delivery-task.view',
+        'delivery-tasks.detail' => 'delivery.delivery-task.view',
+        'delivery-notes'      => 'delivery.delivery-note.view',
+        'delivery-notes.detail' => 'delivery.delivery-note.view',
         'signatures'          => 'delivery.signature.view',
         'temperatures'        => 'delivery.temperature.view',
         'discrepancies'       => 'delivery.discrepancy.view',
+        'discrepancies.detail' => 'delivery.discrepancy.view',
+        'vehicle-issues'      => 'delivery.vehicle-issue.view',
 
         // ── 损耗管理 ──
         'loss-orders'         => 'loss.loss-order.view',
+        'loss-orders.detail'  => 'loss.loss-order.view',
 
         // ── 财务管理 ──
         'merchant-accounts'   => 'finance.recharge.view',
+        'merchant-accounts.detail' => 'finance.recharge.view',
         'recharges'           => 'finance.recharge.view',
+        'recharges.detail'    => 'finance.recharge.view',
         'supplier-settlements' => 'finance.supplier-settlement.view',
+        'supplier-settlements.detail' => 'finance.supplier-settlement.view',
         'receivables'         => 'finance.receivable.view',
+        'receivables.detail'  => 'finance.receivable.view',
         'invoices'            => 'finance.invoice.view',
+        'invoices.detail'     => 'finance.invoice.view',
         'correction-authorizations' => 'finance.recharge.view',
-        'price-strategies'    => 'price.price-strategy.view',
         'price-apportionments' => 'price.price-apportionment.view',
         'price-change-logs'   => 'price.price-change-log.view',
         'promotion-activities' => 'price.promotion.view',
+        'promotion-settings'  => 'price.promotion.view',
         'pricing-config'      => 'price.pricing-config.view',
 
         // ── 商家扩展 ──
@@ -104,8 +121,10 @@ class CheckPermission
         'approvals'           => 'system.system-config.view',
         'operation-logs'      => 'system.audit-log.view',
         'audit-logs'          => 'system.audit-log.view',
+        'audit-settings'      => 'system.audit-log.view',
         'login-logs'          => 'system.login-log.view',
         'wechat-users'        => 'system.wechat-user.view',
+        'units'               => 'system.system-config.view',
     ];
 
     /**
