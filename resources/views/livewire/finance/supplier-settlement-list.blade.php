@@ -38,7 +38,6 @@
 
     {{-- 列表 --}}
     @php
-        $statusColorMap = [1 => 'yellow', 2 => 'blue', 3 => 'green', 4 => 'gray'];
         $allCols = collect($this->getAllColumns())
             ->filter(fn($col) => $col['key'] !== 'settlement_no')
             ->values();
@@ -67,7 +66,7 @@
                  wire:key="supplier-settlement-{{ $item->id }}">
                 <div><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></div>
                 <div>
-                    <button type="button" wire:click="openDetailModal({{ $item->id }})" class="text-sm font-mono font-medium text-blue-600 hover:underline">{{ $item->settlement_no }}</button>
+                    <a href="{{ route('supplier-settlements.detail', $item->id) }}" class="text-sm font-mono font-medium text-blue-600 hover:underline">{{ $item->settlement_no }}</a>
                 </div>
                 @foreach($visibleCols as $col)
                     @switch($col['key'])
@@ -81,25 +80,22 @@
                             <div class="text-sm text-foreground">{{ $item->start_date?->format('Y-m-d') ?? '-' }} ~ {{ $item->end_date?->format('Y-m-d') ?? '-' }}</div>
                             @break
                         @case('total_amount')
-                            <div class="text-sm text-foreground">{{ money_format($item->total_amount) }}</div>
+                            <div class="text-sm text-foreground text-right">{{ money_format($item->total_amount) }}</div>
                             @break
                         @case('return_amount')
-                            <div class="text-sm {{ $item->return_amount > 0 ? 'text-orange-600' : 'text-muted-foreground' }}">{{ $item->return_amount > 0 ? '-'.money_format($item->return_amount) : '-' }}</div>
+                            <div class="text-sm text-right {{ $item->return_amount > 0 ? 'text-orange-600' : 'text-muted-foreground' }}">{{ $item->return_amount > 0 ? '-'.money_format($item->return_amount) : '-' }}</div>
                             @break
                         @case('service_fee')
-                            <div class="text-sm {{ $item->service_fee > 0 ? 'text-foreground' : 'text-muted-foreground' }}">{{ $item->service_fee > 0 ? '-'.money_format($item->service_fee) : '-' }}</div>
+                            <div class="text-sm text-right {{ $item->service_fee > 0 ? 'text-foreground' : 'text-muted-foreground' }}">{{ $item->service_fee > 0 ? '-'.money_format($item->service_fee) : '-' }}</div>
                             @break
                         @case('payable_amount')
-                            <div class="text-sm text-foreground font-medium">{{ money_format($item->payable_amount) }}</div>
+                            <div class="text-sm text-foreground font-medium text-right">{{ money_format($item->payable_amount) }}</div>
                             @break
                         @case('paid_amount')
-                            <div class="text-sm text-foreground">{{ money_format($item->paid_amount) }}</div>
+                            <div class="text-sm text-foreground text-right">{{ money_format($item->paid_amount) }}</div>
                             @break
                         @case('status')
-                            <div>
-                                @php $c = $statusColorMap[$item->status] ?? 'gray'; @endphp
-                                <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $c }}-100 text-{{ $c }}-700">{{ \App\Livewire\Finance\SupplierSettlementList::$statusMap[$item->status] ?? '-' }}</span>
-                            </div>
+                            <div>{!! status_badge($item->status, 'supplier_settlement') !!}</div>
                             @break
                         @case('created_at')
                             <div class="text-sm text-foreground">{{ $item->created_at?->format('Y-m-d H:i') }}</div>
@@ -210,63 +206,4 @@
     </div>
     @endif
 
-    {{-- 详情弹窗 --}}
-    @if($showDetailModal && $detailItem)
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" aria-hidden="true" wire:click="closeDetailModal"></div>
-        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-foreground">结算详情</h2>
-                <button type="button" wire:click="closeDetailModal" class="text-muted-foreground hover:text-foreground transition-colors">
-                    <x-ui.icon name="x-mark" class="w-5 h-5" />
-                </button>
-            </div>
-            <div class="space-y-3 text-sm">
-                <div class="flex"><span class="w-24 text-muted-foreground">结算单号</span><span class="text-foreground font-mono">{{ $detailItem->settlement_no }}</span></div>
-                <div class="flex"><span class="w-24 text-muted-foreground">供应商</span><span class="text-foreground">{{ $detailItem->supplier?->name ?? '-' }}</span></div>
-                <div class="flex"><span class="w-24 text-muted-foreground">结算周期</span><span class="text-foreground">{{ $detailItem->start_date?->format('Y-m-d') ?? '-' }} ~ {{ $detailItem->end_date?->format('Y-m-d') ?? '-' }}</span></div>
-                <div class="flex"><span class="w-24 text-muted-foreground">汇总金额</span><span class="text-foreground">{{ money_format($detailItem->total_amount) }}</span></div>
-                <div class="flex"><span class="w-24 text-muted-foreground">退货扣减</span><span class="{{ $detailItem->return_amount > 0 ? 'text-orange-600' : 'text-foreground' }}">{{ $detailItem->return_amount > 0 ? '-'.money_format($detailItem->return_amount) : '-' }}</span></div>
-                <div class="flex"><span class="w-24 text-muted-foreground">服务费</span><span class="text-foreground">{{ $detailItem->service_fee > 0 ? '-'.money_format($detailItem->service_fee) : '-' }}</span></div>
-                <div class="flex"><span class="w-24 text-muted-foreground">应付金额</span><span class="text-foreground font-medium">{{ money_format($detailItem->payable_amount) }}</span></div>
-                <div class="flex"><span class="w-24 text-muted-foreground">已付金额</span><span class="text-foreground">{{ money_format($detailItem->paid_amount) }}</span></div>
-                <div class="flex"><span class="w-24 text-muted-foreground">状态</span><span class="text-foreground">{{ $statusMap[$detailItem->status] ?? '-' }}</span></div>
-                @if($detailItem->items->count())
-                <div class="mt-3">
-                    <p class="text-muted-foreground mb-2">结算明细（{{ $detailItem->items->count() }} 张采购单，按实际入库金额计价）</p>
-                    @foreach($detailItem->items as $si)
-                    <div class="flex text-xs border-b py-1.5 gap-4">
-                        <span class="font-mono">{{ $si->purchaseOrder?->order_no ?? "PO-{$si->purchase_order_id}" }}</span>
-                        <span>{{ money_format($si->amount) }}</span>
-                        @if($si->purchaseOrder && $si->purchaseOrder->actual_amount != $si->purchaseOrder->total_amount)
-                        <span class="text-orange-600" title="入库差异已按实收计价">订 {{ money_format($si->purchaseOrder->total_amount) }}</span>
-                        @endif
-                    </div>
-                    @endforeach
-                </div>
-                @endif
-                @if($detailItem->payments->count())
-                <div class="mt-3">
-                    <p class="text-muted-foreground mb-2">付款记录</p>
-                    @foreach($detailItem->payments as $p)
-                    <div class="flex text-xs border-b py-1.5 gap-4">
-                        <span>{{ money_format($p->amount) }}</span>
-                        <span>{{ \App\Models\SettlementPayment::paymentMethodMap()[$p->payment_method] ?? '-' }}</span>
-                        <span class="text-muted-foreground">{{ $p->created_at?->format('Y-m-d H:i') }}</span>
-                    </div>
-                    @endforeach
-                </div>
-                @endif
-            </div>
-            <div class="flex justify-end gap-3 mt-6">
-                <button type="button" wire:click="closeDetailModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">关闭</button>
-            </div>
-        </div>
-    </div>
-    @endif
-
-    @include('partials.column-modal')
-    @include('partials.export-modal')
-    @include('partials.import-modal')
-    @include('partials.delete-confirm')
 </div>

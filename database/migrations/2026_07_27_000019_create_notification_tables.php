@@ -34,15 +34,19 @@ return new class extends Migration
         // 智能补货提醒规则表
         Schema::create('restock_reminders', function (Blueprint $table) {
             $table->id()->comment('主键');
-            $table->unsignedBigInteger('merchant_id')->comment('商家ID');
+            $table->unsignedBigInteger('merchant_id')->nullable()->comment('商家ID（差异单自动生成时可能为空）');
             $table->unsignedBigInteger('sku_id')->comment('SKU ID');
             $table->bigInteger('threshold_quantity')->default(0)->comment('触发提醒的库存阈值');
             $table->tinyInteger('remind_cycle')->unsigned()->default(1)->comment('提醒周期：1每日，2每周，3仅一次');
             $table->timestamp('last_reminded_at')->nullable()->comment('上次提醒时间');
             $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：0禁用，1启用');
+            $table->unsignedBigInteger('discrepancy_id')->nullable()->comment('关联差异单ID（差异补货自动生成时设置）');
+            $table->string('remark', 255)->nullable()->comment('备注（差异补货自动生成时记录来源）');
             $table->timestamps();
 
-            $table->unique(['merchant_id', 'sku_id']);
+            $table->index('merchant_id');
+            $table->index('sku_id');
+            $table->index('discrepancy_id');
             $table->index('status');
             $table->comment('智能补货提醒规则表');
         });

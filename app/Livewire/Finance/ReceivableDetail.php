@@ -146,7 +146,6 @@ class ReceivableDetail extends Component
 
     public function render()
     {
-        $statusMap = Receivable::statusMap();
         $settlementMap = [
             Receivable::SETTLEMENT_CASH => '现结',
             Receivable::SETTLEMENT_CREDIT => '账期',
@@ -157,7 +156,7 @@ class ReceivableDetail extends Component
         $remainingAmount = $this->remainingAmount;
 
         return view('livewire.finance.receivable-detail', compact(
-            'statusMap', 'settlementMap', 'paymentMethodMap', 'isOverdue', 'remainingAmount'
+            'settlementMap', 'paymentMethodMap', 'isOverdue', 'remainingAmount'
         ))
             ->layout('components.app-layout')
             ->title("应收详情 {$this->receivable->receivable_no}");

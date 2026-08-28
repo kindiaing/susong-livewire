@@ -1,3 +1,14 @@
+---
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: '24daf25a-2510-4890-9fbe-a1c7389c6e62'
+  PropagateID: '24daf25a-2510-4890-9fbe-a1c7389c6e62'
+  ReservedCode1: '9ca6b8a0-6e08-4e8e-ac74-4694fc8d1823'
+  ReservedCode2: '9ca6b8a0-6e08-4e8e-ac74-4694fc8d1823'
+---
+
 # 本地速送管理后台 — 用户使用手册
 
 版本：V1.15.0

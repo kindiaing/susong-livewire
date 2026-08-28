@@ -46,16 +46,6 @@ class ReceivableList extends Component
     public bool $showDetailModal = false;
     public ?int $detailId = null;
 
-    public static array $statusMap = [
-        1 => '未结算', 2 => '部分收款', 3 => '已结清',
-        4 => '争议中', 5 => '已办结',
-    ];
-
-    public static array $statusColorMap = [
-        1 => 'yellow', 2 => 'blue', 3 => 'green',
-        4 => 'orange', 5 => 'gray',
-    ];
-
     public function mount(): void
     {
         $this->initColumnVisibility();
@@ -70,7 +60,7 @@ class ReceivableList extends Component
             ['key' => 'original_amount', 'label' => '应收金额', 'sortable' => true, 'exportable' => true],
             ['key' => 'received_amount', 'label' => '已收金额', 'sortable' => true, 'exportable' => true],
             ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
-            ['key' => 'note', 'label' => '备注', 'sortable' => false, 'exportable' => true],
+            ['key' => 'remark', 'label' => '备注', 'sortable' => false, 'exportable' => true],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
         ];
     }
@@ -275,11 +265,9 @@ class ReceivableList extends Component
         $orders = Order::orderBy('id', 'desc')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
-        $statusMap = self::$statusMap;
-        $statusColorMap = self::$statusColorMap;
         $detailItem = $this->detailId ? Receivable::with(['order', 'merchant', 'payments'])->find($this->detailId) : null;
 
-        return view('livewire.finance.receivable-list', compact('items', 'merchants', 'orders', 'allColumns', 'selectedCount', 'statusMap', 'statusColorMap', 'detailItem'))
+        return view('livewire.finance.receivable-list', compact('items', 'merchants', 'orders', 'allColumns', 'selectedCount', 'detailItem'))
             ->layout('components.app-layout')
             ->title('应收账款');
     }

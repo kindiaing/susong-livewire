@@ -123,6 +123,7 @@ class RestockReminderList extends Component
             ['key' => 'sku_id', 'label' => 'SKU', 'sortable' => false, 'exportable' => true],
             ['key' => 'threshold_quantity', 'label' => '库存阈值', 'sortable' => false, 'exportable' => true],
             ['key' => 'remind_cycle', 'label' => '提醒周期', 'sortable' => false, 'exportable' => true],
+            ['key' => 'discrepancy_id', 'label' => '差异单号', 'sortable' => false, 'exportable' => true],
             ['key' => 'last_reminded_at', 'label' => '上次提醒', 'sortable' => true, 'exportable' => true],
             ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
         ];
@@ -130,10 +131,11 @@ class RestockReminderList extends Component
 
     public function getExportQuery()
     {
-        return RestockReminder::with(['merchant', 'sku'])
+        return RestockReminder::with(['merchant', 'sku', 'discrepancy'])
             ->when($this->search, function ($q) {
                 $q->whereHas('merchant', fn ($q2) => $q2->where('name', 'like', "%{$this->search}%"))
-                    ->orWhereHas('sku', fn ($q2) => $q2->where('sku_code', 'like', "%{$this->search}%"));
+                    ->orWhereHas('sku', fn ($q2) => $q2->where('sku_code', 'like', "%{$this->search}%"))
+                    ->orWhereHas('discrepancy', fn ($q2) => $q2->where('discrepancy_no', 'like', "%{$this->search}%"));
             })
             ->when($this->filterStatus >= 0, function ($q) {
                 $q->where('status', $this->filterStatus);
@@ -169,12 +171,13 @@ class RestockReminderList extends Component
 
     public function render()
     {
-        $query = RestockReminder::with(['merchant', 'sku'])->orderBy('id', 'desc');
+        $query = RestockReminder::with(['merchant', 'sku', 'discrepancy'])->orderBy('id', 'desc');
 
         if ($this->search) {
             $query->where(function ($q) {
                 $q->whereHas('merchant', fn ($q2) => $q2->where('name', 'like', "%{$this->search}%"))
-                    ->orWhereHas('sku', fn ($q2) => $q2->where('sku_code', 'like', "%{$this->search}%"));
+                    ->orWhereHas('sku', fn ($q2) => $q2->where('sku_code', 'like', "%{$this->search}%"))
+                    ->orWhereHas('discrepancy', fn ($q2) => $q2->where('discrepancy_no', 'like', "%{$this->search}%"));
             });
         }
 

@@ -122,6 +122,7 @@ return new class extends Migration
             $table->timestamp('closed_at')->nullable()->comment('办结时间');
             $table->unsignedBigInteger('closed_by')->nullable()->comment('办结操作人ID');
             $table->tinyInteger('approval_status')->unsigned()->default(1)->comment('审核状态：1待审核，2已通过，3已拒绝（改价折扣调整时有效）');
+            $table->string('remark', 255)->nullable()->comment('备注');
             $table->timestamps();
             $table->softDeletes();
 

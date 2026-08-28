@@ -39,6 +39,8 @@ class Discrepancy extends Model
 
     public const STAGE_RECEIVING = 3;
 
+    public const STAGE_PURCHASE = 4;
+
     // 差异类型常量
     public const TYPE_SHORT = 1;
 
@@ -91,6 +93,7 @@ class Discrepancy extends Model
         'order_id',
         'order_item_id',
         'purchase_order_id',
+        'purchase_order_item_id',
         'picking_task_id',
         'delivery_task_id',
         'delivery_note_item_id',
@@ -122,6 +125,7 @@ class Discrepancy extends Model
             'order_id' => 'integer',
             'order_item_id' => 'integer',
             'purchase_order_id' => 'integer',
+            'purchase_order_item_id' => 'integer',
             'picking_task_id' => 'integer',
             'delivery_task_id' => 'integer',
             'delivery_note_item_id' => 'integer',
@@ -181,6 +185,7 @@ class Discrepancy extends Model
             self::STAGE_PICKING => '拣货',
             self::STAGE_DELIVERY => '配送',
             self::STAGE_RECEIVING => '实收',
+            self::STAGE_PURCHASE => '入库',
         ];
     }
 
@@ -242,6 +247,14 @@ class Discrepancy extends Model
     }
 
     /**
+     * 关联采购单明细
+     */
+    public function purchaseOrderItem()
+    {
+        return $this->belongsTo(PurchaseOrderItem::class);
+    }
+
+    /**
      * 关联处理人
      */
     public function handler()
@@ -250,11 +263,47 @@ class Discrepancy extends Model
     }
 
     /**
+     * 关联补货提醒（差异补货决策自动生成）
+     */
+    public function restockReminders()
+    {
+        return $this->hasMany(RestockReminder::class, 'discrepancy_id');
+    }
+
+    /**
      * 作用域：待处理
      */
     public function scopePending($query)
     {
         return $query->where('status', self::STATUS_PENDING);
+    }
+
+    /**
+     * 是否可编辑（仅待处理状态可编辑，处理中/争议中不可直接编辑）
+     */
+    public function canEdit(): bool
+    {
+        return $this->status === self::STATUS_PENDING;
+    }
+
+    /**
+     * 是否可回退状态（处理中/争议中可回退到待处理；已处理/已关闭为终态不可回退）
+     */
+    public function canRollbackStatus(): bool
+    {
+        return in_array($this->status, [self::STATUS_PROCESSING, self::STATUS_DISPUTED]);
+    }
+
+    /**
+     * 可回退的目标状态列表（处理中/争议中 → 待处理）
+     */
+    public function rollbackTargets(): array
+    {
+        if (! $this->canRollbackStatus()) {
+            return [];
+        }
+
+        return [self::STATUS_PENDING => '待处理'];
     }
 
     /**

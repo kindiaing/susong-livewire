@@ -80,6 +80,15 @@
                         @case('remind_cycle')
                             <td class="px-4 py-2 text-foreground">{{ \App\Models\RestockReminder::remindCycleMap()[$item->remind_cycle] ?? '-' }}</td>
                             @break
+                        @case('discrepancy_id')
+                            <td class="px-4 py-2">
+                                @if($item->discrepancy)
+                                    <a href="{{ route('discrepancies.detail', $item->discrepancy_id) }}" class="text-blue-600 hover:underline">{{ $item->discrepancy->discrepancy_no }}</a>
+                                @else
+                                    <span class="text-muted-foreground">-</span>
+                                @endif
+                            </td>
+                            @break
                         @case('last_reminded_at')
                             <td class="px-4 py-2 text-muted-foreground">{{ $item->last_reminded_at ? $item->last_reminded_at->format('Y-m-d H:i') : '-' }}</td>
                             @break

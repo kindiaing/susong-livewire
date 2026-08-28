@@ -22,6 +22,7 @@
             <option value="1">拣货</option>
             <option value="2">配送</option>
             <option value="3">实收</option>
+            <option value="4">入库</option>
         </select>
         <select wire:model.live="statusFilter" class="h-9 rounded-md border border-input bg-background px-2 text-sm">
             <option value="">全部状态</option>
@@ -46,9 +47,7 @@
 
     {{-- 列表 --}}
     @php
-        $statusMap = [1 => '待处理', 2 => '处理中', 3 => '已处理', 4 => '已关闭', 5 => '争议中'];
-        $statusColorMap = [1 => 'yellow', 2 => 'orange', 3 => 'green', 4 => 'gray', 5 => 'red'];
-        $stageMap = [1 => '拣货', 2 => '配送', 3 => '实收'];
+        $stageMap = [1 => '拣货', 2 => '配送', 3 => '实收', 4 => '入库'];
         $typeMap = [1 => '少收', 2 => '拒收', 3 => '残次', 4 => '其他'];
         $partyMap = [1 => '供应商', 2 => '平台', 3 => '司机', 4 => '商家'];
         $decisionMap = [1 => '补货', 2 => '退款', 3 => '扣款', 4 => '报损', 5 => '不计'];
@@ -79,7 +78,7 @@
                  style="grid-template-columns: {{ $gridCols }}"
                  wire:key="discrepancy-{{ $item->id }}">
                 <div><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></div>
-                <div class="text-sm font-mono font-medium text-foreground truncate">{{ $item->discrepancy_no }}</div>
+                <div class="text-sm font-mono font-medium"><a href="{{ route('discrepancies.detail', $item->id) }}" class="text-blue-600 hover:underline">{{ $item->discrepancy_no }}</a></div>
                 @foreach($visibleCols as $col)
                     @switch($col['key'])
                         @case('id')
@@ -95,7 +94,7 @@
                             <div class="text-sm text-foreground">{{ $item->expected_quantity }} → {{ $item->actual_quantity }}（差 {{ $item->quantity_diff }}）</div>
                             @break
                         @case('amount_diff')
-                            <div class="text-sm text-foreground">{{ money_format($item->amount_diff) }}</div>
+                            <div class="text-sm text-foreground text-right">{{ money_format($item->amount_diff) }}</div>
                             @break
                         @case('responsible_party')
                             <div class="text-sm text-foreground">{{ $partyMap[$item->responsible_party] ?? '-' }}</div>
@@ -104,10 +103,7 @@
                             <div class="text-sm text-foreground">{{ $decisionMap[$item->decision] ?? '-' }}</div>
                             @break
                         @case('status')
-                            <div>
-                                @php $c = $statusColorMap[$item->status] ?? 'gray'; @endphp
-                                <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $c }}-100 text-{{ $c }}-700">{{ $statusMap[$item->status] ?? '-' }}</span>
-                            </div>
+                            <div>{!! status_badge($item->status, 'discrepancy') !!}</div>
                             @break
                         @case('reason')
                             <div class="text-sm text-foreground truncate max-w-[200px]" title="{{ $item->reason }}">{{ $item->reason ?? '-' }}</div>
@@ -120,6 +116,12 @@
                     @endswitch
                 @endforeach
                 <div class="flex items-center gap-2">
+                    @if($item->status === 1 && $this->canProcess())
+                    <button type="button" wire:click="markProcessing({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 transition-colors" title="标记处理中"><x-ui.icon name="clock" class="w-3.5 h-3.5" /></button>
+                    @endif
+                    @if(in_array($item->status, [1, 2]) && $this->canProcess())
+                    <button type="button" wire:click="markDisputed({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 transition-colors" title="转入争议"><x-ui.icon name="shield-exclamation" class="w-3.5 h-3.5" /></button>
+                    @endif
                     @if(in_array($item->status, [1, 2, 5]) && $this->canProcess())
                     <button type="button" wire:click="openProcess({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 transition-colors" title="处理"><x-ui.icon name="adjustments" class="w-3.5 h-3.5" /></button>
                     @endif
@@ -232,7 +234,7 @@
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-foreground">拒收/残次回库</h2>
-                <button type="button" wire:click="$set('showRestockModal', false)" class="text-muted-foreground hover:text-foreground transition-colors">
+                <button type="button" wire:click="closeRestockModal" class="text-muted-foreground hover:text-foreground transition-colors">
                     <x-ui.icon name="x-mark" class="w-5 h-5" />
                 </button>
             </div>
@@ -252,7 +254,7 @@
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">
-                <button type="button" wire:click="$set('showRestockModal', false)" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="closeRestockModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
                 <button type="button" wire:click="restock" class="rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors">确认回库</button>
             </div>
         </div>

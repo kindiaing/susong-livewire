@@ -2,12 +2,15 @@
 
 namespace App\Services;
 
+use App\Models\ApprovalTypeConfig;
 use App\Models\AuditLog;
 use App\Models\Discrepancy;
 use App\Models\InventoryLog;
 use App\Models\LossOrder;
 use App\Models\LossOrderItem;
 use App\Models\OrderItem;
+use App\Models\PurchaseOrderItem;
+use App\Models\RestockReminder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -19,8 +22,8 @@ use Illuminate\Support\Facades\Log;
  * - create()：登记差异事实，只写差异单，不触碰库存/账户
  * - process()：定责任方 + 处理决策，按决策分流：
  *   - 报损：受 discrepancy_auto_create_loss 开关控制，自动生成待审核损耗单（库存由损耗单执行时扣减）
- *   - 补货：仅登记决策，补货生成待采项为二期
- *   - 退款/扣款：仅登记决策（approval_status 待审核），金额调整为二期
+ *   - 补货：自动生成补货提醒（CYCLE_ONCE），关联差异单，状态默认启用
+ *   - 退款/扣款：检查审核开关，需要审核则创建审批记录（approval_status=待审核），审核通过后回写应收；不需要审核则直接回写
  *   - 不计：直接关闭
  * - restockToWarehouse()：拒收/残次货品回库，走 InventoryService::stockIn 留痕
  *
@@ -43,8 +46,10 @@ class DiscrepancyService
     public function create(array $data): Discrepancy
     {
         $orderItemId = $data['order_item_id'] ?? null;
+        $purchaseOrderItemId = $data['purchase_order_item_id'] ?? null;
         $stage = (int) $data['stage'];
 
+        // 重复登记检查：同一订单明细 + 同一环节，或同一采购明细 + 入库环节
         if ($orderItemId) {
             $exists = Discrepancy::where('order_item_id', $orderItemId)
                 ->where('stage', $stage)
@@ -53,9 +58,17 @@ class DiscrepancyService
             if ($exists) {
                 throw new \Exception('该明细在此环节已有未完结的差异单，请勿重复登记');
             }
+        } elseif ($purchaseOrderItemId) {
+            $exists = Discrepancy::where('purchase_order_item_id', $purchaseOrderItemId)
+                ->where('stage', $stage)
+                ->whereIn('status', [Discrepancy::STATUS_PENDING, Discrepancy::STATUS_PROCESSING, Discrepancy::STATUS_DISPUTED])
+                ->exists();
+            if ($exists) {
+                throw new \Exception('该采购明细已有未完结的差异单，请勿重复登记');
+            }
         }
 
-        return DB::transaction(function () use ($data, $orderItemId, $stage) {
+        return DB::transaction(function () use ($data, $orderItemId, $purchaseOrderItemId, $stage) {
             $expected = (int) $data['expected_quantity'];
             $actual = (int) $data['actual_quantity'];
             $quantityDiff = $expected - $actual;
@@ -63,21 +76,30 @@ class DiscrepancyService
             // 订单明细只查一次：金额估算与 sku_id 回填共用
             $orderItem = $orderItemId ? OrderItem::find($orderItemId) : null;
 
-            // 金额差异未显式传入时，按订单明细单价自动估算（厘）
+            // 采购明细只查一次：金额估算与 sku_id 回填共用
+            $purchaseOrderItem = $purchaseOrderItemId ? PurchaseOrderItem::find($purchaseOrderItemId) : null;
+
+            // 金额差异未显式传入时，按明细单价自动估算（厘）
             $amountDiff = $data['amount_diff'] ?? null;
             if ($amountDiff === null && $orderItem) {
                 $amountDiff = $quantityDiff * (int) ($orderItem->price ?? 0);
+            } elseif ($amountDiff === null && $purchaseOrderItem) {
+                $amountDiff = $quantityDiff * (int) ($purchaseOrderItem->actual_price ?: $purchaseOrderItem->price ?? 0);
             }
+
+            // sku_id 回填优先级：显式传入 > 订单明细 > 采购明细
+            $skuId = $data['sku_id'] ?? $orderItem?->sku_id ?? $purchaseOrderItem?->sku_id ?? null;
 
             $discrepancy = Discrepancy::create([
                 'discrepancy_no' => generate_sequence_no('DIS', 'discrepancies', 'discrepancy_no'),
                 'order_id' => $data['order_id'] ?? null,
                 'order_item_id' => $orderItemId,
                 'purchase_order_id' => $data['purchase_order_id'] ?? null,
+                'purchase_order_item_id' => $purchaseOrderItemId,
                 'picking_task_id' => $data['picking_task_id'] ?? null,
                 'delivery_task_id' => $data['delivery_task_id'] ?? null,
                 'delivery_note_item_id' => $data['delivery_note_item_id'] ?? null,
-                'sku_id' => $data['sku_id'] ?? $orderItem?->sku_id ?? null,
+                'sku_id' => $skuId,
                 'warehouse_id' => $data['warehouse_id'] ?? null,
                 'unit_id' => $data['unit_id'] ?? null,
                 'unit_quantity' => (int) ($data['unit_quantity'] ?? 1),
@@ -125,10 +147,32 @@ class DiscrepancyService
             ];
 
             $lossOrder = null;
+            $restockReminder = null;
             $newStatus = Discrepancy::STATUS_RESOLVED;
 
             if ($decision === Discrepancy::DECISION_LOSS && setting('discrepancy_auto_create_loss', true)) {
                 $lossOrder = $this->createLossOrder($discrepancy, $responsibleParty, $warehouseId);
+            }
+
+            if ($decision === Discrepancy::DECISION_RESTOCK) {
+                $restockReminder = $this->createRestockReminder($discrepancy);
+            }
+
+            if ($decision === Discrepancy::DECISION_REFUND || $decision === Discrepancy::DECISION_DEDUCT) {
+                // 检查审核开关：需要审核则创建审批记录，状态保持处理中
+                $needsApproval = ApprovalTypeConfig::isApprovalRequired('diff_refund_deduct');
+                if ($needsApproval) {
+                    $newStatus = Discrepancy::STATUS_PROCESSING;
+                    ApprovalService::createRequest(
+                        typeCode: 'diff_refund_deduct',
+                        targetType: 'discrepancy',
+                        targetId: $discrepancy->id,
+                        beforeData: ['decision' => $discrepancy->decision, 'amount_diff' => $discrepancy->amount_diff],
+                        afterData: ['decision' => $decision, 'amount_diff' => $discrepancy->amount_diff, 'responsible_party' => $responsibleParty],
+                        amount: abs($discrepancy->amount_diff),
+                        reason: "差异单 {$discrepancy->discrepancy_no} 决策" . ($decision === Discrepancy::DECISION_REFUND ? '退款' : '扣款'),
+                    );
+                }
             }
 
             if ($decision === Discrepancy::DECISION_IGNORE) {
@@ -150,14 +194,17 @@ class DiscrepancyService
                 'responsible_party' => $responsibleParty,
                 'decision' => $decision,
                 'loss_order_no' => $lossOrder?->loss_no,
+                'restock_reminder_id' => $restockReminder?->id,
             ], $remark);
 
             // 差异处理完成后回写应收（防重复：检查 is_amount_adjusted）
             // 仅当有关联订单、金额差异非 0、且决策不是「不计」时回写
+            // 退款/扣款需要审核时，回写延后到审核通过后执行
             if ($discrepancy->order_id
                 && $discrepancy->amount_diff
                 && ! $discrepancy->is_amount_adjusted
                 && $decision !== Discrepancy::DECISION_IGNORE
+                && ! ($needsApproval ?? false)
             ) {
                 try {
                     app(ReceivableService::class)->applyDiscrepancyAmount(
@@ -179,9 +226,67 @@ class DiscrepancyService
     }
 
     /**
+     * 标记为处理中（待处理 → 处理中）
+     */
+    public function markProcessing(Discrepancy $discrepancy, ?string $remark = null): Discrepancy
+    {
+        if ($discrepancy->status !== Discrepancy::STATUS_PENDING) {
+            throw new \Exception('仅待处理的差异单可标记为处理中');
+        }
+
+        return DB::transaction(function () use ($discrepancy, $remark) {
+            $before = ['status' => $discrepancy->status, 'status_label' => $discrepancy->status_label];
+
+            $discrepancy->update([
+                'status' => Discrepancy::STATUS_PROCESSING,
+                'handler_id' => Auth::id(),
+                'handled_at' => now(),
+                'remark' => $remark ?: $discrepancy->remark,
+            ]);
+
+            $this->audit($discrepancy, 'mark_processing', $before, [
+                'status' => Discrepancy::STATUS_PROCESSING,
+                'status_label' => '处理中',
+            ], $remark);
+
+            return $discrepancy->fresh();
+        });
+    }
+
+    /**
+     * 标记为争议中（待处理/处理中 → 争议中）
+     */
+    public function markDisputed(Discrepancy $discrepancy, ?string $remark = null): Discrepancy
+    {
+        if (! in_array($discrepancy->status, [Discrepancy::STATUS_PENDING, Discrepancy::STATUS_PROCESSING])) {
+            throw new \Exception('仅待处理/处理中的差异单可标记为争议中');
+        }
+
+        return DB::transaction(function () use ($discrepancy, $remark) {
+            $before = ['status' => $discrepancy->status, 'status_label' => $discrepancy->status_label];
+
+            $discrepancy->update([
+                'status' => Discrepancy::STATUS_DISPUTED,
+                'handler_id' => Auth::id(),
+                'handled_at' => now(),
+                'remark' => $remark ?: $discrepancy->remark,
+            ]);
+
+            $this->audit($discrepancy, 'mark_disputed', $before, [
+                'status' => Discrepancy::STATUS_DISPUTED,
+                'status_label' => '争议中',
+            ], $remark);
+
+            return $discrepancy->fresh();
+        });
+    }
+
+    /**
      * 拒收/残次货品回库（库存回补留痕）
      *
-     * 货带回仓库、仓管确认可再售后调用；不可再售的走决策=报损。
+     * 受 diff_restock 审核开关控制：
+     * - 开启时：创建审批记录，库存回补延后到审核通过后执行
+     * - 关闭时：直接执行库存回补并标记已处理
      */
     public function restockToWarehouse(Discrepancy $discrepancy, int $warehouseId, ?string $remark = null): Discrepancy
     {
@@ -198,6 +303,44 @@ class DiscrepancyService
         $skuId = $this->resolveSkuId($discrepancy);
         if (! $skuId) {
             throw new \Exception('无法确定差异单关联的 SKU，不能回库');
+        }
+
+        // 审核闸门
+        $needsApproval = ApprovalTypeConfig::isApprovalRequired('diff_restock');
+        if ($needsApproval) {
+            return DB::transaction(function () use ($discrepancy, $warehouseId, $skuId, $remark) {
+                $before = ['status' => $discrepancy->status, 'status_label' => $discrepancy->status_label];
+
+                $discrepancy->update([
+                    'status' => Discrepancy::STATUS_PROCESSING,
+                    'handler_id' => Auth::id(),
+                    'handled_at' => now(),
+                    'remark' => $remark ?: $discrepancy->remark,
+                ]);
+
+                ApprovalService::createRequest(
+                    typeCode: 'diff_restock',
+                    targetType: 'discrepancy',
+                    targetId: $discrepancy->id,
+                    beforeData: $before,
+                    afterData: [
+                        'warehouse_id' => $warehouseId,
+                        'sku_id' => $skuId,
+                        'quantity' => $discrepancy->quantity_diff,
+                    ],
+                    amount: null,
+                    reason: "差异单 {$discrepancy->discrepancy_no} 拒收/残次回库待审",
+                );
+
+                $this->audit($discrepancy, 'restock_pending', $before, [
+                    'status' => Discrepancy::STATUS_PROCESSING,
+                    'status_label' => '处理中',
+                    'warehouse_id' => $warehouseId,
+                    'quantity' => $discrepancy->quantity_diff,
+                ], '回库待审核');
+
+                return $discrepancy->fresh();
+            });
         }
 
         return DB::transaction(function () use ($discrepancy, $warehouseId, $skuId, $remark) {
@@ -233,6 +376,74 @@ class DiscrepancyService
     }
 
     /**
+     * 审核通过后执行回库（由 Approvals 组件分发调用）
+     */
+    public function applyRestockApproval(int $discrepancyId, ?array $afterData = null): void
+    {
+        $discrepancy = Discrepancy::find($discrepancyId);
+        if (! $discrepancy) {
+            return;
+        }
+
+        $skuId = $this->resolveSkuId($discrepancy);
+        $warehouseId = $afterData['warehouse_id'] ?? $discrepancy->warehouse_id;
+        if (! $skuId || ! $warehouseId) {
+            Log::warning('回库审核通过但缺少 sku_id 或 warehouse_id', [
+                'discrepancy_id' => $discrepancy->id,
+                'sku_id' => $skuId,
+                'warehouse_id' => $warehouseId,
+            ]);
+            return;
+        }
+
+        DB::transaction(function () use ($discrepancy, $skuId, $warehouseId) {
+            $this->inventoryService->stockIn(
+                warehouse: $warehouseId,
+                sku: $skuId,
+                quantity: $discrepancy->quantity_diff,
+                batchNo: 'RE-'.$discrepancy->discrepancy_no,
+                sourceType: 'discrepancy',
+                sourceId: $discrepancy->id,
+                reason: "差异单 {$discrepancy->discrepancy_no} 回库审核通过",
+                type: InventoryLog::TYPE_REJECT_RETURN,
+            );
+
+            $before = ['status' => $discrepancy->status, 'status_label' => $discrepancy->status_label];
+
+            $discrepancy->update([
+                'status' => Discrepancy::STATUS_RESOLVED,
+            ]);
+
+            $this->audit($discrepancy, 'restock_approved', $before, [
+                'status' => Discrepancy::STATUS_RESOLVED,
+                'status_label' => '已处理',
+                'warehouse_id' => $warehouseId,
+                'quantity' => $discrepancy->quantity_diff,
+            ], '回库审核通过，库存已回补');
+        });
+    }
+
+    /**
+     * 回库审核拒绝后回退差异单到待处理（由 Approvals 组件分发调用）
+     */
+    public function rejectRestockApproval(int $discrepancyId): void
+    {
+        $discrepancy = Discrepancy::find($discrepancyId);
+        if (! $discrepancy) {
+            return;
+        }
+
+        $before = ['status' => $discrepancy->status, 'status_label' => $discrepancy->status_label];
+        $discrepancy->update([
+            'status' => Discrepancy::STATUS_PENDING,
+        ]);
+        $this->audit($discrepancy, 'restock_rejected', $before, [
+            'status' => Discrepancy::STATUS_PENDING,
+            'status_label' => '待处理',
+        ], '回库审核拒绝，差异单回退到待处理');
+    }
+
+    /**
      * 从差异单生成待审核损耗单（决策=报损）
      */
     private function createLossOrder(Discrepancy $discrepancy, int $responsibleParty, ?int $warehouseId): LossOrder
@@ -246,7 +457,7 @@ class DiscrepancyService
             throw new \Exception('无法确定差异单关联的 SKU，不能生成损耗单');
         }
 
-        $costPrice = (int) ($discrepancy->orderItem?->price ?? 0);
+        $costPrice = (int) ($discrepancy->orderItem?->price ?? $discrepancy->purchaseOrderItem?->actual_price ?? $discrepancy->purchaseOrderItem?->price ?? 0);
 
         // 责任方枚举映射：差异单 1供应商/2平台/3司机/4商家 → 损耗单明细 2供应商/1平台（司机/商家暂归平台承担，原始责任方在损耗原因中留痕）
         $lossParty = $responsibleParty === Discrepancy::PARTY_SUPPLIER
@@ -271,11 +482,93 @@ class DiscrepancyService
     }
 
     /**
+     * 从差异单生成补货提醒（决策=补货，CYCLE_ONCE，关联差异单）
+     */
+    private function createRestockReminder(Discrepancy $discrepancy): RestockReminder
+    {
+        $skuId = $this->resolveSkuId($discrepancy);
+        if (! $skuId) {
+            throw new \Exception('无法确定差异单关联的 SKU，不能生成补货提醒');
+        }
+
+        return RestockReminder::create([
+            'merchant_id' => $discrepancy->order?->merchant_id,
+            'sku_id' => $skuId,
+            'threshold_quantity' => abs($discrepancy->quantity_diff),
+            'remind_cycle' => RestockReminder::CYCLE_ONCE,
+            'status' => RestockReminder::STATUS_ENABLED,
+            'discrepancy_id' => $discrepancy->id,
+            'remark' => "差异单 {$discrepancy->discrepancy_no} 补货决策自动生成",
+        ]);
+    }
+
+    /**
+     * 审核通过后执行退款/扣款金额回写应收（由 Approvals 组件分发调用）
+     */
+    public function applyRefundDeductApproval(int $discrepancyId): void
+    {
+        $discrepancy = Discrepancy::find($discrepancyId);
+        if (! $discrepancy) {
+            return;
+        }
+
+        if ($discrepancy->order_id && $discrepancy->amount_diff && ! $discrepancy->is_amount_adjusted) {
+            try {
+                app(ReceivableService::class)->applyDiscrepancyAmount(
+                    (int) $discrepancy->order_id,
+                    (int) $discrepancy->amount_diff,
+                );
+                $discrepancy->update(['is_amount_adjusted' => 1]);
+            } catch (\Exception $e) {
+                Log::warning('审核通过后差异回写应收失败', [
+                    'discrepancy_id' => $discrepancy->id,
+                    'order_id' => $discrepancy->order_id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        // 审核通过 → 差异单状态流转为已处理
+        $before = ['status' => $discrepancy->status, 'status_label' => $discrepancy->status_label];
+        $discrepancy->update([
+            'status' => Discrepancy::STATUS_RESOLVED,
+            'approval_status' => Discrepancy::APPROVAL_APPROVED,
+        ]);
+        $this->audit($discrepancy, 'approval_passed', $before, [
+            'status' => Discrepancy::STATUS_RESOLVED,
+            'status_label' => '已处理',
+            'approval_status' => Discrepancy::APPROVAL_APPROVED,
+        ], '审核通过，金额已回写应收');
+    }
+
+    /**
+     * 审核拒绝后回退差异单到待处理（由 Approvals 组件分发调用）
+     */
+    public function rejectRefundDeductApproval(int $discrepancyId): void
+    {
+        $discrepancy = Discrepancy::find($discrepancyId);
+        if (! $discrepancy) {
+            return;
+        }
+
+        $before = ['status' => $discrepancy->status, 'status_label' => $discrepancy->status_label];
+        $discrepancy->update([
+            'status' => Discrepancy::STATUS_PENDING,
+            'approval_status' => Discrepancy::APPROVAL_REJECTED,
+        ]);
+        $this->audit($discrepancy, 'approval_rejected', $before, [
+            'status' => Discrepancy::STATUS_PENDING,
+            'status_label' => '待处理',
+            'approval_status' => Discrepancy::APPROVAL_REJECTED,
+        ], '审核拒绝，差异单回退到待处理，操作人可重新选择决策');
+    }
+
+    /**
      * 解析 SKU ID：优先差异单自包含的 sku_id，其次从订单明细间接获取
      */
     private function resolveSkuId(Discrepancy $discrepancy): ?int
     {
-        return $discrepancy->sku_id ?? $discrepancy->orderItem?->sku_id;
+        return $discrepancy->sku_id ?? $discrepancy->orderItem?->sku_id ?? $discrepancy->purchaseOrderItem?->sku_id;
     }
 
     /**

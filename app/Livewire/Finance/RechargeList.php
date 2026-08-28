@@ -41,11 +41,6 @@ class RechargeList extends Component
 
     public string $formNote = '';
 
-    // 详情弹窗
-    public bool $showDetailModal = false;
-
-    public ?int $detailId = null;
-
     public static array $statusMap = [
         1 => '待确认', 2 => '成功', 3 => '失败',
     ];
@@ -137,16 +132,9 @@ class RechargeList extends Component
         $this->showModal = true;
     }
 
-    public function openDetailModal(int $id): void
-    {
-        $this->detailId = $id;
-        $this->showDetailModal = true;
-    }
-
     public function closeDetailModal(): void
     {
-        $this->showDetailModal = false;
-        $this->detailId = null;
+        // 已弃用，详情改为独立页面
     }
 
     public function save(): void
@@ -303,9 +291,7 @@ class RechargeList extends Component
         $statusMap = self::$statusMap;
         $statusColorMap = self::$statusColorMap;
         $paymentMethodMap = self::$paymentMethodMap;
-        $detailItem = $this->detailId ? Recharge::with('merchant')->find($this->detailId) : null;
-
-        return view('livewire.finance.recharge-list', compact('items', 'merchants', 'allColumns', 'selectedCount', 'statusMap', 'statusColorMap', 'paymentMethodMap', 'detailItem'))
+        return view('livewire.finance.recharge-list', compact('items', 'merchants', 'allColumns', 'selectedCount', 'statusMap', 'statusColorMap', 'paymentMethodMap'))
             ->layout('components.app-layout')
             ->title('客户充值');
     }

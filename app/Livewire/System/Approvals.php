@@ -4,6 +4,8 @@ namespace App\Livewire\System;
 
 use App\Models\Approval;
 use App\Services\ApprovalService;
+use App\Services\DiscrepancyService;
+use App\Services\SupplierSettlementService;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -47,6 +49,9 @@ class Approvals extends Component
         $result = ApprovalService::approve($approval, $this->reviewRemark);
 
         if ($result) {
+            // 业务联动分发：审核通过后调用对应 Service 执行业务逻辑
+            $this->dispatchApprovalBusiness($approval, true);
+
             session()->flash('success', "审批「{$approval->applicant_name}」的申请已通过");
         } else {
             session()->flash('error', '操作失败，审批状态可能已变更');
@@ -69,6 +74,9 @@ class Approvals extends Component
         $result = ApprovalService::reject($approval, $this->reviewRemark);
 
         if ($result) {
+            // 业务联动分发：审核拒绝后调用对应 Service 回退业务状态
+            $this->dispatchApprovalBusiness($approval, false);
+
             session()->flash('success', "审批「{$approval->applicant_name}」的申请已拒绝");
         } else {
             session()->flash('error', '操作失败，审批状态可能已变更');
@@ -93,6 +101,37 @@ class Approvals extends Component
 
         $this->selectedId = 0;
         $this->reviewRemark = '';
+    }
+
+    /**
+     * 审批后业务联动分发
+     * 根据审批类型调用对应 Service 的方法执行/回退业务逻辑
+     */
+    private function dispatchApprovalBusiness(Approval $approval, bool $approved): void
+    {
+        try {
+            $discrepancyService = app(DiscrepancyService::class);
+
+            match ($approval->approval_type) {
+                'diff_refund_deduct' => $approved
+                    ? $discrepancyService->applyRefundDeductApproval($approval->target_id)
+                    : $discrepancyService->rejectRefundDeductApproval($approval->target_id),
+                'diff_restock' => $approved
+                    ? $discrepancyService->applyRestockApproval($approval->target_id, $approval->after_data)
+                    : $discrepancyService->rejectRestockApproval($approval->target_id),
+                'supplier_payment' => $approved
+                    ? app(SupplierSettlementService::class)->applyPayment($approval->target_id)
+                    : app(SupplierSettlementService::class)->rejectPayment($approval->target_id),
+                default => null,
+            };
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('审批后业务联动失败', [
+                'approval_id' => $approval->id,
+                'approval_type' => $approval->approval_type,
+                'approved' => $approved,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     public function render()

@@ -39,11 +39,6 @@ class InvoiceList extends Component
 
     public string $formTaxNo = '';
 
-    // 详情弹窗
-    public bool $showDetailModal = false;
-
-    public ?int $detailId = null;
-
     public static array $statusMap = [
         1 => '待开具', 2 => '已开具', 3 => '已寄出',
     ];
@@ -139,16 +134,9 @@ class InvoiceList extends Component
         $this->showModal = true;
     }
 
-    public function openDetailModal(int $id): void
-    {
-        $this->detailId = $id;
-        $this->showDetailModal = true;
-    }
-
     public function closeDetailModal(): void
     {
-        $this->showDetailModal = false;
-        $this->detailId = null;
+        // 已弃用，详情改为独立页面
     }
 
     public function save(): void
@@ -269,9 +257,7 @@ class InvoiceList extends Component
         $statusMap = self::$statusMap;
         $statusColorMap = self::$statusColorMap;
         $typeMap = self::$typeMap;
-        $detailItem = $this->detailId ? Invoice::with('merchant')->find($this->detailId) : null;
-
-        return view('livewire.finance.invoice-list', compact('items', 'merchants', 'allColumns', 'selectedCount', 'statusMap', 'statusColorMap', 'typeMap', 'detailItem'))
+        return view('livewire.finance.invoice-list', compact('items', 'merchants', 'allColumns', 'selectedCount', 'statusMap', 'statusColorMap', 'typeMap'))
             ->layout('components.app-layout')
             ->title('发票管理');
     }

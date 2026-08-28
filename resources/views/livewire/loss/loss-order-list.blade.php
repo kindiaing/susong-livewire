@@ -177,7 +177,7 @@
                             <td class="px-4 py-2 text-muted-foreground">{{ $item->id }}</td>
                             @break
                         @case('loss_no')
-                            <td class="px-4 py-2 font-medium text-foreground">{{ $item->loss_no }}</td>
+                            <td class="px-4 py-2 font-medium"><a href="{{ route('loss-orders.detail', $item->id) }}" class="text-blue-600 hover:underline">{{ $item->loss_no }}</a></td>
                             @break
                         @case('warehouse_id')
                             <td class="px-4 py-2 text-foreground">{{ $item->warehouse?->name ?? '-' }}</td>
@@ -186,7 +186,7 @@
                             <td class="px-4 py-2 text-foreground">{{ \App\Models\LossOrder::typeMap()[$item->loss_type] ?? '-' }}</td>
                             @break
                         @case('total_amount')
-                            <td class="px-4 py-2 text-foreground">{{ money_format($item->total_amount) }}</td>
+                            <td class="px-4 py-2 text-foreground text-right">{{ money_format($item->total_amount) }}</td>
                             @break
                         @case('status')
                             <td class="px-4 py-2">{!! status_badge($item->status, 'loss_status') !!}</td>
