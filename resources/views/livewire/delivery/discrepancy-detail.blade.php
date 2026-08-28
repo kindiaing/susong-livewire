@@ -103,6 +103,34 @@
         </div>
     </div>
 
+    {{-- 关联补货提醒 --}}
+    @if($discrepancy->restockReminders->isNotEmpty())
+    <div class="rounded-lg border bg-card mb-6">
+        <div class="px-4 py-2 border-b">
+            <h2 class="text-sm font-semibold text-foreground">关联补货提醒</h2>
+        </div>
+        <div class="divide-y">
+            @foreach($discrepancy->restockReminders as $reminder)
+            <div class="px-4 py-3 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                    <div>
+                        <div class="text-sm text-foreground">
+                            <a href="{{ route('restock-reminders') }}" class="text-blue-600 hover:underline">补货提醒 #{{ $reminder->id }}</a>
+                            · {{ \App\Models\RestockReminder::remindCycleMap()[$reminder->remind_cycle] ?? '-' }}
+                        </div>
+                        <div class="text-xs text-muted-foreground mt-0.5">
+                            阈值 {{ $reminder->threshold_quantity }} · {{ $reminder->remark ?? '-' }}
+                        </div>
+                    </div>
+                </div>
+                <span class="text-sm">{!! status_badge($reminder->status, 'active') !!}</span>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     {{-- 处理弹窗 --}}
     @if($showProcessModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
@@ -126,9 +154,9 @@
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">处理决策 <span class="text-red-500">*</span></label>
                     <select wire:model.live="processDecision" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                        <option value="1">补货（登记决策，补货单二期生成）</option>
-                        <option value="2">退款（登记决策，金额调整二期执行）</option>
-                        <option value="3">扣款（登记决策，金额调整二期执行）</option>
+                        <option value="1">补货（自动生成补货提醒）</option>
+                        <option value="2">退款（待审核通过后回写应收）</option>
+                        <option value="3">扣款（待审核通过后回写应收）</option>
                         <option value="4">报损（生成损耗单扣减库存）</option>
                         <option value="5">不计（直接关闭）</option>
                     </select>
@@ -168,7 +196,7 @@
                     <x-ui.icon name="x-mark" class="w-5 h-5" />
                 </button>
             </div>
-            <p class="text-sm text-muted-foreground mb-4">确认货品已带回仓库且可再售，差异数量将回补到所选仓库库存并留痕；不可再售的请走「处理 → 报损」。</p>
+            <p class="text-sm text-muted-foreground mb-4">确认货品已带回仓库且可再售，差异数量将回补到所选仓库库存并留痕；不可再售的请走「处理 → 报损」。@if(\App\Models\ApprovalTypeConfig::isApprovalRequired('diff_restock'))<br /><span class="text-orange-600">当前回库审核已开启，提交后将进入待审核状态，审核通过后才执行库存回补。</span>@endif</p>
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">回库仓库 <span class="text-red-500">*</span></label>

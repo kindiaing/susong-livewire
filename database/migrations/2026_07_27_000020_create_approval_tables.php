@@ -84,6 +84,8 @@ return new class extends Migration
             ['type_code' => 'sku_price_minor', 'type_name' => 'SKU小幅改价(≤15%)', 'module_name' => '商品管理', 'risk_level' => 'P1', 'enabled' => 0, 'applicant_role_id' => $roles['operator'], 'reviewer_role_id' => $roles['operator_manager'], 'sort_order' => 18, 'description' => '小幅改价生效', 'created_at' => $now, 'updated_at' => $now],
             // P1 — 损耗管理节点，默认开启
             ['type_code' => 'loss_order', 'type_name' => '损耗单审批', 'module_name' => '损耗管理', 'risk_level' => 'P1', 'enabled' => 1, 'applicant_role_id' => $roles['operator'], 'reviewer_role_id' => $roles['operator_manager'], 'sort_order' => 19, 'description' => '损耗金额超过审批阈值时需运营经理审核', 'created_at' => $now, 'updated_at' => $now],
+            // P1 — 差异回库审核，默认关闭（仓管直接回库无需审核，开启后回库需财务经理审核）
+            ['type_code' => 'diff_restock', 'type_name' => '差异回库', 'module_name' => '差异处理', 'risk_level' => 'P1', 'enabled' => 0, 'applicant_role_id' => $roles['operator'], 'reviewer_role_id' => $roles['finance_manager'], 'sort_order' => 20, 'description' => '拒收/残次货品回库入库审核', 'created_at' => $now, 'updated_at' => $now],
         ]);
     }
 

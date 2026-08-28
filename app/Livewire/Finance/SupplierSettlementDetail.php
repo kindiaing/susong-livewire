@@ -6,6 +6,7 @@ use App\Livewire\Traits\WithToast;
 use App\Models\SettlementPayment;
 use App\Models\SupplierSettlement;
 use App\Services\NotificationService;
+use App\Services\SupplierSettlementService;
 use Livewire\Component;
 
 class SupplierSettlementDetail extends Component
@@ -72,46 +73,39 @@ class SupplierSettlementDetail extends Component
             return;
         }
 
-        $remaining = $this->settlement->payable_amount - $this->settlement->paid_amount;
-        if ($cents > $remaining) {
-            $this->toastError('付款金额超出剩余应付 ' . money_format($remaining) . ' 元');
+        try {
+            $payment = app(SupplierSettlementService::class)->recordPayment(
+                settlementId: $this->settlement->id,
+                amount: $cents,
+                paymentMethod: SettlementPayment::METHOD_MANUAL,
+                remark: $this->paymentRemark ?: null,
+            );
+
+            $needsApproval = $payment->approval_status === SettlementPayment::APPROVAL_PENDING;
+            if ($needsApproval) {
+                $this->toastSuccess('付款已登记，待审核');
+            } else {
+                $this->loadSettlement($this->settlement->id);
+                $newStatus = $this->settlement->status;
+                if ($newStatus === SupplierSettlement::STATUS_SETTLED) {
+                    app(NotificationService::class)->settlementCompleted(
+                        auth()->id(),
+                        $this->settlement->settlement_no,
+                        money_format($this->settlement->payable_amount),
+                    );
+                }
+                $this->toastSuccess($newStatus === SupplierSettlement::STATUS_SETTLED ? '结算已结清' : '部分付款已确认');
+            }
+        } catch (\Exception $e) {
+            $this->toastError($e->getMessage());
 
             return;
         }
 
-        $newPaidAmount = $this->settlement->paid_amount + $cents;
-        $newStatus = $newPaidAmount >= $this->settlement->payable_amount
-            ? SupplierSettlement::STATUS_SETTLED
-            : SupplierSettlement::STATUS_PARTIAL;
-
-        $this->settlement->update([
-            'paid_amount' => $newPaidAmount,
-            'status' => $newStatus,
-            'settled_at' => $newStatus === SupplierSettlement::STATUS_SETTLED ? now() : null,
-        ]);
-
-        SettlementPayment::create([
-            'settlement_id' => $this->settlement->id,
-            'amount' => $cents,
-            'payment_method' => SettlementPayment::METHOD_MANUAL,
-            'operator_id' => auth()->id(),
-            'approval_status' => SettlementPayment::APPROVAL_APPROVED,
-            'remark' => $this->paymentRemark ?: null,
-        ]);
-
-        if ($newStatus === SupplierSettlement::STATUS_SETTLED) {
-            app(NotificationService::class)->settlementCompleted(
-                auth()->id(),
-                $this->settlement->settlement_no,
-                money_format($this->settlement->payable_amount),
-            );
-        }
-
-        $this->loadSettlement($this->settlement->id);
         $this->showPaymentModal = false;
         $this->paymentAmount = '';
         $this->paymentRemark = '';
-        $this->toastSuccess($newStatus === SupplierSettlement::STATUS_SETTLED ? '结算已结清' : '部分付款已确认');
+        $this->loadSettlement($this->settlement->id);
     }
 
     public function openCloseModal(): void

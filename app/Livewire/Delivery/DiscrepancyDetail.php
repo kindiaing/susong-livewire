@@ -44,7 +44,7 @@ class DiscrepancyDetail extends Component
 
     public function loadDiscrepancy(int $id): void
     {
-        $this->discrepancy = Discrepancy::with(['order', 'orderItem.sku', 'sku', 'handler'])
+        $this->discrepancy = Discrepancy::with(['order', 'orderItem.sku', 'sku', 'handler', 'restockReminders'])
             ->findOrFail($id);
     }
 
@@ -104,9 +104,11 @@ class DiscrepancyDetail extends Component
                 Discrepancy::DECISION_LOSS => setting('discrepancy_auto_create_loss', true)
                     ? '已处理：报损损耗单已生成，待审核'
                     : '已处理：报损决策已登记（自动生成损耗单已关闭，请手动建单）',
-                Discrepancy::DECISION_REFUND, Discrepancy::DECISION_DEDUCT => '已处理：决策已登记，金额调整待财务二期执行',
+                Discrepancy::DECISION_REFUND, Discrepancy::DECISION_DEDUCT => \App\Models\ApprovalTypeConfig::isApprovalRequired('diff_refund_deduct')
+                    ? '已处理：退款/扣款待审核，审核通过后自动回写应收'
+                    : '已处理：退款/扣款已执行，金额已回写应收',
                 Discrepancy::DECISION_IGNORE => '差异单已关闭（不计）',
-                default => '已处理：补货决策已登记',
+                default => '已处理：补货提醒已自动生成',
             });
         } catch (\Exception $e) {
             $this->toastError($e->getMessage());
@@ -144,7 +146,11 @@ class DiscrepancyDetail extends Component
                 warehouseId: (int) $this->restockWarehouseId,
                 remark: trim($this->restockRemark) ?: null,
             );
-            $this->toastSuccess('已回库，库存已回补并留痕');
+            $this->toastSuccess(
+                \App\Models\ApprovalTypeConfig::isApprovalRequired('diff_restock')
+                    ? '回库已登记，待审核通过后执行库存回补'
+                    : '已回库，库存已回补并留痕'
+            );
         } catch (\Exception $e) {
             $this->toastError($e->getMessage());
 

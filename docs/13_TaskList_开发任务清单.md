@@ -2,6 +2,47 @@
 > 鎸夋棩涓哄崟浣嶈褰曞紑鍙戜换鍔℃竻鍗曞拰寰呭姙娓呭崟锛屾瘡瀹屾垚涓€椤规爣璁扮姸鎬併€傛柊澧炲唴瀹圭疆浜庨《閮紙鍊掑簭锛夈€?
 ---
 
+## 2026-08-28（差异处理二期 + 付款审核流）
+### 已完成任务
+| 序号 | 功能模块 | 任务内容 | 状态 |
+| :--- | :--- | :--- | :--- |
+| 1 | 差异处理 | 补货决策自动生成补货提醒：process() 中 DECISION_RESTOCK 分支新增 createRestockReminder()，生成 CYCLE_ONCE 补货提醒关联差异单 | ✅ |
+| 2 | 差异处理 | 退款/扣款审核后流转：process() 中 REFUND/DEDUCT 检查审核开关，需要审核则创建审批记录；新增 applyRefundDeductApproval()/rejectRefundDeductApproval() 方法 | ✅ |
+| 3 | 差异处理 | 回库审核闸门：restockToWarehouse() 检查 diff_restock 审核开关，开启时创建审批记录延后执行；新增 applyRestockApproval()/rejectRestockApproval() 方法 | ✅ |
+| 4 | 差异处理 | 审批后业务联动：Approvals 组件新增 dispatchApprovalBusiness() 方法，审核通过/拒绝后分发到对应 Service | ✅ |
+| 5 | 供应商结算 | 付款审核流：SupplierSettlementService 新增 recordPayment()/applyPayment()/rejectPayment()；SupplierSettlementDetail 组件改用新方法 | ✅ |
+| 6 | 审批配置 | 新增 diff_restock 审核类型（P1 默认关闭），Seeder 初始化 | ✅ |
+| 7 | 补货提醒 | RestockReminderList 新增差异单号列+蓝色链接，查询加 with('discrepancy')，搜索支持差异单号 | ✅ |
+| 8 | 差异详情 | discrepancy-detail 视图新增关联补货提醒区块，处理弹窗选项文案更新，回库提示文案更新 | ✅ |
+| 9 | 结算详情 | supplier-settlement-detail 视图付款记录加审核状态徽章（待审/已通过/已拒绝），已拒绝行标灰 | ✅ |
+
+### 涉及文件
+
+**迁移（2 个文件）：**
+- `database/migrations/2026_07_27_000019_create_notification_tables.php` — restock_reminders 表 merchant_id 改 nullable + 新增 discrepancy_id + remark 字段 + 索引调整
+- `database/migrations/2026_07_27_000020_create_approval_tables.php` — 新增 diff_restock 审核类型 Seeder
+
+**模型（2 个文件）：**
+- `app/Models/RestockReminder.php` — fillable 加 discrepancy_id/remark + casts + discrepancy() 关联
+- `app/Models/Discrepancy.php` — 新增 restockReminders() hasMany 关联
+
+**服务（2 个文件）：**
+- `app/Services/DiscrepancyService.php` — process() 补货/退款/扣款分支改造 + createRestockReminder() + applyRefundDeductApproval()/rejectRefundDeductApproval() + restockToWarehouse 审核闸门 + applyRestockApproval()/rejectRestockApproval()
+- `app/Services/SupplierSettlementService.php` — 新增 recordPayment()/applyPayment()/rejectPayment()
+
+**Livewire 组件（3 个文件）：**
+- `app/Livewire/System/Approvals.php` — approve()/reject() 后调用 dispatchApprovalBusiness() 分发
+- `app/Livewire/Delivery/DiscrepancyDetail.php` — loadDiscrepancy 加 restockReminders + process/restock toast 文案更新
+- `app/Livewire/Finance/SupplierSettlementDetail.php` — submitPayment 改用 SupplierSettlementService::recordPayment()
+- `app/Livewire/Product/RestockReminderList.php` — getAllColumns 加差异单号列 + 查询加 with('discrepancy') + 搜索支持
+
+**Blade 视图（3 个文件）：**
+- `resources/views/livewire/delivery/discrepancy-detail.blade.php` — 关联补货提醒区块 + 处理弹窗选项文案 + 回库提示文案
+- `resources/views/livewire/finance/supplier-settlement-detail.blade.php` — 付款记录加审核状态徽章
+- `resources/views/livewire/product/restock-reminder-list.blade.php` — 差异单号列+蓝色链接
+
+---
+
 ## 2026-08-28锛堟潈闄愭敹鏁?+ 閲戦瀛楁瑕嗙洊纭锛?
 ### 宸插畬鎴愪换鍔?
 | 搴忓彿 | 鍔熻兘妯″潡 | 浠诲姟鍐呭 | 鐘舵€?|

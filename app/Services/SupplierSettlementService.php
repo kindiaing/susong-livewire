@@ -4,8 +4,13 @@ namespace App\Services;
 
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseReturn;
+use App\Models\SettlementPayment;
 use App\Models\SupplierSettlement;
+use App\Services\ApprovalService;
+use App\Models\ApprovalTypeConfig;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * 供应商结算服务（周期结算模式）
@@ -73,6 +78,117 @@ class SupplierSettlementService
             }
 
             return $settlement->fresh(['items']);
+        });
+    }
+
+    /**
+     * 审核通过后执行付款（由 Approvals 组件分发调用）
+     * target_id 是 settlement_payments 表的 ID
+     */
+    public function applyPayment(int $paymentId): void
+    {
+        $payment = SettlementPayment::find($paymentId);
+        if (! $payment) {
+            return;
+        }
+
+        $settlement = SupplierSettlement::find($payment->settlement_id);
+        if (! $settlement) {
+            return;
+        }
+
+        DB::transaction(function () use ($payment, $settlement) {
+            $payment->update([
+                'approval_status' => SettlementPayment::APPROVAL_APPROVED,
+            ]);
+
+            $newPaidAmount = $settlement->paid_amount + $payment->amount;
+            $newStatus = $newPaidAmount >= $settlement->payable_amount
+                ? SupplierSettlement::STATUS_SETTLED
+                : SupplierSettlement::STATUS_PARTIAL;
+
+            $settlement->update([
+                'paid_amount' => $newPaidAmount,
+                'status' => $newStatus,
+                'settled_at' => $newStatus === SupplierSettlement::STATUS_SETTLED ? now() : null,
+            ]);
+        });
+    }
+
+    /**
+     * 审核拒绝后标记付款记录为已拒绝（由 Approvals 组件分发调用）
+     * target_id 是 settlement_payments 表的 ID
+     */
+    public function rejectPayment(int $paymentId): void
+    {
+        $payment = SettlementPayment::find($paymentId);
+        if (! $payment) {
+            return;
+        }
+
+        $payment->update([
+            'approval_status' => SettlementPayment::APPROVAL_REJECTED,
+        ]);
+    }
+
+    /**
+     * 登记付款（受 supplier_payment 审核开关控制）
+     * - 审核开启时：创建付款记录（待审核）+ 审批记录，不更新结算单已付金额
+     * - 审核关闭时：创建付款记录（已通过）+ 直接更新结算单已付金额
+     */
+    public function recordPayment(int $settlementId, int $amount, int $paymentMethod, ?string $remark = null): SettlementPayment
+    {
+        $settlement = SupplierSettlement::findOrFail($settlementId);
+        $remaining = $settlement->payable_amount - $settlement->paid_amount;
+
+        if ($amount <= 0) {
+            throw new \Exception('付款金额必须大于0');
+        }
+        if ($amount > $remaining) {
+            throw new \Exception('付款金额超出剩余应付 ' . money_format($remaining) . ' 元');
+        }
+
+        $needsApproval = ApprovalTypeConfig::isApprovalRequired('supplier_payment');
+
+        return DB::transaction(function () use ($settlement, $amount, $paymentMethod, $remark, $needsApproval) {
+            $approvalStatus = $needsApproval
+                ? SettlementPayment::APPROVAL_PENDING
+                : SettlementPayment::APPROVAL_APPROVED;
+
+            $payment = SettlementPayment::create([
+                'settlement_id' => $settlement->id,
+                'amount' => $amount,
+                'payment_method' => $paymentMethod,
+                'operator_id' => Auth::id(),
+                'approval_status' => $approvalStatus,
+                'remark' => $remark,
+            ]);
+
+            if ($needsApproval) {
+                ApprovalService::createRequest(
+                    typeCode: 'supplier_payment',
+                    targetType: 'settlement_payment',
+                    targetId: $payment->id,
+                    beforeData: ['paid_amount' => $settlement->paid_amount, 'status' => $settlement->status],
+                    afterData: ['amount' => $amount, 'payment_method' => $paymentMethod],
+                    amount: $amount,
+                    reason: "结算单 {$settlement->settlement_no} 付款待审",
+                );
+            } else {
+                // 无需审核，直接更新结算单已付金额
+                $newPaidAmount = $settlement->paid_amount + $amount;
+                $newStatus = $newPaidAmount >= $settlement->payable_amount
+                    ? SupplierSettlement::STATUS_SETTLED
+                    : SupplierSettlement::STATUS_PARTIAL;
+
+                $settlement->update([
+                    'paid_amount' => $newPaidAmount,
+                    'status' => $newStatus,
+                    'settled_at' => $newStatus === SupplierSettlement::STATUS_SETTLED ? now() : null,
+                ]);
+            }
+
+            return $payment;
         });
     }
 }

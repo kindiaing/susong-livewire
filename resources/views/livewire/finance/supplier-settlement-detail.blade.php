@@ -107,9 +107,9 @@
         @if($settlement->payments->count())
         <div class="divide-y">
             @foreach($settlement->payments as $payment)
-            <div class="px-4 py-3 flex items-center justify-between">
+            <div class="px-4 py-3 flex items-center justify-between {{ $payment->approval_status === \App\Models\SettlementPayment::APPROVAL_REJECTED ? 'opacity-50' : '' }}">
                 <div class="flex items-center gap-3">
-                    <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                    <span class="w-2 h-2 rounded-full {{ $payment->approval_status === \App\Models\SettlementPayment::APPROVAL_REJECTED ? 'bg-gray-400' : 'bg-green-500' }}"></span>
                     <div>
                         <div class="text-sm text-foreground font-medium">{{ money_format($payment->amount) }}</div>
                         <div class="text-xs text-muted-foreground mt-0.5">
@@ -121,6 +121,17 @@
                         @endif
                     </div>
                 </div>
+                @php
+                    $approvalColors = [
+                        \App\Models\SettlementPayment::APPROVAL_PENDING => 'bg-orange-100 text-orange-700',
+                        \App\Models\SettlementPayment::APPROVAL_APPROVED => 'bg-green-100 text-green-700',
+                        \App\Models\SettlementPayment::APPROVAL_REJECTED => 'bg-gray-100 text-gray-600',
+                    ];
+                    $approvalColor = $approvalColors[$payment->approval_status] ?? 'bg-gray-100 text-gray-600';
+                @endphp
+                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $approvalColor }}">
+                    {{ $payment->approval_status_label }}
+                </span>
             </div>
             @endforeach
         </div>

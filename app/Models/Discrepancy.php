@@ -263,6 +263,14 @@ class Discrepancy extends Model
     }
 
     /**
+     * 关联补货提醒（差异补货决策自动生成）
+     */
+    public function restockReminders()
+    {
+        return $this->hasMany(RestockReminder::class, 'discrepancy_id');
+    }
+
+    /**
      * 作用域：待处理
      */
     public function scopePending($query)
