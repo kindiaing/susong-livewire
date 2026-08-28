@@ -216,6 +216,7 @@ class SystemDataSeeder extends Seeder
         $this->createPermissionTree();
         $this->assignSeedingSuperAdmin();
         $this->ensureDefaultSupplier();
+        $this->ensureDefaultWarehouse();
         $this->ensureDefaultUnits();
 
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
@@ -432,6 +433,23 @@ class SystemDataSeeder extends Seeder
                 'contact_phone' => '-',
                 'settlement_cycle' => Supplier::CYCLE_MONTHLY,
                 'status' => Supplier::STATUS_ENABLED,
+            ]
+        );
+    }
+
+    /**
+     * 创建默认仓库（核心数据，确保采购/库存流程可用）
+     */
+    protected function ensureDefaultWarehouse(): void
+    {
+        \App\Models\Warehouse::firstOrCreate(
+            ['name' => '默认总仓'],
+            [
+                'type' => 1,
+                'is_cold_chain' => 0,
+                'address' => '-',
+                'sort' => 1,
+                'status' => 1,
             ]
         );
     }
