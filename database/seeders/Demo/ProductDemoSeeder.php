@@ -224,6 +224,9 @@ class ProductDemoSeeder extends Seeder
                     'updated_at' => $now,
                 ]);
             }
+
+            // 同步回写 products.supplier_id（取默认供应商）
+            DB::table('products')->where('id', $product->id)->update(['supplier_id' => $supplier->id]);
         }
     }
 

@@ -57,9 +57,19 @@ class ProductList extends Component
 
     public function openEditModal(int $id): void
     {
-        $product = Product::findOrFail($id);
+        $product = Product::with(['skus.skuSuppliers' => function ($q) {
+            $q->where('is_default', 1)->orderBy('sort');
+        }])->findOrFail($id);
+
         $this->editingId = $id;
-        $this->formSupplierId = $product->supplier_id ?? 0;
+
+        // 优先取 products.supplier_id，为空则从 SKU 一品多供取默认供应商
+        $supplierId = $product->supplier_id;
+        if (! $supplierId) {
+            $defaultSkuSupplier = $product->skus->flatMap->skuSuppliers->first();
+            $supplierId = $defaultSkuSupplier?->supplier_id ?? 0;
+        }
+        $this->formSupplierId = $supplierId ?? 0;
         $this->formCategoryId = $product->category_id;
         $this->formName = $product->name;
         $this->formUnit = $product->unit;
