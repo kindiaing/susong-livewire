@@ -298,7 +298,7 @@ class InventoryList extends Component
 
     public function getExportQuery()
     {
-        return Inventory::with(['warehouse', 'sku.product.baseUnit'])->orderBy('id', 'desc');
+        return Inventory::with(['warehouse', 'sku.product', 'sku.baseUnit'])->orderBy('id', 'desc');
     }
 
     public function getExportFileName(): string
@@ -334,7 +334,7 @@ class InventoryList extends Component
      */
     private function buildFilteredQuery()
     {
-        $query = Inventory::with(['warehouse', 'sku.product.baseUnit'])->orderBy('id', 'desc');
+        $query = Inventory::with(['warehouse', 'sku.product', 'sku.baseUnit'])->orderBy('id', 'desc');
 
         if ($this->search) {
             $query->whereHas('sku', function ($q) {
@@ -403,7 +403,7 @@ class InventoryList extends Component
             ->get();
 
         $skuIds = $aggregated->pluck('sku_id')->unique()->toArray();
-        $skuMap = Sku::with('product.baseUnit')->whereIn('id', $skuIds)->get()->keyBy('id');
+        $skuMap = Sku::with(['product', 'baseUnit'])->whereIn('id', $skuIds)->get()->keyBy('id');
 
         $rows = [];
         foreach ($aggregated as $row) {

@@ -494,7 +494,7 @@ class SkuList extends Component
 
     public function getExportQuery()
     {
-        return Sku::with('product.baseUnit')
+        return Sku::with(['product', 'baseUnit'])
             ->when($this->search, function ($q) {
                 $q->where(function ($q2) {
                     $q2->where('sku_code', 'like', "%{$this->search}%")
@@ -560,7 +560,7 @@ class SkuList extends Component
 
     public function render()
     {
-        $query = Sku::with('product.baseUnit')->orderBy('id', 'desc');
+        $query = Sku::with(['product', 'baseUnit'])->orderBy('id', 'desc');
 
         if ($this->search) {
             $query->where(function ($q) {
