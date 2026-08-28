@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property mixed $service_fee 服务费
  * @property mixed $payable_amount 应付金额
  * @property mixed $paid_amount 已付金额
+ * @property mixed $proxy_payment 代付金额
  * @property mixed $return_amount 采购退货扣减金额
  * @property mixed $status 状态：1待结算2部分付款3已结清4已办结
  * @property mixed $settled_at 结算时间
@@ -44,6 +45,7 @@ class SupplierSettlement extends Model
         'service_fee',
         'payable_amount',
         'paid_amount',
+        'proxy_payment',
         'return_amount',
         'status',
         'settled_at',
@@ -59,6 +61,7 @@ class SupplierSettlement extends Model
             'service_fee' => 'integer',
             'payable_amount' => 'integer',
             'paid_amount' => 'integer',
+            'proxy_payment' => 'integer',
             'return_amount' => 'integer',
             'status' => 'integer',
             'settled_at' => 'datetime',

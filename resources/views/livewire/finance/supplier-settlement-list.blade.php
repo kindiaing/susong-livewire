@@ -51,7 +51,7 @@
     @endphp
 
     <div class="rounded-lg border bg-card">
-        <div class="grid gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider" style="grid-template-columns: {{ $gridCols }}">
+        <div class="grid gap-2 border-b px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider" style="grid-template-columns: {{ $gridCols }}">
             <div><input type="checkbox" wire:model.live="selectAllPage" class="rounded" /></div>
             <div>结算单号</div>
             @foreach($visibleCols as $col)
@@ -61,7 +61,7 @@
         </div>
 
         @forelse($items as $item)
-            <div class="grid gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors"
+            <div class="grid gap-2 border-b last:border-b-0 px-4 py-2 items-center hover:bg-muted/30 transition-colors"
                  style="grid-template-columns: {{ $gridCols }}"
                  wire:key="supplier-settlement-{{ $item->id }}">
                 <div><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></div>
@@ -94,6 +94,9 @@
                         @case('paid_amount')
                             <div class="text-sm text-foreground text-right">{{ money_format($item->paid_amount) }}</div>
                             @break
+                        @case('proxy_payment')
+                            <div class="text-sm text-right {{ $item->proxy_payment > 0 ? 'text-purple-600' : 'text-muted-foreground' }}">{{ $item->proxy_payment > 0 ? money_format($item->proxy_payment) : '-' }}</div>
+                            @break
                         @case('status')
                             <div>{!! status_badge($item->status, 'supplier_settlement') !!}</div>
                             @break
@@ -116,8 +119,72 @@
                 </div>
             </div>
         @empty
-            <div class="px-6 py-12 text-center text-sm text-muted-foreground">暂无结算数据</div>
+            <div class="px-4 py-8 text-center text-sm text-muted-foreground">暂无结算数据</div>
         @endforelse
+
+        {{-- 当页合计行 --}}
+        @if($items->isNotEmpty())
+        <div class="grid gap-2 border-t-2 border-blue-200 bg-blue-50/50 px-4 py-1.5 items-center font-medium" style="grid-template-columns: {{ $gridCols }}">
+            <div></div>
+            <div class="text-xs text-blue-700">当页合计</div>
+            @foreach($visibleCols as $col)
+                @switch($col['key'])
+                    @case('total_amount')
+                        <div class="text-sm text-blue-700 text-right">{{ money_format($pageTotals['total_amount']) }}</div>
+                        @break
+                    @case('return_amount')
+                        <div class="text-sm text-blue-700 text-right">{{ $pageTotals['return_amount'] > 0 ? '-'.money_format($pageTotals['return_amount']) : '-' }}</div>
+                        @break
+                    @case('service_fee')
+                        <div class="text-sm text-blue-700 text-right">{{ $pageTotals['service_fee'] > 0 ? '-'.money_format($pageTotals['service_fee']) : '-' }}</div>
+                        @break
+                    @case('payable_amount')
+                        <div class="text-sm text-blue-700 font-semibold text-right">{{ money_format($pageTotals['payable_amount']) }}</div>
+                        @break
+                    @case('paid_amount')
+                        <div class="text-sm text-blue-700 text-right">{{ money_format($pageTotals['paid_amount']) }}</div>
+                        @break
+                    @case('proxy_payment')
+                        <div class="text-sm text-blue-700 text-right">{{ $pageTotals['proxy_payment'] > 0 ? money_format($pageTotals['proxy_payment']) : '-' }}</div>
+                        @break
+                    @default
+                        <div></div>
+                @endswitch
+            @endforeach
+            <div></div>
+        </div>
+
+        {{-- 全部合计行 --}}
+        <div class="grid gap-2 border-t border-blue-300 bg-blue-100/50 px-4 py-1.5 items-center font-bold" style="grid-template-columns: {{ $gridCols }}">
+            <div></div>
+            <div class="text-xs text-blue-800">全部合计</div>
+            @foreach($visibleCols as $col)
+                @switch($col['key'])
+                    @case('total_amount')
+                        <div class="text-sm text-blue-800 text-right">{{ money_format($grandTotals['total_amount']) }}</div>
+                        @break
+                    @case('return_amount')
+                        <div class="text-sm text-blue-800 text-right">{{ $grandTotals['return_amount'] > 0 ? '-'.money_format($grandTotals['return_amount']) : '-' }}</div>
+                        @break
+                    @case('service_fee')
+                        <div class="text-sm text-blue-800 text-right">{{ $grandTotals['service_fee'] > 0 ? '-'.money_format($grandTotals['service_fee']) : '-' }}</div>
+                        @break
+                    @case('payable_amount')
+                        <div class="text-sm text-blue-800 font-bold text-right">{{ money_format($grandTotals['payable_amount']) }}</div>
+                        @break
+                    @case('paid_amount')
+                        <div class="text-sm text-blue-800 text-right">{{ money_format($grandTotals['paid_amount']) }}</div>
+                        @break
+                    @case('proxy_payment')
+                        <div class="text-sm text-blue-800 text-right">{{ $grandTotals['proxy_payment'] > 0 ? money_format($grandTotals['proxy_payment']) : '-' }}</div>
+                        @break
+                    @default
+                        <div></div>
+                @endswitch
+            @endforeach
+            <div></div>
+        </div>
+        @endif
     </div>
 
     <div class="mt-4">{{ $items->links() }}</div>
@@ -206,4 +273,7 @@
     </div>
     @endif
 
+    @include('partials.column-modal')
+    @include('partials.export-modal')
+    @include('partials.import-modal')
 </div>

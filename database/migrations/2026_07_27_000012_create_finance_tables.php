@@ -57,6 +57,7 @@ return new class extends Migration
             $table->bigInteger('payable_amount')->default(0)->comment('应付金额');
             $table->bigInteger('return_amount')->default(0)->comment('采购退货扣减金额');
             $table->bigInteger('paid_amount')->default(0)->comment('已付金额（多次付款累计）');
+            $table->bigInteger('proxy_payment')->default(0)->comment('代付金额（厘）');
             $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待结算，2部分付款，3已结清，4已办结');
             $table->timestamp('settled_at')->nullable()->comment('结算时间');
             $table->timestamp('closed_at')->nullable()->comment('办结时间');

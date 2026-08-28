@@ -58,18 +58,24 @@ class SupplierSettlementList extends Component
     public function getAllColumns(): array
     {
         return [
-            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true],
-            ['key' => 'supplier', 'label' => '供应商', 'sortable' => false, 'exportable' => true],
-            ['key' => 'settlement_no', 'label' => '结算单号', 'sortable' => true, 'exportable' => true],
-            ['key' => 'date_range', 'label' => '结算周期', 'sortable' => false, 'exportable' => true],
-            ['key' => 'total_amount', 'label' => '汇总金额', 'sortable' => true, 'exportable' => true],
-            ['key' => 'return_amount', 'label' => '退货扣减', 'sortable' => true, 'exportable' => true],
-            ['key' => 'service_fee', 'label' => '服务费', 'sortable' => true, 'exportable' => true],
-            ['key' => 'payable_amount', 'label' => '应付金额', 'sortable' => true, 'exportable' => true],
-            ['key' => 'paid_amount', 'label' => '已付金额', 'sortable' => true, 'exportable' => true],
-            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true],
-            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true],
+            ['key' => 'id', 'label' => 'ID', 'sortable' => true, 'exportable' => true, 'width' => '50px'],
+            ['key' => 'supplier', 'label' => '供应商', 'sortable' => false, 'exportable' => true, 'width' => '100px'],
+            ['key' => 'settlement_no', 'label' => '结算单号', 'sortable' => true, 'exportable' => true, 'width' => '140px'],
+            ['key' => 'date_range', 'label' => '结算周期', 'sortable' => false, 'exportable' => true, 'width' => '160px'],
+            ['key' => 'total_amount', 'label' => '汇总金额', 'sortable' => true, 'exportable' => true, 'width' => '100px'],
+            ['key' => 'return_amount', 'label' => '退货扣减', 'sortable' => true, 'exportable' => true, 'width' => '90px'],
+            ['key' => 'service_fee', 'label' => '服务费', 'sortable' => true, 'exportable' => true, 'width' => '80px'],
+            ['key' => 'payable_amount', 'label' => '应付金额', 'sortable' => true, 'exportable' => true, 'width' => '100px'],
+            ['key' => 'paid_amount', 'label' => '已付金额', 'sortable' => true, 'exportable' => true, 'width' => '100px'],
+            ['key' => 'proxy_payment', 'label' => '代付', 'sortable' => true, 'exportable' => true, 'width' => '80px'],
+            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true, 'width' => '70px'],
+            ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true, 'width' => '120px'],
         ];
+    }
+
+    public function getDefaultColumns(): array
+    {
+        return ['supplier', 'date_range', 'total_amount', 'return_amount', 'service_fee', 'payable_amount', 'paid_amount', 'proxy_payment', 'status'];
     }
 
     public function getExportQuery()
@@ -174,15 +180,16 @@ class SupplierSettlementList extends Component
             return;
         }
 
-        $remaining = $item->payable_amount - $item->paid_amount;
+        $remaining = $item->payable_amount - $item->paid_amount - $item->proxy_payment;
         if ($cents > $remaining) {
-            $this->toastError('付款金额超出剩余应付 '.money_format($remaining));
+            $this->toastError('付款金额超出剩余应付 '.money_format($remaining).'（已扣除代付 '.money_format($item->proxy_payment).'）');
 
             return;
         }
 
         $newPaidAmount = $item->paid_amount + $cents;
-        $newStatus = $newPaidAmount >= $item->payable_amount
+        $totalPaid = $newPaidAmount + $item->proxy_payment;
+        $newStatus = $totalPaid >= $item->payable_amount
             ? SupplierSettlement::STATUS_SETTLED
             : SupplierSettlement::STATUS_PARTIAL;
 
@@ -270,7 +277,34 @@ class SupplierSettlementList extends Component
         $suppliers = Supplier::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
-        return view('livewire.finance.supplier-settlement-list', compact('items', 'suppliers', 'allColumns', 'selectedCount'))
+
+        // 当页汇总
+        $pageTotals = [
+            'total_amount'    => $items->sum('total_amount'),
+            'return_amount'   => $items->sum('return_amount'),
+            'service_fee'     => $items->sum('service_fee'),
+            'payable_amount'  => $items->sum('payable_amount'),
+            'paid_amount'     => $items->sum('paid_amount'),
+            'proxy_payment'   => $items->sum('proxy_payment'),
+        ];
+
+        // 全部汇总（与列表同一查询条件，不分页）
+        $baseQuery = SupplierSettlement::query()->when($this->search, function ($q) {
+            $q->where(function ($q2) {
+                $q2->where('settlement_no', 'like', "%{$this->search}%")
+                    ->orWhereHas('supplier', fn ($sq) => $sq->where('name', 'like', "%{$this->search}%"));
+            });
+        });
+        $grandTotals = [
+            'total_amount'    => (clone $baseQuery)->sum('total_amount'),
+            'return_amount'   => (clone $baseQuery)->sum('return_amount'),
+            'service_fee'     => (clone $baseQuery)->sum('service_fee'),
+            'payable_amount'  => (clone $baseQuery)->sum('payable_amount'),
+            'paid_amount'     => (clone $baseQuery)->sum('paid_amount'),
+            'proxy_payment'   => (clone $baseQuery)->sum('proxy_payment'),
+        ];
+
+        return view('livewire.finance.supplier-settlement-list', compact('items', 'suppliers', 'allColumns', 'selectedCount', 'pageTotals', 'grandTotals'))
             ->layout('components.app-layout')
             ->title('供应商结算');
     }

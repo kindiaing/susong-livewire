@@ -60,6 +60,7 @@ return [
             ['key' => 'inventory.stock',     'label' => '实时库存', 'route' => 'inventories',   'permission' => 'inventory.inventory.view',    'description' => '各仓库SKU存量'],
             ['key' => 'inventory.log',       'label' => '库存日志', 'route' => 'inventory-logs', 'permission' => 'inventory.inventory-log.view', 'description' => '出入库变动记录'],
             ['key' => 'inventory.picking',  'label' => '拣货任务', 'route' => 'picking-tasks', 'permission' => 'inventory.picking-task.view', 'description' => '拣货分配与执行'],
+            ['key' => 'inventory.loss',     'label' => '损耗管理', 'route' => 'loss-orders',   'permission' => 'loss.loss-order.view',         'description' => '损耗记录与审核'],
         ],
     ],
     [
@@ -89,7 +90,7 @@ return [
             ['key' => 'finance.correction',    'label' => '授权更正',   'route' => 'correction-authorizations','permission' => 'finance.recharge.view',            'description' => '账目更正审批'],
             ['key' => 'finance.price-strategy','label' => '促销活动',   'route' => 'promotion-activities',   'permission' => 'price.promotion.view',             'description' => '促销活动与优惠规则'],
             ['key' => 'finance.promotion-settings','label' => '促销设置',   'route' => 'promotion-settings',   'permission' => 'price.promotion.view',             'description' => '促销/商家价格/会员折扣配置'],
-            ['key' => 'finance.loss',          'label' => '损耗管理',   'route' => 'loss-orders',             'permission' => 'loss.loss-order.view',             'description' => '损耗记录与审核'],
+            ['key' => 'finance.price-log', 'label' => '改价记录',   'route' => 'price-change-logs','permission' => 'price.price-change-log.view','description' => '价格变更历史'],
         ],
     ],
     [
@@ -118,19 +119,22 @@ return [
         'label' => '系统管理',
         'icon'  => 'adjustments-horizontal',
         'children' => [
+            // ── 配置类 ──
             ['key' => 'system.config',   'label' => '系统配置', 'route' => 'settings',       'permission' => 'system.system-config.view', 'description' => '基础/订单/配送/库存等系统配置'],
             ['key' => 'system.finance-settings', 'label' => '财务配置', 'route' => 'finance-settings', 'permission' => 'system.system-config.view', 'description' => '取价配置/财务风控/金额精度/费用均摊'],
-            ['key' => 'system.banner',   'label' => '轮播广告', 'route' => 'banners',        'permission' => 'system.banner.view',        'description' => '首页轮播图管理'],
-            ['key' => 'system.operation','label' => '操作日志', 'route' => 'operation-logs',  'permission' => 'system.audit-log.view',     'description' => '按操作人/时间/模块筛选'],
             ['key' => 'system.audit-settings', 'label' => '审计设置', 'route' => 'audit-settings', 'permission' => 'system.system-config.view', 'description' => '审计开关/日志保留策略'],
-            ['key' => 'system.audit',    'label' => '审计日志', 'route' => 'audit-logs',      'permission' => 'system.audit-log.view',     'description' => '敏感操作审计记录'],
+            ['key' => 'system.unit',      'label' => '单位管理', 'route' => 'units',           'permission' => 'system.system-config.view', 'description' => '单位主数据与换算配置'],
+            // ── 审核类 ──
             ['key' => 'system.approval', 'label' => '审核管理', 'route' => 'approval-config', 'permission' => 'system.system-config.view',  'description' => '19个审核节点开关与列表'],
             ['key' => 'system.approval-list', 'label' => '审核列表', 'route' => 'approvals',   'permission' => 'system.system-config.view',  'description' => '待审核与已审核记录'],
-            ['key' => 'system.notification', 'label' => '通知管理', 'route' => 'system-notifications', 'permission' => 'system.notification.view', 'description' => '发送系统通知与广播'],
-            ['key' => 'system.price-log','label' => '改价记录', 'route' => 'price-change-logs','permission' => 'price.price-change-log.view','description' => '价格变更历史'],
+            // ── 日志类 ──
+            ['key' => 'system.operation','label' => '操作日志', 'route' => 'operation-logs',  'permission' => 'system.audit-log.view',     'description' => '按操作人/时间/模块筛选'],
+            ['key' => 'system.audit',    'label' => '审计日志', 'route' => 'audit-logs',      'permission' => 'system.audit-log.view',     'description' => '敏感操作审计记录'],
             ['key' => 'system.login-log','label' => '登录日志', 'route' => 'login-logs',      'permission' => 'system.login-log.view',     'description' => '用户登录记录'],
+            // ── 其他 ──
+            ['key' => 'system.banner',   'label' => '轮播广告', 'route' => 'banners',        'permission' => 'system.banner.view',        'description' => '首页轮播图管理'],
+            ['key' => 'system.notification', 'label' => '通知管理', 'route' => 'system-notifications', 'permission' => 'system.notification.view', 'description' => '发送系统通知与广播'],
             ['key' => 'system.wechat',   'label' => '微信用户', 'route' => 'wechat-users',    'permission' => 'system.wechat-user.view',   'description' => '小程序用户绑定'],
-            ['key' => 'system.unit',      'label' => '单位管理', 'route' => 'units',           'permission' => 'system.system-config.view', 'description' => '单位主数据与换算配置'],
         ],
     ],
 ];
