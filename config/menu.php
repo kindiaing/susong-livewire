@@ -126,6 +126,7 @@ return [
             ['key' => 'system.audit',    'label' => '审计日志', 'route' => 'audit-logs',      'permission' => 'system.audit-log.view',     'description' => '敏感操作审计记录'],
             ['key' => 'system.approval', 'label' => '审核管理', 'route' => 'approval-config', 'permission' => 'system.system-config.view',  'description' => '19个审核节点开关与列表'],
             ['key' => 'system.approval-list', 'label' => '审核列表', 'route' => 'approvals',   'permission' => 'system.system-config.view',  'description' => '待审核与已审核记录'],
+            ['key' => 'system.notification', 'label' => '通知管理', 'route' => 'system-notifications', 'permission' => 'system.notification.view', 'description' => '发送系统通知与广播'],
             ['key' => 'system.price-log','label' => '改价记录', 'route' => 'price-change-logs','permission' => 'price.price-change-log.view','description' => '价格变更历史'],
             ['key' => 'system.login-log','label' => '登录日志', 'route' => 'login-logs',      'permission' => 'system.login-log.view',     'description' => '用户登录记录'],
             ['key' => 'system.wechat',   'label' => '微信用户', 'route' => 'wechat-users',    'permission' => 'system.wechat-user.view',   'description' => '小程序用户绑定'],

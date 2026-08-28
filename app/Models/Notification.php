@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 
 /**
  * 通知/消息模型
@@ -214,5 +215,72 @@ class Notification extends Model
     public function scopeLatestFirst($query)
     {
         return $query->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * 发送全站广播通知
+     *
+     * 创建一条 user_id=null 的通知（全站可见），
+     * 并通过 Echo 推送到所有在线用户的私有频道。
+     *
+     * @param string $title   标题
+     * @param string $content  正文
+     * @param int    $type    类型（默认 TYPE_SYSTEM）
+     * @param array  $data    扩展数据
+     */
+    public static function broadcastToAll(string $title, string $content, int $type = self::TYPE_SYSTEM, array $data = []): self
+    {
+        $notification = self::create([
+            'user_id'   => null,
+            'type'      => $type,
+            'title'     => $title,
+            'content'   => $content,
+            'data'      => $data,
+            'is_read'   => 0,
+            'hidden'    => 0,
+        ]);
+
+        // 通过 Echo 推送到所有在线用户
+        try {
+            broadcast(new \App\Events\NotificationCreated($notification));
+        } catch (\Throwable $e) {
+            Log::warning('通知广播失败（全站）: ' . $e->getMessage());
+        }
+
+        return $notification;
+    }
+
+    /**
+     * 发送给指定用户的通知
+     *
+     * 创建一条 user_id=$userId 的通知，
+     * 并通过 Echo 推送到该用户的私有频道。
+     *
+     * @param int    $userId  目标用户 ID
+     * @param string $title   标题
+     * @param string $content  正文
+     * @param int    $type    类型（默认 TYPE_SYSTEM）
+     * @param array  $data    扩展数据
+     */
+    public static function sendToUser(int $userId, string $title, string $content, int $type = self::TYPE_SYSTEM, array $data = []): self
+    {
+        $notification = self::create([
+            'user_id'   => $userId,
+            'type'      => $type,
+            'title'     => $title,
+            'content'   => $content,
+            'data'      => $data,
+            'is_read'   => 0,
+            'hidden'    => 0,
+        ]);
+
+        // 通过 Echo 推送到指定用户
+        try {
+            broadcast(new \App\Events\NotificationCreated($notification));
+        } catch (\Throwable $e) {
+            Log::warning("通知广播失败（用户 #{$userId}）: " . $e->getMessage());
+        }
+
+        return $notification;
     }
 }

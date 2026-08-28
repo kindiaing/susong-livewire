@@ -147,6 +147,7 @@ class SystemDataSeeder extends Seeder
                 'system.audit-log' => ['display_name' => '审计日志', 'buttons' => []],
                 'system.login-log' => ['display_name' => '登录日志', 'buttons' => []],
                 'system.banner' => ['display_name' => '轮播管理', 'buttons' => ['system.banner.create', 'system.banner.edit', 'system.banner.delete']],
+                'system.notification' => ['display_name' => '通知管理', 'buttons' => ['system.notification.create']],
                 'system.wechat-user' => ['display_name' => '微信用户', 'buttons' => []],
             ],
         ],
@@ -204,6 +205,7 @@ class SystemDataSeeder extends Seeder
         // 系统管理
         'system.system-config.edit' => '编辑配置',
         'system.banner.create' => '创建轮播', 'system.banner.edit' => '编辑轮播', 'system.banner.delete' => '删除轮播',
+        'system.notification.create' => '发送通知',
     ];
 
     public function run(): void
@@ -335,6 +337,7 @@ class SystemDataSeeder extends Seeder
                 'price.promotion', 'price.promotion.view', 'price.promotion.create', 'price.promotion.edit',
                 'price.price-change-log', 'price.price-change-log.view',
                 'system.banner', 'system.banner.view', 'system.banner.create', 'system.banner.edit',
+                'system.notification', 'system.notification.view', 'system.notification.create',
             ],
             // 运营经理：全部业务权限，排除作废(.cancel)和删除(.delete)——此两类仅管理员/超级管理员可用
             'operator_manager' => Permission::all()

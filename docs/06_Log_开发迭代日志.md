@@ -1,1604 +1,1626 @@
----
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: '0f25e37b-3aa6-436c-9854-df50fb8560f9'
-  PropagateID: '0f25e37b-3aa6-436c-9854-df50fb8560f9'
-  ReservedCode1: 'b7c8d861-3212-4b26-87b5-16ef4258dd5e'
-  ReservedCode2: 'b7c8d861-3212-4b26-87b5-16ef4258dd5e'
----
 
-# 开发迭代日志
+# 寮€鍙戣凯浠ｆ棩蹇?
 
-对应 PRD 版本：V1.2
-对应 FSD 版本：V1.2
-技术栈：Laravel 13 + Livewire 4.x + Tailwind CSS 4.2+ + Alpine.js + PHP 8.4+ + MySQL 8.0 + Redis 7.x
+瀵瑰簲 PRD 鐗堟湰锛歏1.2
+瀵瑰簲 FSD 鐗堟湰锛歏1.2
+鎶€鏈爤锛歀aravel 13 + Livewire 4.x + Tailwind CSS 4.2+ + Alpine.js + PHP 8.4+ + MySQL 8.0 + Redis 7.x
 
-记录规则：每次迭代新增一节，按版本号倒序排列。每条变更需标注开发人、完成时间和关联模块。
+璁板綍瑙勫垯锛氭瘡娆¤凯浠ｆ柊澧炰竴鑺傦紝鎸夌増鏈彿鍊掑簭鎺掑垪銆傛瘡鏉″彉鏇撮渶鏍囨敞寮€鍙戜汉銆佸畬鎴愭椂闂村拰鍏宠仈妯″潡銆?
 
 ---
 
-## V1.9.1 | 迭代周期：2026-08-03
+## V2.0.14 | 杩唬鍛ㄦ湡锛?026-08-28
 
-负责人：项目负责人
-参与开发人员：后端开发
+璐熻矗浜猴細椤圭洰璐熻矗浜?
+鍙備笌寮€鍙戜汉鍛橈細鍚庣寮€鍙?
 
-### 1 本次新增功能清单
+### 1 鏈鏂板鍔熻兘娓呭崟
 
-| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| 搴忓彿 | 鍔熻兘妯″潡 | 鍔熻兘鐐?| 寮€鍙戜汉 | 瀹屾垚鏃堕棿 | 鐘舵€?|
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | 断链修复 | PurchaseReturnService：退货单完整生命周期（创建→审核→出库→完成/取消） | 后端 | 2026-08-03 | ✅ |
-| 2 | 断链修复 | 退货出库联动 InventoryService::stockOut() 扣减库存 | 后端 | 2026-08-03 | ✅ |
-| 3 | 断链修复 | LossOrderService：损耗单完整生命周期（创建→审核→执行→关闭/取消） | 后端 | 2026-08-03 | ✅ |
-| 4 | 断链修复 | 损耗单执行时调用 InventoryService::stockOut() 扣减库存 | 后端 | 2026-08-03 | ✅ |
-| 5 | 断链修复 | 入库差异自动创建损耗单：stockIn() 计算 discrepancy_quantity，系统配置开关控制 | 后端 | 2026-08-03 | ✅ |
-| 6 | 断链修复 | 已入库采购单禁止直接取消，提示走退货流程 | 后端 | 2026-08-03 | ✅ |
-| 7 | 断链修复 | 采购单完成前校验：存在未处理差异时阻止完成 | 后端 | 2026-08-03 | ✅ |
-| 8 | 断链修复 | 采购单退货状态追踪（return_status：0无退货/1部分退货/2全部退货） | 后端 | 2026-08-03 | ✅ |
+| 1 | 閫氱煡绠＄悊 | Notification 妯″瀷鏂板 broadcastToAll() / sendToUser() 闈欐€佹柟娉曪紝澶嶇敤 NotificationCreated 浜嬩欢瀹炴椂鎺ㄩ€?| 鍚庣 | 2026-08-28 | 鉁?|
+| 2 | 閫氱煡绠＄悊 | NotificationList Livewire 缁勪欢锛氬垪琛ㄥ睍绀?鎼滅储绛涢€?鍙戦€侀€氱煡寮圭獥+鍒犻櫎鍔熻兘 | 鍚庣 | 2026-08-28 | 鉁?|
+| 3 | 閫氱煡绠＄悊 | 鑿滃崟/璺敱/鏉冮檺瀹屾暣鎺ュ叆锛歴ystem 鍒嗙粍鏂板鑿滃崟椤广€佽矾鐢辨敞鍐屻€佹潈闄愭爲瀹氫箟銆佽矾鐢辨潈闄愭槧灏?| 鍚庣 | 2026-08-28 | 鉁?|
 
-### 2 数据库变更
+### 2 鏂板鏂囦欢
 
-| 变更 | 表名 | 字段 | 说明 |
-| :--- | :--- | :--- | :--- |
-| 新增字段 | purchase_orders | return_status | 退货状态：0无退货，1部分退货，2全部退货 |
-| 新增字段 | purchase_order_items | discrepancy_quantity | 入库差异数量（采购数量-实际入库数量） |
-| 新增字段 | purchase_order_items | loss_order_id | 关联损耗单ID |
-| 新增字段 | loss_orders | source_type | 来源类型：purchase_order=采购入库差异 |
-| 新增字段 | loss_orders | source_id | 来源业务ID |
-| 新增字段 | loss_order_items | purchase_order_item_id | 采购单明细ID |
-| 新增字段 | loss_order_items | purchase_order_id | 采购单ID |
-| 新增配置 | system_configs | stockin_auto_create_loss | 入库差异自动创建损耗单开关（默认开启） |
-
-### 3 新增文件
-
-| 文件 | 说明 |
+| 鏂囦欢 | 璇存槑 |
 | :--- | :--- |
-| app/Services/PurchaseReturnService.php | 采购退货服务 |
-| app/Services/LossOrderService.php | 损耗单服务 |
-| database/migrations/2026_08_03_004635_add_return_status_to_purchase_orders_and_enhance_loss_tables.php | 断链修复迁移 |
+| app/Livewire/System/NotificationList.php | 閫氱煡绠＄悊鍒楄〃缁勪欢 |
+| resources/views/livewire/system/notification-list.blade.php | 閫氱煡绠＄悊鍒楄〃椤?寮圭獥瑙嗗浘 |
 
-### 4 核心业务规则
+### 3 淇敼鏂囦欢
 
-- **退货出库**：PurchaseReturnService::ship() 调用 InventoryService::stockOut()，source_type='purchase_return'
-- **入库差异→损耗单**：PurchaseService::stockIn() 计算每行 discrepancy_quantity，当 > 0 且 stockin_auto_create_loss=true 时自动创建损耗单
-- **损耗执行扣库存**：LossOrderService::execute() 调用 InventoryService::stockOut()，source_type='loss_order'
-- **已入库禁止取消**：PurchaseOrder::canTransitionTo() 中 STATUS_STOCKED 只能转到 STATUS_COMPLETED
-- **完成前置校验**：PurchaseService::complete() 检查是否有未处理的差异行（discrepancy_quantity > 0 且 loss_order_id 为空）
-
-### 5 待处理
-
-- **断链3（价格策略联动）**：等断链1-2完成后用户再沟通
-- **P2 问题**：menu.php 补 restock-reminders + temperatures 菜单项，Invoice Model 补关系定义
-
----
-
-## V1.9.0 | 迭代周期：2026-08-01
-
-负责人：项目负责人
-参与开发人员：后端开发
-
-### 1 本次新增功能清单
-
-| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | 权限体系 | 权限名改为三级格式：模块.页面.动作（如 org.supplier.create） | 后端 | 2026-08-01 | ✅ |
-| 2 | 权限体系 | 每个页面级权限自动生成 .view 页面访问权限（如 org.supplier.view） | 后端 | 2026-08-01 | ✅ |
-| 3 | 权限体系 | SystemDataSeeder 完整重写：12模块 + 38页面 + 128按钮 = 178条权限 | 后端 | 2026-08-01 | ✅ |
-| 4 | 权限体系 | AppServiceProvider 注册 Gate::before，super_admin 角色自动通过所有 @can 检查 | 后端 | 2026-08-01 | ✅ |
-| 5 | 菜单系统 | 新增 config/menu.php 菜单配置文件（8模块 + 全部子菜单项） | 后端 | 2026-08-01 | ✅ |
-| 6 | 菜单系统 | 顶部导航改为动态渲染：从 config('menu') 读取 + @can 过滤不可见菜单 | 后端 | 2026-08-01 | ✅ |
-| 7 | 按钮权限 | 全部列表页 Blade 添加 @can 权限控制（约 40 个文件） | 后端 | 2026-08-01 | ✅ |
-| 8 | 路由保护 | CheckPermission 中间件 ROUTE_PERMISSION_MAP 改为三级格式 .view | 后端 | 2026-08-01 | ✅ |
-| 9 | 路由保护 | dashboard 路由设为仅需登录（null），不再要求权限 | 后端 | 2026-08-01 | ✅ |
-| 10 | 安装命令 | AdminInstallCommand 在 migrate:fresh 后清 Spatie 权限缓存，避免 Seeder 冲突 | 后端 | 2026-08-01 | ✅ |
-
-### 2 本次优化/重构
-
-| 序号 | 优化项 | 说明 | 完成时间 |
-| :--- | :--- | :--- | :--- |
-| 1 | SUPER_ADMIN_ONLY 列表清空 | 不再硬编码超管专属路由，由权限表统一控制 | 2026-08-01 |
-
-### 3 Bug 修复
-
-| 序号 | Bug 描述 | 修复方案 | 完成时间 |
-| :--- | :--- | :--- | :--- |
-| 1 | admin:fresh --seed 报 PermissionAlreadyExists | migrate:fresh 后 Spatie 缓存残留，添加 forgetCachedPermissions() | 2026-08-01 |
-| 2 | 运营专员登录 403 | dashboard 权限映射改为 null（仅需登录），移除 SUPER_ADMIN_ONLY 硬编码 | 2026-08-01 |
-
-### 4 待修复 Bug 清单
-
-| # | 严重度 | 描述 | 影响范围 | 预计改动 |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | 低 | ~~新建角色/用户时 dashboard 权限未默认勾选~~ | 所有非超管角色 | ✅ 已修复：SystemDataSeeder 给所有角色分配 dashboard + 新建角色默认带 dashboard |
-
-### 5 验证结果
-
-- admin:fresh --seed --force 全流程通过（migrate + SystemDataSeeder + DemoDataSeeder）
-- 超管登录：所有菜单可见，所有按钮可见
-- 运营专员（operator 角色 + org/product 权限）：仅可见商品管理和组织主体菜单，无权限路由 403 拦截
-
----
-
-## V1.8.0 | 迭代周期：2026-07-31
-
-负责人：项目负责人
-参与开发人员：后端开发
-
-### 1 本次新增功能清单
-
-| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | 权限中间件 | CheckPermission 路由级中间件：路由名→权限名自动映射，super_admin 自动放行 | 后端 | 2026-07-31 | ✅ |
-| 2 | 权限中间件 | 403 自定义错误页面 + Livewire JSON 响应处理 | 后端 | 2026-07-31 | ✅ |
-| 3 | 权限中间件 | 超管专属路由保护：roles/permissions/approval-config/settings 仅 super_admin | 后端 | 2026-07-31 | ✅ |
-| 4 | 权限中间件 | 全部业务路由应用 auth + permission 中间件 | 后端 | 2026-07-31 | ✅ |
-| 5 | 权限中间件 | 9 个测试角色分配基础页面权限 | 后端 | 2026-07-31 | ✅ |
-| 6 | 库存服务 | InventoryService 统一库存服务：stockIn / stockOut / adjust，DB::transaction + lockForUpdate | 后端 | 2026-07-31 | ✅ |
-| 7 | 采购服务 | PurchaseService 采购单全生命周期：createFromItems / submit / ship / stockIn / complete / cancel | 后端 | 2026-07-31 | ✅ |
-| 8 | 采购服务 | 入库操作联动 InventoryService.stockIn()，差异行记录 discrepancy_reason | 后端 | 2026-07-31 | ✅ |
-| 9 | 采购单详情页 | PurchaseOrderDetail 组件：基本信息卡片 + 明细列表 + 状态流转按钮 | 后端 | 2026-07-31 | ✅ |
-| 10 | 采购单详情页 | 添加/删除明细弹窗 | 后端 | 2026-07-31 | ✅ |
-| 11 | 采购单详情页 | 入库操作弹窗：选择仓库 + 批次号 + 逐行填写实际数量/金额/差异原因 | 后端 | 2026-07-31 | ✅ |
-| 12 | 采购单详情页 | 状态确认弹窗（提交/发货/完成/取消） | 后端 | 2026-07-31 | ✅ |
-| 13 | 采购单列表 | 单号可点击跳转详情页，金额使用 money_format | 后端 | 2026-07-31 | ✅ |
-| 14 | 待采清单 | 新增"批量生成采购单"按钮 + 确认弹窗，调用 PurchaseService::createFromItems() | 后端 | 2026-07-31 | ✅ |
-| 15 | 数据库 | purchase_orders 新增字段：warehouse_id / operator_id / ordered_at / shipped_at / stocked_at | 后端 | 2026-07-31 | ✅ |
-| 16 | 导入导出 | WithExcelExport 命名参数 bug 修复：query: → queryOrData:，与 GenericExport 构造函数对齐 | 后端 | 2026-07-31 | ✅ |
-| 17 | 导入导出 | downloadImportTemplate 改用 getImportColumnMap() 标签生成模板，不再用 getExportableColumns() | 后端 | 2026-07-31 | ✅ |
-| 18 | 导入导出 | GenericExport 金额 ÷100 bug 修复：废弃正则猜测，改用列定义 type=money 显式声明，÷1000 | 后端 | 2026-07-31 | ✅ |
-| 19 | 导入导出 | 3 个幽灵/错名字段修复：KeywordList word→keyword，SkuList price→purchase_price+wholesale_price，SkuBarcodeList barcode→barcode_code | 后端 | 2026-07-31 | ✅ |
-| 20 | 导入导出 | 金额列补 type=money 标记：SkuList / SkuSupplierList / PurchaseOrderList | 后端 | 2026-07-31 | ✅ |
-| 21 | 列配置 | WithColumnVisibility 补 openColumnModal() 方法 | 后端 | 2026-07-31 | ✅ |
-| 22 | 列配置 | Blade 模板列渲染从硬编码改为 getAllColumns() 动态获取 | 后端 | 2026-07-31 | ✅ |
-| 23 | 列配置 | 列配置弹窗放大 max-w-lg + 右上角 X 关闭按钮；导出弹窗放大 max-w-lg | 后端 | 2026-07-31 | ✅ |
-| 24 | 用户偏好 | 新增 user_preferences 表 + UserPreference Model，列配置从 session 迁移到 DB 持久化（用户隔离） | 后端 | 2026-07-31 | ✅ |
-| 25 | 组织主体 | drivers 表新增 remark 字段 + Driver Model fillable 补充 | 后端 | 2026-07-31 | ✅ |
-| 26 | 组织主体 | OrganizationDemoSeeder 补全测试数据（suppliers 补 bank/settlement_cycle/remark；merchants 补 delivery_route_id/credit_limit/remark；drivers 补 id_card/remark） | 后端 | 2026-07-31 | ✅ |
-| 27 | 导入导出 | SupplierList 补充 bank_name/bank_account 到列定义、默认列、导出回调 | 后端 | 2026-07-31 | ✅ |
-
-### 2 本次优化/重构
-
-| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | PurchaseOrder Model | 新增关联：warehouse() / operator()，新增方法：generateOrderNo() / canTransitionTo() / recalculateAmounts() | 后端 | 2026-07-31 |
-| 2 | PurchaseOrderList | 创建时自动填入 operator_id / ordered_at，使用 Model 的 generateOrderNo() | 后端 | 2026-07-31 |
-| 3 | WithColumnVisibility | 列配置存储从 session 迁移到 DB（user_preferences 表），未登录用户降级 session | 后端 | 2026-07-31 |
-| 4 | GenericExport | 金额转换废弃正则猜测，改用列定义 type=money 显式声明 | 后端 | 2026-07-31 |
-
-### 3 本次修复 Bug
-
-无。
-
-### 4 数据库变更
-
-| Migration 文件名 | 操作类型 | 涉及表 | 说明 |
-| :--- | :--- | :--- | :--- |
-| 2026_07_31_000001_add_fields_to_purchase_orders | ALTER | purchase_orders | 新增 warehouse_id / operator_id / ordered_at / shipped_at / stocked_at 字段 + 外键 |
-| 2026_07_31_085412_create_user_preferences_table | CREATE | user_preferences | 用户偏好表（user_id + pref_key 唯一索引，pref_value JSON） |
-
-### 5 影响范围
-
-| 影响文件 | 变更类型 |
+| 鏂囦欢 | 璇存槑 |
 | :--- | :--- |
-| app/Http/Middleware/CheckPermission.php | 新增（路由权限中间件） |
-| app/Services/InventoryService.php | 新增（统一库存服务） |
-| app/Services/PurchaseService.php | 新增（采购单服务） |
-| app/Livewire/Purchase/PurchaseOrderDetail.php | 新增（采购单详情页组件） |
-| resources/views/livewire/purchase/purchase-order-detail.blade.php | 新增（详情页视图） |
-| resources/views/errors/403.blade.php | 新增（403 页面） |
-| database/migrations/2026_07_31_000001_add_fields_to_purchase_orders.php | 新增（Migration） |
-| database/migrations/2026_07_31_085412_create_user_preferences_table.php | 新增（用户偏好表 Migration） |
-| app/Models/UserPreference.php | 新增（用户偏好 Model） |
-| bootstrap/app.php | 修改（中间件注册 + AuthorizationException 渲染） |
-| routes/web.php | 修改（新增 detail 路由 + auth+permission 中间件） |
-| app/Models/PurchaseOrder.php | 修改（新增字段/关联/方法） |
-| app/Models/Driver.php | 修改（fillable 补 remark） |
-| app/Livewire/Purchase/PurchaseOrderList.php | 修改（Auth::id / generateOrderNo） |
-| app/Livewire/Org/SupplierList.php | 修改（列定义补充 bank_name/bank_account） |
-| app/Livewire/Product/KeywordList.php | 修改（word → keyword） |
-| app/Livewire/Product/SkuList.php | 修改（price → purchase_price+wholesale_price，type=money） |
-| app/Livewire/Product/SkuSupplierList.php | 修改（purchase_price 加 type=money） |
-| app/Livewire/Product/SkuBarcodeList.php | 修改（barcode → barcode_code） |
-| app/Livewire/Traits/WithColumnVisibility.php | 修改（session → DB 持久化 + openColumnModal） |
-| app/Livewire/Traits/WithExcelExport.php | 修改（queryOrData 命名参数 + moneyColumns + 模板修复） |
-| app/Exports/GenericExport.php | 修改（type=money 显式声明，金额 ÷1000） |
-| resources/views/livewire/purchase/purchase-order-list.blade.php | 修改（详情链接 / money_format） |
-| resources/views/livewire/purchase/purchase-item-list.blade.php | 修改（批量生成按钮/弹窗） |
-| resources/views/partials/column-modal.blade.php | 修改（max-w-lg + X 关闭按钮） |
-| resources/views/partials/export-modal.blade.php | 修改（max-w-lg） |
-| database/seeders/Demo/OrganizationDemoSeeder.php | 修改（补全 suppliers/merchants/drivers 测试数据） |
-
-### 6 关键技术记录
-
-**采购单状态流转设计：**
-- 状态机：1待接单→2备货中→3已发货→4已入库→5完成，9取消
-- canTransitionTo() 方法控制合法流转路径，不允许跨状态跳转
-- 取消操作仅限待接单/备货中/已发货状态
-
-**入库操作核心流程：**
-- 采购单详情页 → 入库弹窗 → 选择仓库+批次号 → 逐行填写实际数量/金额 → 提交
-- PurchaseService.stockIn() 在 DB::transaction 内：更新明细实际值 → InventoryService.stockIn() × N → 重算金额
-- 差异行自动高亮（橙色），差异原因可选填写
-
-**库存服务设计原则：**
-- 所有库存变动必须通过 InventoryService 执行，禁止直接操作 Inventory 模型
-- 入库：查找或创建（warehouse_id + sku_id + batch_no 唯一），increment + 写日志
-- 出库：FIFO 效期优先，库存不足抛异常
-- 调整：差额调整，正数=报溢，负数=调整
-
-**导入导出架构修复：**
-- 金额列统一用 `'type' => 'money'` 显式声明，GenericExport 通过 `$moneyColumns` 参数收集，统一 ÷1000
-- 导入模板表头统一从 `getImportColumnMap()` 标签生成，与导入映射保持一致
-- WithExcelExport 命名参数修正为 `queryOrData:`，与 GenericExport 构造函数对齐
-
-**用户偏好持久化：**
-- user_preferences 表（user_id + pref_key 唯一索引），pref_value 存 JSON
-- WithColumnVisibility 优先从 DB 读取（Auth::user 隔离），未登录降级 session
-- UserPreference Model 提供 getPreference()/setPreference() 静态方法
+| app/Models/Notification.php | 鏂板 broadcastToAll() / sendToUser()锛屽紩鍏?Log facade |
+| config/menu.php | system 鍒嗙粍鏂板"閫氱煡绠＄悊"鑿滃崟椤?|
+| routes/web.php | 鏂板 NotificationList use + /system-notifications 璺敱 |
+| app/Http/Middleware/CheckPermission.php | ROUTE_PERMISSION_MAP 鏂板鏄犲皠 |
+| database/seeders/SystemDataSeeder.php | 鏉冮檺鏍戞柊澧?system.notification + 鎸夐挳鏉冮檺 + operator 瑙掕壊鍒嗛厤 |
 
 ---
 
-## V1.7.0 | 迭代周期：2026-07-31
+## V1.9.1 | 杩唬鍛ㄦ湡锛?026-08-03
 
-负责人：项目负责人
-参与开发人员：后端开发
+璐熻矗浜猴細椤圭洰璐熻矗浜?
+鍙備笌寮€鍙戜汉鍛橈細鍚庣寮€鍙?
 
-### 1 本次新增功能清单
+### 1 鏈鏂板鍔熻兘娓呭崟
 
-| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| 搴忓彿 | 鍔熻兘妯″潡 | 鍔熻兘鐐?| 寮€鍙戜汉 | 瀹屾垚鏃堕棿 | 鐘舵€?|
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | Artisan 命令 | 新增 `admin:create-admin` 命令（替代废弃的 `admin:make-user`），支持 `--name=` `--email=` `--password=` `--role=super_admin` `--guard=web` | 后端 | 2026-07-31 | ✅ |
-| 2 | Artisan 命令 | 新增 `admin:create-user` 命令，支持 `--name=` `--email=` `--password=` `--role=` `--guard=web` `--active=1` | 后端 | 2026-07-31 | ✅ |
-| 3 | Artisan 命令 | `admin:seed` 增强：`--demo=MODULE` 支持可选模块参数（不传=全部测试数据，传值=指定模块）；新增 `--list` 选项列出可用 Seeder 模块 | 后端 | 2026-07-31 | ✅ |
-| 4 | Seeder 体系 | 按模块拆分测试数据：DemoDataSeeder 改为总入口，新增 Demo/ 子目录 11 个分模块 Seeder（含 TestUsersDemoSeeder） | 后端 | 2026-07-31 | ✅ |
-| 5 | Seeder 体系 | SystemDataSeeder 不再创建 `superadmin` 测试用户，改为给 Migration 创建的 `seeding` 账户分配 super_admin 角色 + 全部 140 权限 | 后端 | 2026-07-31 | ✅ |
-| 6 | Seeder 体系 | 双入口兼容：Seeder 同时支持 `php artisan db:seed` 和 `php artisan admin:seed` 调用 | 后端 | 2026-07-31 | ✅ |
-| 7 | 文档 | 03_DB 新增第 9 章「Seeder 体系设计」（设计原则/目录结构/核心vs测试对照/模块依赖/双入口/模块清单速查） | 后端 | 2026-07-31 | ✅ |
-| 8 | 文档 | 05_Setup 更新第 9/10/12 章（初始化数据分层说明/命令速查表更新/部署检查清单密码修正） | 后端 | 2026-07-31 | ✅ |
-| 9 | 文档 | 06_Log 新增 V1.7.0 迭代记录 | 后端 | 2026-07-31 | ✅ |
-
-### 2 本次优化/重构
-
-| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | Artisan 命令 | 废弃 `admin:make-user`，统一用 `admin:create-admin` + `admin:create-user` 替代 | 后端 | 2026-07-31 |
-| 2 | Seeder 体系 | DemoDataSeeder 解耦：移除对 SystemDataSeeder 的硬调用，测试数据可独立运行 | 后端 | 2026-07-31 |
-| 3 | Seeder 体系 | 测试数据按模块拆分到 Demo/ 子目录，支持 `--demo=organization` 等分模块单独运行 | 后端 | 2026-07-31 |
-
-### 3 本次修复 Bug
-
-无。
-
-### 4 数据库变更
-
-无（本次未新增 Migration，仅调整 Seeder 和命令层）。
-
-### 5 影响范围
-
-| 影响文件 | 变更类型 |
-| :--- | :--- |
-| app/Console/Commands/AdminSeedCommand.php | 修改（新增 --demo=MODULE / --list 选项） |
-| app/Console/Commands/AdminCreateAdminCommand.php | 新增（替代 AdminMakeUserCommand） |
-| app/Console/Commands/AdminCreateUserCommand.php | 修改（增强选项：--role / --guard / --active） |
-| app/Console/Commands/AdminMakeUserCommand.php | 废弃（标记 @deprecated，指引到 admin:create-admin） |
-| database/seeders/SystemDataSeeder.php | 重写（去掉 superadmin 创建，改为给 seeding 分配角色权限） |
-| database/seeders/DemoDataSeeder.php | 重写（改为总入口，调用 Demo/ 下各分模块） |
-| database/seeders/Demo/OrganizationDemoSeeder.php | 新增（组织主体测试数据） |
-| database/seeders/Demo/ProductDemoSeeder.php | 新增（商品管理测试数据） |
-| database/seeders/Demo/PurchaseDemoSeeder.php | 新增（采购管理测试数据） |
-| database/seeders/Demo/OrderDemoSeeder.php | 新增（订单管理测试数据） |
-| database/seeders/Demo/InventoryDemoSeeder.php | 新增（库存管理测试数据） |
-| database/seeders/Demo/DeliveryDemoSeeder.php | 新增（配送管理测试数据） |
-| database/seeders/Demo/FinanceDemoSeeder.php | 新增（财务对账测试数据） |
-| database/seeders/Demo/PriceDemoSeeder.php | 新增（价格策略测试数据） |
-| database/seeders/Demo/LossDemoSeeder.php | 新增（损耗管理测试数据） |
-| database/seeders/Demo/SystemDemoSeeder.php | 新增（系统支撑测试数据） |
-| database/seeders/DatabaseSeeder.php | 修改（确保双入口兼容） |
-| docs/03_DB_数据库设计&数据字典.md | 修改（新增第 9 章 Seeder 体系设计） |
-| docs/05_Setup_安装部署配置手册.md | 修改（第 9/10/12 章更新） |
-| docs/06_Log_开发迭代日志.md | 修改（新增 V1.7.0 迭代记录） |
-
-### 6 关键技术记录
-
-**Seeder 分模块设计：**
-- 设计原则：核心数据（SystemDataSeeder）与测试数据（DemoDataSeeder + Demo/*.php）严格分离
-- 核心数据包含：9 角色 + 140 权限树 + seeding 账户角色分配 + 19 审核节点配置 + 24 条系统配置
-- 测试数据按业务模块拆分为 10 个独立 Seeder，放在 `database/seeders/Demo/` 子目录
-- 模块依赖顺序：organization → product → purchase → order → inventory → delivery → finance → price → loss → system-demo
-- 双入口兼容：`php artisan db:seed --class=DemoDataSeeder` 等价于 `php artisan admin:seed --demo`
-- `admin:seed --demo=organization` 可单独运行指定模块测试数据
-- `admin:seed --list` 列出所有可用 Seeder 模块及其说明
-
-**Migration vs Seeder 职责划分：**
-- Migration 8.1：创建默认管理员 `seeding` 账户 + 9 个系统角色 + model_has_roles 关联
-- SystemDataSeeder：为 `seeding` 账户分配 super_admin 角色 + 全部 140 权限（syncPermissions）
-- 生产环境只需运行 `migrate` + `admin:seed --system`，即可获得完整可用系统
-
----
-
-## V1.6.5 | 迭代周期：2026-07-30
-
-负责人：项目负责人
-参与开发人员：后端开发、前端开发
-
-### 1 本次新增功能清单
-
-| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | Artisan 命令 | 新增 `admin:seed` 命令，支持 `--fresh`/`--demo`/`--system`/`--force` 选项，可单独运行种子数据 | 后端 | 2026-07-30 | ✅ |
-
-### 2 本次优化/重构
-
-| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | 权限分配弹窗 | 三态 checkbox 彻底重构：权限树数据缓存到 `$permissionTreeData` 组件属性，避免每次 toggle 查数据库 | 后端 | 2026-07-30 |
-| 2 | 权限分配弹窗 | 模块/页面 checkbox 改为 `wire:click` + `@checked` + Alpine `x-effect` 驱动 indeterminate 三态 | 前端 | 2026-07-30 |
-| 3 | 权限分配弹窗 | 按钮级 checkbox 改为 `wire:click="togglePermission(id)"` + `@checked`，去掉 `wire:model.live` | 前端 | 2026-07-30 |
-| 4 | Git 管理 | `database/database.sqlite` 加入版本控制 | 后端 | 2026-07-30 |
-| 5 | Composer | 清理 `composer.json` 冗余脚本 | 后端 | 2026-07-30 |
-
-### 3 本次修复 Bug
-
-| 序号 | Bug描述 | 修复内容 | 开发人 | 完成时间 |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | 权限分配弹窗模块/页面 checkbox 不反映子权限选中状态 | `@checked` 改为调用 `getModuleState()`/`getPageState()`，用 `array_intersect` 计算交集比例判断 | 后端 | 2026-07-30 |
-| 2 | 原生 checkbox indeterminate 在 Livewire morphing 后不重新设置 | 改用 Alpine `x-effect` 监听 checked 状态自动设置 indeterminate | 前端 | 2026-07-30 |
-| 3 | 按钮级 `wire:model.live` 写入字符串类型 ID 与 PHP 端 int 类型比较不一致 | 改为 `wire:click="togglePermission(id)"` + `@checked`，PHP 端统一用 int 比较 | 后端 | 2026-07-30 |
-
-### 4 数据库变更
-
-无。
-
-### 5 影响范围
-
-| 影响文件 | 变更类型 |
-| :--- | :--- |
-| app/Console/Commands/AdminSeedCommand.php | 新增（独立 seed 命令） |
-| app/Livewire/User/RoleList.php | 修改（permissionTreeData 缓存 + toggleModulePermissions/togglePagePermissions/togglePermission + getModuleState/getPageState） |
-| resources/views/livewire/user/role-list.blade.php | 修改（checkbox + `@checked` + Alpine `x-effect` indeterminate） |
-| database/database.sqlite | 新增（加入 git 版本控制） |
-| composer.json | 修改（清理冗余脚本） |
-| docs/05_Setup_安装部署配置手册.md | 修改（补充 admin:seed 命令） |
-| docs/06_Log_开发迭代日志.md | 修改（补充 V1.6.5） |
-| docs/08_用户使用手册.md | 修改（更新版本号 + 权限弹窗三态说明） |
-
-### 6 关键技术记录
-
-**权限树三态 checkbox 重构：**
-- 根因：原实现存在三个问题：(1) `@checked` 只检查模块/页面自身 ID 不反映子权限状态；(2) 原生 checkbox indeterminate 用 `x-init` 设置，Livewire morphing 后不重新执行；(3) `wire:model.live` 写入字符串类型 ID 与 PHP 端 int 比较不一致
-- 修复方案：
-  1. 权限树数据缓存到 `$permissionTreeData`，避免每次 toggle 查数据库
-  2. 模块/页面 checkbox 用 `wire:click` + `@checked(getModuleState($module_id))` / `@checked(getPageState($page_id))`，通过 `array_intersect` 计算交集比例判断选中/半选/未选
-  3. Alpine `x-effect` 监听 checked 变化自动设置 `el.indeterminate`
-  4. 按钮级 checkbox 改为 `wire:click="togglePermission($id)"` + `@checked(in_array($id, $selectedPermissions))`
-
----
-
-## V1.6.4 | 迭代周期：2026-07-30
-
-负责人：项目负责人
-参与开发人员：后端开发、前端开发
-
-### 1 本次新增功能清单
-
-| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | 全局 | 新增 `WithToast` Trait，统一 Toast 消息分发接口 | 后端 | 2026-07-30 | ✅ |
-| 2 | 全局 | 新增 `docs/09_开发前指导手册.md`，汇总所有开发规范 | 后端 | 2026-07-30 | ✅ |
-
-### 2 本次优化/重构
-
-| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | 全局（49个组件+3个Trait） | 所有 `dispatch('toast', message: '...')` 替换为 `WithToast` 方法（`toastSuccess`/`toastError`/`toastWarning`/`toastInfo`） | 后端 | 2026-07-30 |
-
-### 3 本次修复 Bug
-
-| 序号 | Bug描述 | 修复内容 | 开发人 | 完成时间 |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | 权限分配弹窗点击始终全选，无法取消勾选 | 模块/页面 checkbox 去掉 `wire:model.live`，只保留 `wire:click` + `@checked()`，避免两者冲突 | 前端 | 2026-07-30 |
-| 2 | 全部模块 Toast 提示无文字 | 创建 `WithToast` Trait 统一使用 `title` 字段，批量替换 49 个组件文件 | 后端 | 2026-07-30 |
-
-### 4 数据库变更
-
-无。
-
-### 5 影响范围
-
-| 影响文件 | 变更类型 |
-| :--- | :--- |
-| app/Livewire/Traits/WithToast.php | 新增（Toast 统一 Trait） |
-| app/Livewire/Traits/WithRowSelection.php | 修改（use WithToast; + dispatch 替换） |
-| app/Livewire/Traits/WithExcelExport.php | 修改（use WithToast; + dispatch 替换） |
-| app/Livewire/Traits/WithExcelImport.php | 修改（use WithToast; + dispatch 替换） |
-| 46 个 Livewire 组件文件 | 修改（添加 use WithToast + dispatch 替换为 toastSuccess/Error/Warning/Info） |
-| resources/views/livewire/user/role-list.blade.php | 修改（权限 checkbox 修复） |
-| docs/09_开发前指导手册.md | 新增（开发规范汇总） |
-
-### 6 关键技术记录
-
-**checkbox 的 wire:model.live 与 wire:click 冲突：**
-- 根因：checkbox 同时绑定 `wire:model.live="formArray"` 和 `wire:click="toggleMethod()"` 时，Livewire 先执行 model 绑定自动切换值，再执行 click 方法，导致自定义逻辑基于已修改的数组判断
-- 修复：联动 checkbox 只用 `wire:click` + `@checked()` 手动控制选中状态
-
-**Toast 事件字段不匹配：**
-- 根因：后端 `dispatch('toast', message: '...')` 发出的 detail 字段为 `message`，前端 `$toast.show()` 期望 `title` 字段
-- 修复：创建 `WithToast` Trait 统一使用 `title` + `description` + `type` 字段
-
----
-
-## V1.6.3 | 迭代周期：2026-07-30
-
-负责人：项目负责人
-参与开发人员：后端开发、前端开发
-
-### 1 本次新增功能清单
-
-无新增功能模块。
-
-### 2 本次优化/重构
-
-| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | 角色管理 | 权限分配弹窗改为表格形式（4列：复选框、模块、页面、按钮），弹窗加宽到 max-w-4xl | 前端 | 2026-07-30 |
-| 2 | 角色管理 | 模块勾选自动全选子权限（toggleModulePermissions），页面勾选自动全选子按钮（togglePagePermissions） | 后端 | 2026-07-30 |
-
-### 3 本次修复 Bug
-
-| 序号 | Bug描述 | 修复内容 | 开发人 | 完成时间 |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | 已登录用户访问 /login 不自动跳转 | Login 组件 mount() 增加 auth()->check() 跳转到 dashboard | 后端 | 2026-07-30 |
-| 2 | Toast 提示不显示文字 | app.js 事件监听增加 message→title 映射 | 前端 | 2026-07-30 |
-
-### 4 数据库变更
-
-无。
-
-### 5 影响范围
-
-| 影响文件 | 变更类型 |
-| :--- | :--- |
-| app/Livewire/Auth/Login.php | 修改（mount 增加已登录跳转） |
-| resources/js/app.js | 修改（toast 事件监听 message→title 映射） |
-| app/Livewire/User/RoleList.php | 修改（新增 toggleModulePermissions/togglePagePermissions） |
-| resources/views/livewire/user/role-list.blade.php | 修改（权限弹窗改表格形式） |
-| public/build/ | 重建（Vite 构建更新） |
-
----
-
-## V1.6.2 | 迭代周期：2026-07-30
-
-负责人：项目负责人
-参与开发人员：后端开发、前端开发
-
-### 1 本次新增功能清单
-
-| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | 权限管理 | 类型下拉筛选（全部/模块/页面/按钮） | 后端 | 2026-07-30 | ✅ |
-| 2 | 权限管理 | 模块下拉筛选（全部/指定模块，含子级页面+按钮） | 后端 | 2026-07-30 | ✅ |
-| 3 | 权限管理 | 类型+模块组合筛选 + 重置按钮 | 后端 | 2026-07-30 | ✅ |
-
-### 2 本次优化/重构
-
-无。
-
-### 3 本次修复 Bug
-
-| 序号 | Bug描述 | 修复内容 | 开发人 | 完成时间 |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | UTF-8 BOM 导致 Livewire 4 组件边界错位 | 批量移除 38 个 Blade 视图文件的 UTF-8 BOM（\xEF\xBB\xBF） | 后端 | 2026-07-30 |
-| 2 | 弹窗取消按钮被 Livewire 验证管道拦截 | 用户/角色/权限三个页面的所有 `<button>` 添加 `type="button"` | 前端 | 2026-07-30 |
-
-### 4 数据库变更
-
-无。
-
-### 5 影响范围
-
-| 影响文件 | 变更类型 |
-| :--- | :--- |
-| app/Livewire/User/PermissionList.php | 修改（增加 filterType/filterModule 属性、筛选逻辑、resetFilters） |
-| resources/views/livewire/user/permission-list.blade.php | 修改（增加类型+模块两个 select 下拉筛选、重置按钮） |
-| 38 个 Blade 视图文件 | 修改（移除 UTF-8 BOM） |
-| resources/views/livewire/user/user-list.blade.php | 修改（button 添加 type="button"） |
-| resources/views/livewire/user/role-list.blade.php | 修改（button 添加 type="button"） |
-| resources/views/livewire/user/permission-list.blade.php | 修改（button 添加 type="button"） |
-
-### 6 关键技术记录
-
-**UTF-8 BOM 导致 Livewire 4 morphing 错位问题：**
-- 根因：Blade 视图文件开头包含 UTF-8 BOM（\xEF\xBB\xBF），在组件根 `<div>` 前产生了不可见文本节点
-- 影响：Livewire 4 morphing 算法将 `wire:id` 绑定到错误子元素（如 `class="flex items-center justify-between mb-6"` 而非 `class="p-6"`），导致弹窗内容和操作按钮脱离组件 DOM 边界
-- 修复：批量移除所有 Blade 文件 BOM + 为 `<button>` 添加 `type="button"` 防止 form 提交行为
-
----
-
-## V1.6.1 | 迭代周期：2026-07-30
-
-负责人：项目负责人
-参与开发人员：后端开发、前端开发
-
-### 1 本次新增功能清单
-
-无新增功能模块。
-
-### 2 本次优化/重构
-
-| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | 用户管理 | 状态列改为 toggle switch 开关，行内直接点击切换启用/禁用 | 前端 | 2026-07-30 |
-| 2 | 用户管理 | 操作按钮从文字改为 SVG 图标（编辑/角色分配/重置密码/删除） | 前端 | 2026-07-30 |
-| 3 | 角色管理 | 操作按钮从文字改为 SVG 图标（编辑/权限分配/删除） | 前端 | 2026-07-30 |
-| 4 | 权限管理 | 操作按钮从文字改为 SVG 图标（编辑/角色分配/删除） | 前端 | 2026-07-30 |
-| 5 | 用户管理 | 超级管理员（super-admin 角色）禁止删除和禁用，列表不显示删除按钮和 toggle 开关 | 后端 | 2026-07-30 |
-| 6 | 角色管理 | super-admin 角色禁止删除和编辑，列表不显示编辑/删除按钮 | 后端 | 2026-07-30 |
-
-### 3 本次修复 Bug
-
-| 序号 | Bug描述 | 修复内容 | 开发人 | 完成时间 |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | 超级管理员可被删除/禁用 | delete() 和 toggleStatus() 增加 hasRole('super-admin') 检查 | 后端 | 2026-07-30 |
-| 2 | super-admin 角色可被删除/编辑 | RoleList delete() 和 openEditModal() 增加 name==='super-admin' 保护 | 后端 | 2026-07-30 |
-
-### 4 数据库变更
-
-无。
-
-### 5 影响范围
-
-| 影响文件 | 变更类型 |
-| :--- | :--- |
-| app/Livewire/User/UserList.php | 修改（增加超级管理员保护逻辑） |
-| app/Livewire/User/RoleList.php | 修改（增加超级管理员角色保护逻辑） |
-| resources/views/livewire/user/user-list.blade.php | 修改（toggle switch + 图标按钮 + 超级管理员行 UI 保护） |
-| resources/views/livewire/user/role-list.blade.php | 修改（图标按钮 + 超级管理员角色行 UI 保护） |
-| resources/views/livewire/user/permission-list.blade.php | 修改（图标按钮） |
-
----
-
-## V1.6.0 | 迭代周期：2026-07-29
-
-负责人：项目负责人
-参与开发人员：后端开发、前端开发
-
-### 1 本次新增功能清单
-
-| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | 补货提醒 | RestockReminderList Livewire 页面（CRUD + 商家/SKU 选择 + 周期配置） | 后端 | 2026-07-29 | ✅ |
-| 2 | 采购退货 | PurchaseReturnList 从桩升级为完整 CRUD（关联采购单 + 供应商 + 仓库 + 退货原因） | 后端 | 2026-07-29 | ✅ |
-| 3 | 仓库管理 | WarehouseList 从桩升级为完整 CRUD（类型/冷链/地址/状态） | 后端 | 2026-07-29 | ✅ |
-| 4 | 库存管理 | InventoryList 从桩升级为完整 CRUD（仓库/SKU/库存数量/批次/效期/预警值） | 后端 | 2026-07-29 | ✅ |
-| 5 | 库存日志 | InventoryLogList 从桩升级为只读日志查看器（类型/仓库筛选，禁止删除） | 后端 | 2026-07-29 | ✅ |
-| 6 | 损耗管理 | LossOrderList 从桩升级为完整 CRUD + 审核流程（新建/编辑/审核/执行/关闭） | 后端 | 2026-07-29 | ✅ |
-| 7 | 路由 | 新增 /restock-reminders 路由 | 后端 | 2026-07-29 | ✅ |
-| 8 | 用户管理 | UserList Livewire 组件（CRUD + 角色分配 + 禁用启用 + 重置密码 + 搜索） | 后端 | 2026-07-29 | ✅ |
-| 9 | 角色管理 | RoleList 增加权限分配弹窗（模块→页面→按钮 树形复选框） | 后端 | 2026-07-29 | ✅ |
-| 10 | 权限管理 | PermissionList 增加角色分配弹窗（多选框，为权限勾选关联角色） | 后端 | 2026-07-29 | ✅ |
-| 11 | 路由 | 新增 /users 路由 + 导航修复 href="#" → route('users') | 后端 | 2026-07-29 | ✅ |
-| 12 | 全局基础设施 | 安装 maatwebsite/excel + 创建4个通用Trait(WithRowSelection/WithColumnVisibility/WithExcelExport/WithExcelImport) + GenericExport/GenericImport + money_format/status_badge 助手函数 | 后端 | 2026-07-30 | ✅ |
-| 13 | 全模块升级 | 49个列表组件全面升级：checkbox多选、批量操作、自定义显示列、Excel导入导出（自定义列）、金额格式化 | 后端 | 2026-07-30 | ✅ |
-| 14 | 订单模块 | OrderList/CartList/OrderReturnList 从桩升级为完整CRUD+状态流转+金额格式化 | 后端 | 2026-07-30 | ✅ |
-| 15 | 配送模块 | DeliveryTaskList/SignatureList/DiscrepancyList/TemperatureList 升级（修复温度记录搜索bug） | 后端 | 2026-07-30 | ✅ |
-| 16 | 财务模块 | 5个财务组件升级为完整CRUD+审核/付款/收款操作+金额格式化+搜索优化 | 后端 | 2026-07-30 | ✅ |
-| 17 | 价格策略 | 3个价格组件升级为完整CRUD+审核启停操作 | 后端 | 2026-07-30 | ✅ |
-| 18 | 采购库存 | 8个采购/库存组件升级为完整CRUD+状态流转+搜索优化 | 后端 | 2026-07-30 | ✅ |
-
-### 2 本次优化/重构
-
-| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | Model | Warehouse / LossOrder / PurchaseReturn 修复 SoftDeletes trait 错位到类外的 Bug | 后端 | 2026-07-29 |
-| 2 | Model | Inventory / InventoryLog / LossOrderItem / PurchaseReturnItem 清理未使用的 SoftDeletes import | 后端 | 2026-07-29 |
-| 3 | Model | Warehouse 补充 statusMap / relationships / scopeEnabled | 后端 | 2026-07-29 |
-| 4 | Model | LossOrder 补充 statusMap / approvalStatusMap / relationships / scopePending | 后端 | 2026-07-29 |
-| 5 | Model | PurchaseReturn 补充 statusMap / relationships / scopePending | 后端 | 2026-07-29 |
-| 6 | Model | Inventory 补充 warehouse/sku relationships / scopeBelowWarning | 后端 | 2026-07-29 |
-| 7 | Model | InventoryLog 补充 warehouse/sku/operator relationships / typeLabel accessor | 后端 | 2026-07-29 |
-| 8 | Model | LossOrderItem 补充 responsiblePartyMap / lossOrder/sku/supplier relationships | 后端 | 2026-07-29 |
-| 9 | Model | PurchaseReturnItem 补充 purchaseReturn/sku relationships | 后端 | 2026-07-29 |
-| 10 | Model | RestockReminder 补充 remindCycleMap / statusMap / merchant/sku relationships / scopeEnabled | 后端 | 2026-07-29 |
-
-### 3 本次修复 Bug
-
-| 序号 | Bug描述 | 修复内容 | 开发人 | 完成时间 |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | Warehouse/LossOrder/PurchaseReturn 的 SoftDeletes trait 写在 class 外面导致软删除不生效 | 将 `use SoftDeletes` 移入 class 内部 | 后端 | 2026-07-29 |
-| 2 | InventoryList 搜索 sku_id 使用 like 查整型字段 | 改为通过 sku 关联搜索 sku_code / product.name | 后端 | 2026-07-29 |
-| 3 | InventoryLogList 允许删除日志记录 | 移除删除功能，改为只读日志查看器 | 后端 | 2026-07-29 |
-| 4 | 弹窗取消按钮不关闭 | wire:click="showModal=false" 被 Livewire 验证管道拦截，改用 closeXxxModal() 方法 | 后端 | 2026-07-30 |
-| 5 | Model 重复 SoftDeletes import | Banner/Discrepancy/MerchantAddress/OrderReturn/PriceStrategy 删除多余 use SoftDeletes 行 | 后端 | 2026-07-30 |
-| 6 | 财务搜索bug | MerchantAccountList 用 merchant_id like 搜索改为关联商家名搜索 | 后端 | 2026-07-30 |
-| 7 | 价格搜索bug | PriceApportionmentList 用 amount like 搜索改为按名称搜索 | 后端 | 2026-07-30 |
-
-### 4 数据库变更
-
-无（本次未新增 Migration）
-
-### 5 影响范围
-
-| 影响文件 | 变更类型 |
-| :--- | :--- |
-| app/Models/Warehouse.php | 重写（修复Bug + 补充关系/状态映射） |
-| app/Models/LossOrder.php | 重写（修复Bug + 补充关系/状态映射） |
-| app/Models/PurchaseReturn.php | 重写（修复Bug + 补充关系/状态映射） |
-| app/Models/Inventory.php | 重写（清理import + 补充关系） |
-| app/Models/InventoryLog.php | 重写（清理import + 补充关系） |
-| app/Models/LossOrderItem.php | 重写（清理import + 补充关系/责任方映射） |
-| app/Models/PurchaseReturnItem.php | 重写（补充关系） |
-| app/Models/RestockReminder.php | 重写（补充周期/状态映射/关系） |
-| app/Livewire/Product/RestockReminderList.php | 新增 |
-| app/Livewire/Purchase/PurchaseReturnList.php | 重写（桩→完整CRUD） |
-| app/Livewire/Inventory/WarehouseList.php | 重写（桩→完整CRUD） |
-| app/Livewire/Inventory/InventoryList.php | 重写（桩→完整CRUD） |
-| app/Livewire/Inventory/InventoryLogList.php | 重写（桩→只读查看器） |
-| app/Livewire/Loss/LossOrderList.php | 重写（桩→完整CRUD+审核） |
-| resources/views/livewire/product/restock-reminder-list.blade.php | 新增 |
-| resources/views/livewire/purchase/purchase-return-list.blade.php | 重写 |
-| resources/views/livewire/inventory/warehouse-list.blade.php | 重写 |
-| resources/views/livewire/inventory/inventory-list.blade.php | 重写 |
-| resources/views/livewire/inventory/inventory-log-list.blade.php | 重写 |
-| resources/views/livewire/loss/loss-order-list.blade.php | 重写 |
-| routes/web.php | 修改（新增1条路由） |
-| app/Livewire/User/UserList.php | 新增（用户管理CRUD+角色分配+禁用启用+重置密码） |
-| resources/views/livewire/user/user-list.blade.php | 新增 |
-| app/Livewire/User/RoleList.php | 重写（增加权限分配树弹窗） |
-| resources/views/livewire/user/role-list.blade.php | 重写（增加权限树+删除确认） |
-| app/Livewire/User/PermissionList.php | 重写（增加角色分配弹窗） |
-| resources/views/livewire/user/permission-list.blade.php | 重写（增加角色勾选+删除确认） |
-| resources/views/components/app-topnav.blade.php | 修改（用户管理导航链接 href="#" → route('users')） |
-
----
-
-## V1.5.0 | 迭代周期：2026-07-29
-
-负责人：项目负责人
-参与开发人员：后端开发、前端开发
-
-### 1 本次新增功能清单
-
-| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | 图标 | icon.blade.php 新增 16 个 Heroicons 图标（clipboard-document-list / document-text / star / arrow-path / photo / sparkles / key / chat-bubble-left-right / map-pin / clock / plus / x-mark / magnifying-glass / shield-check / shield-exclamation / check-circle） | 前端 | 2026-07-29 | ✅ |
-| 2 | 导航 | nav-menu-icon-link 组件增加 description 参数，全部子菜单添加简短功能描述 | 前端 | 2026-07-29 | ✅ |
-| 3 | 导航 | 用户权限/系统管理子菜单统一改用 icon-link+description 样式（原部分使用 nav-menu-link） | 前端 | 2026-07-29 | ✅ |
-| 4 | 测试数据 | DemoDataSeeder 扩展全模块示例数据（30+ 张业务表，覆盖采购/订单/库存/配送/损耗/拣货/差异/财务/退货/价格策略/Banner/登录日志等） | 后端 | 2026-07-29 | ✅ |
-
-### 2 本次优化/重构
-
-| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | 导航 | nav-menu-icon-link 组件重构：文字区改为 flex 容器，支持可选 description 行 | 前端 | 2026-07-29 |
-
-### 3 本次修复 Bug
-
-无
-
-### 4 数据库变更
-
-无（本次未新增 Migration）
-
-### 5 影响范围
-
-| 影响文件 | 变更类型 |
-| :--- | :--- |
-| resources/views/components/ui/icon.blade.php | 修改（新增16个图标） |
-| resources/views/components/nav-menu-icon-link.blade.php | 修改（新增description参数） |
-| resources/views/components/app-topnav.blade.php | 修改（全部子菜单添加description） |
-| database/seeders/DemoDataSeeder.php | 修改（扩展30+表示例数据） |
-
----
-
-## V1.4.0 | 迭代周期：2026-07-29
-
-负责人：项目负责人
-参与开发人员：后端开发、前端开发
-
-### 1 本次新增功能清单
-
-| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | 库存管理 | Warehouse / Inventory / InventoryLog Model + 3 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
-| 2 | 损耗管理 | LossOrder / LossOrderItem Model + 1 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
-| 3 | 拣货管理 | PickingTask / PickingTaskItem Model + 1 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
-| 4 | 配送管理 | DeliveryTask / DeliveryTaskOrder / DeliveryTrack / Signature / Temperature Model + 3 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
-| 5 | 差异处理 | Discrepancy Model + 1 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
-| 6 | 财务对账 | MerchantAccount / Recharge / SupplierSettlement / SupplierSettlementItem / SettlementPayment / Receivable / ReceivablePayment / Invoice / CorrectionAuthorization Model + 8 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
-| 7 | 退货+价格 | PurchaseReturn / PurchaseReturnItem / OrderReturn / OrderReturnItem / PriceStrategy / PriceStrategyItem / PriceChangeLog Model + 4 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
-| 8 | 扩展+系统 | PriceApportionment / MerchantAddress / MerchantFavorite / Banner / Promotion / LoginLog / WechatUser Model + 5 个 Livewire 页面 | 后端 | 2026-07-29 | ✅ |
-| 9 | 路由 | 新增 26 条路由覆盖全部模块 | 后端 | 2026-07-29 | ✅ |
-| 10 | 导航 | 全部导航菜单链接替换为真实路由 | 前端 | 2026-07-29 | ✅ |
-
-### 2 本次优化/重构
-
-| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | 导航 | 全部子菜单统一改用 icon-link 样式 | 前端 | 2026-07-29 |
-
-### 3 本次修复 Bug
-
-无
-
-### 4 待办事项
-
-| 序号 | 模块 | 待办内容 | 优先级 |
+| 1 | 鏂摼淇 | PurchaseReturnService锛氶€€璐у崟瀹屾暣鐢熷懡鍛ㄦ湡锛堝垱寤衡啋瀹℃牳鈫掑嚭搴撯啋瀹屾垚/鍙栨秷锛?| 鍚庣 | 2026-08-03 | 鉁?|
+| 2 | 鏂摼淇 | 閫€璐у嚭搴撹仈鍔?InventoryService::stockOut() 鎵ｅ噺搴撳瓨 | 鍚庣 | 2026-08-03 | 鉁?|
+| 3 | 鏂摼淇 | LossOrderService锛氭崯鑰楀崟瀹屾暣鐢熷懡鍛ㄦ湡锛堝垱寤衡啋瀹℃牳鈫掓墽琛屸啋鍏抽棴/鍙栨秷锛?| 鍚庣 | 2026-08-03 | 鉁?|
+| 4 | 鏂摼淇 | 鎹熻€楀崟鎵ц鏃惰皟鐢?InventoryService::stockOut() 鎵ｅ噺搴撳瓨 | 鍚庣 | 2026-08-03 | 鉁?|
+| 5 | 鏂摼淇 | 鍏ュ簱宸紓鑷姩鍒涘缓鎹熻€楀崟锛歴tockIn() 璁＄畻 discrepancy_quantity锛岀郴缁熼厤缃紑鍏虫帶鍒?| 鍚庣 | 2026-08-03 | 鉁?|
+| 6 | 鏂摼淇 | 宸插叆搴撻噰璐崟绂佹鐩存帴鍙栨秷锛屾彁绀鸿蛋閫€璐ф祦绋?| 鍚庣 | 2026-08-03 | 鉁?|
+| 7 | 鏂摼淇 | 閲囪喘鍗曞畬鎴愬墠鏍￠獙锛氬瓨鍦ㄦ湭澶勭悊宸紓鏃堕樆姝㈠畬鎴?| 鍚庣 | 2026-08-03 | 鉁?|
+| 8 | 鏂摼淇 | 閲囪喘鍗曢€€璐х姸鎬佽拷韪紙return_status锛?鏃犻€€璐?1閮ㄥ垎閫€璐?2鍏ㄩ儴閫€璐э級 | 鍚庣 | 2026-08-03 | 鉁?|
+
+### 2 鏁版嵁搴撳彉鏇?
+
+| 鍙樻洿 | 琛ㄥ悕 | 瀛楁 | 璇存槑 |
 | :--- | :--- | :--- | :--- |
-| 1 | 全模块 | 各模块 Detail/Form 页面待开发 | 中 |
-| 2 | 全模块 | 业务逻辑 Service 层待实现 | 高 |
-| 3 | 全模块 | 小程序端 API 待开发 | 高 |
+| 鏂板瀛楁 | purchase_orders | return_status | 閫€璐х姸鎬侊細0鏃犻€€璐э紝1閮ㄥ垎閫€璐э紝2鍏ㄩ儴閫€璐?|
+| 鏂板瀛楁 | purchase_order_items | discrepancy_quantity | 鍏ュ簱宸紓鏁伴噺锛堥噰璐暟閲?瀹為檯鍏ュ簱鏁伴噺锛?|
+| 鏂板瀛楁 | purchase_order_items | loss_order_id | 鍏宠仈鎹熻€楀崟ID |
+| 鏂板瀛楁 | loss_orders | source_type | 鏉ユ簮绫诲瀷锛歱urchase_order=閲囪喘鍏ュ簱宸紓 |
+| 鏂板瀛楁 | loss_orders | source_id | 鏉ユ簮涓氬姟ID |
+| 鏂板瀛楁 | loss_order_items | purchase_order_item_id | 閲囪喘鍗曟槑缁咺D |
+| 鏂板瀛楁 | loss_order_items | purchase_order_id | 閲囪喘鍗旾D |
+| 鏂板閰嶇疆 | system_configs | stockin_auto_create_loss | 鍏ュ簱宸紓鑷姩鍒涘缓鎹熻€楀崟寮€鍏筹紙榛樿寮€鍚級 |
 
-### 5 累计完成统计
+### 3 鏂板鏂囦欢
 
-| 指标 | V1.3.0 | V1.4.0 | 增量 |
-| :--- | :--- | :--- | :--- |
-| Model 数 | 36 | 72 | +36 |
-| Livewire 组件 | 28 | 54 | +26 |
-| 路由数 | 30 | 56 | +26 |
-| 数据库表 | 77 | 77 | — |
+| 鏂囦欢 | 璇存槑 |
+| :--- | :--- |
+| app/Services/PurchaseReturnService.php | 閲囪喘閫€璐ф湇鍔?|
+| app/Services/LossOrderService.php | 鎹熻€楀崟鏈嶅姟 |
+| database/migrations/2026_08_03_004635_add_return_status_to_purchase_orders_and_enhance_loss_tables.php | 鏂摼淇杩佺Щ |
 
-### 6 数据库/配置变更记录
+### 4 鏍稿績涓氬姟瑙勫垯
 
-无新增 Migration，Model 基于已有表结构创建。
+- **閫€璐у嚭搴?*锛歅urchaseReturnService::ship() 璋冪敤 InventoryService::stockOut()锛宻ource_type='purchase_return'
+- **鍏ュ簱宸紓鈫掓崯鑰楀崟**锛歅urchaseService::stockIn() 璁＄畻姣忚 discrepancy_quantity锛屽綋 > 0 涓?stockin_auto_create_loss=true 鏃惰嚜鍔ㄥ垱寤烘崯鑰楀崟
+- **鎹熻€楁墽琛屾墸搴撳瓨**锛歀ossOrderService::execute() 璋冪敤 InventoryService::stockOut()锛宻ource_type='loss_order'
+- **宸插叆搴撶姝㈠彇娑?*锛歅urchaseOrder::canTransitionTo() 涓?STATUS_STOCKED 鍙兘杞埌 STATUS_COMPLETED
+- **瀹屾垚鍓嶇疆鏍￠獙**锛歅urchaseService::complete() 妫€鏌ユ槸鍚︽湁鏈鐞嗙殑宸紓琛岋紙discrepancy_quantity > 0 涓?loss_order_id 涓虹┖锛?
 
-### 7 发布记录
+### 5 寰呭鐞?
 
-| 日期 | 版本 | 操作人 | Git Commit | 备注 |
-| :--- | :--- | :--- | :--- | :--- |
-| 2026-07-29 | V1.4.0 | 项目负责人 | — | 全模块 Model/Livewire/路由/导航一次性交付 |
-
----
-
-## V1.3.0 | 迭代周期：2026-07-29
-
-负责人：项目负责人
-参与开发人员：后端开发、前端开发
-
-### 1 本次新增功能清单
-
-| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | 采购管理 | PurchaseItem Model + Livewire 列表页 | 后端 | 2026-07-29 | ✅ |
-| 2 | 采购管理 | PurchaseOrder / PurchaseOrderItem Model + Livewire 列表页 | 后端 | 2026-07-29 | ✅ |
-| 3 | 订单配送 | Cart / CartItem Model + Livewire 列表页 | 后端 | 2026-07-29 | ✅ |
-| 4 | 订单配送 | Order / OrderItem Model + Livewire 列表页 | 后端 | 2026-07-29 | ✅ |
-| 5 | 订单配送 | FrequentlyBought Model + Livewire 列表页 | 后端 | 2026-07-29 | ✅ |
-| 6 | 订单配送 | RepurchaseTemplate / RepurchaseTemplateItem Model + Livewire 列表页 | 后端 | 2026-07-29 | ✅ |
-| 7 | 路由 | 新增 6 条路由（purchase-items / purchase-orders / orders / carts / frequently-bought / repurchase-templates） | 后端 | 2026-07-29 | ✅ |
-| 8 | 导航 | 采购管理子菜单链接待采清单/采购单管理 | 前端 | 2026-07-29 | ✅ |
-| 9 | 导航 | 订单配送子菜单链接客户订单/购物车/常购清单/复购模板 | 前端 | 2026-07-29 | ✅ |
-| 10 | 文档 | FSD 9.2 Models 状态标注 + 9.9 映射表更新 | 后端 | 2026-07-29 | ✅ |
-
-### 2 本次优化/重构
-
-| 序号 | 模块 | 优化内容 | 开发人 | 完成时间 |
-| :--- | :--- | :--- | :--- | :--- |
-| 1 | 导航 | 采购管理子菜单改用 icon-link 样式（与商品管理/订单配送统一） | 前端 | 2026-07-29 |
-
-### 3 本次修复 Bug
-
-无
-
-### 4 待办事项
-
-| 序号 | 模块 | 待办内容 | 优先级 |
-| :--- | :--- | :--- | :--- |
-| 1 | 采购管理 | PurchaseOrderDetail / PurchaseReturn / PurchaseReturnDetail 页面待开发 | 中 |
-| 2 | 订单配送 | OrderDetail / OrderReturn / OrderReturnDetail 页面待开发 | 中 |
-| 3 | 订单配送 | 配送任务/签收存证/差异处理模块待开发 | 高 |
-
-### 5 累计完成统计
-
-| 指标 | V1.2.0 | V1.3.0 | 增量 |
-| :--- | :--- | :--- | :--- |
-| Model 数 | 26 | 36 | +10 |
-| Livewire 组件 | 22 | 28 | +6 |
-| 路由数 | 24 | 30 | +6 |
-| 数据库表 | 77 | 77 | — |
-
-### 6 数据库/配置变更记录
-
-无新增 Migration，Model 基于已有表结构创建。
-
-### 7 发布记录
-
-| 日期 | 版本 | 操作人 | Git Commit | 备注 |
-| :--- | :--- | :--- | :--- | :--- |
-| 2026-07-29 | V1.3.0 | 项目负责人 | — | 采购管理+订单配送 Model/Livewire/路由/导航 |
+- **鏂摼3锛堜环鏍肩瓥鐣ヨ仈鍔級**锛氱瓑鏂摼1-2瀹屾垚鍚庣敤鎴峰啀娌熼€?
+- **P2 闂**锛歮enu.php 琛?restock-reminders + temperatures 鑿滃崟椤癸紝Invoice Model 琛ュ叧绯诲畾涔?
 
 ---
 
-## V1.2.0 | 迭代周期：2026-07-29
+## V1.9.0 | 杩唬鍛ㄦ湡锛?026-08-01
 
-负责人：项目负责人
-参与开发人员：后端开发、前端开发
+璐熻矗浜猴細椤圭洰璐熻矗浜?
+鍙備笌寮€鍙戜汉鍛橈細鍚庣寮€鍙?
 
-### 1 本次新增功能清单
+### 1 鏈鏂板鍔熻兘娓呭崟
 
-| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| 搴忓彿 | 鍔熻兘妯″潡 | 鍔熻兘鐐?| 寮€鍙戜汉 | 瀹屾垚鏃堕棿 | 鐘舵€?|
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | 商品管理 | Category Model（树形分类，parent_id/状态/排序） | AI | 2026-07-29 | 已完成 |
-| 2 | 商品管理 | Product Model（商品主表，分类/供应商/称重改价/上下架） | AI | 2026-07-29 | 已完成 |
-| 3 | 商品管理 | ProductImage Model（商品多图） | AI | 2026-07-29 | 已完成 |
-| 4 | 商品管理 | Sku Model（SKU规格，价格整数存储，审核状态） | AI | 2026-07-29 | 已完成 |
-| 5 | 商品管理 | MerchantSkuVisibility Model（商家SKU可见性） | AI | 2026-07-29 | 已完成 |
-| 6 | 商品管理 | Tag / ProductTag Model（标签词库+商品标签关联） | AI | 2026-07-29 | 已完成 |
-| 7 | 商品管理 | Keyword Model（搜索关键词联想+热度） | AI | 2026-07-29 | 已完成 |
-| 8 | 条码管理 | SkuBarcode Model（4种条码类型：厂家/供应商/内部/备用） | AI | 2026-07-29 | 已完成 |
-| 9 | 一品多供 | SkuSupplier Model（SKU-供应商关联，默认供应商/采购价） | AI | 2026-07-29 | 已完成 |
-| 10 | 商品管理 | CategoryList Livewire（分类CRUD+搜索+弹窗表单） | AI | 2026-07-29 | 已完成 |
-| 11 | 商品管理 | ProductList Livewire（商品CRUD+分类筛选+状态筛选） | AI | 2026-07-29 | 已完成 |
-| 12 | 商品管理 | SkuList Livewire（SKU列表+审核状态标签） | AI | 2026-07-29 | 已完成 |
-| 13 | 商品管理 | TagList Livewire（标签CRUD+搜索） | AI | 2026-07-29 | 已完成 |
-| 14 | 商品管理 | KeywordList Livewire（关键词CRUD+搜索次数排序） | AI | 2026-07-29 | 已完成 |
-| 15 | 条码管理 | SkuBarcodeList Livewire（条码CRUD+类型筛选） | AI | 2026-07-29 | 已完成 |
-| 16 | 一品多供 | SkuSupplierList Livewire（关联CRUD+供应商下拉） | AI | 2026-07-29 | 已完成 |
-| 17 | 路由 | web.php 新增 7 条路由（categories/products/skus/tags/keywords/sku-barcodes/sku-suppliers） | AI | 2026-07-29 | 已完成 |
-| 18 | 导航 | 商品管理子菜单全部指向真实路由 | AI | 2026-07-29 | 已完成 |
-| 19 | 文档 | FSD 9.2 Models 目录标注已创建状态，清理尾部重复残留 | AI | 2026-07-29 | 已完成 |
+| 1 | 鏉冮檺浣撶郴 | 鏉冮檺鍚嶆敼涓轰笁绾ф牸寮忥細妯″潡.椤甸潰.鍔ㄤ綔锛堝 org.supplier.create锛?| 鍚庣 | 2026-08-01 | 鉁?|
+| 2 | 鏉冮檺浣撶郴 | 姣忎釜椤甸潰绾ф潈闄愯嚜鍔ㄧ敓鎴?.view 椤甸潰璁块棶鏉冮檺锛堝 org.supplier.view锛?| 鍚庣 | 2026-08-01 | 鉁?|
+| 3 | 鏉冮檺浣撶郴 | SystemDataSeeder 瀹屾暣閲嶅啓锛?2妯″潡 + 38椤甸潰 + 128鎸夐挳 = 178鏉℃潈闄?| 鍚庣 | 2026-08-01 | 鉁?|
+| 4 | 鏉冮檺浣撶郴 | AppServiceProvider 娉ㄥ唽 Gate::before锛宻uper_admin 瑙掕壊鑷姩閫氳繃鎵€鏈?@can 妫€鏌?| 鍚庣 | 2026-08-01 | 鉁?|
+| 5 | 鑿滃崟绯荤粺 | 鏂板 config/menu.php 鑿滃崟閰嶇疆鏂囦欢锛?妯″潡 + 鍏ㄩ儴瀛愯彍鍗曢」锛?| 鍚庣 | 2026-08-01 | 鉁?|
+| 6 | 鑿滃崟绯荤粺 | 椤堕儴瀵艰埅鏀逛负鍔ㄦ€佹覆鏌擄細浠?config('menu') 璇诲彇 + @can 杩囨护涓嶅彲瑙佽彍鍗?| 鍚庣 | 2026-08-01 | 鉁?|
+| 7 | 鎸夐挳鏉冮檺 | 鍏ㄩ儴鍒楄〃椤?Blade 娣诲姞 @can 鏉冮檺鎺у埗锛堢害 40 涓枃浠讹級 | 鍚庣 | 2026-08-01 | 鉁?|
+| 8 | 璺敱淇濇姢 | CheckPermission 涓棿浠?ROUTE_PERMISSION_MAP 鏀逛负涓夌骇鏍煎紡 .view | 鍚庣 | 2026-08-01 | 鉁?|
+| 9 | 璺敱淇濇姢 | dashboard 璺敱璁句负浠呴渶鐧诲綍锛坣ull锛夛紝涓嶅啀瑕佹眰鏉冮檺 | 鍚庣 | 2026-08-01 | 鉁?|
+| 10 | 瀹夎鍛戒护 | AdminInstallCommand 鍦?migrate:fresh 鍚庢竻 Spatie 鏉冮檺缂撳瓨锛岄伩鍏?Seeder 鍐茬獊 | 鍚庣 | 2026-08-01 | 鉁?|
 
-### 2 原有功能优化项
+### 2 鏈浼樺寲/閲嶆瀯
 
-1. FSD 文档清理 — 删除尾部 2293-2733 行重复残留内容（旧版 Livewire 组件/Model/路由规划重复段）（2026-07-29）
-
-### 3 BUG 修复记录
-
-无
-
-### 4 遗留待迭代需求（下一版本处理）
-
-| 序号 | 需求描述 | 优先级 | 备注 |
+| 搴忓彿 | 浼樺寲椤?| 璇存槑 | 瀹屾垚鏃堕棿 |
 | :--- | :--- | :--- | :--- |
-| 1 | Model 第5~15批（约39个） | P0 | 采购→订单→拣货→配送→差异损耗→退货→价格策略→财务→均摊+扩展+系统+微信 |
-| 2 | 安装 Redis PHP 扩展 | P1 | .env 目前用 file 驱动 |
+| 1 | SUPER_ADMIN_ONLY 鍒楄〃娓呯┖ | 涓嶅啀纭紪鐮佽秴绠′笓灞炶矾鐢憋紝鐢辨潈闄愯〃缁熶竴鎺у埗 | 2026-08-01 |
 
-### 5 完成统计
+### 3 Bug 淇
 
-| 维度 | 已完成 | 待开发 | 合计 |
+| 搴忓彿 | Bug 鎻忚堪 | 淇鏂规 | 瀹屾垚鏃堕棿 |
 | :--- | :--- | :--- | :--- |
-| 功能点 | 38 | 15 | 53 |
-| 数据库表 | 77（已建 Migration） | 0 | 77 |
-| Blade 组件 | 34+ | - | 34+ |
+| 1 | admin:fresh --seed 鎶?PermissionAlreadyExists | migrate:fresh 鍚?Spatie 缂撳瓨娈嬬暀锛屾坊鍔?forgetCachedPermissions() | 2026-08-01 |
+| 2 | 杩愯惀涓撳憳鐧诲綍 403 | dashboard 鏉冮檺鏄犲皠鏀逛负 null锛堜粎闇€鐧诲綍锛夛紝绉婚櫎 SUPER_ADMIN_ONLY 纭紪鐮?| 2026-08-01 |
+
+### 4 寰呬慨澶?Bug 娓呭崟
+
+| # | 涓ラ噸搴?| 鎻忚堪 | 褰卞搷鑼冨洿 | 棰勮鏀瑰姩 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 浣?| ~~鏂板缓瑙掕壊/鐢ㄦ埛鏃?dashboard 鏉冮檺鏈粯璁ゅ嬀閫墌~ | 鎵€鏈夐潪瓒呯瑙掕壊 | 鉁?宸蹭慨澶嶏細SystemDataSeeder 缁欐墍鏈夎鑹插垎閰?dashboard + 鏂板缓瑙掕壊榛樿甯?dashboard |
+
+### 5 楠岃瘉缁撴灉
+
+- admin:fresh --seed --force 鍏ㄦ祦绋嬮€氳繃锛坢igrate + SystemDataSeeder + DemoDataSeeder锛?
+- 瓒呯鐧诲綍锛氭墍鏈夎彍鍗曞彲瑙侊紝鎵€鏈夋寜閽彲瑙?
+- 杩愯惀涓撳憳锛坥perator 瑙掕壊 + org/product 鏉冮檺锛夛細浠呭彲瑙佸晢鍝佺鐞嗗拰缁勭粐涓讳綋鑿滃崟锛屾棤鏉冮檺璺敱 403 鎷︽埅
+
+---
+
+## V1.8.0 | 杩唬鍛ㄦ湡锛?026-07-31
+
+璐熻矗浜猴細椤圭洰璐熻矗浜?
+鍙備笌寮€鍙戜汉鍛橈細鍚庣寮€鍙?
+
+### 1 鏈鏂板鍔熻兘娓呭崟
+
+| 搴忓彿 | 鍔熻兘妯″潡 | 鍔熻兘鐐?| 寮€鍙戜汉 | 瀹屾垚鏃堕棿 | 鐘舵€?|
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 鏉冮檺涓棿浠?| CheckPermission 璺敱绾т腑闂翠欢锛氳矾鐢卞悕鈫掓潈闄愬悕鑷姩鏄犲皠锛宻uper_admin 鑷姩鏀捐 | 鍚庣 | 2026-07-31 | 鉁?|
+| 2 | 鏉冮檺涓棿浠?| 403 鑷畾涔夐敊璇〉闈?+ Livewire JSON 鍝嶅簲澶勭悊 | 鍚庣 | 2026-07-31 | 鉁?|
+| 3 | 鏉冮檺涓棿浠?| 瓒呯涓撳睘璺敱淇濇姢锛歳oles/permissions/approval-config/settings 浠?super_admin | 鍚庣 | 2026-07-31 | 鉁?|
+| 4 | 鏉冮檺涓棿浠?| 鍏ㄩ儴涓氬姟璺敱搴旂敤 auth + permission 涓棿浠?| 鍚庣 | 2026-07-31 | 鉁?|
+| 5 | 鏉冮檺涓棿浠?| 9 涓祴璇曡鑹插垎閰嶅熀纭€椤甸潰鏉冮檺 | 鍚庣 | 2026-07-31 | 鉁?|
+| 6 | 搴撳瓨鏈嶅姟 | InventoryService 缁熶竴搴撳瓨鏈嶅姟锛歴tockIn / stockOut / adjust锛孌B::transaction + lockForUpdate | 鍚庣 | 2026-07-31 | 鉁?|
+| 7 | 閲囪喘鏈嶅姟 | PurchaseService 閲囪喘鍗曞叏鐢熷懡鍛ㄦ湡锛歝reateFromItems / submit / ship / stockIn / complete / cancel | 鍚庣 | 2026-07-31 | 鉁?|
+| 8 | 閲囪喘鏈嶅姟 | 鍏ュ簱鎿嶄綔鑱斿姩 InventoryService.stockIn()锛屽樊寮傝璁板綍 discrepancy_reason | 鍚庣 | 2026-07-31 | 鉁?|
+| 9 | 閲囪喘鍗曡鎯呴〉 | PurchaseOrderDetail 缁勪欢锛氬熀鏈俊鎭崱鐗?+ 鏄庣粏鍒楄〃 + 鐘舵€佹祦杞寜閽?| 鍚庣 | 2026-07-31 | 鉁?|
+| 10 | 閲囪喘鍗曡鎯呴〉 | 娣诲姞/鍒犻櫎鏄庣粏寮圭獥 | 鍚庣 | 2026-07-31 | 鉁?|
+| 11 | 閲囪喘鍗曡鎯呴〉 | 鍏ュ簱鎿嶄綔寮圭獥锛氶€夋嫨浠撳簱 + 鎵规鍙?+ 閫愯濉啓瀹為檯鏁伴噺/閲戦/宸紓鍘熷洜 | 鍚庣 | 2026-07-31 | 鉁?|
+| 12 | 閲囪喘鍗曡鎯呴〉 | 鐘舵€佺‘璁ゅ脊绐楋紙鎻愪氦/鍙戣揣/瀹屾垚/鍙栨秷锛?| 鍚庣 | 2026-07-31 | 鉁?|
+| 13 | 閲囪喘鍗曞垪琛?| 鍗曞彿鍙偣鍑昏烦杞鎯呴〉锛岄噾棰濅娇鐢?money_format | 鍚庣 | 2026-07-31 | 鉁?|
+| 14 | 寰呴噰娓呭崟 | 鏂板"鎵归噺鐢熸垚閲囪喘鍗?鎸夐挳 + 纭寮圭獥锛岃皟鐢?PurchaseService::createFromItems() | 鍚庣 | 2026-07-31 | 鉁?|
+| 15 | 鏁版嵁搴?| purchase_orders 鏂板瀛楁锛歸arehouse_id / operator_id / ordered_at / shipped_at / stocked_at | 鍚庣 | 2026-07-31 | 鉁?|
+| 16 | 瀵煎叆瀵煎嚭 | WithExcelExport 鍛藉悕鍙傛暟 bug 淇锛歲uery: 鈫?queryOrData:锛屼笌 GenericExport 鏋勯€犲嚱鏁板榻?| 鍚庣 | 2026-07-31 | 鉁?|
+| 17 | 瀵煎叆瀵煎嚭 | downloadImportTemplate 鏀圭敤 getImportColumnMap() 鏍囩鐢熸垚妯℃澘锛屼笉鍐嶇敤 getExportableColumns() | 鍚庣 | 2026-07-31 | 鉁?|
+| 18 | 瀵煎叆瀵煎嚭 | GenericExport 閲戦 梅100 bug 淇锛氬簾寮冩鍒欑寽娴嬶紝鏀圭敤鍒楀畾涔?type=money 鏄惧紡澹版槑锛屆?000 | 鍚庣 | 2026-07-31 | 鉁?|
+| 19 | 瀵煎叆瀵煎嚭 | 3 涓菇鐏?閿欏悕瀛楁淇锛欿eywordList word鈫択eyword锛孲kuList price鈫抪urchase_price+wholesale_price锛孲kuBarcodeList barcode鈫抌arcode_code | 鍚庣 | 2026-07-31 | 鉁?|
+| 20 | 瀵煎叆瀵煎嚭 | 閲戦鍒楄ˉ type=money 鏍囪锛歋kuList / SkuSupplierList / PurchaseOrderList | 鍚庣 | 2026-07-31 | 鉁?|
+| 21 | 鍒楅厤缃?| WithColumnVisibility 琛?openColumnModal() 鏂规硶 | 鍚庣 | 2026-07-31 | 鉁?|
+| 22 | 鍒楅厤缃?| Blade 妯℃澘鍒楁覆鏌撲粠纭紪鐮佹敼涓?getAllColumns() 鍔ㄦ€佽幏鍙?| 鍚庣 | 2026-07-31 | 鉁?|
+| 23 | 鍒楅厤缃?| 鍒楅厤缃脊绐楁斁澶?max-w-lg + 鍙充笂瑙?X 鍏抽棴鎸夐挳锛涘鍑哄脊绐楁斁澶?max-w-lg | 鍚庣 | 2026-07-31 | 鉁?|
+| 24 | 鐢ㄦ埛鍋忓ソ | 鏂板 user_preferences 琛?+ UserPreference Model锛屽垪閰嶇疆浠?session 杩佺Щ鍒?DB 鎸佷箙鍖栵紙鐢ㄦ埛闅旂锛?| 鍚庣 | 2026-07-31 | 鉁?|
+| 25 | 缁勭粐涓讳綋 | drivers 琛ㄦ柊澧?remark 瀛楁 + Driver Model fillable 琛ュ厖 | 鍚庣 | 2026-07-31 | 鉁?|
+| 26 | 缁勭粐涓讳綋 | OrganizationDemoSeeder 琛ュ叏娴嬭瘯鏁版嵁锛坰uppliers 琛?bank/settlement_cycle/remark锛沵erchants 琛?delivery_route_id/credit_limit/remark锛沝rivers 琛?id_card/remark锛?| 鍚庣 | 2026-07-31 | 鉁?|
+| 27 | 瀵煎叆瀵煎嚭 | SupplierList 琛ュ厖 bank_name/bank_account 鍒板垪瀹氫箟銆侀粯璁ゅ垪銆佸鍑哄洖璋?| 鍚庣 | 2026-07-31 | 鉁?|
+
+### 2 鏈浼樺寲/閲嶆瀯
+
+| 搴忓彿 | 妯″潡 | 浼樺寲鍐呭 | 寮€鍙戜汉 | 瀹屾垚鏃堕棿 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | PurchaseOrder Model | 鏂板鍏宠仈锛歸arehouse() / operator()锛屾柊澧炴柟娉曪細generateOrderNo() / canTransitionTo() / recalculateAmounts() | 鍚庣 | 2026-07-31 |
+| 2 | PurchaseOrderList | 鍒涘缓鏃惰嚜鍔ㄥ～鍏?operator_id / ordered_at锛屼娇鐢?Model 鐨?generateOrderNo() | 鍚庣 | 2026-07-31 |
+| 3 | WithColumnVisibility | 鍒楅厤缃瓨鍌ㄤ粠 session 杩佺Щ鍒?DB锛坲ser_preferences 琛級锛屾湭鐧诲綍鐢ㄦ埛闄嶇骇 session | 鍚庣 | 2026-07-31 |
+| 4 | GenericExport | 閲戦杞崲搴熷純姝ｅ垯鐚滄祴锛屾敼鐢ㄥ垪瀹氫箟 type=money 鏄惧紡澹版槑 | 鍚庣 | 2026-07-31 |
+
+### 3 鏈淇 Bug
+
+鏃犮€?
+
+### 4 鏁版嵁搴撳彉鏇?
+
+| Migration 鏂囦欢鍚?| 鎿嶄綔绫诲瀷 | 娑夊強琛?| 璇存槑 |
+| :--- | :--- | :--- | :--- |
+| 2026_07_31_000001_add_fields_to_purchase_orders | ALTER | purchase_orders | 鏂板 warehouse_id / operator_id / ordered_at / shipped_at / stocked_at 瀛楁 + 澶栭敭 |
+| 2026_07_31_085412_create_user_preferences_table | CREATE | user_preferences | 鐢ㄦ埛鍋忓ソ琛紙user_id + pref_key 鍞竴绱㈠紩锛宲ref_value JSON锛?|
+
+### 5 褰卞搷鑼冨洿
+
+| 褰卞搷鏂囦欢 | 鍙樻洿绫诲瀷 |
+| :--- | :--- |
+| app/Http/Middleware/CheckPermission.php | 鏂板锛堣矾鐢辨潈闄愪腑闂翠欢锛?|
+| app/Services/InventoryService.php | 鏂板锛堢粺涓€搴撳瓨鏈嶅姟锛?|
+| app/Services/PurchaseService.php | 鏂板锛堥噰璐崟鏈嶅姟锛?|
+| app/Livewire/Purchase/PurchaseOrderDetail.php | 鏂板锛堥噰璐崟璇︽儏椤电粍浠讹級 |
+| resources/views/livewire/purchase/purchase-order-detail.blade.php | 鏂板锛堣鎯呴〉瑙嗗浘锛?|
+| resources/views/errors/403.blade.php | 鏂板锛?03 椤甸潰锛?|
+| database/migrations/2026_07_31_000001_add_fields_to_purchase_orders.php | 鏂板锛圡igration锛?|
+| database/migrations/2026_07_31_085412_create_user_preferences_table.php | 鏂板锛堢敤鎴峰亸濂借〃 Migration锛?|
+| app/Models/UserPreference.php | 鏂板锛堢敤鎴峰亸濂?Model锛?|
+| bootstrap/app.php | 淇敼锛堜腑闂翠欢娉ㄥ唽 + AuthorizationException 娓叉煋锛?|
+| routes/web.php | 淇敼锛堟柊澧?detail 璺敱 + auth+permission 涓棿浠讹級 |
+| app/Models/PurchaseOrder.php | 淇敼锛堟柊澧炲瓧娈?鍏宠仈/鏂规硶锛?|
+| app/Models/Driver.php | 淇敼锛坒illable 琛?remark锛?|
+| app/Livewire/Purchase/PurchaseOrderList.php | 淇敼锛圓uth::id / generateOrderNo锛?|
+| app/Livewire/Org/SupplierList.php | 淇敼锛堝垪瀹氫箟琛ュ厖 bank_name/bank_account锛?|
+| app/Livewire/Product/KeywordList.php | 淇敼锛坵ord 鈫?keyword锛?|
+| app/Livewire/Product/SkuList.php | 淇敼锛坧rice 鈫?purchase_price+wholesale_price锛宼ype=money锛?|
+| app/Livewire/Product/SkuSupplierList.php | 淇敼锛坧urchase_price 鍔?type=money锛?|
+| app/Livewire/Product/SkuBarcodeList.php | 淇敼锛坆arcode 鈫?barcode_code锛?|
+| app/Livewire/Traits/WithColumnVisibility.php | 淇敼锛坰ession 鈫?DB 鎸佷箙鍖?+ openColumnModal锛?|
+| app/Livewire/Traits/WithExcelExport.php | 淇敼锛坬ueryOrData 鍛藉悕鍙傛暟 + moneyColumns + 妯℃澘淇锛?|
+| app/Exports/GenericExport.php | 淇敼锛坱ype=money 鏄惧紡澹版槑锛岄噾棰?梅1000锛?|
+| resources/views/livewire/purchase/purchase-order-list.blade.php | 淇敼锛堣鎯呴摼鎺?/ money_format锛?|
+| resources/views/livewire/purchase/purchase-item-list.blade.php | 淇敼锛堟壒閲忕敓鎴愭寜閽?寮圭獥锛?|
+| resources/views/partials/column-modal.blade.php | 淇敼锛坢ax-w-lg + X 鍏抽棴鎸夐挳锛?|
+| resources/views/partials/export-modal.blade.php | 淇敼锛坢ax-w-lg锛?|
+| database/seeders/Demo/OrganizationDemoSeeder.php | 淇敼锛堣ˉ鍏?suppliers/merchants/drivers 娴嬭瘯鏁版嵁锛?|
+
+### 6 鍏抽敭鎶€鏈褰?
+
+**閲囪喘鍗曠姸鎬佹祦杞璁★細**
+- 鐘舵€佹満锛?寰呮帴鍗曗啋2澶囪揣涓啋3宸插彂璐р啋4宸插叆搴撯啋5瀹屾垚锛?鍙栨秷
+- canTransitionTo() 鏂规硶鎺у埗鍚堟硶娴佽浆璺緞锛屼笉鍏佽璺ㄧ姸鎬佽烦杞?
+- 鍙栨秷鎿嶄綔浠呴檺寰呮帴鍗?澶囪揣涓?宸插彂璐х姸鎬?
+
+**鍏ュ簱鎿嶄綔鏍稿績娴佺▼锛?*
+- 閲囪喘鍗曡鎯呴〉 鈫?鍏ュ簱寮圭獥 鈫?閫夋嫨浠撳簱+鎵规鍙?鈫?閫愯濉啓瀹為檯鏁伴噺/閲戦 鈫?鎻愪氦
+- PurchaseService.stockIn() 鍦?DB::transaction 鍐咃細鏇存柊鏄庣粏瀹為檯鍊?鈫?InventoryService.stockIn() 脳 N 鈫?閲嶇畻閲戦
+- 宸紓琛岃嚜鍔ㄩ珮浜紙姗欒壊锛夛紝宸紓鍘熷洜鍙€夊～鍐?
+
+**搴撳瓨鏈嶅姟璁捐鍘熷垯锛?*
+- 鎵€鏈夊簱瀛樺彉鍔ㄥ繀椤婚€氳繃 InventoryService 鎵ц锛岀姝㈢洿鎺ユ搷浣?Inventory 妯″瀷
+- 鍏ュ簱锛氭煡鎵炬垨鍒涘缓锛坵arehouse_id + sku_id + batch_no 鍞竴锛夛紝increment + 鍐欐棩蹇?
+- 鍑哄簱锛欶IFO 鏁堟湡浼樺厛锛屽簱瀛樹笉瓒虫姏寮傚父
+- 璋冩暣锛氬樊棰濊皟鏁达紝姝ｆ暟=鎶ユ孩锛岃礋鏁?璋冩暣
+
+**瀵煎叆瀵煎嚭鏋舵瀯淇锛?*
+- 閲戦鍒楃粺涓€鐢?`'type' => 'money'` 鏄惧紡澹版槑锛孏enericExport 閫氳繃 `$moneyColumns` 鍙傛暟鏀堕泦锛岀粺涓€ 梅1000
+- 瀵煎叆妯℃澘琛ㄥご缁熶竴浠?`getImportColumnMap()` 鏍囩鐢熸垚锛屼笌瀵煎叆鏄犲皠淇濇寔涓€鑷?
+- WithExcelExport 鍛藉悕鍙傛暟淇涓?`queryOrData:`锛屼笌 GenericExport 鏋勯€犲嚱鏁板榻?
+
+**鐢ㄦ埛鍋忓ソ鎸佷箙鍖栵細**
+- user_preferences 琛紙user_id + pref_key 鍞竴绱㈠紩锛夛紝pref_value 瀛?JSON
+- WithColumnVisibility 浼樺厛浠?DB 璇诲彇锛圓uth::user 闅旂锛夛紝鏈櫥褰曢檷绾?session
+- UserPreference Model 鎻愪緵 getPreference()/setPreference() 闈欐€佹柟娉?
+
+---
+
+## V1.7.0 | 杩唬鍛ㄦ湡锛?026-07-31
+
+璐熻矗浜猴細椤圭洰璐熻矗浜?
+鍙備笌寮€鍙戜汉鍛橈細鍚庣寮€鍙?
+
+### 1 鏈鏂板鍔熻兘娓呭崟
+
+| 搴忓彿 | 鍔熻兘妯″潡 | 鍔熻兘鐐?| 寮€鍙戜汉 | 瀹屾垚鏃堕棿 | 鐘舵€?|
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | Artisan 鍛戒护 | 鏂板 `admin:create-admin` 鍛戒护锛堟浛浠ｅ簾寮冪殑 `admin:make-user`锛夛紝鏀寔 `--name=` `--email=` `--password=` `--role=super_admin` `--guard=web` | 鍚庣 | 2026-07-31 | 鉁?|
+| 2 | Artisan 鍛戒护 | 鏂板 `admin:create-user` 鍛戒护锛屾敮鎸?`--name=` `--email=` `--password=` `--role=` `--guard=web` `--active=1` | 鍚庣 | 2026-07-31 | 鉁?|
+| 3 | Artisan 鍛戒护 | `admin:seed` 澧炲己锛歚--demo=MODULE` 鏀寔鍙€夋ā鍧楀弬鏁帮紙涓嶄紶=鍏ㄩ儴娴嬭瘯鏁版嵁锛屼紶鍊?鎸囧畾妯″潡锛夛紱鏂板 `--list` 閫夐」鍒楀嚭鍙敤 Seeder 妯″潡 | 鍚庣 | 2026-07-31 | 鉁?|
+| 4 | Seeder 浣撶郴 | 鎸夋ā鍧楁媶鍒嗘祴璇曟暟鎹細DemoDataSeeder 鏀逛负鎬诲叆鍙ｏ紝鏂板 Demo/ 瀛愮洰褰?11 涓垎妯″潡 Seeder锛堝惈 TestUsersDemoSeeder锛?| 鍚庣 | 2026-07-31 | 鉁?|
+| 5 | Seeder 浣撶郴 | SystemDataSeeder 涓嶅啀鍒涘缓 `superadmin` 娴嬭瘯鐢ㄦ埛锛屾敼涓虹粰 Migration 鍒涘缓鐨?`seeding` 璐︽埛鍒嗛厤 super_admin 瑙掕壊 + 鍏ㄩ儴 140 鏉冮檺 | 鍚庣 | 2026-07-31 | 鉁?|
+| 6 | Seeder 浣撶郴 | 鍙屽叆鍙ｅ吋瀹癸細Seeder 鍚屾椂鏀寔 `php artisan db:seed` 鍜?`php artisan admin:seed` 璋冪敤 | 鍚庣 | 2026-07-31 | 鉁?|
+| 7 | 鏂囨。 | 03_DB 鏂板绗?9 绔犮€孲eeder 浣撶郴璁捐銆嶏紙璁捐鍘熷垯/鐩綍缁撴瀯/鏍稿績vs娴嬭瘯瀵圭収/妯″潡渚濊禆/鍙屽叆鍙?妯″潡娓呭崟閫熸煡锛?| 鍚庣 | 2026-07-31 | 鉁?|
+| 8 | 鏂囨。 | 05_Setup 鏇存柊绗?9/10/12 绔狅紙鍒濆鍖栨暟鎹垎灞傝鏄?鍛戒护閫熸煡琛ㄦ洿鏂?閮ㄧ讲妫€鏌ユ竻鍗曞瘑鐮佷慨姝ｏ級 | 鍚庣 | 2026-07-31 | 鉁?|
+| 9 | 鏂囨。 | 06_Log 鏂板 V1.7.0 杩唬璁板綍 | 鍚庣 | 2026-07-31 | 鉁?|
+
+### 2 鏈浼樺寲/閲嶆瀯
+
+| 搴忓彿 | 妯″潡 | 浼樺寲鍐呭 | 寮€鍙戜汉 | 瀹屾垚鏃堕棿 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | Artisan 鍛戒护 | 搴熷純 `admin:make-user`锛岀粺涓€鐢?`admin:create-admin` + `admin:create-user` 鏇夸唬 | 鍚庣 | 2026-07-31 |
+| 2 | Seeder 浣撶郴 | DemoDataSeeder 瑙ｈ€︼細绉婚櫎瀵?SystemDataSeeder 鐨勭‖璋冪敤锛屾祴璇曟暟鎹彲鐙珛杩愯 | 鍚庣 | 2026-07-31 |
+| 3 | Seeder 浣撶郴 | 娴嬭瘯鏁版嵁鎸夋ā鍧楁媶鍒嗗埌 Demo/ 瀛愮洰褰曪紝鏀寔 `--demo=organization` 绛夊垎妯″潡鍗曠嫭杩愯 | 鍚庣 | 2026-07-31 |
+
+### 3 鏈淇 Bug
+
+鏃犮€?
+
+### 4 鏁版嵁搴撳彉鏇?
+
+鏃狅紙鏈鏈柊澧?Migration锛屼粎璋冩暣 Seeder 鍜屽懡浠ゅ眰锛夈€?
+
+### 5 褰卞搷鑼冨洿
+
+| 褰卞搷鏂囦欢 | 鍙樻洿绫诲瀷 |
+| :--- | :--- |
+| app/Console/Commands/AdminSeedCommand.php | 淇敼锛堟柊澧?--demo=MODULE / --list 閫夐」锛?|
+| app/Console/Commands/AdminCreateAdminCommand.php | 鏂板锛堟浛浠?AdminMakeUserCommand锛?|
+| app/Console/Commands/AdminCreateUserCommand.php | 淇敼锛堝寮洪€夐」锛?-role / --guard / --active锛?|
+| app/Console/Commands/AdminMakeUserCommand.php | 搴熷純锛堟爣璁?@deprecated锛屾寚寮曞埌 admin:create-admin锛?|
+| database/seeders/SystemDataSeeder.php | 閲嶅啓锛堝幓鎺?superadmin 鍒涘缓锛屾敼涓虹粰 seeding 鍒嗛厤瑙掕壊鏉冮檺锛?|
+| database/seeders/DemoDataSeeder.php | 閲嶅啓锛堟敼涓烘€诲叆鍙ｏ紝璋冪敤 Demo/ 涓嬪悇鍒嗘ā鍧楋級 |
+| database/seeders/Demo/OrganizationDemoSeeder.php | 鏂板锛堢粍缁囦富浣撴祴璇曟暟鎹級 |
+| database/seeders/Demo/ProductDemoSeeder.php | 鏂板锛堝晢鍝佺鐞嗘祴璇曟暟鎹級 |
+| database/seeders/Demo/PurchaseDemoSeeder.php | 鏂板锛堥噰璐鐞嗘祴璇曟暟鎹級 |
+| database/seeders/Demo/OrderDemoSeeder.php | 鏂板锛堣鍗曠鐞嗘祴璇曟暟鎹級 |
+| database/seeders/Demo/InventoryDemoSeeder.php | 鏂板锛堝簱瀛樼鐞嗘祴璇曟暟鎹級 |
+| database/seeders/Demo/DeliveryDemoSeeder.php | 鏂板锛堥厤閫佺鐞嗘祴璇曟暟鎹級 |
+| database/seeders/Demo/FinanceDemoSeeder.php | 鏂板锛堣储鍔″璐︽祴璇曟暟鎹級 |
+| database/seeders/Demo/PriceDemoSeeder.php | 鏂板锛堜环鏍肩瓥鐣ユ祴璇曟暟鎹級 |
+| database/seeders/Demo/LossDemoSeeder.php | 鏂板锛堟崯鑰楃鐞嗘祴璇曟暟鎹級 |
+| database/seeders/Demo/SystemDemoSeeder.php | 鏂板锛堢郴缁熸敮鎾戞祴璇曟暟鎹級 |
+| database/seeders/DatabaseSeeder.php | 淇敼锛堢‘淇濆弻鍏ュ彛鍏煎锛?|
+| docs/03_DB_鏁版嵁搴撹璁?鏁版嵁瀛楀吀.md | 淇敼锛堟柊澧炵 9 绔?Seeder 浣撶郴璁捐锛?|
+| docs/05_Setup_瀹夎閮ㄧ讲閰嶇疆鎵嬪唽.md | 淇敼锛堢 9/10/12 绔犳洿鏂帮級 |
+| docs/06_Log_寮€鍙戣凯浠ｆ棩蹇?md | 淇敼锛堟柊澧?V1.7.0 杩唬璁板綍锛?|
+
+### 6 鍏抽敭鎶€鏈褰?
+
+**Seeder 鍒嗘ā鍧楄璁★細**
+- 璁捐鍘熷垯锛氭牳蹇冩暟鎹紙SystemDataSeeder锛変笌娴嬭瘯鏁版嵁锛圖emoDataSeeder + Demo/*.php锛変弗鏍煎垎绂?
+- 鏍稿績鏁版嵁鍖呭惈锛? 瑙掕壊 + 140 鏉冮檺鏍?+ seeding 璐︽埛瑙掕壊鍒嗛厤 + 19 瀹℃牳鑺傜偣閰嶇疆 + 24 鏉＄郴缁熼厤缃?
+- 娴嬭瘯鏁版嵁鎸変笟鍔℃ā鍧楁媶鍒嗕负 10 涓嫭绔?Seeder锛屾斁鍦?`database/seeders/Demo/` 瀛愮洰褰?
+- 妯″潡渚濊禆椤哄簭锛歰rganization 鈫?product 鈫?purchase 鈫?order 鈫?inventory 鈫?delivery 鈫?finance 鈫?price 鈫?loss 鈫?system-demo
+- 鍙屽叆鍙ｅ吋瀹癸細`php artisan db:seed --class=DemoDataSeeder` 绛変环浜?`php artisan admin:seed --demo`
+- `admin:seed --demo=organization` 鍙崟鐙繍琛屾寚瀹氭ā鍧楁祴璇曟暟鎹?
+- `admin:seed --list` 鍒楀嚭鎵€鏈夊彲鐢?Seeder 妯″潡鍙婂叾璇存槑
+
+**Migration vs Seeder 鑱岃矗鍒掑垎锛?*
+- Migration 8.1锛氬垱寤洪粯璁ょ鐞嗗憳 `seeding` 璐︽埛 + 9 涓郴缁熻鑹?+ model_has_roles 鍏宠仈
+- SystemDataSeeder锛氫负 `seeding` 璐︽埛鍒嗛厤 super_admin 瑙掕壊 + 鍏ㄩ儴 140 鏉冮檺锛坰yncPermissions锛?
+- 鐢熶骇鐜鍙渶杩愯 `migrate` + `admin:seed --system`锛屽嵆鍙幏寰楀畬鏁村彲鐢ㄧ郴缁?
+
+---
+
+## V1.6.5 | 杩唬鍛ㄦ湡锛?026-07-30
+
+璐熻矗浜猴細椤圭洰璐熻矗浜?
+鍙備笌寮€鍙戜汉鍛橈細鍚庣寮€鍙戙€佸墠绔紑鍙?
+
+### 1 鏈鏂板鍔熻兘娓呭崟
+
+| 搴忓彿 | 鍔熻兘妯″潡 | 鍔熻兘鐐?| 寮€鍙戜汉 | 瀹屾垚鏃堕棿 | 鐘舵€?|
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | Artisan 鍛戒护 | 鏂板 `admin:seed` 鍛戒护锛屾敮鎸?`--fresh`/`--demo`/`--system`/`--force` 閫夐」锛屽彲鍗曠嫭杩愯绉嶅瓙鏁版嵁 | 鍚庣 | 2026-07-30 | 鉁?|
+
+### 2 鏈浼樺寲/閲嶆瀯
+
+| 搴忓彿 | 妯″潡 | 浼樺寲鍐呭 | 寮€鍙戜汉 | 瀹屾垚鏃堕棿 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 鏉冮檺鍒嗛厤寮圭獥 | 涓夋€?checkbox 褰诲簳閲嶆瀯锛氭潈闄愭爲鏁版嵁缂撳瓨鍒?`$permissionTreeData` 缁勪欢灞炴€э紝閬垮厤姣忔 toggle 鏌ユ暟鎹簱 | 鍚庣 | 2026-07-30 |
+| 2 | 鏉冮檺鍒嗛厤寮圭獥 | 妯″潡/椤甸潰 checkbox 鏀逛负 `wire:click` + `@checked` + Alpine `x-effect` 椹卞姩 indeterminate 涓夋€?| 鍓嶇 | 2026-07-30 |
+| 3 | 鏉冮檺鍒嗛厤寮圭獥 | 鎸夐挳绾?checkbox 鏀逛负 `wire:click="togglePermission(id)"` + `@checked`锛屽幓鎺?`wire:model.live` | 鍓嶇 | 2026-07-30 |
+| 4 | Git 绠＄悊 | `database/database.sqlite` 鍔犲叆鐗堟湰鎺у埗 | 鍚庣 | 2026-07-30 |
+| 5 | Composer | 娓呯悊 `composer.json` 鍐椾綑鑴氭湰 | 鍚庣 | 2026-07-30 |
+
+### 3 鏈淇 Bug
+
+| 搴忓彿 | Bug鎻忚堪 | 淇鍐呭 | 寮€鍙戜汉 | 瀹屾垚鏃堕棿 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 鏉冮檺鍒嗛厤寮圭獥妯″潡/椤甸潰 checkbox 涓嶅弽鏄犲瓙鏉冮檺閫変腑鐘舵€?| `@checked` 鏀逛负璋冪敤 `getModuleState()`/`getPageState()`锛岀敤 `array_intersect` 璁＄畻浜ら泦姣斾緥鍒ゆ柇 | 鍚庣 | 2026-07-30 |
+| 2 | 鍘熺敓 checkbox indeterminate 鍦?Livewire morphing 鍚庝笉閲嶆柊璁剧疆 | 鏀圭敤 Alpine `x-effect` 鐩戝惉 checked 鐘舵€佽嚜鍔ㄨ缃?indeterminate | 鍓嶇 | 2026-07-30 |
+| 3 | 鎸夐挳绾?`wire:model.live` 鍐欏叆瀛楃涓茬被鍨?ID 涓?PHP 绔?int 绫诲瀷姣旇緝涓嶄竴鑷?| 鏀逛负 `wire:click="togglePermission(id)"` + `@checked`锛孭HP 绔粺涓€鐢?int 姣旇緝 | 鍚庣 | 2026-07-30 |
+
+### 4 鏁版嵁搴撳彉鏇?
+
+鏃犮€?
+
+### 5 褰卞搷鑼冨洿
+
+| 褰卞搷鏂囦欢 | 鍙樻洿绫诲瀷 |
+| :--- | :--- |
+| app/Console/Commands/AdminSeedCommand.php | 鏂板锛堢嫭绔?seed 鍛戒护锛?|
+| app/Livewire/User/RoleList.php | 淇敼锛坧ermissionTreeData 缂撳瓨 + toggleModulePermissions/togglePagePermissions/togglePermission + getModuleState/getPageState锛?|
+| resources/views/livewire/user/role-list.blade.php | 淇敼锛坈heckbox + `@checked` + Alpine `x-effect` indeterminate锛?|
+| database/database.sqlite | 鏂板锛堝姞鍏?git 鐗堟湰鎺у埗锛?|
+| composer.json | 淇敼锛堟竻鐞嗗啑浣欒剼鏈級 |
+| docs/05_Setup_瀹夎閮ㄧ讲閰嶇疆鎵嬪唽.md | 淇敼锛堣ˉ鍏?admin:seed 鍛戒护锛?|
+| docs/06_Log_寮€鍙戣凯浠ｆ棩蹇?md | 淇敼锛堣ˉ鍏?V1.6.5锛?|
+| docs/08_鐢ㄦ埛浣跨敤鎵嬪唽.md | 淇敼锛堟洿鏂扮増鏈彿 + 鏉冮檺寮圭獥涓夋€佽鏄庯級 |
+
+### 6 鍏抽敭鎶€鏈褰?
+
+**鏉冮檺鏍戜笁鎬?checkbox 閲嶆瀯锛?*
+- 鏍瑰洜锛氬師瀹炵幇瀛樺湪涓変釜闂锛?1) `@checked` 鍙鏌ユā鍧?椤甸潰鑷韩 ID 涓嶅弽鏄犲瓙鏉冮檺鐘舵€侊紱(2) 鍘熺敓 checkbox indeterminate 鐢?`x-init` 璁剧疆锛孡ivewire morphing 鍚庝笉閲嶆柊鎵ц锛?3) `wire:model.live` 鍐欏叆瀛楃涓茬被鍨?ID 涓?PHP 绔?int 姣旇緝涓嶄竴鑷?
+- 淇鏂规锛?
+  1. 鏉冮檺鏍戞暟鎹紦瀛樺埌 `$permissionTreeData`锛岄伩鍏嶆瘡娆?toggle 鏌ユ暟鎹簱
+  2. 妯″潡/椤甸潰 checkbox 鐢?`wire:click` + `@checked(getModuleState($module_id))` / `@checked(getPageState($page_id))`锛岄€氳繃 `array_intersect` 璁＄畻浜ら泦姣斾緥鍒ゆ柇閫変腑/鍗婇€?鏈€?
+  3. Alpine `x-effect` 鐩戝惉 checked 鍙樺寲鑷姩璁剧疆 `el.indeterminate`
+  4. 鎸夐挳绾?checkbox 鏀逛负 `wire:click="togglePermission($id)"` + `@checked(in_array($id, $selectedPermissions))`
+
+---
+
+## V1.6.4 | 杩唬鍛ㄦ湡锛?026-07-30
+
+璐熻矗浜猴細椤圭洰璐熻矗浜?
+鍙備笌寮€鍙戜汉鍛橈細鍚庣寮€鍙戙€佸墠绔紑鍙?
+
+### 1 鏈鏂板鍔熻兘娓呭崟
+
+| 搴忓彿 | 鍔熻兘妯″潡 | 鍔熻兘鐐?| 寮€鍙戜汉 | 瀹屾垚鏃堕棿 | 鐘舵€?|
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 鍏ㄥ眬 | 鏂板 `WithToast` Trait锛岀粺涓€ Toast 娑堟伅鍒嗗彂鎺ュ彛 | 鍚庣 | 2026-07-30 | 鉁?|
+| 2 | 鍏ㄥ眬 | 鏂板 `docs/09_寮€鍙戝墠鎸囧鎵嬪唽.md`锛屾眹鎬绘墍鏈夊紑鍙戣鑼?| 鍚庣 | 2026-07-30 | 鉁?|
+
+### 2 鏈浼樺寲/閲嶆瀯
+
+| 搴忓彿 | 妯″潡 | 浼樺寲鍐呭 | 寮€鍙戜汉 | 瀹屾垚鏃堕棿 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 鍏ㄥ眬锛?9涓粍浠?3涓猅rait锛?| 鎵€鏈?`dispatch('toast', message: '...')` 鏇挎崲涓?`WithToast` 鏂规硶锛坄toastSuccess`/`toastError`/`toastWarning`/`toastInfo`锛?| 鍚庣 | 2026-07-30 |
+
+### 3 鏈淇 Bug
+
+| 搴忓彿 | Bug鎻忚堪 | 淇鍐呭 | 寮€鍙戜汉 | 瀹屾垚鏃堕棿 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 鏉冮檺鍒嗛厤寮圭獥鐐瑰嚮濮嬬粓鍏ㄩ€夛紝鏃犳硶鍙栨秷鍕鹃€?| 妯″潡/椤甸潰 checkbox 鍘绘帀 `wire:model.live`锛屽彧淇濈暀 `wire:click` + `@checked()`锛岄伩鍏嶄袱鑰呭啿绐?| 鍓嶇 | 2026-07-30 |
+| 2 | 鍏ㄩ儴妯″潡 Toast 鎻愮ず鏃犳枃瀛?| 鍒涘缓 `WithToast` Trait 缁熶竴浣跨敤 `title` 瀛楁锛屾壒閲忔浛鎹?49 涓粍浠舵枃浠?| 鍚庣 | 2026-07-30 |
+
+### 4 鏁版嵁搴撳彉鏇?
+
+鏃犮€?
+
+### 5 褰卞搷鑼冨洿
+
+| 褰卞搷鏂囦欢 | 鍙樻洿绫诲瀷 |
+| :--- | :--- |
+| app/Livewire/Traits/WithToast.php | 鏂板锛圱oast 缁熶竴 Trait锛?|
+| app/Livewire/Traits/WithRowSelection.php | 淇敼锛坲se WithToast; + dispatch 鏇挎崲锛?|
+| app/Livewire/Traits/WithExcelExport.php | 淇敼锛坲se WithToast; + dispatch 鏇挎崲锛?|
+| app/Livewire/Traits/WithExcelImport.php | 淇敼锛坲se WithToast; + dispatch 鏇挎崲锛?|
+| 46 涓?Livewire 缁勪欢鏂囦欢 | 淇敼锛堟坊鍔?use WithToast + dispatch 鏇挎崲涓?toastSuccess/Error/Warning/Info锛?|
+| resources/views/livewire/user/role-list.blade.php | 淇敼锛堟潈闄?checkbox 淇锛?|
+| docs/09_寮€鍙戝墠鎸囧鎵嬪唽.md | 鏂板锛堝紑鍙戣鑼冩眹鎬伙級 |
+
+### 6 鍏抽敭鎶€鏈褰?
+
+**checkbox 鐨?wire:model.live 涓?wire:click 鍐茬獊锛?*
+- 鏍瑰洜锛歝heckbox 鍚屾椂缁戝畾 `wire:model.live="formArray"` 鍜?`wire:click="toggleMethod()"` 鏃讹紝Livewire 鍏堟墽琛?model 缁戝畾鑷姩鍒囨崲鍊硷紝鍐嶆墽琛?click 鏂规硶锛屽鑷磋嚜瀹氫箟閫昏緫鍩轰簬宸蹭慨鏀圭殑鏁扮粍鍒ゆ柇
+- 淇锛氳仈鍔?checkbox 鍙敤 `wire:click` + `@checked()` 鎵嬪姩鎺у埗閫変腑鐘舵€?
+
+**Toast 浜嬩欢瀛楁涓嶅尮閰嶏細**
+- 鏍瑰洜锛氬悗绔?`dispatch('toast', message: '...')` 鍙戝嚭鐨?detail 瀛楁涓?`message`锛屽墠绔?`$toast.show()` 鏈熸湜 `title` 瀛楁
+- 淇锛氬垱寤?`WithToast` Trait 缁熶竴浣跨敤 `title` + `description` + `type` 瀛楁
+
+---
+
+## V1.6.3 | 杩唬鍛ㄦ湡锛?026-07-30
+
+璐熻矗浜猴細椤圭洰璐熻矗浜?
+鍙備笌寮€鍙戜汉鍛橈細鍚庣寮€鍙戙€佸墠绔紑鍙?
+
+### 1 鏈鏂板鍔熻兘娓呭崟
+
+鏃犳柊澧炲姛鑳芥ā鍧椼€?
+
+### 2 鏈浼樺寲/閲嶆瀯
+
+| 搴忓彿 | 妯″潡 | 浼樺寲鍐呭 | 寮€鍙戜汉 | 瀹屾垚鏃堕棿 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 瑙掕壊绠＄悊 | 鏉冮檺鍒嗛厤寮圭獥鏀逛负琛ㄦ牸褰㈠紡锛?鍒楋細澶嶉€夋銆佹ā鍧椼€侀〉闈€佹寜閽級锛屽脊绐楀姞瀹藉埌 max-w-4xl | 鍓嶇 | 2026-07-30 |
+| 2 | 瑙掕壊绠＄悊 | 妯″潡鍕鹃€夎嚜鍔ㄥ叏閫夊瓙鏉冮檺锛坱oggleModulePermissions锛夛紝椤甸潰鍕鹃€夎嚜鍔ㄥ叏閫夊瓙鎸夐挳锛坱ogglePagePermissions锛?| 鍚庣 | 2026-07-30 |
+
+### 3 鏈淇 Bug
+
+| 搴忓彿 | Bug鎻忚堪 | 淇鍐呭 | 寮€鍙戜汉 | 瀹屾垚鏃堕棿 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 宸茬櫥褰曠敤鎴疯闂?/login 涓嶈嚜鍔ㄨ烦杞?| Login 缁勪欢 mount() 澧炲姞 auth()->check() 璺宠浆鍒?dashboard | 鍚庣 | 2026-07-30 |
+| 2 | Toast 鎻愮ず涓嶆樉绀烘枃瀛?| app.js 浜嬩欢鐩戝惉澧炲姞 message鈫抰itle 鏄犲皠 | 鍓嶇 | 2026-07-30 |
+
+### 4 鏁版嵁搴撳彉鏇?
+
+鏃犮€?
+
+### 5 褰卞搷鑼冨洿
+
+| 褰卞搷鏂囦欢 | 鍙樻洿绫诲瀷 |
+| :--- | :--- |
+| app/Livewire/Auth/Login.php | 淇敼锛坢ount 澧炲姞宸茬櫥褰曡烦杞級 |
+| resources/js/app.js | 淇敼锛坱oast 浜嬩欢鐩戝惉 message鈫抰itle 鏄犲皠锛?|
+| app/Livewire/User/RoleList.php | 淇敼锛堟柊澧?toggleModulePermissions/togglePagePermissions锛?|
+| resources/views/livewire/user/role-list.blade.php | 淇敼锛堟潈闄愬脊绐楁敼琛ㄦ牸褰㈠紡锛?|
+| public/build/ | 閲嶅缓锛圴ite 鏋勫缓鏇存柊锛?|
+
+---
+
+## V1.6.2 | 杩唬鍛ㄦ湡锛?026-07-30
+
+璐熻矗浜猴細椤圭洰璐熻矗浜?
+鍙備笌寮€鍙戜汉鍛橈細鍚庣寮€鍙戙€佸墠绔紑鍙?
+
+### 1 鏈鏂板鍔熻兘娓呭崟
+
+| 搴忓彿 | 鍔熻兘妯″潡 | 鍔熻兘鐐?| 寮€鍙戜汉 | 瀹屾垚鏃堕棿 | 鐘舵€?|
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 鏉冮檺绠＄悊 | 绫诲瀷涓嬫媺绛涢€夛紙鍏ㄩ儴/妯″潡/椤甸潰/鎸夐挳锛?| 鍚庣 | 2026-07-30 | 鉁?|
+| 2 | 鏉冮檺绠＄悊 | 妯″潡涓嬫媺绛涢€夛紙鍏ㄩ儴/鎸囧畾妯″潡锛屽惈瀛愮骇椤甸潰+鎸夐挳锛?| 鍚庣 | 2026-07-30 | 鉁?|
+| 3 | 鏉冮檺绠＄悊 | 绫诲瀷+妯″潡缁勫悎绛涢€?+ 閲嶇疆鎸夐挳 | 鍚庣 | 2026-07-30 | 鉁?|
+
+### 2 鏈浼樺寲/閲嶆瀯
+
+鏃犮€?
+
+### 3 鏈淇 Bug
+
+| 搴忓彿 | Bug鎻忚堪 | 淇鍐呭 | 寮€鍙戜汉 | 瀹屾垚鏃堕棿 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | UTF-8 BOM 瀵艰嚧 Livewire 4 缁勪欢杈圭晫閿欎綅 | 鎵归噺绉婚櫎 38 涓?Blade 瑙嗗浘鏂囦欢鐨?UTF-8 BOM锛圽xEF\xBB\xBF锛?| 鍚庣 | 2026-07-30 |
+| 2 | 寮圭獥鍙栨秷鎸夐挳琚?Livewire 楠岃瘉绠￠亾鎷︽埅 | 鐢ㄦ埛/瑙掕壊/鏉冮檺涓変釜椤甸潰鐨勬墍鏈?`<button>` 娣诲姞 `type="button"` | 鍓嶇 | 2026-07-30 |
+
+### 4 鏁版嵁搴撳彉鏇?
+
+鏃犮€?
+
+### 5 褰卞搷鑼冨洿
+
+| 褰卞搷鏂囦欢 | 鍙樻洿绫诲瀷 |
+| :--- | :--- |
+| app/Livewire/User/PermissionList.php | 淇敼锛堝鍔?filterType/filterModule 灞炴€с€佺瓫閫夐€昏緫銆乺esetFilters锛?|
+| resources/views/livewire/user/permission-list.blade.php | 淇敼锛堝鍔犵被鍨?妯″潡涓や釜 select 涓嬫媺绛涢€夈€侀噸缃寜閽級 |
+| 38 涓?Blade 瑙嗗浘鏂囦欢 | 淇敼锛堢Щ闄?UTF-8 BOM锛?|
+| resources/views/livewire/user/user-list.blade.php | 淇敼锛坆utton 娣诲姞 type="button"锛?|
+| resources/views/livewire/user/role-list.blade.php | 淇敼锛坆utton 娣诲姞 type="button"锛?|
+| resources/views/livewire/user/permission-list.blade.php | 淇敼锛坆utton 娣诲姞 type="button"锛?|
+
+### 6 鍏抽敭鎶€鏈褰?
+
+**UTF-8 BOM 瀵艰嚧 Livewire 4 morphing 閿欎綅闂锛?*
+- 鏍瑰洜锛欱lade 瑙嗗浘鏂囦欢寮€澶村寘鍚?UTF-8 BOM锛圽xEF\xBB\xBF锛夛紝鍦ㄧ粍浠舵牴 `<div>` 鍓嶄骇鐢熶簡涓嶅彲瑙佹枃鏈妭鐐?
+- 褰卞搷锛歀ivewire 4 morphing 绠楁硶灏?`wire:id` 缁戝畾鍒伴敊璇瓙鍏冪礌锛堝 `class="flex items-center justify-between mb-6"` 鑰岄潪 `class="p-6"`锛夛紝瀵艰嚧寮圭獥鍐呭鍜屾搷浣滄寜閽劚绂荤粍浠?DOM 杈圭晫
+- 淇锛氭壒閲忕Щ闄ゆ墍鏈?Blade 鏂囦欢 BOM + 涓?`<button>` 娣诲姞 `type="button"` 闃叉 form 鎻愪氦琛屼负
+
+---
+
+## V1.6.1 | 杩唬鍛ㄦ湡锛?026-07-30
+
+璐熻矗浜猴細椤圭洰璐熻矗浜?
+鍙備笌寮€鍙戜汉鍛橈細鍚庣寮€鍙戙€佸墠绔紑鍙?
+
+### 1 鏈鏂板鍔熻兘娓呭崟
+
+鏃犳柊澧炲姛鑳芥ā鍧椼€?
+
+### 2 鏈浼樺寲/閲嶆瀯
+
+| 搴忓彿 | 妯″潡 | 浼樺寲鍐呭 | 寮€鍙戜汉 | 瀹屾垚鏃堕棿 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 鐢ㄦ埛绠＄悊 | 鐘舵€佸垪鏀逛负 toggle switch 寮€鍏筹紝琛屽唴鐩存帴鐐瑰嚮鍒囨崲鍚敤/绂佺敤 | 鍓嶇 | 2026-07-30 |
+| 2 | 鐢ㄦ埛绠＄悊 | 鎿嶄綔鎸夐挳浠庢枃瀛楁敼涓?SVG 鍥炬爣锛堢紪杈?瑙掕壊鍒嗛厤/閲嶇疆瀵嗙爜/鍒犻櫎锛?| 鍓嶇 | 2026-07-30 |
+| 3 | 瑙掕壊绠＄悊 | 鎿嶄綔鎸夐挳浠庢枃瀛楁敼涓?SVG 鍥炬爣锛堢紪杈?鏉冮檺鍒嗛厤/鍒犻櫎锛?| 鍓嶇 | 2026-07-30 |
+| 4 | 鏉冮檺绠＄悊 | 鎿嶄綔鎸夐挳浠庢枃瀛楁敼涓?SVG 鍥炬爣锛堢紪杈?瑙掕壊鍒嗛厤/鍒犻櫎锛?| 鍓嶇 | 2026-07-30 |
+| 5 | 鐢ㄦ埛绠＄悊 | 瓒呯骇绠＄悊鍛橈紙super-admin 瑙掕壊锛夌姝㈠垹闄ゅ拰绂佺敤锛屽垪琛ㄤ笉鏄剧ず鍒犻櫎鎸夐挳鍜?toggle 寮€鍏?| 鍚庣 | 2026-07-30 |
+| 6 | 瑙掕壊绠＄悊 | super-admin 瑙掕壊绂佹鍒犻櫎鍜岀紪杈戯紝鍒楄〃涓嶆樉绀虹紪杈?鍒犻櫎鎸夐挳 | 鍚庣 | 2026-07-30 |
+
+### 3 鏈淇 Bug
+
+| 搴忓彿 | Bug鎻忚堪 | 淇鍐呭 | 寮€鍙戜汉 | 瀹屾垚鏃堕棿 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 瓒呯骇绠＄悊鍛樺彲琚垹闄?绂佺敤 | delete() 鍜?toggleStatus() 澧炲姞 hasRole('super-admin') 妫€鏌?| 鍚庣 | 2026-07-30 |
+| 2 | super-admin 瑙掕壊鍙鍒犻櫎/缂栬緫 | RoleList delete() 鍜?openEditModal() 澧炲姞 name==='super-admin' 淇濇姢 | 鍚庣 | 2026-07-30 |
+
+### 4 鏁版嵁搴撳彉鏇?
+
+鏃犮€?
+
+### 5 褰卞搷鑼冨洿
+
+| 褰卞搷鏂囦欢 | 鍙樻洿绫诲瀷 |
+| :--- | :--- |
+| app/Livewire/User/UserList.php | 淇敼锛堝鍔犺秴绾х鐞嗗憳淇濇姢閫昏緫锛?|
+| app/Livewire/User/RoleList.php | 淇敼锛堝鍔犺秴绾х鐞嗗憳瑙掕壊淇濇姢閫昏緫锛?|
+| resources/views/livewire/user/user-list.blade.php | 淇敼锛坱oggle switch + 鍥炬爣鎸夐挳 + 瓒呯骇绠＄悊鍛樿 UI 淇濇姢锛?|
+| resources/views/livewire/user/role-list.blade.php | 淇敼锛堝浘鏍囨寜閽?+ 瓒呯骇绠＄悊鍛樿鑹茶 UI 淇濇姢锛?|
+| resources/views/livewire/user/permission-list.blade.php | 淇敼锛堝浘鏍囨寜閽級 |
+
+---
+
+## V1.6.0 | 杩唬鍛ㄦ湡锛?026-07-29
+
+璐熻矗浜猴細椤圭洰璐熻矗浜?
+鍙備笌寮€鍙戜汉鍛橈細鍚庣寮€鍙戙€佸墠绔紑鍙?
+
+### 1 鏈鏂板鍔熻兘娓呭崟
+
+| 搴忓彿 | 鍔熻兘妯″潡 | 鍔熻兘鐐?| 寮€鍙戜汉 | 瀹屾垚鏃堕棿 | 鐘舵€?|
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 琛ヨ揣鎻愰啋 | RestockReminderList Livewire 椤甸潰锛圕RUD + 鍟嗗/SKU 閫夋嫨 + 鍛ㄦ湡閰嶇疆锛?| 鍚庣 | 2026-07-29 | 鉁?|
+| 2 | 閲囪喘閫€璐?| PurchaseReturnList 浠庢々鍗囩骇涓哄畬鏁?CRUD锛堝叧鑱旈噰璐崟 + 渚涘簲鍟?+ 浠撳簱 + 閫€璐у師鍥狅級 | 鍚庣 | 2026-07-29 | 鉁?|
+| 3 | 浠撳簱绠＄悊 | WarehouseList 浠庢々鍗囩骇涓哄畬鏁?CRUD锛堢被鍨?鍐烽摼/鍦板潃/鐘舵€侊級 | 鍚庣 | 2026-07-29 | 鉁?|
+| 4 | 搴撳瓨绠＄悊 | InventoryList 浠庢々鍗囩骇涓哄畬鏁?CRUD锛堜粨搴?SKU/搴撳瓨鏁伴噺/鎵规/鏁堟湡/棰勮鍊硷級 | 鍚庣 | 2026-07-29 | 鉁?|
+| 5 | 搴撳瓨鏃ュ織 | InventoryLogList 浠庢々鍗囩骇涓哄彧璇绘棩蹇楁煡鐪嬪櫒锛堢被鍨?浠撳簱绛涢€夛紝绂佹鍒犻櫎锛?| 鍚庣 | 2026-07-29 | 鉁?|
+| 6 | 鎹熻€楃鐞?| LossOrderList 浠庢々鍗囩骇涓哄畬鏁?CRUD + 瀹℃牳娴佺▼锛堟柊寤?缂栬緫/瀹℃牳/鎵ц/鍏抽棴锛?| 鍚庣 | 2026-07-29 | 鉁?|
+| 7 | 璺敱 | 鏂板 /restock-reminders 璺敱 | 鍚庣 | 2026-07-29 | 鉁?|
+| 8 | 鐢ㄦ埛绠＄悊 | UserList Livewire 缁勪欢锛圕RUD + 瑙掕壊鍒嗛厤 + 绂佺敤鍚敤 + 閲嶇疆瀵嗙爜 + 鎼滅储锛?| 鍚庣 | 2026-07-29 | 鉁?|
+| 9 | 瑙掕壊绠＄悊 | RoleList 澧炲姞鏉冮檺鍒嗛厤寮圭獥锛堟ā鍧椻啋椤甸潰鈫掓寜閽?鏍戝舰澶嶉€夋锛?| 鍚庣 | 2026-07-29 | 鉁?|
+| 10 | 鏉冮檺绠＄悊 | PermissionList 澧炲姞瑙掕壊鍒嗛厤寮圭獥锛堝閫夋锛屼负鏉冮檺鍕鹃€夊叧鑱旇鑹诧級 | 鍚庣 | 2026-07-29 | 鉁?|
+| 11 | 璺敱 | 鏂板 /users 璺敱 + 瀵艰埅淇 href="#" 鈫?route('users') | 鍚庣 | 2026-07-29 | 鉁?|
+| 12 | 鍏ㄥ眬鍩虹璁炬柦 | 瀹夎 maatwebsite/excel + 鍒涘缓4涓€氱敤Trait(WithRowSelection/WithColumnVisibility/WithExcelExport/WithExcelImport) + GenericExport/GenericImport + money_format/status_badge 鍔╂墜鍑芥暟 | 鍚庣 | 2026-07-30 | 鉁?|
+| 13 | 鍏ㄦā鍧楀崌绾?| 49涓垪琛ㄧ粍浠跺叏闈㈠崌绾э細checkbox澶氶€夈€佹壒閲忔搷浣溿€佽嚜瀹氫箟鏄剧ず鍒椼€丒xcel瀵煎叆瀵煎嚭锛堣嚜瀹氫箟鍒楋級銆侀噾棰濇牸寮忓寲 | 鍚庣 | 2026-07-30 | 鉁?|
+| 14 | 璁㈠崟妯″潡 | OrderList/CartList/OrderReturnList 浠庢々鍗囩骇涓哄畬鏁碈RUD+鐘舵€佹祦杞?閲戦鏍煎紡鍖?| 鍚庣 | 2026-07-30 | 鉁?|
+| 15 | 閰嶉€佹ā鍧?| DeliveryTaskList/SignatureList/DiscrepancyList/TemperatureList 鍗囩骇锛堜慨澶嶆俯搴﹁褰曟悳绱ug锛?| 鍚庣 | 2026-07-30 | 鉁?|
+| 16 | 璐㈠姟妯″潡 | 5涓储鍔＄粍浠跺崌绾т负瀹屾暣CRUD+瀹℃牳/浠樻/鏀舵鎿嶄綔+閲戦鏍煎紡鍖?鎼滅储浼樺寲 | 鍚庣 | 2026-07-30 | 鉁?|
+| 17 | 浠锋牸绛栫暐 | 3涓环鏍肩粍浠跺崌绾т负瀹屾暣CRUD+瀹℃牳鍚仠鎿嶄綔 | 鍚庣 | 2026-07-30 | 鉁?|
+| 18 | 閲囪喘搴撳瓨 | 8涓噰璐?搴撳瓨缁勪欢鍗囩骇涓哄畬鏁碈RUD+鐘舵€佹祦杞?鎼滅储浼樺寲 | 鍚庣 | 2026-07-30 | 鉁?|
+
+### 2 鏈浼樺寲/閲嶆瀯
+
+| 搴忓彿 | 妯″潡 | 浼樺寲鍐呭 | 寮€鍙戜汉 | 瀹屾垚鏃堕棿 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | Model | Warehouse / LossOrder / PurchaseReturn 淇 SoftDeletes trait 閿欎綅鍒扮被澶栫殑 Bug | 鍚庣 | 2026-07-29 |
+| 2 | Model | Inventory / InventoryLog / LossOrderItem / PurchaseReturnItem 娓呯悊鏈娇鐢ㄧ殑 SoftDeletes import | 鍚庣 | 2026-07-29 |
+| 3 | Model | Warehouse 琛ュ厖 statusMap / relationships / scopeEnabled | 鍚庣 | 2026-07-29 |
+| 4 | Model | LossOrder 琛ュ厖 statusMap / approvalStatusMap / relationships / scopePending | 鍚庣 | 2026-07-29 |
+| 5 | Model | PurchaseReturn 琛ュ厖 statusMap / relationships / scopePending | 鍚庣 | 2026-07-29 |
+| 6 | Model | Inventory 琛ュ厖 warehouse/sku relationships / scopeBelowWarning | 鍚庣 | 2026-07-29 |
+| 7 | Model | InventoryLog 琛ュ厖 warehouse/sku/operator relationships / typeLabel accessor | 鍚庣 | 2026-07-29 |
+| 8 | Model | LossOrderItem 琛ュ厖 responsiblePartyMap / lossOrder/sku/supplier relationships | 鍚庣 | 2026-07-29 |
+| 9 | Model | PurchaseReturnItem 琛ュ厖 purchaseReturn/sku relationships | 鍚庣 | 2026-07-29 |
+| 10 | Model | RestockReminder 琛ュ厖 remindCycleMap / statusMap / merchant/sku relationships / scopeEnabled | 鍚庣 | 2026-07-29 |
+
+### 3 鏈淇 Bug
+
+| 搴忓彿 | Bug鎻忚堪 | 淇鍐呭 | 寮€鍙戜汉 | 瀹屾垚鏃堕棿 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | Warehouse/LossOrder/PurchaseReturn 鐨?SoftDeletes trait 鍐欏湪 class 澶栭潰瀵艰嚧杞垹闄や笉鐢熸晥 | 灏?`use SoftDeletes` 绉诲叆 class 鍐呴儴 | 鍚庣 | 2026-07-29 |
+| 2 | InventoryList 鎼滅储 sku_id 浣跨敤 like 鏌ユ暣鍨嬪瓧娈?| 鏀逛负閫氳繃 sku 鍏宠仈鎼滅储 sku_code / product.name | 鍚庣 | 2026-07-29 |
+| 3 | InventoryLogList 鍏佽鍒犻櫎鏃ュ織璁板綍 | 绉婚櫎鍒犻櫎鍔熻兘锛屾敼涓哄彧璇绘棩蹇楁煡鐪嬪櫒 | 鍚庣 | 2026-07-29 |
+| 4 | 寮圭獥鍙栨秷鎸夐挳涓嶅叧闂?| wire:click="showModal=false" 琚?Livewire 楠岃瘉绠￠亾鎷︽埅锛屾敼鐢?closeXxxModal() 鏂规硶 | 鍚庣 | 2026-07-30 |
+| 5 | Model 閲嶅 SoftDeletes import | Banner/Discrepancy/MerchantAddress/OrderReturn/PriceStrategy 鍒犻櫎澶氫綑 use SoftDeletes 琛?| 鍚庣 | 2026-07-30 |
+| 6 | 璐㈠姟鎼滅储bug | MerchantAccountList 鐢?merchant_id like 鎼滅储鏀逛负鍏宠仈鍟嗗鍚嶆悳绱?| 鍚庣 | 2026-07-30 |
+| 7 | 浠锋牸鎼滅储bug | PriceApportionmentList 鐢?amount like 鎼滅储鏀逛负鎸夊悕绉版悳绱?| 鍚庣 | 2026-07-30 |
+
+### 4 鏁版嵁搴撳彉鏇?
+
+鏃狅紙鏈鏈柊澧?Migration锛?
+
+### 5 褰卞搷鑼冨洿
+
+| 褰卞搷鏂囦欢 | 鍙樻洿绫诲瀷 |
+| :--- | :--- |
+| app/Models/Warehouse.php | 閲嶅啓锛堜慨澶岯ug + 琛ュ厖鍏崇郴/鐘舵€佹槧灏勶級 |
+| app/Models/LossOrder.php | 閲嶅啓锛堜慨澶岯ug + 琛ュ厖鍏崇郴/鐘舵€佹槧灏勶級 |
+| app/Models/PurchaseReturn.php | 閲嶅啓锛堜慨澶岯ug + 琛ュ厖鍏崇郴/鐘舵€佹槧灏勶級 |
+| app/Models/Inventory.php | 閲嶅啓锛堟竻鐞唅mport + 琛ュ厖鍏崇郴锛?|
+| app/Models/InventoryLog.php | 閲嶅啓锛堟竻鐞唅mport + 琛ュ厖鍏崇郴锛?|
+| app/Models/LossOrderItem.php | 閲嶅啓锛堟竻鐞唅mport + 琛ュ厖鍏崇郴/璐ｄ换鏂规槧灏勶級 |
+| app/Models/PurchaseReturnItem.php | 閲嶅啓锛堣ˉ鍏呭叧绯伙級 |
+| app/Models/RestockReminder.php | 閲嶅啓锛堣ˉ鍏呭懆鏈?鐘舵€佹槧灏?鍏崇郴锛?|
+| app/Livewire/Product/RestockReminderList.php | 鏂板 |
+| app/Livewire/Purchase/PurchaseReturnList.php | 閲嶅啓锛堟々鈫掑畬鏁碈RUD锛?|
+| app/Livewire/Inventory/WarehouseList.php | 閲嶅啓锛堟々鈫掑畬鏁碈RUD锛?|
+| app/Livewire/Inventory/InventoryList.php | 閲嶅啓锛堟々鈫掑畬鏁碈RUD锛?|
+| app/Livewire/Inventory/InventoryLogList.php | 閲嶅啓锛堟々鈫掑彧璇绘煡鐪嬪櫒锛?|
+| app/Livewire/Loss/LossOrderList.php | 閲嶅啓锛堟々鈫掑畬鏁碈RUD+瀹℃牳锛?|
+| resources/views/livewire/product/restock-reminder-list.blade.php | 鏂板 |
+| resources/views/livewire/purchase/purchase-return-list.blade.php | 閲嶅啓 |
+| resources/views/livewire/inventory/warehouse-list.blade.php | 閲嶅啓 |
+| resources/views/livewire/inventory/inventory-list.blade.php | 閲嶅啓 |
+| resources/views/livewire/inventory/inventory-log-list.blade.php | 閲嶅啓 |
+| resources/views/livewire/loss/loss-order-list.blade.php | 閲嶅啓 |
+| routes/web.php | 淇敼锛堟柊澧?鏉¤矾鐢憋級 |
+| app/Livewire/User/UserList.php | 鏂板锛堢敤鎴风鐞咰RUD+瑙掕壊鍒嗛厤+绂佺敤鍚敤+閲嶇疆瀵嗙爜锛?|
+| resources/views/livewire/user/user-list.blade.php | 鏂板 |
+| app/Livewire/User/RoleList.php | 閲嶅啓锛堝鍔犳潈闄愬垎閰嶆爲寮圭獥锛?|
+| resources/views/livewire/user/role-list.blade.php | 閲嶅啓锛堝鍔犳潈闄愭爲+鍒犻櫎纭锛?|
+| app/Livewire/User/PermissionList.php | 閲嶅啓锛堝鍔犺鑹插垎閰嶅脊绐楋級 |
+| resources/views/livewire/user/permission-list.blade.php | 閲嶅啓锛堝鍔犺鑹插嬀閫?鍒犻櫎纭锛?|
+| resources/views/components/app-topnav.blade.php | 淇敼锛堢敤鎴风鐞嗗鑸摼鎺?href="#" 鈫?route('users')锛?|
+
+---
+
+## V1.5.0 | 杩唬鍛ㄦ湡锛?026-07-29
+
+璐熻矗浜猴細椤圭洰璐熻矗浜?
+鍙備笌寮€鍙戜汉鍛橈細鍚庣寮€鍙戙€佸墠绔紑鍙?
+
+### 1 鏈鏂板鍔熻兘娓呭崟
+
+| 搴忓彿 | 鍔熻兘妯″潡 | 鍔熻兘鐐?| 寮€鍙戜汉 | 瀹屾垚鏃堕棿 | 鐘舵€?|
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 鍥炬爣 | icon.blade.php 鏂板 16 涓?Heroicons 鍥炬爣锛坈lipboard-document-list / document-text / star / arrow-path / photo / sparkles / key / chat-bubble-left-right / map-pin / clock / plus / x-mark / magnifying-glass / shield-check / shield-exclamation / check-circle锛?| 鍓嶇 | 2026-07-29 | 鉁?|
+| 2 | 瀵艰埅 | nav-menu-icon-link 缁勪欢澧炲姞 description 鍙傛暟锛屽叏閮ㄥ瓙鑿滃崟娣诲姞绠€鐭姛鑳芥弿杩?| 鍓嶇 | 2026-07-29 | 鉁?|
+| 3 | 瀵艰埅 | 鐢ㄦ埛鏉冮檺/绯荤粺绠＄悊瀛愯彍鍗曠粺涓€鏀圭敤 icon-link+description 鏍峰紡锛堝師閮ㄥ垎浣跨敤 nav-menu-link锛?| 鍓嶇 | 2026-07-29 | 鉁?|
+| 4 | 娴嬭瘯鏁版嵁 | DemoDataSeeder 鎵╁睍鍏ㄦā鍧楃ず渚嬫暟鎹紙30+ 寮犱笟鍔¤〃锛岃鐩栭噰璐?璁㈠崟/搴撳瓨/閰嶉€?鎹熻€?鎷ｈ揣/宸紓/璐㈠姟/閫€璐?浠锋牸绛栫暐/Banner/鐧诲綍鏃ュ織绛夛級 | 鍚庣 | 2026-07-29 | 鉁?|
+
+### 2 鏈浼樺寲/閲嶆瀯
+
+| 搴忓彿 | 妯″潡 | 浼樺寲鍐呭 | 寮€鍙戜汉 | 瀹屾垚鏃堕棿 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 瀵艰埅 | nav-menu-icon-link 缁勪欢閲嶆瀯锛氭枃瀛楀尯鏀逛负 flex 瀹瑰櫒锛屾敮鎸佸彲閫?description 琛?| 鍓嶇 | 2026-07-29 |
+
+### 3 鏈淇 Bug
+
+鏃?
+
+### 4 鏁版嵁搴撳彉鏇?
+
+鏃狅紙鏈鏈柊澧?Migration锛?
+
+### 5 褰卞搷鑼冨洿
+
+| 褰卞搷鏂囦欢 | 鍙樻洿绫诲瀷 |
+| :--- | :--- |
+| resources/views/components/ui/icon.blade.php | 淇敼锛堟柊澧?6涓浘鏍囷級 |
+| resources/views/components/nav-menu-icon-link.blade.php | 淇敼锛堟柊澧瀌escription鍙傛暟锛?|
+| resources/views/components/app-topnav.blade.php | 淇敼锛堝叏閮ㄥ瓙鑿滃崟娣诲姞description锛?|
+| database/seeders/DemoDataSeeder.php | 淇敼锛堟墿灞?0+琛ㄧず渚嬫暟鎹級 |
+
+---
+
+## V1.4.0 | 杩唬鍛ㄦ湡锛?026-07-29
+
+璐熻矗浜猴細椤圭洰璐熻矗浜?
+鍙備笌寮€鍙戜汉鍛橈細鍚庣寮€鍙戙€佸墠绔紑鍙?
+
+### 1 鏈鏂板鍔熻兘娓呭崟
+
+| 搴忓彿 | 鍔熻兘妯″潡 | 鍔熻兘鐐?| 寮€鍙戜汉 | 瀹屾垚鏃堕棿 | 鐘舵€?|
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 搴撳瓨绠＄悊 | Warehouse / Inventory / InventoryLog Model + 3 涓?Livewire 椤甸潰 | 鍚庣 | 2026-07-29 | 鉁?|
+| 2 | 鎹熻€楃鐞?| LossOrder / LossOrderItem Model + 1 涓?Livewire 椤甸潰 | 鍚庣 | 2026-07-29 | 鉁?|
+| 3 | 鎷ｈ揣绠＄悊 | PickingTask / PickingTaskItem Model + 1 涓?Livewire 椤甸潰 | 鍚庣 | 2026-07-29 | 鉁?|
+| 4 | 閰嶉€佺鐞?| DeliveryTask / DeliveryTaskOrder / DeliveryTrack / Signature / Temperature Model + 3 涓?Livewire 椤甸潰 | 鍚庣 | 2026-07-29 | 鉁?|
+| 5 | 宸紓澶勭悊 | Discrepancy Model + 1 涓?Livewire 椤甸潰 | 鍚庣 | 2026-07-29 | 鉁?|
+| 6 | 璐㈠姟瀵硅处 | MerchantAccount / Recharge / SupplierSettlement / SupplierSettlementItem / SettlementPayment / Receivable / ReceivablePayment / Invoice / CorrectionAuthorization Model + 8 涓?Livewire 椤甸潰 | 鍚庣 | 2026-07-29 | 鉁?|
+| 7 | 閫€璐?浠锋牸 | PurchaseReturn / PurchaseReturnItem / OrderReturn / OrderReturnItem / PriceStrategy / PriceStrategyItem / PriceChangeLog Model + 4 涓?Livewire 椤甸潰 | 鍚庣 | 2026-07-29 | 鉁?|
+| 8 | 鎵╁睍+绯荤粺 | PriceApportionment / MerchantAddress / MerchantFavorite / Banner / Promotion / LoginLog / WechatUser Model + 5 涓?Livewire 椤甸潰 | 鍚庣 | 2026-07-29 | 鉁?|
+| 9 | 璺敱 | 鏂板 26 鏉¤矾鐢辫鐩栧叏閮ㄦā鍧?| 鍚庣 | 2026-07-29 | 鉁?|
+| 10 | 瀵艰埅 | 鍏ㄩ儴瀵艰埅鑿滃崟閾炬帴鏇挎崲涓虹湡瀹炶矾鐢?| 鍓嶇 | 2026-07-29 | 鉁?|
+
+### 2 鏈浼樺寲/閲嶆瀯
+
+| 搴忓彿 | 妯″潡 | 浼樺寲鍐呭 | 寮€鍙戜汉 | 瀹屾垚鏃堕棿 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 瀵艰埅 | 鍏ㄩ儴瀛愯彍鍗曠粺涓€鏀圭敤 icon-link 鏍峰紡 | 鍓嶇 | 2026-07-29 |
+
+### 3 鏈淇 Bug
+
+鏃?
+
+### 4 寰呭姙浜嬮」
+
+| 搴忓彿 | 妯″潡 | 寰呭姙鍐呭 | 浼樺厛绾?|
+| :--- | :--- | :--- | :--- |
+| 1 | 鍏ㄦā鍧?| 鍚勬ā鍧?Detail/Form 椤甸潰寰呭紑鍙?| 涓?|
+| 2 | 鍏ㄦā鍧?| 涓氬姟閫昏緫 Service 灞傚緟瀹炵幇 | 楂?|
+| 3 | 鍏ㄦā鍧?| 灏忕▼搴忕 API 寰呭紑鍙?| 楂?|
+
+### 5 绱瀹屾垚缁熻
+
+| 鎸囨爣 | V1.3.0 | V1.4.0 | 澧為噺 |
+| :--- | :--- | :--- | :--- |
+| Model 鏁?| 36 | 72 | +36 |
+| Livewire 缁勪欢 | 28 | 54 | +26 |
+| 璺敱鏁?| 30 | 56 | +26 |
+| 鏁版嵁搴撹〃 | 77 | 77 | 鈥?|
+
+### 6 鏁版嵁搴?閰嶇疆鍙樻洿璁板綍
+
+鏃犳柊澧?Migration锛孧odel 鍩轰簬宸叉湁琛ㄧ粨鏋勫垱寤恒€?
+
+### 7 鍙戝竷璁板綍
+
+| 鏃ユ湡 | 鐗堟湰 | 鎿嶄綔浜?| Git Commit | 澶囨敞 |
+| :--- | :--- | :--- | :--- | :--- |
+| 2026-07-29 | V1.4.0 | 椤圭洰璐熻矗浜?| 鈥?| 鍏ㄦā鍧?Model/Livewire/璺敱/瀵艰埅涓€娆℃€т氦浠?|
+
+---
+
+## V1.3.0 | 杩唬鍛ㄦ湡锛?026-07-29
+
+璐熻矗浜猴細椤圭洰璐熻矗浜?
+鍙備笌寮€鍙戜汉鍛橈細鍚庣寮€鍙戙€佸墠绔紑鍙?
+
+### 1 鏈鏂板鍔熻兘娓呭崟
+
+| 搴忓彿 | 鍔熻兘妯″潡 | 鍔熻兘鐐?| 寮€鍙戜汉 | 瀹屾垚鏃堕棿 | 鐘舵€?|
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 閲囪喘绠＄悊 | PurchaseItem Model + Livewire 鍒楄〃椤?| 鍚庣 | 2026-07-29 | 鉁?|
+| 2 | 閲囪喘绠＄悊 | PurchaseOrder / PurchaseOrderItem Model + Livewire 鍒楄〃椤?| 鍚庣 | 2026-07-29 | 鉁?|
+| 3 | 璁㈠崟閰嶉€?| Cart / CartItem Model + Livewire 鍒楄〃椤?| 鍚庣 | 2026-07-29 | 鉁?|
+| 4 | 璁㈠崟閰嶉€?| Order / OrderItem Model + Livewire 鍒楄〃椤?| 鍚庣 | 2026-07-29 | 鉁?|
+| 5 | 璁㈠崟閰嶉€?| FrequentlyBought Model + Livewire 鍒楄〃椤?| 鍚庣 | 2026-07-29 | 鉁?|
+| 6 | 璁㈠崟閰嶉€?| RepurchaseTemplate / RepurchaseTemplateItem Model + Livewire 鍒楄〃椤?| 鍚庣 | 2026-07-29 | 鉁?|
+| 7 | 璺敱 | 鏂板 6 鏉¤矾鐢憋紙purchase-items / purchase-orders / orders / carts / frequently-bought / repurchase-templates锛?| 鍚庣 | 2026-07-29 | 鉁?|
+| 8 | 瀵艰埅 | 閲囪喘绠＄悊瀛愯彍鍗曢摼鎺ュ緟閲囨竻鍗?閲囪喘鍗曠鐞?| 鍓嶇 | 2026-07-29 | 鉁?|
+| 9 | 瀵艰埅 | 璁㈠崟閰嶉€佸瓙鑿滃崟閾炬帴瀹㈡埛璁㈠崟/璐墿杞?甯歌喘娓呭崟/澶嶈喘妯℃澘 | 鍓嶇 | 2026-07-29 | 鉁?|
+| 10 | 鏂囨。 | FSD 9.2 Models 鐘舵€佹爣娉?+ 9.9 鏄犲皠琛ㄦ洿鏂?| 鍚庣 | 2026-07-29 | 鉁?|
+
+### 2 鏈浼樺寲/閲嶆瀯
+
+| 搴忓彿 | 妯″潡 | 浼樺寲鍐呭 | 寮€鍙戜汉 | 瀹屾垚鏃堕棿 |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | 瀵艰埅 | 閲囪喘绠＄悊瀛愯彍鍗曟敼鐢?icon-link 鏍峰紡锛堜笌鍟嗗搧绠＄悊/璁㈠崟閰嶉€佺粺涓€锛?| 鍓嶇 | 2026-07-29 |
+
+### 3 鏈淇 Bug
+
+鏃?
+
+### 4 寰呭姙浜嬮」
+
+| 搴忓彿 | 妯″潡 | 寰呭姙鍐呭 | 浼樺厛绾?|
+| :--- | :--- | :--- | :--- |
+| 1 | 閲囪喘绠＄悊 | PurchaseOrderDetail / PurchaseReturn / PurchaseReturnDetail 椤甸潰寰呭紑鍙?| 涓?|
+| 2 | 璁㈠崟閰嶉€?| OrderDetail / OrderReturn / OrderReturnDetail 椤甸潰寰呭紑鍙?| 涓?|
+| 3 | 璁㈠崟閰嶉€?| 閰嶉€佷换鍔?绛炬敹瀛樿瘉/宸紓澶勭悊妯″潡寰呭紑鍙?| 楂?|
+
+### 5 绱瀹屾垚缁熻
+
+| 鎸囨爣 | V1.2.0 | V1.3.0 | 澧為噺 |
+| :--- | :--- | :--- | :--- |
+| Model 鏁?| 26 | 36 | +10 |
+| Livewire 缁勪欢 | 22 | 28 | +6 |
+| 璺敱鏁?| 24 | 30 | +6 |
+| 鏁版嵁搴撹〃 | 77 | 77 | 鈥?|
+
+### 6 鏁版嵁搴?閰嶇疆鍙樻洿璁板綍
+
+鏃犳柊澧?Migration锛孧odel 鍩轰簬宸叉湁琛ㄧ粨鏋勫垱寤恒€?
+
+### 7 鍙戝竷璁板綍
+
+| 鏃ユ湡 | 鐗堟湰 | 鎿嶄綔浜?| Git Commit | 澶囨敞 |
+| :--- | :--- | :--- | :--- | :--- |
+| 2026-07-29 | V1.3.0 | 椤圭洰璐熻矗浜?| 鈥?| 閲囪喘绠＄悊+璁㈠崟閰嶉€?Model/Livewire/璺敱/瀵艰埅 |
+
+---
+
+## V1.2.0 | 杩唬鍛ㄦ湡锛?026-07-29
+
+璐熻矗浜猴細椤圭洰璐熻矗浜?
+鍙備笌寮€鍙戜汉鍛橈細鍚庣寮€鍙戙€佸墠绔紑鍙?
+
+### 1 鏈鏂板鍔熻兘娓呭崟
+
+| 搴忓彿 | 鍔熻兘妯″潡 | 鍔熻兘鐐?| 寮€鍙戜汉 | 瀹屾垚鏃堕棿 | 鐘舵€?|
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 鍟嗗搧绠＄悊 | Category Model锛堟爲褰㈠垎绫伙紝parent_id/鐘舵€?鎺掑簭锛?| AI | 2026-07-29 | 宸插畬鎴?|
+| 2 | 鍟嗗搧绠＄悊 | Product Model锛堝晢鍝佷富琛紝鍒嗙被/渚涘簲鍟?绉伴噸鏀逛环/涓婁笅鏋讹級 | AI | 2026-07-29 | 宸插畬鎴?|
+| 3 | 鍟嗗搧绠＄悊 | ProductImage Model锛堝晢鍝佸鍥撅級 | AI | 2026-07-29 | 宸插畬鎴?|
+| 4 | 鍟嗗搧绠＄悊 | Sku Model锛圫KU瑙勬牸锛屼环鏍兼暣鏁板瓨鍌紝瀹℃牳鐘舵€侊級 | AI | 2026-07-29 | 宸插畬鎴?|
+| 5 | 鍟嗗搧绠＄悊 | MerchantSkuVisibility Model锛堝晢瀹禨KU鍙鎬э級 | AI | 2026-07-29 | 宸插畬鎴?|
+| 6 | 鍟嗗搧绠＄悊 | Tag / ProductTag Model锛堟爣绛捐瘝搴?鍟嗗搧鏍囩鍏宠仈锛?| AI | 2026-07-29 | 宸插畬鎴?|
+| 7 | 鍟嗗搧绠＄悊 | Keyword Model锛堟悳绱㈠叧閿瘝鑱旀兂+鐑害锛?| AI | 2026-07-29 | 宸插畬鎴?|
+| 8 | 鏉＄爜绠＄悊 | SkuBarcode Model锛?绉嶆潯鐮佺被鍨嬶細鍘傚/渚涘簲鍟?鍐呴儴/澶囩敤锛?| AI | 2026-07-29 | 宸插畬鎴?|
+| 9 | 涓€鍝佸渚?| SkuSupplier Model锛圫KU-渚涘簲鍟嗗叧鑱旓紝榛樿渚涘簲鍟?閲囪喘浠凤級 | AI | 2026-07-29 | 宸插畬鎴?|
+| 10 | 鍟嗗搧绠＄悊 | CategoryList Livewire锛堝垎绫籆RUD+鎼滅储+寮圭獥琛ㄥ崟锛?| AI | 2026-07-29 | 宸插畬鎴?|
+| 11 | 鍟嗗搧绠＄悊 | ProductList Livewire锛堝晢鍝丆RUD+鍒嗙被绛涢€?鐘舵€佺瓫閫夛級 | AI | 2026-07-29 | 宸插畬鎴?|
+| 12 | 鍟嗗搧绠＄悊 | SkuList Livewire锛圫KU鍒楄〃+瀹℃牳鐘舵€佹爣绛撅級 | AI | 2026-07-29 | 宸插畬鎴?|
+| 13 | 鍟嗗搧绠＄悊 | TagList Livewire锛堟爣绛綜RUD+鎼滅储锛?| AI | 2026-07-29 | 宸插畬鎴?|
+| 14 | 鍟嗗搧绠＄悊 | KeywordList Livewire锛堝叧閿瘝CRUD+鎼滅储娆℃暟鎺掑簭锛?| AI | 2026-07-29 | 宸插畬鎴?|
+| 15 | 鏉＄爜绠＄悊 | SkuBarcodeList Livewire锛堟潯鐮丆RUD+绫诲瀷绛涢€夛級 | AI | 2026-07-29 | 宸插畬鎴?|
+| 16 | 涓€鍝佸渚?| SkuSupplierList Livewire锛堝叧鑱擟RUD+渚涘簲鍟嗕笅鎷夛級 | AI | 2026-07-29 | 宸插畬鎴?|
+| 17 | 璺敱 | web.php 鏂板 7 鏉¤矾鐢憋紙categories/products/skus/tags/keywords/sku-barcodes/sku-suppliers锛?| AI | 2026-07-29 | 宸插畬鎴?|
+| 18 | 瀵艰埅 | 鍟嗗搧绠＄悊瀛愯彍鍗曞叏閮ㄦ寚鍚戠湡瀹炶矾鐢?| AI | 2026-07-29 | 宸插畬鎴?|
+| 19 | 鏂囨。 | FSD 9.2 Models 鐩綍鏍囨敞宸插垱寤虹姸鎬侊紝娓呯悊灏鹃儴閲嶅娈嬬暀 | AI | 2026-07-29 | 宸插畬鎴?|
+
+### 2 鍘熸湁鍔熻兘浼樺寲椤?
+
+1. FSD 鏂囨。娓呯悊 鈥?鍒犻櫎灏鹃儴 2293-2733 琛岄噸澶嶆畫鐣欏唴瀹癸紙鏃х増 Livewire 缁勪欢/Model/璺敱瑙勫垝閲嶅娈碉級锛?026-07-29锛?
+
+### 3 BUG 淇璁板綍
+
+鏃?
+
+### 4 閬楃暀寰呰凯浠ｉ渶姹傦紙涓嬩竴鐗堟湰澶勭悊锛?
+
+| 搴忓彿 | 闇€姹傛弿杩?| 浼樺厛绾?| 澶囨敞 |
+| :--- | :--- | :--- | :--- |
+| 1 | Model 绗?~15鎵癸紙绾?9涓級 | P0 | 閲囪喘鈫掕鍗曗啋鎷ｈ揣鈫掗厤閫佲啋宸紓鎹熻€椻啋閫€璐р啋浠锋牸绛栫暐鈫掕储鍔♀啋鍧囨憡+鎵╁睍+绯荤粺+寰俊 |
+| 2 | 瀹夎 Redis PHP 鎵╁睍 | P1 | .env 鐩墠鐢?file 椹卞姩 |
+
+### 5 瀹屾垚缁熻
+
+| 缁村害 | 宸插畬鎴?| 寰呭紑鍙?| 鍚堣 |
+| :--- | :--- | :--- | :--- |
+| 鍔熻兘鐐?| 38 | 15 | 53 |
+| 鏁版嵁搴撹〃 | 77锛堝凡寤?Migration锛?| 0 | 77 |
+| Blade 缁勪欢 | 34+ | - | 34+ |
 | Model | 26 | ~42 | ~68 |
-| Livewire 组件 | 22 | - | 22 |
-| 路由 | 24 | - | 24 |
+| Livewire 缁勪欢 | 22 | - | 22 |
+| 璺敱 | 24 | - | 24 |
 
-### 6 版本发布记录
+### 6 鐗堟湰鍙戝竷璁板綍
 
-| 项目 | 内容 |
+| 椤圭洰 | 鍐呭 |
 | :--- | :--- |
-| 版本号 | V1.2.0-alpha |
-| 发布时间 | 2026-07-29 |
-| 部署环境 | 开发环境（Laragon，https://livewire.test） |
-| Git 分支 | navigate |
-| 远程仓库 | git@github.com:kindiaing/susong-livewire.git |
-| 新增文件 | 10 Model + 7 Livewire 组件 + 7 Livewire 视图 |
-| 修改文件 | web.php / app-topnav.blade.php / FSD 9.2 + 9.9 |
+| 鐗堟湰鍙?| V1.2.0-alpha |
+| 鍙戝竷鏃堕棿 | 2026-07-29 |
+| 閮ㄧ讲鐜 | 寮€鍙戠幆澧冿紙Laragon锛宧ttps://livewire.test锛?|
+| Git 鍒嗘敮 | navigate |
+| 杩滅▼浠撳簱 | git@github.com:kindiaing/susong-livewire.git |
+| 鏂板鏂囦欢 | 10 Model + 7 Livewire 缁勪欢 + 7 Livewire 瑙嗗浘 |
+| 淇敼鏂囦欢 | web.php / app-topnav.blade.php / FSD 9.2 + 9.9 |
 
 ---
 
-## V1.1.0 | 迭代周期：2026-07-29
+## V1.1.0 | 杩唬鍛ㄦ湡锛?026-07-29
 
-负责人：项目负责人
-参与开发人员：后端开发、前端开发
+璐熻矗浜猴細椤圭洰璐熻矗浜?
+鍙備笌寮€鍙戜汉鍛橈細鍚庣寮€鍙戙€佸墠绔紑鍙?
 
-### 1 本次新增功能清单
+### 1 鏈鏂板鍔熻兘娓呭崟
 
-| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| 搴忓彿 | 鍔熻兘妯″潡 | 鍔熻兘鐐?| 寮€鍙戜汉 | 瀹屾垚鏃堕棿 | 鐘舵€?|
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | 用户权限 | Role Model（继承 SpatieRole，扩展 display_name/type/parent_id） | AI | 2026-07-29 | 已完成 |
-| 2 | 用户权限 | Permission Model（继承 SpatiePermission，扩展 display_name/type/parent_id） | AI | 2026-07-29 | 已完成 |
-| 3 | 组织主体 | Supplier Model（供应商，含状态/类型常量、关联关系、作用域） | AI | 2026-07-29 | 已完成 |
-| 4 | 组织主体 | Merchant Model（商家，含状态常量、多地址关联） | AI | 2026-07-29 | 已完成 |
-| 5 | 组织主体 | DeliveryRoute Model（配送线路，含排序/状态常量） | AI | 2026-07-29 | 已完成 |
-| 6 | 组织主体 | Driver Model（司机，含状态/类型常量、车辆绑定关联） | AI | 2026-07-29 | 已完成 |
-| 7 | 组织主体 | Vehicle Model（车辆，含车型/状态/冷链标记常量） | AI | 2026-07-29 | 已完成 |
-| 8 | 组织主体 | DriverVehicle Model（司机-车辆绑定，多对多中间表） | AI | 2026-07-29 | 已完成 |
-| 9 | 用户权限 | RoleList Livewire（角色列表+搜索+弹窗表单+删除） | AI | 2026-07-29 | 已完成 |
-| 10 | 用户权限 | PermissionList Livewire（权限列表+搜索+弹窗表单+删除） | AI | 2026-07-29 | 已完成 |
-| 11 | 组织主体 | SupplierList Livewire（供应商CRUD+搜索+状态标签） | AI | 2026-07-29 | 已完成 |
-| 12 | 组织主体 | MerchantList Livewire（商家CRUD+搜索+状态标签） | AI | 2026-07-29 | 已完成 |
-| 13 | 组织主体 | RouteList Livewire（线路CRUD+搜索+排序） | AI | 2026-07-29 | 已完成 |
-| 14 | 组织主体 | DriverList Livewire（司机CRUD+搜索+状态标签） | AI | 2026-07-29 | 已完成 |
-| 15 | 组织主体 | VehicleList Livewire（车辆CRUD+搜索+冷链/状态标签） | AI | 2026-07-29 | 已完成 |
-| 16 | 路由 | web.php 新增 7 条路由（roles/permissions/suppliers/merchants/delivery-routes/drivers/vehicles） | AI | 2026-07-29 | 已完成 |
-| 17 | 导航 | 用户权限子菜单链接真实路由（角色管理→roles、权限管理→permissions） | AI | 2026-07-29 | 已完成 |
-| 18 | 导航 | 组织主体全部 5 个子菜单指向真实路由 | AI | 2026-07-29 | 已完成 |
-| 19 | 文档 | 08_用户使用手册.md 创建（覆盖已完成的全部功能模块操作说明） | AI | 2026-07-29 | 已完成 |
-| 20 | 文档 | FSD 9.3.3 数据库目录更新为 Livewire 项目实际状态 | AI | 2026-07-29 | 已完成 |
+| 1 | 鐢ㄦ埛鏉冮檺 | Role Model锛堢户鎵?SpatieRole锛屾墿灞?display_name/type/parent_id锛?| AI | 2026-07-29 | 宸插畬鎴?|
+| 2 | 鐢ㄦ埛鏉冮檺 | Permission Model锛堢户鎵?SpatiePermission锛屾墿灞?display_name/type/parent_id锛?| AI | 2026-07-29 | 宸插畬鎴?|
+| 3 | 缁勭粐涓讳綋 | Supplier Model锛堜緵搴斿晢锛屽惈鐘舵€?绫诲瀷甯搁噺銆佸叧鑱斿叧绯汇€佷綔鐢ㄥ煙锛?| AI | 2026-07-29 | 宸插畬鎴?|
+| 4 | 缁勭粐涓讳綋 | Merchant Model锛堝晢瀹讹紝鍚姸鎬佸父閲忋€佸鍦板潃鍏宠仈锛?| AI | 2026-07-29 | 宸插畬鎴?|
+| 5 | 缁勭粐涓讳綋 | DeliveryRoute Model锛堥厤閫佺嚎璺紝鍚帓搴?鐘舵€佸父閲忥級 | AI | 2026-07-29 | 宸插畬鎴?|
+| 6 | 缁勭粐涓讳綋 | Driver Model锛堝徃鏈猴紝鍚姸鎬?绫诲瀷甯搁噺銆佽溅杈嗙粦瀹氬叧鑱旓級 | AI | 2026-07-29 | 宸插畬鎴?|
+| 7 | 缁勭粐涓讳綋 | Vehicle Model锛堣溅杈嗭紝鍚溅鍨?鐘舵€?鍐烽摼鏍囪甯搁噺锛?| AI | 2026-07-29 | 宸插畬鎴?|
+| 8 | 缁勭粐涓讳綋 | DriverVehicle Model锛堝徃鏈?杞﹁締缁戝畾锛屽瀵瑰涓棿琛級 | AI | 2026-07-29 | 宸插畬鎴?|
+| 9 | 鐢ㄦ埛鏉冮檺 | RoleList Livewire锛堣鑹插垪琛?鎼滅储+寮圭獥琛ㄥ崟+鍒犻櫎锛?| AI | 2026-07-29 | 宸插畬鎴?|
+| 10 | 鐢ㄦ埛鏉冮檺 | PermissionList Livewire锛堟潈闄愬垪琛?鎼滅储+寮圭獥琛ㄥ崟+鍒犻櫎锛?| AI | 2026-07-29 | 宸插畬鎴?|
+| 11 | 缁勭粐涓讳綋 | SupplierList Livewire锛堜緵搴斿晢CRUD+鎼滅储+鐘舵€佹爣绛撅級 | AI | 2026-07-29 | 宸插畬鎴?|
+| 12 | 缁勭粐涓讳綋 | MerchantList Livewire锛堝晢瀹禖RUD+鎼滅储+鐘舵€佹爣绛撅級 | AI | 2026-07-29 | 宸插畬鎴?|
+| 13 | 缁勭粐涓讳綋 | RouteList Livewire锛堢嚎璺疌RUD+鎼滅储+鎺掑簭锛?| AI | 2026-07-29 | 宸插畬鎴?|
+| 14 | 缁勭粐涓讳綋 | DriverList Livewire锛堝徃鏈篊RUD+鎼滅储+鐘舵€佹爣绛撅級 | AI | 2026-07-29 | 宸插畬鎴?|
+| 15 | 缁勭粐涓讳綋 | VehicleList Livewire锛堣溅杈咰RUD+鎼滅储+鍐烽摼/鐘舵€佹爣绛撅級 | AI | 2026-07-29 | 宸插畬鎴?|
+| 16 | 璺敱 | web.php 鏂板 7 鏉¤矾鐢憋紙roles/permissions/suppliers/merchants/delivery-routes/drivers/vehicles锛?| AI | 2026-07-29 | 宸插畬鎴?|
+| 17 | 瀵艰埅 | 鐢ㄦ埛鏉冮檺瀛愯彍鍗曢摼鎺ョ湡瀹炶矾鐢憋紙瑙掕壊绠＄悊鈫抮oles銆佹潈闄愮鐞嗏啋permissions锛?| AI | 2026-07-29 | 宸插畬鎴?|
+| 18 | 瀵艰埅 | 缁勭粐涓讳綋鍏ㄩ儴 5 涓瓙鑿滃崟鎸囧悜鐪熷疄璺敱 | AI | 2026-07-29 | 宸插畬鎴?|
+| 19 | 鏂囨。 | 08_鐢ㄦ埛浣跨敤鎵嬪唽.md 鍒涘缓锛堣鐩栧凡瀹屾垚鐨勫叏閮ㄥ姛鑳芥ā鍧楁搷浣滆鏄庯級 | AI | 2026-07-29 | 宸插畬鎴?|
+| 20 | 鏂囨。 | FSD 9.3.3 鏁版嵁搴撶洰褰曟洿鏂颁负 Livewire 椤圭洰瀹為檯鐘舵€?| AI | 2026-07-29 | 宸插畬鎴?|
 
-### 2 原有功能优化项
+### 2 鍘熸湁鍔熻兘浼樺寲椤?
 
-1. .env.example 中文乱码修复 — 重写为无 BOM UTF-8 编码（2026-07-29）
-2. AdminInstallCommand 引用修复 — RolePermissionSeeder → SystemDataSeeder（2026-07-29）
-3. 移动端汉堡菜单代码清除 — 管理后台不做移动端适配（2026-07-29）
-4. composer.json post-autoload-dump 添加自动创建缺失目录脚本（2026-07-29）
+1. .env.example 涓枃涔辩爜淇 鈥?閲嶅啓涓烘棤 BOM UTF-8 缂栫爜锛?026-07-29锛?
+2. AdminInstallCommand 寮曠敤淇 鈥?RolePermissionSeeder 鈫?SystemDataSeeder锛?026-07-29锛?
+3. 绉诲姩绔眽鍫¤彍鍗曚唬鐮佹竻闄?鈥?绠＄悊鍚庡彴涓嶅仛绉诲姩绔€傞厤锛?026-07-29锛?
+4. composer.json post-autoload-dump 娣诲姞鑷姩鍒涘缓缂哄け鐩綍鑴氭湰锛?026-07-29锛?
 
-### 3 BUG 修复记录
+### 3 BUG 淇璁板綍
 
-| BUG编号 | 问题描述 | 复现步骤 | 修复方案 | 验证状态 |
+| BUG缂栧彿 | 闂鎻忚堪 | 澶嶇幇姝ラ | 淇鏂规 | 楠岃瘉鐘舵€?|
 | :--- | :--- | :--- | :--- | :--- |
-| 8 | AdminInstallCommand 引用已删除的 RolePermissionSeeder | `php artisan admin:install --reset --force` 报错类不存在 | 改为引用 SystemDataSeeder | 已验证 |
-| 9 | .env.example UTF-8 BOM 导致中文注释乱码 | Git clone 后在其他环境打开 .env.example 中文全部乱码 | 重写为无 BOM UTF-8 | 已验证 |
+| 8 | AdminInstallCommand 寮曠敤宸插垹闄ょ殑 RolePermissionSeeder | `php artisan admin:install --reset --force` 鎶ラ敊绫讳笉瀛樺湪 | 鏀逛负寮曠敤 SystemDataSeeder | 宸查獙璇?|
+| 9 | .env.example UTF-8 BOM 瀵艰嚧涓枃娉ㄩ噴涔辩爜 | Git clone 鍚庡湪鍏朵粬鐜鎵撳紑 .env.example 涓枃鍏ㄩ儴涔辩爜 | 閲嶅啓涓烘棤 BOM UTF-8 | 宸查獙璇?|
 
-### 4 遗留待迭代需求（下一版本处理）
+### 4 閬楃暀寰呰凯浠ｉ渶姹傦紙涓嬩竴鐗堟湰澶勭悊锛?
 
-| 序号 | 需求描述 | 优先级 | 备注 |
+| 搴忓彿 | 闇€姹傛弿杩?| 浼樺厛绾?| 澶囨敞 |
 | :--- | :--- | :--- | :--- |
-| 1 | Model 第3~15批（约49个） | P0 | 商品→SKU条码→仓库库存→采购→订单→拣货→配送→差异损耗→退货→价格策略→财务→均摊+扩展+系统+微信 |
-| 2 | 对应 Livewire 页面 | P0 | 每批 Model 配套列表/详情/表单页面 |
-| 3 | 安装 Redis PHP 扩展 | P1 | .env 目前用 file 驱动 |
-| 4 | 数据大屏统计功能 | P2 | 展示订单量、销售额、损耗率等实时指标 |
+| 1 | Model 绗?~15鎵癸紙绾?9涓級 | P0 | 鍟嗗搧鈫扴KU鏉＄爜鈫掍粨搴撳簱瀛樷啋閲囪喘鈫掕鍗曗啋鎷ｈ揣鈫掗厤閫佲啋宸紓鎹熻€椻啋閫€璐р啋浠锋牸绛栫暐鈫掕储鍔♀啋鍧囨憡+鎵╁睍+绯荤粺+寰俊 |
+| 2 | 瀵瑰簲 Livewire 椤甸潰 | P0 | 姣忔壒 Model 閰嶅鍒楄〃/璇︽儏/琛ㄥ崟椤甸潰 |
+| 3 | 瀹夎 Redis PHP 鎵╁睍 | P1 | .env 鐩墠鐢?file 椹卞姩 |
+| 4 | 鏁版嵁澶у睆缁熻鍔熻兘 | P2 | 灞曠ず璁㈠崟閲忋€侀攢鍞銆佹崯鑰楃巼绛夊疄鏃舵寚鏍?|
 
-### 5 完成统计
+### 5 瀹屾垚缁熻
 
-| 维度 | 已完成 | 待开发 | 合计 |
+| 缁村害 | 宸插畬鎴?| 寰呭紑鍙?| 鍚堣 |
 | :--- | :--- | :--- | :--- |
-| 功能点 | 38 | 15 | 53 |
-| 数据库表 | 77（已建 Migration） | 0 | 77 |
-| Blade 组件 | 34+ | - | 34+ |
+| 鍔熻兘鐐?| 38 | 15 | 53 |
+| 鏁版嵁搴撹〃 | 77锛堝凡寤?Migration锛?| 0 | 77 |
+| Blade 缁勪欢 | 34+ | - | 34+ |
 | Model | 16 | ~52 | ~68 |
-| Livewire 组件 | 15 | - | 15 |
-| 路由 | 17 | - | 17 |
+| Livewire 缁勪欢 | 15 | - | 15 |
+| 璺敱 | 17 | - | 17 |
 
-### 6 版本发布记录
+### 6 鐗堟湰鍙戝竷璁板綍
 
-| 项目 | 内容 |
+| 椤圭洰 | 鍐呭 |
 | :--- | :--- |
-| 版本号 | V1.1.0-alpha |
-| 发布时间 | 2026-07-29 |
-| 部署环境 | 开发环境（Laragon，https://livewire.test） |
-| Git 分支 | navigate |
-| 远程仓库 | git@github.com:kindiaing/susong-livewire.git |
-| 新增文件 | 7 Model + 7 Livewire 组件 + 7 Livewire 视图 + 1 用户手册 |
-| 修改文件 | web.php / app-topnav.blade.php / .env.example / AdminInstallCommand / composer.json / FSD |
+| 鐗堟湰鍙?| V1.1.0-alpha |
+| 鍙戝竷鏃堕棿 | 2026-07-29 |
+| 閮ㄧ讲鐜 | 寮€鍙戠幆澧冿紙Laragon锛宧ttps://livewire.test锛?|
+| Git 鍒嗘敮 | navigate |
+| 杩滅▼浠撳簱 | git@github.com:kindiaing/susong-livewire.git |
+| 鏂板鏂囦欢 | 7 Model + 7 Livewire 缁勪欢 + 7 Livewire 瑙嗗浘 + 1 鐢ㄦ埛鎵嬪唽 |
+| 淇敼鏂囦欢 | web.php / app-topnav.blade.php / .env.example / AdminInstallCommand / composer.json / FSD |
 
 ---
 
-## V1.0.0 | 迭代周期：2026-07-24 ~ 2026-07-29
+## V1.0.0 | 杩唬鍛ㄦ湡锛?026-07-24 ~ 2026-07-29
 
-负责人：项目负责人
-参与开发人员：后端开发、前端开发、测试
+璐熻矗浜猴細椤圭洰璐熻矗浜?
+鍙備笌寮€鍙戜汉鍛橈細鍚庣寮€鍙戙€佸墠绔紑鍙戙€佹祴璇?
 
-### 1 本次新增功能清单
+### 1 鏈鏂板鍔熻兘娓呭崟
 
-| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| 搴忓彿 | 鍔熻兘妯″潡 | 鍔熻兘鐐?| 寮€鍙戜汉 | 瀹屾垚鏃堕棿 | 鐘舵€?|
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | 项目初始化 | Laravel 13 + Livewire 4.x + Tailwind CSS 4.2 全栈脚手架搭建 | AI | 2026-07-24 | 已完成 |
-| 2 | 数据库 | 20 个 Migration（77 张表），整数金额存储，无外键约束 | AI | 2026-07-27 | 已完成 |
-| 3 | 数据库 | SystemDataSeeder（内置：角色/权限/超级管理员/审核节点/系统配置） | AI | 2026-07-27 | 已完成 |
-| 4 | 数据库 | DemoDataSeeder（测试：9 用户 + 23 配置项 + 9 角色） | AI | 2026-07-27 | 已完成 |
-| 5 | UI 组件库 | 34+ Blade 组件（shadcn/ui 设计理念），CSS 变量 + 语义化 token | AI | 2026-07-25 | 已完成 |
-| 6 | 用户与权限 | 登录页（用户名/手机/邮箱多方式，节流 5 次锁定，记住 7 天） | AI | 2026-07-25 | 已完成 |
-| 7 | 用户与权限 | 个人中心（修改资料 + 修改密码，中文验证，未修改不保存） | AI | 2026-07-27 | 已完成 |
-| 8 | 系统支撑 | 首页欢迎页（公开，底部版权：技术栈/备案号/开发者） | AI | 2026-07-28 | 已完成 |
-| 9 | 系统支撑 | 系统配置页（6 组 23 项，分组导航 + 行内编辑 + 重置默认值） | AI | 2026-07-27 | 已完成 |
-| 10 | 系统支撑 | 系统设置 Drawer（右侧全屏滑入，分组 Tab，行内编辑，替代独立页面） | AI | 2026-07-29 | 已完成 |
-| 11 | 系统支撑 | 操作日志（LogOperation 中间件，自动记录写操作，忽略 Livewire 内部） | AI | 2026-07-28 | 已完成 |
-| 12 | 系统支撑 | 审计日志页面（动作/模型/操作人/日期筛选，数据快照弹窗） | AI | 2026-07-28 | 已完成 |
-| 13 | 审核管理 | 审核配置页面（19 节点开关，统计卡片，模块/风险筛选，Alert Dialog 确认） | AI | 2026-07-28 | 已完成 |
-| 14 | 审核管理 | 审批列表页面（Tab 筛选，详情弹窗，通过/拒绝/撤回，Alert Dialog 确认） | AI | 2026-07-28 | 已完成 |
-| 15 | 审核管理 | ApprovalService（创建/通过/拒绝/撤回，防重复，审计日志联动） | AI | 2026-07-28 | 已完成 |
-| 16 | 消息通知 | 通知 Drawer（右侧全屏，数据库加载，未读角标，Tab 筛选，标记已读） | AI | 2026-07-28 | 已完成 |
-| 17 | 消息通知 | RestockReminder Model（智能补货提醒规则） | AI | 2026-07-28 | 已完成 |
-| 18 | 导航 | 顶部导航栏（Logo 居左 + 菜单搜索居中 + 个人中心居右） | AI | 2026-07-27 | 已完成 |
-| 19 | 导航 | Command 搜索面板（Ctrl+K，Alpine.js 命令面板） | AI | 2026-07-27 | 已完成 |
-| 20 | 导航 | 系统管理子菜单链接真实路由（settings/approval-config/operation-logs/audit-logs） | AI | 2026-07-28 | 已完成 |
-| 21 | UI 增强 | Alert Dialog 组件（shadcn/ui 风格，4 种 variant，支持 Livewire 回调） | AI | 2026-07-28 | 已完成 |
-| 22 | UI 增强 | Toast 通知（全局 Alpine store，5 种类型，统一 duration 5s） | AI | 2026-07-28 | 已完成 |
-| 23 | 安全 | CSRF Token 过期自动刷新（419 → reload，用户无感知） | AI | 2026-07-29 | 已完成 |
-| 24 | 组织主体 | 供应商管理 | AI | 2026-07-29 | V1.1.0 已完成 |
-| 25 | 组织主体 | 商家管理（含多地址） | AI | 2026-07-29 | V1.1.0 已完成 |
-| 26 | 组织主体 | 配送线路/司机/车辆管理 | AI | 2026-07-29 | V1.1.0 已完成 |
-| 27 | 商品管理 | 分类/商品/SKU/条码/一品多供/可见性/关键词 | AI | 2026-07-29 | V1.2.0 已完成 |
-| 28 | 平台统采 | 待采清单/采购单/采购入库/采购退货 | - | - | 待开发 |
-| 29 | 客户直采 | 购物车/订单/称重改价/售后退货 | - | - | 待开发 |
-| 30 | 库存管理 | 仓库/实时库存/库存日志/库存预警 | - | - | 待开发 |
-| 31 | 损耗管理 | 损耗单（申报→审核→扣减→成本归集） | - | - | 待开发 |
-| 32 | 拣货管理 | 拣货任务创建/分配/执行 | - | - | 待开发 |
-| 33 | 物流配送 | 配送任务/轨迹/签收/冷链温度 | - | - | 待开发 |
-| 34 | 差异处理 | 拣货/配送/实收差异，金额调整审批 | - | - | 待开发 |
-| 35 | 财务对账 | 客户账户/充值/供应商结算/应收/发票/授权更正/费用均摊 | - | - | 待开发 |
-| 36 | 价格策略 | 策略管理/策略明细/改价记录 | - | - | 待开发 |
-| 37 | 微信小程序商家端 | 登录/首页/搜索/商品详情/购物车/订单/签收/账户/消息/补货提醒 | - | - | 待开发 |
-| 38 | 微信小程序司机端 | 登录/任务/配送/轨迹/签收/差异标记/历史 | - | - | 待开发 |
+| 1 | 椤圭洰鍒濆鍖?| Laravel 13 + Livewire 4.x + Tailwind CSS 4.2 鍏ㄦ爤鑴氭墜鏋舵惌寤?| AI | 2026-07-24 | 宸插畬鎴?|
+| 2 | 鏁版嵁搴?| 20 涓?Migration锛?7 寮犺〃锛夛紝鏁存暟閲戦瀛樺偍锛屾棤澶栭敭绾︽潫 | AI | 2026-07-27 | 宸插畬鎴?|
+| 3 | 鏁版嵁搴?| SystemDataSeeder锛堝唴缃細瑙掕壊/鏉冮檺/瓒呯骇绠＄悊鍛?瀹℃牳鑺傜偣/绯荤粺閰嶇疆锛?| AI | 2026-07-27 | 宸插畬鎴?|
+| 4 | 鏁版嵁搴?| DemoDataSeeder锛堟祴璇曪細9 鐢ㄦ埛 + 23 閰嶇疆椤?+ 9 瑙掕壊锛?| AI | 2026-07-27 | 宸插畬鎴?|
+| 5 | UI 缁勪欢搴?| 34+ Blade 缁勪欢锛坰hadcn/ui 璁捐鐞嗗康锛夛紝CSS 鍙橀噺 + 璇箟鍖?token | AI | 2026-07-25 | 宸插畬鎴?|
+| 6 | 鐢ㄦ埛涓庢潈闄?| 鐧诲綍椤碉紙鐢ㄦ埛鍚?鎵嬫満/閭澶氭柟寮忥紝鑺傛祦 5 娆￠攣瀹氾紝璁颁綇 7 澶╋級 | AI | 2026-07-25 | 宸插畬鎴?|
+| 7 | 鐢ㄦ埛涓庢潈闄?| 涓汉涓績锛堜慨鏀硅祫鏂?+ 淇敼瀵嗙爜锛屼腑鏂囬獙璇侊紝鏈慨鏀逛笉淇濆瓨锛?| AI | 2026-07-27 | 宸插畬鎴?|
+| 8 | 绯荤粺鏀拺 | 棣栭〉娆㈣繋椤碉紙鍏紑锛屽簳閮ㄧ増鏉冿細鎶€鏈爤/澶囨鍙?寮€鍙戣€咃級 | AI | 2026-07-28 | 宸插畬鎴?|
+| 9 | 绯荤粺鏀拺 | 绯荤粺閰嶇疆椤碉紙6 缁?23 椤癸紝鍒嗙粍瀵艰埅 + 琛屽唴缂栬緫 + 閲嶇疆榛樿鍊硷級 | AI | 2026-07-27 | 宸插畬鎴?|
+| 10 | 绯荤粺鏀拺 | 绯荤粺璁剧疆 Drawer锛堝彸渚у叏灞忔粦鍏ワ紝鍒嗙粍 Tab锛岃鍐呯紪杈戯紝鏇夸唬鐙珛椤甸潰锛?| AI | 2026-07-29 | 宸插畬鎴?|
+| 11 | 绯荤粺鏀拺 | 鎿嶄綔鏃ュ織锛圠ogOperation 涓棿浠讹紝鑷姩璁板綍鍐欐搷浣滐紝蹇界暐 Livewire 鍐呴儴锛?| AI | 2026-07-28 | 宸插畬鎴?|
+| 12 | 绯荤粺鏀拺 | 瀹¤鏃ュ織椤甸潰锛堝姩浣?妯″瀷/鎿嶄綔浜?鏃ユ湡绛涢€夛紝鏁版嵁蹇収寮圭獥锛?| AI | 2026-07-28 | 宸插畬鎴?|
+| 13 | 瀹℃牳绠＄悊 | 瀹℃牳閰嶇疆椤甸潰锛?9 鑺傜偣寮€鍏筹紝缁熻鍗＄墖锛屾ā鍧?椋庨櫓绛涢€夛紝Alert Dialog 纭锛?| AI | 2026-07-28 | 宸插畬鎴?|
+| 14 | 瀹℃牳绠＄悊 | 瀹℃壒鍒楄〃椤甸潰锛圱ab 绛涢€夛紝璇︽儏寮圭獥锛岄€氳繃/鎷掔粷/鎾ゅ洖锛孉lert Dialog 纭锛?| AI | 2026-07-28 | 宸插畬鎴?|
+| 15 | 瀹℃牳绠＄悊 | ApprovalService锛堝垱寤?閫氳繃/鎷掔粷/鎾ゅ洖锛岄槻閲嶅锛屽璁℃棩蹇楄仈鍔級 | AI | 2026-07-28 | 宸插畬鎴?|
+| 16 | 娑堟伅閫氱煡 | 閫氱煡 Drawer锛堝彸渚у叏灞忥紝鏁版嵁搴撳姞杞斤紝鏈瑙掓爣锛孴ab 绛涢€夛紝鏍囪宸茶锛?| AI | 2026-07-28 | 宸插畬鎴?|
+| 17 | 娑堟伅閫氱煡 | RestockReminder Model锛堟櫤鑳借ˉ璐ф彁閱掕鍒欙級 | AI | 2026-07-28 | 宸插畬鎴?|
+| 18 | 瀵艰埅 | 椤堕儴瀵艰埅鏍忥紙Logo 灞呭乏 + 鑿滃崟鎼滅储灞呬腑 + 涓汉涓績灞呭彸锛?| AI | 2026-07-27 | 宸插畬鎴?|
+| 19 | 瀵艰埅 | Command 鎼滅储闈㈡澘锛圕trl+K锛孉lpine.js 鍛戒护闈㈡澘锛?| AI | 2026-07-27 | 宸插畬鎴?|
+| 20 | 瀵艰埅 | 绯荤粺绠＄悊瀛愯彍鍗曢摼鎺ョ湡瀹炶矾鐢憋紙settings/approval-config/operation-logs/audit-logs锛?| AI | 2026-07-28 | 宸插畬鎴?|
+| 21 | UI 澧炲己 | Alert Dialog 缁勪欢锛坰hadcn/ui 椋庢牸锛? 绉?variant锛屾敮鎸?Livewire 鍥炶皟锛?| AI | 2026-07-28 | 宸插畬鎴?|
+| 22 | UI 澧炲己 | Toast 閫氱煡锛堝叏灞€ Alpine store锛? 绉嶇被鍨嬶紝缁熶竴 duration 5s锛?| AI | 2026-07-28 | 宸插畬鎴?|
+| 23 | 瀹夊叏 | CSRF Token 杩囨湡鑷姩鍒锋柊锛?19 鈫?reload锛岀敤鎴锋棤鎰熺煡锛?| AI | 2026-07-29 | 宸插畬鎴?|
+| 24 | 缁勭粐涓讳綋 | 渚涘簲鍟嗙鐞?| AI | 2026-07-29 | V1.1.0 宸插畬鎴?|
+| 25 | 缁勭粐涓讳綋 | 鍟嗗绠＄悊锛堝惈澶氬湴鍧€锛?| AI | 2026-07-29 | V1.1.0 宸插畬鎴?|
+| 26 | 缁勭粐涓讳綋 | 閰嶉€佺嚎璺?鍙告満/杞﹁締绠＄悊 | AI | 2026-07-29 | V1.1.0 宸插畬鎴?|
+| 27 | 鍟嗗搧绠＄悊 | 鍒嗙被/鍟嗗搧/SKU/鏉＄爜/涓€鍝佸渚?鍙鎬?鍏抽敭璇?| AI | 2026-07-29 | V1.2.0 宸插畬鎴?|
+| 28 | 骞冲彴缁熼噰 | 寰呴噰娓呭崟/閲囪喘鍗?閲囪喘鍏ュ簱/閲囪喘閫€璐?| - | - | 寰呭紑鍙?|
+| 29 | 瀹㈡埛鐩撮噰 | 璐墿杞?璁㈠崟/绉伴噸鏀逛环/鍞悗閫€璐?| - | - | 寰呭紑鍙?|
+| 30 | 搴撳瓨绠＄悊 | 浠撳簱/瀹炴椂搴撳瓨/搴撳瓨鏃ュ織/搴撳瓨棰勮 | - | - | 寰呭紑鍙?|
+| 31 | 鎹熻€楃鐞?| 鎹熻€楀崟锛堢敵鎶モ啋瀹℃牳鈫掓墸鍑忊啋鎴愭湰褰掗泦锛?| - | - | 寰呭紑鍙?|
+| 32 | 鎷ｈ揣绠＄悊 | 鎷ｈ揣浠诲姟鍒涘缓/鍒嗛厤/鎵ц | - | - | 寰呭紑鍙?|
+| 33 | 鐗╂祦閰嶉€?| 閰嶉€佷换鍔?杞ㄨ抗/绛炬敹/鍐烽摼娓╁害 | - | - | 寰呭紑鍙?|
+| 34 | 宸紓澶勭悊 | 鎷ｈ揣/閰嶉€?瀹炴敹宸紓锛岄噾棰濊皟鏁村鎵?| - | - | 寰呭紑鍙?|
+| 35 | 璐㈠姟瀵硅处 | 瀹㈡埛璐︽埛/鍏呭€?渚涘簲鍟嗙粨绠?搴旀敹/鍙戠エ/鎺堟潈鏇存/璐圭敤鍧囨憡 | - | - | 寰呭紑鍙?|
+| 36 | 浠锋牸绛栫暐 | 绛栫暐绠＄悊/绛栫暐鏄庣粏/鏀逛环璁板綍 | - | - | 寰呭紑鍙?|
+| 37 | 寰俊灏忕▼搴忓晢瀹剁 | 鐧诲綍/棣栭〉/鎼滅储/鍟嗗搧璇︽儏/璐墿杞?璁㈠崟/绛炬敹/璐︽埛/娑堟伅/琛ヨ揣鎻愰啋 | - | - | 寰呭紑鍙?|
+| 38 | 寰俊灏忕▼搴忓徃鏈虹 | 鐧诲綍/浠诲姟/閰嶉€?杞ㄨ抗/绛炬敹/宸紓鏍囪/鍘嗗彶 | - | - | 寰呭紑鍙?|
 
-### 2 原有功能优化项
+### 2 鍘熸湁鍔熻兘浼樺寲椤?
 
-1. 退出登录后跳转首页 `/` 而非 `/login`（2026-07-28）
-2. SystemConfig 缓存反序列化防御 — `instanceof` 检查 + try/catch（2026-07-28）
-3. 通知 Drawer 后端化 — 从 app.js 硬编码改为 Livewire 组件数据库加载（2026-07-28）
-4. Migration 整理 — 25→20 个文件，5 个 alter 合并到 create，时间戳编号 000001~000020（2026-07-28）
-5. Seeder 整理 — SystemDataSeeder（内置）+ DemoDataSeeder（测试）（2026-07-28）
-6. 审核管理/审批列表 — wire:confirm 替换为 shadcn/ui Alert Dialog（2026-07-28）
-7. 系统设置 Drawer — 从底部窄面板改为右侧全屏 Drawer，整合全部 6 组配置项（2026-07-29）
-8. 系统管理图标 — 从 cog 改为 adjustments-horizontal（锯齿设置图标）（2026-07-29）
-9. 审核节点全景图 — 合并到 FSD 文档，删除独立 md 文件（2026-07-29）
+1. 閫€鍑虹櫥褰曞悗璺宠浆棣栭〉 `/` 鑰岄潪 `/login`锛?026-07-28锛?
+2. SystemConfig 缂撳瓨鍙嶅簭鍒楀寲闃插尽 鈥?`instanceof` 妫€鏌?+ try/catch锛?026-07-28锛?
+3. 閫氱煡 Drawer 鍚庣鍖?鈥?浠?app.js 纭紪鐮佹敼涓?Livewire 缁勪欢鏁版嵁搴撳姞杞斤紙2026-07-28锛?
+4. Migration 鏁寸悊 鈥?25鈫?0 涓枃浠讹紝5 涓?alter 鍚堝苟鍒?create锛屾椂闂存埑缂栧彿 000001~000020锛?026-07-28锛?
+5. Seeder 鏁寸悊 鈥?SystemDataSeeder锛堝唴缃級+ DemoDataSeeder锛堟祴璇曪級锛?026-07-28锛?
+6. 瀹℃牳绠＄悊/瀹℃壒鍒楄〃 鈥?wire:confirm 鏇挎崲涓?shadcn/ui Alert Dialog锛?026-07-28锛?
+7. 绯荤粺璁剧疆 Drawer 鈥?浠庡簳閮ㄧ獎闈㈡澘鏀逛负鍙充晶鍏ㄥ睆 Drawer锛屾暣鍚堝叏閮?6 缁勯厤缃」锛?026-07-29锛?
+8. 绯荤粺绠＄悊鍥炬爣 鈥?浠?cog 鏀逛负 adjustments-horizontal锛堥敮榻胯缃浘鏍囷級锛?026-07-29锛?
+9. 瀹℃牳鑺傜偣鍏ㄦ櫙鍥?鈥?鍚堝苟鍒?FSD 鏂囨。锛屽垹闄ょ嫭绔?md 鏂囦欢锛?026-07-29锛?
 
-### 3 BUG 修复记录
+### 3 BUG 淇璁板綍
 
-| BUG编号 | 问题描述 | 复现步骤 | 修复方案 | 验证状态 |
+| BUG缂栧彿 | 闂鎻忚堪 | 澶嶇幇姝ラ | 淇鏂规 | 楠岃瘉鐘舵€?|
 | :--- | :--- | :--- | :--- | :--- |
-| 1 | Livewire 组件 `private` 属性请求间不持久化 | 个人中心修改资料对比原始值失败 | 改为从数据库重读原始值对比 | 已验证 |
-| 2 | SystemConfig 缓存反序列化返回 `__PHP_Incomplete_Class` | Migration 新增列后缓存未刷新 | `getAll()` 增加 instanceof 检查 + try/catch | 已验证 |
-| 3 | `Setting::get()` 在数据库表不存在时报错 | 未执行 migrate 时访问首页 | try/catch 包裹 | 已验证 |
-| 4 | audit-logs.blade.php 嵌套三元 `}}}` 导致 ParseError | 复杂嵌套三元运算符 | `@php` 预处理颜色映射数组 | 已验证 |
-| 5 | LogOperation 中间件记录 Livewire 内部请求 | 所有 Livewire POST 请求被写入操作日志 | 忽略路径列表增加 `livewire-` 前缀 | 已验证 |
-| 6 | CSRF Token 过期导致 419 "This page has expired" | Session 过期后提交登录表单 | 异常处理捕获 TokenMismatchException + 前端 419 自动 reload | 已验证 |
-| 7 | Toast duration 不一致（4s vs 5s） | 多处 toast 超时时间不统一 | store 默认超时统一为 5s | 已验证 |
+| 1 | Livewire 缁勪欢 `private` 灞炴€ц姹傞棿涓嶆寔涔呭寲 | 涓汉涓績淇敼璧勬枡瀵规瘮鍘熷鍊煎け璐?| 鏀逛负浠庢暟鎹簱閲嶈鍘熷鍊煎姣?| 宸查獙璇?|
+| 2 | SystemConfig 缂撳瓨鍙嶅簭鍒楀寲杩斿洖 `__PHP_Incomplete_Class` | Migration 鏂板鍒楀悗缂撳瓨鏈埛鏂?| `getAll()` 澧炲姞 instanceof 妫€鏌?+ try/catch | 宸查獙璇?|
+| 3 | `Setting::get()` 鍦ㄦ暟鎹簱琛ㄤ笉瀛樺湪鏃舵姤閿?| 鏈墽琛?migrate 鏃惰闂椤?| try/catch 鍖呰９ | 宸查獙璇?|
+| 4 | audit-logs.blade.php 宓屽涓夊厓 `}}}` 瀵艰嚧 ParseError | 澶嶆潅宓屽涓夊厓杩愮畻绗?| `@php` 棰勫鐞嗛鑹叉槧灏勬暟缁?| 宸查獙璇?|
+| 5 | LogOperation 涓棿浠惰褰?Livewire 鍐呴儴璇锋眰 | 鎵€鏈?Livewire POST 璇锋眰琚啓鍏ユ搷浣滄棩蹇?| 蹇界暐璺緞鍒楄〃澧炲姞 `livewire-` 鍓嶇紑 | 宸查獙璇?|
+| 6 | CSRF Token 杩囨湡瀵艰嚧 419 "This page has expired" | Session 杩囨湡鍚庢彁浜ょ櫥褰曡〃鍗?| 寮傚父澶勭悊鎹曡幏 TokenMismatchException + 鍓嶇 419 鑷姩 reload | 宸查獙璇?|
+| 7 | Toast duration 涓嶄竴鑷达紙4s vs 5s锛?| 澶氬 toast 瓒呮椂鏃堕棿涓嶇粺涓€ | store 榛樿瓒呮椂缁熶竴涓?5s | 宸查獙璇?|
 
-### 4 遗留待迭代需求（下一版本处理）
+### 4 閬楃暀寰呰凯浠ｉ渶姹傦紙涓嬩竴鐗堟湰澶勭悊锛?
 
-| 序号 | 需求描述 | 优先级 | 备注 |
+| 搴忓彿 | 闇€姹傛弿杩?| 浼樺厛绾?| 澶囨敞 |
 | :--- | :--- | :--- | :--- |
-| 1 | Model 层开发（第3~15批） | P0 | 商品/SKU/库存/采购/订单/拣货/配送/差异/退货/价格/财务等约 49 个 |
-| 2 | 安装 Redis PHP 扩展 | P1 | .env 目前用 file 驱动 |
-| 3 | 数据大屏统计功能 | P2 | 展示订单量、销售额、损耗率等实时指标 |
-| 4 | 操作日志导出 | P2 | 支持按时间范围、操作人、模块导出 |
-| 5 | 效期管理（二期损耗增强） | P2 | 效期预警、自动触发损耗申报 |
-| 6 | 损耗分析报表（二期） | P2 | 按品类、供应商、时间维度损耗趋势分析 |
-| 7 | AI 智能补货推荐 | P3 | 基于采购频次和库存自动推荐补货清单 |
+| 1 | Model 灞傚紑鍙戯紙绗?~15鎵癸級 | P0 | 鍟嗗搧/SKU/搴撳瓨/閲囪喘/璁㈠崟/鎷ｈ揣/閰嶉€?宸紓/閫€璐?浠锋牸/璐㈠姟绛夌害 49 涓?|
+| 2 | 瀹夎 Redis PHP 鎵╁睍 | P1 | .env 鐩墠鐢?file 椹卞姩 |
+| 3 | 鏁版嵁澶у睆缁熻鍔熻兘 | P2 | 灞曠ず璁㈠崟閲忋€侀攢鍞銆佹崯鑰楃巼绛夊疄鏃舵寚鏍?|
+| 4 | 鎿嶄綔鏃ュ織瀵煎嚭 | P2 | 鏀寔鎸夋椂闂磋寖鍥淬€佹搷浣滀汉銆佹ā鍧楀鍑?|
+| 5 | 鏁堟湡绠＄悊锛堜簩鏈熸崯鑰楀寮猴級 | P2 | 鏁堟湡棰勮銆佽嚜鍔ㄨЕ鍙戞崯鑰楃敵鎶?|
+| 6 | 鎹熻€楀垎鏋愭姤琛紙浜屾湡锛?| P2 | 鎸夊搧绫汇€佷緵搴斿晢銆佹椂闂寸淮搴︽崯鑰楄秼鍔垮垎鏋?|
+| 7 | AI 鏅鸿兘琛ヨ揣鎺ㄨ崘 | P3 | 鍩轰簬閲囪喘棰戞鍜屽簱瀛樿嚜鍔ㄦ帹鑽愯ˉ璐ф竻鍗?|
 
-### 5 完成统计
+### 5 瀹屾垚缁熻
 
-| 维度 | 已完成 | 待开发 | 合计 |
+| 缁村害 | 宸插畬鎴?| 寰呭紑鍙?| 鍚堣 |
 | :--- | :--- | :--- | :--- |
-| 功能点 | 23 | 15 | 38 |
-| 数据库表 | 77（已建 Migration） | 0 | 77 |
-| Blade 组件 | 34+ | - | 34+ |
+| 鍔熻兘鐐?| 23 | 15 | 38 |
+| 鏁版嵁搴撹〃 | 77锛堝凡寤?Migration锛?| 0 | 77 |
+| Blade 缁勪欢 | 34+ | - | 34+ |
 | Model | 8 | ~60 | ~68 |
-| Livewire 组件 | 8 | - | 8 |
-| 路由 | 10 | - | 10 |
+| Livewire 缁勪欢 | 8 | - | 8 |
+| 璺敱 | 10 | - | 10 |
 
-### 6 版本发布记录
+### 6 鐗堟湰鍙戝竷璁板綍
 
-| 项目 | 内容 |
+| 椤圭洰 | 鍐呭 |
 | :--- | :--- |
-| 版本号 | V1.0.0-alpha |
-| 发布时间 | 待定 |
-| 部署环境 | 开发环境（Laragon，https://livewire.test） |
-| Git 分支 | navigate |
-| 远程仓库 | git@github.com:kindiaing/susong-livewire.git |
-| 超级管理员 | 用户名: seeding / 密码: Password |
+| 鐗堟湰鍙?| V1.0.0-alpha |
+| 鍙戝竷鏃堕棿 | 寰呭畾 |
+| 閮ㄧ讲鐜 | 寮€鍙戠幆澧冿紙Laragon锛宧ttps://livewire.test锛?|
+| Git 鍒嗘敮 | navigate |
+| 杩滅▼浠撳簱 | git@github.com:kindiaing/susong-livewire.git |
+| 瓒呯骇绠＄悊鍛?| 鐢ㄦ埛鍚? seeding / 瀵嗙爜: Password |
 
-### 7 数据库变更记录
+### 7 鏁版嵁搴撳彉鏇磋褰?
 
-| Migration 文件名 | 操作类型 | 涉及表 | 说明 |
+| Migration 鏂囦欢鍚?| 鎿嶄綔绫诲瀷 | 娑夊強琛?| 璇存槑 |
 | :--- | :--- | :--- | :--- |
-| 2026_07_27_000001~000020 | CREATE | 77 张表 | 完整建表，无外键约束，整数金额存储 |
-| SystemDataSeeder | INSERT | roles/permissions/users/approval_type_configs/system_configs | 内置数据，生产环境必需 |
-| DemoDataSeeder | INSERT | users/notifications | 测试数据，仅开发环境 |
+| 2026_07_27_000001~000020 | CREATE | 77 寮犺〃 | 瀹屾暣寤鸿〃锛屾棤澶栭敭绾︽潫锛屾暣鏁伴噾棰濆瓨鍌?|
+| SystemDataSeeder | INSERT | roles/permissions/users/approval_type_configs/system_configs | 鍐呯疆鏁版嵁锛岀敓浜х幆澧冨繀闇€ |
+| DemoDataSeeder | INSERT | users/notifications | 娴嬭瘯鏁版嵁锛屼粎寮€鍙戠幆澧?|
 
-### 8 配置变更记录
+### 8 閰嶇疆鍙樻洿璁板綍
 
-| 配置项 | 变更前 | 变更后 | 说明 |
+| 閰嶇疆椤?| 鍙樻洿鍓?| 鍙樻洿鍚?| 璇存槑 |
 | :--- | :--- | :--- | :--- |
-| SESSION_DRIVER | redis | file | Redis 扩展未安装 |
-| CACHE_STORE | redis | file | Redis 扩展未安装 |
+| SESSION_DRIVER | redis | file | Redis 鎵╁睍鏈畨瑁?|
+| CACHE_STORE | redis | file | Redis 鎵╁睍鏈畨瑁?|
 
 ---
 
-## V2.0.0 — 配送模块 v2 改造
+## V2.0.0 鈥?閰嶉€佹ā鍧?v2 鏀归€?
 
-### 变更概述
+### 鍙樻洿姒傝堪
 
-配送模块从 v1（5 张配送表 + 简单三态流转）全面改造为 v2，支持线路固定规划 + 任务按需生成 + 配送顺序表 + 加急/重要标记 + 车辆故障处理。
+閰嶉€佹ā鍧椾粠 v1锛? 寮犻厤閫佽〃 + 绠€鍗曚笁鎬佹祦杞級鍏ㄩ潰鏀归€犱负 v2锛屾敮鎸佺嚎璺浐瀹氳鍒?+ 浠诲姟鎸夐渶鐢熸垚 + 閰嶉€侀『搴忚〃 + 鍔犳€?閲嶈鏍囪 + 杞﹁締鏁呴殰澶勭悊銆?
 
-### 数据库变更
+### 鏁版嵁搴撳彉鏇?
 
-| 操作 | 表名 | 说明 |
+| 鎿嶄綔 | 琛ㄥ悕 | 璇存槑 |
 | :--- | :--- | :--- |
-| 改造 | delivery_routes | 新增 8 字段：code(UNIQUE)、warehouse_id、default_driver_id、default_vehicle_id、color、departure_time、estimated_duration、estimated_distance、remark |
-| 改造 | delivery_tasks | 字段大量改名（delivery_route_id→route_id、planned_at→planned_start_time 等）+ 新增 delivery_date、generated_at、has_urgent、has_important、total_stops 等；状态从 3 种扩展为 6 种 |
-| 改造 | vehicles | 新增 name、capacity_kg、capacity_volume、last_maintenance_date、next_maintenance_date、remark；vehicle_type→type；状态改为 3 种（1可用/2维修中/3报废） |
-| 改名重建 | delivery_task_orders → delivery_task_details | 整表重构，新增 merchant_id/merchant_name/merchant_address/product_summary/source_type/delivery_method/delivery_photos 等字段 |
-| 新建 | delivery_route_stops | 线路明细-商家排序表（核心） |
-| 新建 | delivery_task_sequences | 配送顺序表（核心），含加急/重要标记、base_sequence_no/sequence_no 双序号 |
-| 新建 | delivery_arrival_logs | 抵达时间流水，不可变记录 |
-| 新建 | vehicle_issues | 车辆故障记录表 |
+| 鏀归€?| delivery_routes | 鏂板 8 瀛楁锛歝ode(UNIQUE)銆亀arehouse_id銆乨efault_driver_id銆乨efault_vehicle_id銆乧olor銆乨eparture_time銆乪stimated_duration銆乪stimated_distance銆乺emark |
+| 鏀归€?| delivery_tasks | 瀛楁澶ч噺鏀瑰悕锛坉elivery_route_id鈫抮oute_id銆乸lanned_at鈫抪lanned_start_time 绛夛級+ 鏂板 delivery_date銆乬enerated_at銆乭as_urgent銆乭as_important銆乼otal_stops 绛夛紱鐘舵€佷粠 3 绉嶆墿灞曚负 6 绉?|
+| 鏀归€?| vehicles | 鏂板 name銆乧apacity_kg銆乧apacity_volume銆乴ast_maintenance_date銆乶ext_maintenance_date銆乺emark锛泇ehicle_type鈫抰ype锛涚姸鎬佹敼涓?3 绉嶏紙1鍙敤/2缁翠慨涓?3鎶ュ簾锛?|
+| 鏀瑰悕閲嶅缓 | delivery_task_orders 鈫?delivery_task_details | 鏁磋〃閲嶆瀯锛屾柊澧?merchant_id/merchant_name/merchant_address/product_summary/source_type/delivery_method/delivery_photos 绛夊瓧娈?|
+| 鏂板缓 | delivery_route_stops | 绾胯矾鏄庣粏-鍟嗗鎺掑簭琛紙鏍稿績锛?|
+| 鏂板缓 | delivery_task_sequences | 閰嶉€侀『搴忚〃锛堟牳蹇冿級锛屽惈鍔犳€?閲嶈鏍囪銆乥ase_sequence_no/sequence_no 鍙屽簭鍙?|
+| 鏂板缓 | delivery_arrival_logs | 鎶佃揪鏃堕棿娴佹按锛屼笉鍙彉璁板綍 |
+| 鏂板缓 | vehicle_issues | 杞﹁締鏁呴殰璁板綍琛?|
 
-### Model 变更
+### Model 鍙樻洿
 
-| 操作 | Model | 说明 |
+| 鎿嶄綔 | Model | 璇存槑 |
 | :--- | :--- | :--- |
-| 更新 | DeliveryRoute | 新增 warehouse() 关联，8 个新字段 |
-| 更新 | DeliveryTask | 6 状态 + generateTaskNo() + canTransitionTo() |
-| 更新 | Vehicle | 4 类型 + 3 状态 |
-| 更新 | Merchant | 移除 delivery_route_id/delivery_sort，新增 routeStops() |
-| 新建 | DeliveryTaskDetail | 原 DeliveryTaskOrder 改名 |
-| 新建 | DeliveryRouteStop | 含 resequence()/batchReorder() |
-| 新建 | DeliveryTaskSequence | 含 markUrgent()/unmarkUrgent()/markImportant()/unmarkImportant() |
-| 新建 | DeliveryArrivalLog | 抵达时间流水 |
-| 新建 | VehicleIssue | 车辆故障 |
-| 删除 | DeliveryTaskOrder | 已被 DeliveryTaskDetail 替代 |
+| 鏇存柊 | DeliveryRoute | 鏂板 warehouse() 鍏宠仈锛? 涓柊瀛楁 |
+| 鏇存柊 | DeliveryTask | 6 鐘舵€?+ generateTaskNo() + canTransitionTo() |
+| 鏇存柊 | Vehicle | 4 绫诲瀷 + 3 鐘舵€?|
+| 鏇存柊 | Merchant | 绉婚櫎 delivery_route_id/delivery_sort锛屾柊澧?routeStops() |
+| 鏂板缓 | DeliveryTaskDetail | 鍘?DeliveryTaskOrder 鏀瑰悕 |
+| 鏂板缓 | DeliveryRouteStop | 鍚?resequence()/batchReorder() |
+| 鏂板缓 | DeliveryTaskSequence | 鍚?markUrgent()/unmarkUrgent()/markImportant()/unmarkImportant() |
+| 鏂板缓 | DeliveryArrivalLog | 鎶佃揪鏃堕棿娴佹按 |
+| 鏂板缓 | VehicleIssue | 杞﹁締鏁呴殰 |
+| 鍒犻櫎 | DeliveryTaskOrder | 宸茶 DeliveryTaskDetail 鏇夸唬 |
 
-### Livewire 组件变更
+### Livewire 缁勪欢鍙樻洿
 
-| 操作 | 组件 | 说明 |
+| 鎿嶄綔 | 缁勪欢 | 璇存槑 |
 | :--- | :--- | :--- |
-| 新建 | Delivery\DeliveryRouteList | 替代旧 Org\RouteList，v2 全字段 |
-| 新建 | Delivery\DeliveryRouteDetail | 线路详情页（信息卡片 + 商家列表 + HTML5 拖拽排序） |
-| 重写 | Delivery\DeliveryTaskList | 适配 v2 字段名 |
-| 重写 | Delivery\VehicleList | 适配 v2 字段名 |
-| 废弃 | Org\RouteList + Org\RouteSort | 已被 Delivery 组件替代，待清理 |
+| 鏂板缓 | Delivery\DeliveryRouteList | 鏇夸唬鏃?Org\RouteList锛寁2 鍏ㄥ瓧娈?|
+| 鏂板缓 | Delivery\DeliveryRouteDetail | 绾胯矾璇︽儏椤碉紙淇℃伅鍗＄墖 + 鍟嗗鍒楄〃 + HTML5 鎷栨嫿鎺掑簭锛?|
+| 閲嶅啓 | Delivery\DeliveryTaskList | 閫傞厤 v2 瀛楁鍚?|
+| 閲嶅啓 | Delivery\VehicleList | 閫傞厤 v2 瀛楁鍚?|
+| 搴熷純 | Org\RouteList + Org\RouteSort | 宸茶 Delivery 缁勪欢鏇夸唬锛屽緟娓呯悊 |
 
-### 路由/菜单/权限迁移
+### 璺敱/鑿滃崟/鏉冮檺杩佺Щ
 
-| 操作 | 说明 |
+| 鎿嶄綔 | 璇存槑 |
 | :--- | :--- |
-| 路由 | delivery-routes 改指新组件 + 新增 delivery-routes/{id} 详情路由 |
-| 菜单 | 新建「配送管理」分组，配送线路/任务/签收/差异/温度从「订单配送」移入 |
-| 权限 | org.route → delivery.route（含 stop-manage 子权限），角色分配同步更新 |
+| 璺敱 | delivery-routes 鏀规寚鏂扮粍浠?+ 鏂板 delivery-routes/{id} 璇︽儏璺敱 |
+| 鑿滃崟 | 鏂板缓銆岄厤閫佺鐞嗐€嶅垎缁勶紝閰嶉€佺嚎璺?浠诲姟/绛炬敹/宸紓/娓╁害浠庛€岃鍗曢厤閫併€嶇Щ鍏?|
+| 鏉冮檺 | org.route 鈫?delivery.route锛堝惈 stop-manage 瀛愭潈闄愶級锛岃鑹插垎閰嶅悓姝ユ洿鏂?|
 
-### Git 信息
+### Git 淇℃伅
 
-| 项目 | 值 |
+| 椤圭洰 | 鍊?|
 | :--- | :--- |
-| 分支 | feature/delivery-task |
-| 提交 | f569d4e（Migration + Model）、aed481a（Livewire + 路由/菜单/权限） |
-| 验证 | migrate:refresh --seed 通过 |
+| 鍒嗘敮 | feature/delivery-task |
+| 鎻愪氦 | f569d4e锛圡igration + Model锛夈€乤ed481a锛圠ivewire + 璺敱/鑿滃崟/鏉冮檺锛?|
+| 楠岃瘉 | migrate:refresh --seed 閫氳繃 |
 
 ---
 
-## V2.0.1 — 单据编辑/删除门控收紧（仅初始状态可改）
+## V2.0.1 鈥?鍗曟嵁缂栬緫/鍒犻櫎闂ㄦ帶鏀剁揣锛堜粎鍒濆鐘舵€佸彲鏀癸級
 
-### 变更概述
+### 鍙樻洿姒傝堪
 
-统一规则：单据仅在初始状态（状态 1）可编辑/删除；提交后不可修改，需超管/管理员在订单/采购单详情页「回退」状态后方可编辑。回退仅改状态 + 审计日志，不做库存/金额/关联单据联动，其余单据不提供回退入口。
+缁熶竴瑙勫垯锛氬崟鎹粎鍦ㄥ垵濮嬬姸鎬侊紙鐘舵€?1锛夊彲缂栬緫/鍒犻櫎锛涙彁浜ゅ悗涓嶅彲淇敼锛岄渶瓒呯/绠＄悊鍛樺湪璁㈠崟/閲囪喘鍗曡鎯呴〉銆屽洖閫€銆嶇姸鎬佸悗鏂瑰彲缂栬緫銆傚洖閫€浠呮敼鐘舵€?+ 瀹¤鏃ュ織锛屼笉鍋氬簱瀛?閲戦/鍏宠仈鍗曟嵁鑱斿姩锛屽叾浣欏崟鎹笉鎻愪緵鍥為€€鍏ュ彛銆?
 
-### Livewire 组件变更
+### Livewire 缁勪欢鍙樻洿
 
-| 操作 | 组件 | 说明 |
+| 鎿嶄綔 | 缁勪欢 | 璇存槑 |
 | :--- | :--- | :--- |
-| 收紧 | Order\OrderList | 编辑按钮 1~3 → 仅待拣货；删除按钮补仅待拣货；openEditModal/save/delete/batchDelete 服务端校验 |
-| 收紧 | Purchase\PurchaseOrderList | 编辑按钮 1~4 → 仅待接单；删除按钮 1~3 → 仅待接单；服务端校验同步 |
-| 收紧 | Purchase\PurchaseReturnList | 编辑按钮 1~3 → 仅待审核；删除按钮补仅待审核；服务端校验同步 |
-| 收紧 | Order\OrderReturnList | 编辑按钮 1~2 → 仅待审核；删除按钮补仅待审核；覆盖批量删除（Trait 通用实现无状态校验），仅待审核可删 |
-| 收紧 | Loss\LossOrderList | 编辑服务端 1~2 → 仅待审核；删除按钮补仅待审核；服务端校验同步 |
-| 收紧 | Inventory\PickingTaskList | 编辑按钮 1~2 → 仅待分配；服务端校验同步（删除原有仅待分配校验保留） |
-| 收紧 | Delivery\DeliveryTaskList | 编辑按钮 1~4 → 仅待配送；删除按钮补仅待配送；服务端校验同步 |
-| 收紧 | Finance\RechargeList | 删除按钮补仅待确认；save/delete 服务端校验；提示文案统一 |
-| 收紧 | Finance\InvoiceList | 删除按钮补仅待开具；save/delete 服务端校验；提示文案统一 |
-| 收紧 | Order\OrderDetail | canEditItems 移除超管任意状态直改特权 → 仅待拣货；executeSaveItem/deleteItem 服务端校验 |
-| 收紧 | Purchase\PurchaseOrderDetail | 明细增/改/删/导入由「状态 1~2 + 超管任意状态」→ 仅待接单；executeImport 服务端校验 |
+| 鏀剁揣 | Order\OrderList | 缂栬緫鎸夐挳 1~3 鈫?浠呭緟鎷ｈ揣锛涘垹闄ゆ寜閽ˉ浠呭緟鎷ｈ揣锛沷penEditModal/save/delete/batchDelete 鏈嶅姟绔牎楠?|
+| 鏀剁揣 | Purchase\PurchaseOrderList | 缂栬緫鎸夐挳 1~4 鈫?浠呭緟鎺ュ崟锛涘垹闄ゆ寜閽?1~3 鈫?浠呭緟鎺ュ崟锛涙湇鍔＄鏍￠獙鍚屾 |
+| 鏀剁揣 | Purchase\PurchaseReturnList | 缂栬緫鎸夐挳 1~3 鈫?浠呭緟瀹℃牳锛涘垹闄ゆ寜閽ˉ浠呭緟瀹℃牳锛涙湇鍔＄鏍￠獙鍚屾 |
+| 鏀剁揣 | Order\OrderReturnList | 缂栬緫鎸夐挳 1~2 鈫?浠呭緟瀹℃牳锛涘垹闄ゆ寜閽ˉ浠呭緟瀹℃牳锛涜鐩栨壒閲忓垹闄わ紙Trait 閫氱敤瀹炵幇鏃犵姸鎬佹牎楠岋級锛屼粎寰呭鏍稿彲鍒?|
+| 鏀剁揣 | Loss\LossOrderList | 缂栬緫鏈嶅姟绔?1~2 鈫?浠呭緟瀹℃牳锛涘垹闄ゆ寜閽ˉ浠呭緟瀹℃牳锛涙湇鍔＄鏍￠獙鍚屾 |
+| 鏀剁揣 | Inventory\PickingTaskList | 缂栬緫鎸夐挳 1~2 鈫?浠呭緟鍒嗛厤锛涙湇鍔＄鏍￠獙鍚屾锛堝垹闄ゅ師鏈変粎寰呭垎閰嶆牎楠屼繚鐣欙級 |
+| 鏀剁揣 | Delivery\DeliveryTaskList | 缂栬緫鎸夐挳 1~4 鈫?浠呭緟閰嶉€侊紱鍒犻櫎鎸夐挳琛ヤ粎寰呴厤閫侊紱鏈嶅姟绔牎楠屽悓姝?|
+| 鏀剁揣 | Finance\RechargeList | 鍒犻櫎鎸夐挳琛ヤ粎寰呯‘璁わ紱save/delete 鏈嶅姟绔牎楠岋紱鎻愮ず鏂囨缁熶竴 |
+| 鏀剁揣 | Finance\InvoiceList | 鍒犻櫎鎸夐挳琛ヤ粎寰呭紑鍏凤紱save/delete 鏈嶅姟绔牎楠岋紱鎻愮ず鏂囨缁熶竴 |
+| 鏀剁揣 | Order\OrderDetail | canEditItems 绉婚櫎瓒呯浠绘剰鐘舵€佺洿鏀圭壒鏉?鈫?浠呭緟鎷ｈ揣锛沞xecuteSaveItem/deleteItem 鏈嶅姟绔牎楠?|
+| 鏀剁揣 | Purchase\PurchaseOrderDetail | 鏄庣粏澧?鏀?鍒?瀵煎叆鐢便€岀姸鎬?1~2 + 瓒呯浠绘剰鐘舵€併€嶁啋 浠呭緟鎺ュ崟锛沞xecuteImport 鏈嶅姟绔牎楠?|
 
-### Service 变更
+### Service 鍙樻洿
 
-| 操作 | Service | 说明 |
+| 鎿嶄綔 | Service | 璇存槑 |
 | :--- | :--- | :--- |
-| 收紧 | PurchaseService::addItem / updateItem / removeItem | 明细操作仅待接单状态可用，移除超管直改特权（超管须先回退状态再编辑）；rollbackStatus 保留不变 |
+| 鏀剁揣 | PurchaseService::addItem / updateItem / removeItem | 鏄庣粏鎿嶄綔浠呭緟鎺ュ崟鐘舵€佸彲鐢紝绉婚櫎瓒呯鐩存敼鐗规潈锛堣秴绠￠』鍏堝洖閫€鐘舵€佸啀缂栬緫锛夛紱rollbackStatus 淇濈暀涓嶅彉 |
 
-### 保留不变
+### 淇濈暀涓嶅彉
 
-- 订单/采购单详情页「超管状态回退」按钮维持现状（仅改状态 + AuditLog，无联动）
-- 售后退货/损耗单/拣货任务/配送任务/充值/发票不提供回退入口
-- 无数据库结构变更
+- 璁㈠崟/閲囪喘鍗曡鎯呴〉銆岃秴绠＄姸鎬佸洖閫€銆嶆寜閽淮鎸佺幇鐘讹紙浠呮敼鐘舵€?+ AuditLog锛屾棤鑱斿姩锛?
+- 鍞悗閫€璐?鎹熻€楀崟/鎷ｈ揣浠诲姟/閰嶉€佷换鍔?鍏呭€?鍙戠エ涓嶆彁渚涘洖閫€鍏ュ彛
+- 鏃犳暟鎹簱缁撴瀯鍙樻洿
 
-### Git 信息
+### Git 淇℃伅
 
-| 项目 | 值 |
+| 椤圭洰 | 鍊?|
 | :--- | :--- |
-| 分支 | bugfix |
-| 提交 | 见本次提交 |
-| 验证 | Pint 通过；测试套件 9 个失败为迁移索引重复（idx_model）既有问题，与本次无关 |
+| 鍒嗘敮 | bugfix |
+| 鎻愪氦 | 瑙佹湰娆℃彁浜?|
+| 楠岃瘉 | Pint 閫氳繃锛涙祴璇曞浠?9 涓け璐ヤ负杩佺Щ绱㈠紩閲嶅锛坕dx_model锛夋棦鏈夐棶棰橈紝涓庢湰娆℃棤鍏?|
 
 ---
 
-## V2.0.2 — 迁移索引修复 + 充值确认入账
+## V2.0.2 鈥?杩佺Щ绱㈠紩淇 + 鍏呭€肩‘璁ゅ叆璐?
 
-### 变更概述
+### 鍙樻洿姒傝堪
 
-1. 修复 `model_has_roles` / `model_has_permissions` 同名索引 `idx_model` 冲突（SQLite 测试库要求索引名全局唯一），后者改名 `idx_model_permission`，测试套件恢复可运行。
-2. 按 `03_DB` 6.11.2 节设计补上充值确认入账：审核通过后事务内更新 `merchant_accounts.balance` 和 `total_recharge`（无账户则创建），并记录审计日志；拒绝时同步 `approval_status=3`。
+1. 淇 `model_has_roles` / `model_has_permissions` 鍚屽悕绱㈠紩 `idx_model` 鍐茬獊锛圫QLite 娴嬭瘯搴撹姹傜储寮曞悕鍏ㄥ眬鍞竴锛夛紝鍚庤€呮敼鍚?`idx_model_permission`锛屾祴璇曞浠舵仮澶嶅彲杩愯銆?
+2. 鎸?`03_DB` 6.11.2 鑺傝璁¤ˉ涓婂厖鍊肩‘璁ゅ叆璐︼細瀹℃牳閫氳繃鍚庝簨鍔″唴鏇存柊 `merchant_accounts.balance` 鍜?`total_recharge`锛堟棤璐︽埛鍒欏垱寤猴級锛屽苟璁板綍瀹¤鏃ュ織锛涙嫆缁濇椂鍚屾 `approval_status=3`銆?
 
-### 变更明细
+### 鍙樻洿鏄庣粏
 
-| 操作 | 文件 | 说明 |
+| 鎿嶄綔 | 鏂囦欢 | 璇存槑 |
 | :--- | :--- | :--- |
-| 修复 | 2026_07_27_000001_create_users_and_permissions_tables.php | `model_has_permissions` 索引 `idx_model` → `idx_model_permission`（改 create 迁移，符合"无 alter"规范；存量 MySQL 库不受影响） |
-| 完善 | Finance\RechargeList::approve | 事务内：状态→成功 + approval_status→已通过 + MerchantAccount 入账（balance/total_recharge 原子 increment）+ AuditLog |
-| 完善 | Finance\RechargeList::reject | 同步 approval_status→已拒绝 |
+| 淇 | 2026_07_27_000001_create_users_and_permissions_tables.php | `model_has_permissions` 绱㈠紩 `idx_model` 鈫?`idx_model_permission`锛堟敼 create 杩佺Щ锛岀鍚?鏃?alter"瑙勮寖锛涘瓨閲?MySQL 搴撲笉鍙楀奖鍝嶏級 |
+| 瀹屽杽 | Finance\RechargeList::approve | 浜嬪姟鍐咃細鐘舵€佲啋鎴愬姛 + approval_status鈫掑凡閫氳繃 + MerchantAccount 鍏ヨ处锛坆alance/total_recharge 鍘熷瓙 increment锛? AuditLog |
+| 瀹屽杽 | Finance\RechargeList::reject | 鍚屾 approval_status鈫掑凡鎷掔粷 |
 
-### Git 信息
+### Git 淇℃伅
 
-| 项目 | 值 |
+| 椤圭洰 | 鍊?|
 | :--- | :--- |
-| 分支 | bugfix → 合并 main |
-| 提交 | 见本次提交 |
-| 验证 | 测试 9 通过 / 1 失败（UnitConversionServiceTest 三级换算断言为既有问题，与本次无关）；Pint 通过 |
+| 鍒嗘敮 | bugfix 鈫?鍚堝苟 main |
+| 鎻愪氦 | 瑙佹湰娆℃彁浜?|
+| 楠岃瘉 | 娴嬭瘯 9 閫氳繃 / 1 澶辫触锛圲nitConversionServiceTest 涓夌骇鎹㈢畻鏂█涓烘棦鏈夐棶棰橈紝涓庢湰娆℃棤鍏筹級锛汸int 閫氳繃 |
 ---
 
-## V2.0.3 — 差异功能一期：登记入口 + 处理台（先货后钱）
+## V2.0.3 鈥?宸紓鍔熻兘涓€鏈燂細鐧昏鍏ュ彛 + 澶勭悊鍙帮紙鍏堣揣鍚庨挶锛?
 
-### 变更概述
+### 鍙樻洿姒傝堪
 
-按 `docs/research/11_差异损耗留痕与账务持平设计.md` 落地差异功能一期：差异（事实登记，不动库存和钱）与损耗（处置，动库存成本）分离。拣货/实收环节登记差异单，差异处理台统一跟进：定责任方 + 处理决策（补货/退款/扣款/报损/不计），报损自动生成待审核损耗单，拒收/残次支持回库回补库存。退款/扣款本期只登记决策不动钱，金额调整为二期。
+鎸?`docs/research/11_宸紓鎹熻€楃暀鐥曚笌璐﹀姟鎸佸钩璁捐.md` 钀藉湴宸紓鍔熻兘涓€鏈燂細宸紓锛堜簨瀹炵櫥璁帮紝涓嶅姩搴撳瓨鍜岄挶锛変笌鎹熻€楋紙澶勭疆锛屽姩搴撳瓨鎴愭湰锛夊垎绂汇€傛嫞璐?瀹炴敹鐜妭鐧昏宸紓鍗曪紝宸紓澶勭悊鍙扮粺涓€璺熻繘锛氬畾璐ｄ换鏂?+ 澶勭悊鍐崇瓥锛堣ˉ璐?閫€娆?鎵ｆ/鎶ユ崯/涓嶈锛夛紝鎶ユ崯鑷姩鐢熸垚寰呭鏍告崯鑰楀崟锛屾嫆鏀?娈嬫鏀寔鍥炲簱鍥炶ˉ搴撳瓨銆傞€€娆?鎵ｆ鏈湡鍙櫥璁板喅绛栦笉鍔ㄩ挶锛岄噾棰濊皟鏁翠负浜屾湡銆?
 
-### 变更明细
+### 鍙樻洿鏄庣粏
 
-| 操作 | 文件 | 说明 |
+| 鎿嶄綔 | 鏂囦欢 | 璇存槑 |
 | :--- | :--- | :--- |
-| 新增 | Services/DiscrepancyService | 差异单全生命周期：create（登记+唯一性校验+按订单明细单价估算金额差异）、process（责任方+决策分流）、restockToWarehouse（拒收回库 TYPE_IN 留痕）；审计受 audit_discrepancy 开关控制 |
-| 完善 | Services/LossOrderService::create | 新增 sourceType/sourceId 参数（默认 manual/null，向后兼容），支持来源=差异单 |
-| 完善 | Inventory/PickingTaskDetail | SKU 汇总行「录入实拣」弹窗：实拣按订单明细顺序分摊，缺口自动生成拣货差异单（stage=1） |
-| 完善 | Delivery/DeliveryNoteDetail | 实收少于应送时弹出差异登记（实收 0 默认拒收，stage=3），生成差异单待处理 |
-| 重构 | Delivery/DiscrepancyList | 裸列表升级为处理台：环节/状态筛选、责任方+决策处理弹窗、拒收回库弹窗；修复列配置 amount→amount_diff，补环节/数量差异/责任方/决策列 |
-| 新增 | tests/Feature/DiscrepancyServiceTest | 6 条用例：登记/重复拦截/报损联动损耗单/不计关闭/回库回补库存/重复处理拦截 |
+| 鏂板 | Services/DiscrepancyService | 宸紓鍗曞叏鐢熷懡鍛ㄦ湡锛歝reate锛堢櫥璁?鍞竴鎬ф牎楠?鎸夎鍗曟槑缁嗗崟浠蜂及绠楅噾棰濆樊寮傦級銆乸rocess锛堣矗浠绘柟+鍐崇瓥鍒嗘祦锛夈€乺estockToWarehouse锛堟嫆鏀跺洖搴?TYPE_IN 鐣欑棔锛夛紱瀹¤鍙?audit_discrepancy 寮€鍏虫帶鍒?|
+| 瀹屽杽 | Services/LossOrderService::create | 鏂板 sourceType/sourceId 鍙傛暟锛堥粯璁?manual/null锛屽悜鍚庡吋瀹癸級锛屾敮鎸佹潵婧?宸紓鍗?|
+| 瀹屽杽 | Inventory/PickingTaskDetail | SKU 姹囨€昏銆屽綍鍏ュ疄鎷ｃ€嶅脊绐楋細瀹炴嫞鎸夎鍗曟槑缁嗛『搴忓垎鎽婏紝缂哄彛鑷姩鐢熸垚鎷ｈ揣宸紓鍗曪紙stage=1锛?|
+| 瀹屽杽 | Delivery/DeliveryNoteDetail | 瀹炴敹灏戜簬搴旈€佹椂寮瑰嚭宸紓鐧昏锛堝疄鏀?0 榛樿鎷掓敹锛宻tage=3锛夛紝鐢熸垚宸紓鍗曞緟澶勭悊 |
+| 閲嶆瀯 | Delivery/DiscrepancyList | 瑁稿垪琛ㄥ崌绾т负澶勭悊鍙帮細鐜妭/鐘舵€佺瓫閫夈€佽矗浠绘柟+鍐崇瓥澶勭悊寮圭獥銆佹嫆鏀跺洖搴撳脊绐楋紱淇鍒楅厤缃?amount鈫抋mount_diff锛岃ˉ鐜妭/鏁伴噺宸紓/璐ｄ换鏂?鍐崇瓥鍒?|
+| 鏂板 | tests/Feature/DiscrepancyServiceTest | 6 鏉＄敤渚嬶細鐧昏/閲嶅鎷︽埅/鎶ユ崯鑱斿姩鎹熻€楀崟/涓嶈鍏抽棴/鍥炲簱鍥炶ˉ搴撳瓨/閲嶅澶勭悊鎷︽埅 |
 
-### 数据库变更
+### 鏁版嵁搴撳彉鏇?
 
-| 变更 | 表名 | 字段 | 说明 |
+| 鍙樻洿 | 琛ㄥ悕 | 瀛楁 | 璇存槑 |
 | :--- | :--- | :--- | :--- |
-| 调整 | discrepancies | order_id | 改为可空（送货单明细可能无关联订单） |
-| 新增配置 | system_configs | discrepancy_auto_create_loss | 差异报损自动生成损耗单开关（inventory 组，默认开启） |
-| 新增配置 | system_configs | audit_discrepancy | 差异单登记/处理/回库审计开关（audit 组，默认开启） |
+| 璋冩暣 | discrepancies | order_id | 鏀逛负鍙┖锛堥€佽揣鍗曟槑缁嗗彲鑳芥棤鍏宠仈璁㈠崟锛?|
+| 鏂板閰嶇疆 | system_configs | discrepancy_auto_create_loss | 宸紓鎶ユ崯鑷姩鐢熸垚鎹熻€楀崟寮€鍏筹紙inventory 缁勶紝榛樿寮€鍚級 |
+| 鏂板閰嶇疆 | system_configs | audit_discrepancy | 宸紓鍗曠櫥璁?澶勭悊/鍥炲簱瀹¤寮€鍏筹紙audit 缁勶紝榛樿寮€鍚級 |
 
-### 权限设计
+### 鏉冮檺璁捐
 
-按钮级控制复用现有权限点，未新增：处理决策按按钮映射（补货→delivery.discrepancy.restock，退款/扣款→refund，报损→writeoff，不计→任一决策权限），回库→restock；审核类开关走 system_configs 配置。
+鎸夐挳绾ф帶鍒跺鐢ㄧ幇鏈夋潈闄愮偣锛屾湭鏂板锛氬鐞嗗喅绛栨寜鎸夐挳鏄犲皠锛堣ˉ璐р啋delivery.discrepancy.restock锛岄€€娆?鎵ｆ鈫抮efund锛屾姤鎹熲啋writeoff锛屼笉璁♀啋浠讳竴鍐崇瓥鏉冮檺锛夛紝鍥炲簱鈫抮estock锛涘鏍哥被寮€鍏宠蛋 system_configs 閰嶇疆銆?
 
-### Git 信息
+### Git 淇℃伅
 
-| 项目 | 值 |
+| 椤圭洰 | 鍊?|
 | :--- | :--- |
-| 分支 | bugfix |
-| 提交 | 见本次提交 |
-| 验证 | 测试 15 通过 / 1 失败（UnitConversionServiceTest 三级换算断言为既有问题，与本次无关）；Pint 通过；view:cache 通过 |
+| 鍒嗘敮 | bugfix |
+| 鎻愪氦 | 瑙佹湰娆℃彁浜?|
+| 楠岃瘉 | 娴嬭瘯 15 閫氳繃 / 1 澶辫触锛圲nitConversionServiceTest 涓夌骇鎹㈢畻鏂█涓烘棦鏈夐棶棰橈紝涓庢湰娆℃棤鍏筹級锛汸int 閫氳繃锛泇iew:cache 閫氳繃 |
 
 ---
 
-## V2.0.4 — 差异功能一期加固：单据溯源字段 + 库存日志语义化 + 损耗执行扣库存修复
+## V2.0.4 鈥?宸紓鍔熻兘涓€鏈熷姞鍥猴細鍗曟嵁婧簮瀛楁 + 搴撳瓨鏃ュ織璇箟鍖?+ 鎹熻€楁墽琛屾墸搴撳瓨淇
 
-> 开发者：Kimi（差异/库存链路）。同期另一工具完成单据状态锁定改造（见 `f6e5160` / `ca2bf51`）。
-> 决策依据：`docs/research/11_差异损耗留痕与账务持平设计.md` 第 11 章（决策 1 方案 A 全量字段 / 决策 3 损耗明细溯源 / 决策 4 方案 B 日志类型细分由调用方显式传入）。
+> 寮€鍙戣€咃細Kimi锛堝樊寮?搴撳瓨閾捐矾锛夈€傚悓鏈熷彟涓€宸ュ叿瀹屾垚鍗曟嵁鐘舵€侀攣瀹氭敼閫狅紙瑙?`f6e5160` / `ca2bf51`锛夈€?
+> 鍐崇瓥渚濇嵁锛歚docs/research/11_宸紓鎹熻€楃暀鐥曚笌璐﹀姟鎸佸钩璁捐.md` 绗?11 绔狅紙鍐崇瓥 1 鏂规 A 鍏ㄩ噺瀛楁 / 鍐崇瓥 3 鎹熻€楁槑缁嗘函婧?/ 鍐崇瓥 4 鏂规 B 鏃ュ織绫诲瀷缁嗗垎鐢辫皟鐢ㄦ柟鏄惧紡浼犲叆锛夈€?
 
-### 变更概述
+### 鍙樻洿姒傝堪
 
-1. **修复严重 Bug**：损耗单列表页「执行」直接改状态不扣库存，改为调用 `LossOrderService::execute()` 走库存扣减。
-2. **差异单自包含上下文**：`discrepancies` 表新增 8 个关联字段，各环节登记时回填，处理/对账不再依赖间接关联。
-3. **损耗明细可溯源差异单**：`loss_order_items.discrepancy_id`，差异报损自动写入。
-4. **库存日志语义化**：新增类型 7 报损出库 / 8 拒收回库 / 9 售后退库（预留），`stockIn/stockOut` 支持显式传类型，损耗执行与拒收回库已适配。
+1. **淇涓ラ噸 Bug**锛氭崯鑰楀崟鍒楄〃椤点€屾墽琛屻€嶇洿鎺ユ敼鐘舵€佷笉鎵ｅ簱瀛橈紝鏀逛负璋冪敤 `LossOrderService::execute()` 璧板簱瀛樻墸鍑忋€?
+2. **宸紓鍗曡嚜鍖呭惈涓婁笅鏂?*锛歚discrepancies` 琛ㄦ柊澧?8 涓叧鑱斿瓧娈碉紝鍚勭幆鑺傜櫥璁版椂鍥炲～锛屽鐞?瀵硅处涓嶅啀渚濊禆闂存帴鍏宠仈銆?
+3. **鎹熻€楁槑缁嗗彲婧簮宸紓鍗?*锛歚loss_order_items.discrepancy_id`锛屽樊寮傛姤鎹熻嚜鍔ㄥ啓鍏ャ€?
+4. **搴撳瓨鏃ュ織璇箟鍖?*锛氭柊澧炵被鍨?7 鎶ユ崯鍑哄簱 / 8 鎷掓敹鍥炲簱 / 9 鍞悗閫€搴擄紙棰勭暀锛夛紝`stockIn/stockOut` 鏀寔鏄惧紡浼犵被鍨嬶紝鎹熻€楁墽琛屼笌鎷掓敹鍥炲簱宸查€傞厤銆?
 
-### 变更明细
+### 鍙樻洿鏄庣粏
 
-| 操作 | 文件 | 说明 |
+| 鎿嶄綔 | 鏂囦欢 | 璇存槑 |
 | :--- | :--- | :--- |
-| 修复 | Loss/LossOrderList::execute | 改走 `LossOrderService::execute()`，执行时真实扣减库存（事务内） |
-| 调整 | 000011_create_discrepancy_tables | 新增 purchase_order_id / picking_task_id / delivery_task_id / delivery_note_item_id / sku_id / warehouse_id / unit_id / unit_quantity + 4 个索引 |
-| 调整 | 000008_create_loss_tables | loss_order_items 新增 discrepancy_id + 索引 |
-| 完善 | Models/Discrepancy | 新字段 fillable/casts + sku() 关联 |
-| 完善 | Models/LossOrderItem | discrepancy_id fillable/casts |
-| 完善 | Models/InventoryLog | 新增 TYPE_LOSS_REPORT=7 / TYPE_REJECT_RETURN=8 / TYPE_AFTER_SALES_RETURN=9 + 类型映射 |
-| 完善 | Services/InventoryService | stockIn/stockOut 新增 `?int $type` 参数（默认 TYPE_IN/TYPE_OUT，向后兼容） |
-| 完善 | Services/LossOrderService | execute 传 TYPE_LOSS_REPORT；create 写入明细 discrepancy_id |
-| 完善 | Services/DiscrepancyService | create 接收并回填 8 个关联字段；resolveSkuId 优先直读 sku_id；createLossOrder 传 discrepancy_id；restockToWarehouse 传 TYPE_REJECT_RETURN |
-| 完善 | Inventory/PickingTaskDetail | 拣货差异登记回填 picking_task_id / sku_id / warehouse_id |
-| 完善 | Delivery/DeliveryNoteDetail | 实收差异登记按订单+SKU 反查回填 order_item_id，回填 delivery_note_item_id / sku_id |
-| 完善 | Delivery/DiscrepancyList | 处理弹窗 SKU 优先直读差异单 sku 关联 |
-| 测试 | tests/Feature/DiscrepancyServiceTest | 补关联字段回填、损耗明细 discrepancy_id、日志类型 7/8 断言；新增全链路用例（差异→报损→审核→执行→库存扣减） |
+| 淇 | Loss/LossOrderList::execute | 鏀硅蛋 `LossOrderService::execute()`锛屾墽琛屾椂鐪熷疄鎵ｅ噺搴撳瓨锛堜簨鍔″唴锛?|
+| 璋冩暣 | 000011_create_discrepancy_tables | 鏂板 purchase_order_id / picking_task_id / delivery_task_id / delivery_note_item_id / sku_id / warehouse_id / unit_id / unit_quantity + 4 涓储寮?|
+| 璋冩暣 | 000008_create_loss_tables | loss_order_items 鏂板 discrepancy_id + 绱㈠紩 |
+| 瀹屽杽 | Models/Discrepancy | 鏂板瓧娈?fillable/casts + sku() 鍏宠仈 |
+| 瀹屽杽 | Models/LossOrderItem | discrepancy_id fillable/casts |
+| 瀹屽杽 | Models/InventoryLog | 鏂板 TYPE_LOSS_REPORT=7 / TYPE_REJECT_RETURN=8 / TYPE_AFTER_SALES_RETURN=9 + 绫诲瀷鏄犲皠 |
+| 瀹屽杽 | Services/InventoryService | stockIn/stockOut 鏂板 `?int $type` 鍙傛暟锛堥粯璁?TYPE_IN/TYPE_OUT锛屽悜鍚庡吋瀹癸級 |
+| 瀹屽杽 | Services/LossOrderService | execute 浼?TYPE_LOSS_REPORT锛沜reate 鍐欏叆鏄庣粏 discrepancy_id |
+| 瀹屽杽 | Services/DiscrepancyService | create 鎺ユ敹骞跺洖濉?8 涓叧鑱斿瓧娈碉紱resolveSkuId 浼樺厛鐩磋 sku_id锛沜reateLossOrder 浼?discrepancy_id锛況estockToWarehouse 浼?TYPE_REJECT_RETURN |
+| 瀹屽杽 | Inventory/PickingTaskDetail | 鎷ｈ揣宸紓鐧昏鍥炲～ picking_task_id / sku_id / warehouse_id |
+| 瀹屽杽 | Delivery/DeliveryNoteDetail | 瀹炴敹宸紓鐧昏鎸夎鍗?SKU 鍙嶆煡鍥炲～ order_item_id锛屽洖濉?delivery_note_item_id / sku_id |
+| 瀹屽杽 | Delivery/DiscrepancyList | 澶勭悊寮圭獥 SKU 浼樺厛鐩磋宸紓鍗?sku 鍏宠仈 |
+| 娴嬭瘯 | tests/Feature/DiscrepancyServiceTest | 琛ュ叧鑱斿瓧娈靛洖濉€佹崯鑰楁槑缁?discrepancy_id銆佹棩蹇楃被鍨?7/8 鏂█锛涙柊澧炲叏閾捐矾鐢ㄤ緥锛堝樊寮傗啋鎶ユ崯鈫掑鏍糕啋鎵ц鈫掑簱瀛樻墸鍑忥級 |
 
-### 决策记录
+### 鍐崇瓥璁板綍
 
-| 决策 | 选择 | 说明 |
+| 鍐崇瓥 | 閫夋嫨 | 璇存槑 |
 | :--- | :--- | :--- |
-| 差异单关联字段 | 全量 8 字段 | 差异单自包含，对账效率最高 |
-| 日志类型传入方式 | 调用方显式传 | 控制精确，默认参数保持向后兼容 |
-| 回库审核闸门 | 不加（现状） | 处理台回库操作人即仓管确认，仅审计留痕；二期可加开关 |
+| 宸紓鍗曞叧鑱斿瓧娈?| 鍏ㄩ噺 8 瀛楁 | 宸紓鍗曡嚜鍖呭惈锛屽璐︽晥鐜囨渶楂?|
+| 鏃ュ織绫诲瀷浼犲叆鏂瑰紡 | 璋冪敤鏂规樉寮忎紶 | 鎺у埗绮剧‘锛岄粯璁ゅ弬鏁颁繚鎸佸悜鍚庡吋瀹?|
+| 鍥炲簱瀹℃牳闂搁棬 | 涓嶅姞锛堢幇鐘讹級 | 澶勭悊鍙板洖搴撴搷浣滀汉鍗充粨绠＄‘璁わ紝浠呭璁＄暀鐥曪紱浜屾湡鍙姞寮€鍏?|
 
-### Git 信息
+### Git 淇℃伅
 
-| 项目 | 值 |
+| 椤圭洰 | 鍊?|
 | :--- | :--- |
-| 分支 | bugfix（差异损耗工作分支，待用户确认后合并 main） |
-| 提交 | 见本次提交 |
-| 验证 | 测试 16 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint 通过；view:cache 通过；开发库需 migrate:fresh --seed 生效新字段 |
+| 鍒嗘敮 | bugfix锛堝樊寮傛崯鑰楀伐浣滃垎鏀紝寰呯敤鎴风‘璁ゅ悗鍚堝苟 main锛?|
+| 鎻愪氦 | 瑙佹湰娆℃彁浜?|
+| 楠岃瘉 | 娴嬭瘯 16 閫氳繃 / 1 澶辫触锛圲nitConversionServiceTest 鏃㈡湁闂锛夛紱Pint 閫氳繃锛泇iew:cache 閫氳繃锛涘紑鍙戝簱闇€ migrate:fresh --seed 鐢熸晥鏂板瓧娈?|
 
 ---
 
-## V2.0.5 — 差异流程开关化 + 允差阈值：四环节独立管控与差异就近可视
+## V2.0.5 鈥?宸紓娴佺▼寮€鍏冲寲 + 鍏佸樊闃堝€硷細鍥涚幆鑺傜嫭绔嬬鎺т笌宸紓灏辫繎鍙
 
-> 开发者：Kimi。决策依据：用户拍板「全环节默认宽松模式 + 允差阈值本期落地，阈值支持自定义」；`docs/research/11_差异损耗留痕与账务持平设计.md` 差异管控章节。
+> 寮€鍙戣€咃細Kimi銆傚喅绛栦緷鎹細鐢ㄦ埛鎷嶆澘銆屽叏鐜妭榛樿瀹芥澗妯″紡 + 鍏佸樊闃堝€兼湰鏈熻惤鍦帮紝闃堝€兼敮鎸佽嚜瀹氫箟銆嶏紱`docs/research/11_宸紓鎹熻€楃暀鐥曚笌璐﹀姟鎸佸钩璁捐.md` 宸紓绠℃帶绔犺妭銆?
 
-### 变更概述
+### 鍙樻洿姒傝堪
 
-1. **四环节差异策略开关**：采购入库 / 拣货 / 配送分货 / 实收签收各有独立「允许差异」开关（默认全开=宽松模式）。关闭即严格模式：该环节收发必须一致，录入差异直接阻断并提示出口（调整订单 / 售后退货 / 管理员回退）。
-2. **允差阈值（%）**：采购 / 拣货 / 实收各自可配置阈值（0~100，默认 0=任何差异都生成单据）。差异率 ≤ 阈值时只标记留痕（明细标差异 / 记录差异数量），不生成差异单 / 损耗单；超阈值正常生成。
-3. **差异就近可视**：拣货总单详情新增「本任务差异单」区块；送货单明细行标注差异单号与处理状态；采购单明细子行显示差异数量与关联损耗单号（阈值内显示「仅留痕」）；登记差异后的 toast 均带差异单号。
-4. **采购单完成校验阈值化**：阈值内留痕的入库差异不再阻断采购单完成（此前 loss_order_id 为空即阻断，会导致阈值内差异永远无法完成）。
+1. **鍥涚幆鑺傚樊寮傜瓥鐣ュ紑鍏?*锛氶噰璐叆搴?/ 鎷ｈ揣 / 閰嶉€佸垎璐?/ 瀹炴敹绛炬敹鍚勬湁鐙珛銆屽厑璁稿樊寮傘€嶅紑鍏筹紙榛樿鍏ㄥ紑=瀹芥澗妯″紡锛夈€傚叧闂嵆涓ユ牸妯″紡锛氳鐜妭鏀跺彂蹇呴』涓€鑷达紝褰曞叆宸紓鐩存帴闃绘柇骞舵彁绀哄嚭鍙ｏ紙璋冩暣璁㈠崟 / 鍞悗閫€璐?/ 绠＄悊鍛樺洖閫€锛夈€?
+2. **鍏佸樊闃堝€硷紙%锛?*锛氶噰璐?/ 鎷ｈ揣 / 瀹炴敹鍚勮嚜鍙厤缃槇鍊硷紙0~100锛岄粯璁?0=浠讳綍宸紓閮界敓鎴愬崟鎹級銆傚樊寮傜巼 鈮?闃堝€兼椂鍙爣璁扮暀鐥曪紙鏄庣粏鏍囧樊寮?/ 璁板綍宸紓鏁伴噺锛夛紝涓嶇敓鎴愬樊寮傚崟 / 鎹熻€楀崟锛涜秴闃堝€兼甯哥敓鎴愩€?
+3. **宸紓灏辫繎鍙**锛氭嫞璐ф€诲崟璇︽儏鏂板銆屾湰浠诲姟宸紓鍗曘€嶅尯鍧楋紱閫佽揣鍗曟槑缁嗚鏍囨敞宸紓鍗曞彿涓庡鐞嗙姸鎬侊紱閲囪喘鍗曟槑缁嗗瓙琛屾樉绀哄樊寮傛暟閲忎笌鍏宠仈鎹熻€楀崟鍙凤紙闃堝€煎唴鏄剧ず銆屼粎鐣欑棔銆嶏級锛涚櫥璁板樊寮傚悗鐨?toast 鍧囧甫宸紓鍗曞彿銆?
+4. **閲囪喘鍗曞畬鎴愭牎楠岄槇鍊煎寲**锛氶槇鍊煎唴鐣欑棔鐨勫叆搴撳樊寮備笉鍐嶉樆鏂噰璐崟瀹屾垚锛堟鍓?loss_order_id 涓虹┖鍗抽樆鏂紝浼氬鑷撮槇鍊煎唴宸紓姘歌繙鏃犳硶瀹屾垚锛夈€?
 
-### 变更明细
+### 鍙樻洿鏄庣粏
 
-| 操作 | 文件 | 说明 |
+| 鎿嶄綔 | 鏂囦欢 | 璇存槑 |
 | :--- | :--- | :--- |
-| 调整 | 000013_create_system_tables | 新增 8 个配置项：inventory 组 purchase/picking 开关+阈值（sort 34-37），delivery 组 delivery/receiving 开关+阈值（sort 13-16）；配置计数注释 26→34 |
-| 完善 | Inventory/PickingTaskDetail::savePickedQuantity | 严格模式阻断（不保存）；差异率 ≤ 阈值只分摊标记不建差异单；超阈值建单并收集单号，toast 分三种场景（阈值留痕/建单带单号/正常） |
-| 完善 | Delivery/DeliveryNoteDetail::confirmItemDelivery | 严格模式阻断（不保存明细）；阈值内只标记 STATUS_DISCREPANCY 不弹窗；超阈值维持弹窗登记 |
-| 完善 | Delivery/DeliveryNoteDetail::markDelivered | 分货前检查差异明细：严格模式阻断，宽松模式 toast 警告差异条数后放行 |
-| 完善 | Delivery/DeliveryNoteDetail::saveItemDiscrepancy / render | toast 带差异单号；render 输出明细级差异单映射（按 delivery_note_item_id） |
-| 完善 | Services/PurchaseService::stockIn | 严格模式任一行实际≠采购数量即 throw 阻断；createFromDiscrepancy 传入 purchase 阈值 |
-| 完善 | Services/PurchaseService::complete | 未处理差异校验改为阈值感知：差异率 ≤ 阈值视为已留痕处理 |
-| 完善 | Services/LossOrderService::createFromDiscrepancy | 新增 `?int $thresholdPct` 参数（默认 null 不过滤，向后兼容），按差异率过滤阈值内明细 |
-| 完善 | Inventory/PickingTaskDetail::render + blade | 「本任务差异单」区块（单号/SKU/类型/应拣/实拣/差异量/状态/原因 + 处理台链接） |
-| 完善 | delivery-note-detail.blade | 明细行状态列下标注差异单号与处理状态 |
-| 完善 | purchase-order-detail.blade | 差异子行补充差异数量与损耗单号展示，阈值内显示「仅留痕」 |
-| 测试 | tests/Feature/DiscrepancyThresholdTest | 4 条用例：严格阻断 / 阈值免单（含完成不阻断）/ 超阈值建单 / 默认配置兜底断言 |
+| 璋冩暣 | 000013_create_system_tables | 鏂板 8 涓厤缃」锛歩nventory 缁?purchase/picking 寮€鍏?闃堝€硷紙sort 34-37锛夛紝delivery 缁?delivery/receiving 寮€鍏?闃堝€硷紙sort 13-16锛夛紱閰嶇疆璁℃暟娉ㄩ噴 26鈫?4 |
+| 瀹屽杽 | Inventory/PickingTaskDetail::savePickedQuantity | 涓ユ牸妯″紡闃绘柇锛堜笉淇濆瓨锛夛紱宸紓鐜?鈮?闃堝€煎彧鍒嗘憡鏍囪涓嶅缓宸紓鍗曪紱瓒呴槇鍊煎缓鍗曞苟鏀堕泦鍗曞彿锛宼oast 鍒嗕笁绉嶅満鏅紙闃堝€肩暀鐥?寤哄崟甯﹀崟鍙?姝ｅ父锛?|
+| 瀹屽杽 | Delivery/DeliveryNoteDetail::confirmItemDelivery | 涓ユ牸妯″紡闃绘柇锛堜笉淇濆瓨鏄庣粏锛夛紱闃堝€煎唴鍙爣璁?STATUS_DISCREPANCY 涓嶅脊绐楋紱瓒呴槇鍊肩淮鎸佸脊绐楃櫥璁?|
+| 瀹屽杽 | Delivery/DeliveryNoteDetail::markDelivered | 鍒嗚揣鍓嶆鏌ュ樊寮傛槑缁嗭細涓ユ牸妯″紡闃绘柇锛屽鏉炬ā寮?toast 璀﹀憡宸紓鏉℃暟鍚庢斁琛?|
+| 瀹屽杽 | Delivery/DeliveryNoteDetail::saveItemDiscrepancy / render | toast 甯﹀樊寮傚崟鍙凤紱render 杈撳嚭鏄庣粏绾у樊寮傚崟鏄犲皠锛堟寜 delivery_note_item_id锛?|
+| 瀹屽杽 | Services/PurchaseService::stockIn | 涓ユ牸妯″紡浠讳竴琛屽疄闄呪墵閲囪喘鏁伴噺鍗?throw 闃绘柇锛沜reateFromDiscrepancy 浼犲叆 purchase 闃堝€?|
+| 瀹屽杽 | Services/PurchaseService::complete | 鏈鐞嗗樊寮傛牎楠屾敼涓洪槇鍊兼劅鐭ワ細宸紓鐜?鈮?闃堝€艰涓哄凡鐣欑棔澶勭悊 |
+| 瀹屽杽 | Services/LossOrderService::createFromDiscrepancy | 鏂板 `?int $thresholdPct` 鍙傛暟锛堥粯璁?null 涓嶈繃婊わ紝鍚戝悗鍏煎锛夛紝鎸夊樊寮傜巼杩囨护闃堝€煎唴鏄庣粏 |
+| 瀹屽杽 | Inventory/PickingTaskDetail::render + blade | 銆屾湰浠诲姟宸紓鍗曘€嶅尯鍧楋紙鍗曞彿/SKU/绫诲瀷/搴旀嫞/瀹炴嫞/宸紓閲?鐘舵€?鍘熷洜 + 澶勭悊鍙伴摼鎺ワ級 |
+| 瀹屽杽 | delivery-note-detail.blade | 鏄庣粏琛岀姸鎬佸垪涓嬫爣娉ㄥ樊寮傚崟鍙蜂笌澶勭悊鐘舵€?|
+| 瀹屽杽 | purchase-order-detail.blade | 宸紓瀛愯琛ュ厖宸紓鏁伴噺涓庢崯鑰楀崟鍙峰睍绀猴紝闃堝€煎唴鏄剧ず銆屼粎鐣欑棔銆?|
+| 娴嬭瘯 | tests/Feature/DiscrepancyThresholdTest | 4 鏉＄敤渚嬶細涓ユ牸闃绘柇 / 闃堝€煎厤鍗曪紙鍚畬鎴愪笉闃绘柇锛? 瓒呴槇鍊煎缓鍗?/ 榛樿閰嶇疆鍏滃簳鏂█ |
 
-### 决策记录
+### 鍐崇瓥璁板綍
 
-| 决策 | 选择 | 说明 |
+| 鍐崇瓥 | 閫夋嫨 | 璇存槑 |
 | :--- | :--- | :--- |
-| 默认模式 | 全宽松 | 用户拍板；严格模式通过系统设置逐环节开启 |
-| 允差阈值 | 本期落地 | 阈值可自定义修改（0~100%），0=任何差异都生成单据 |
-| 配送环节挂点 | markDelivered 确认分货 | 分货是配送侧唯一数量确认动作 |
-| 阈值内差异留痕方式 | 只标记不建单 | 明细标差异状态/记录差异数量，不产生差异单损耗单，采购单可正常完成 |
+| 榛樿妯″紡 | 鍏ㄥ鏉?| 鐢ㄦ埛鎷嶆澘锛涗弗鏍兼ā寮忛€氳繃绯荤粺璁剧疆閫愮幆鑺傚紑鍚?|
+| 鍏佸樊闃堝€?| 鏈湡钀藉湴 | 闃堝€煎彲鑷畾涔変慨鏀癸紙0~100%锛夛紝0=浠讳綍宸紓閮界敓鎴愬崟鎹?|
+| 閰嶉€佺幆鑺傛寕鐐?| markDelivered 纭鍒嗚揣 | 鍒嗚揣鏄厤閫佷晶鍞竴鏁伴噺纭鍔ㄤ綔 |
+| 闃堝€煎唴宸紓鐣欑棔鏂瑰紡 | 鍙爣璁颁笉寤哄崟 | 鏄庣粏鏍囧樊寮傜姸鎬?璁板綍宸紓鏁伴噺锛屼笉浜х敓宸紓鍗曟崯鑰楀崟锛岄噰璐崟鍙甯稿畬鎴?|
 
-### Git 信息
+### Git 淇℃伅
 
-| 项目 | 值 |
+| 椤圭洰 | 鍊?|
 | :--- | :--- |
-| 分支 | bugfix（差异损耗工作分支，待用户确认后合并 main） |
-| 提交 | 见本次提交 |
-| 验证 | 测试 20 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint 通过；view:cache 通过；开发库需 migrate:fresh --seed 生效新配置 |
+| 鍒嗘敮 | bugfix锛堝樊寮傛崯鑰楀伐浣滃垎鏀紝寰呯敤鎴风‘璁ゅ悗鍚堝苟 main锛?|
+| 鎻愪氦 | 瑙佹湰娆℃彁浜?|
+| 楠岃瘉 | 娴嬭瘯 20 閫氳繃 / 1 澶辫触锛圲nitConversionServiceTest 鏃㈡湁闂锛夛紱Pint 閫氳繃锛泇iew:cache 閫氳繃锛涘紑鍙戝簱闇€ migrate:fresh --seed 鐢熸晥鏂伴厤缃?|
 
 ---
 
-## V2.0.6 — 采购差异损耗单仅账务留痕（不扣库存）+ 采购单列表差异警示图标
+## V2.0.6 鈥?閲囪喘宸紓鎹熻€楀崟浠呰处鍔＄暀鐥曪紙涓嶆墸搴撳瓨锛? 閲囪喘鍗曞垪琛ㄥ樊寮傝绀哄浘鏍?
 
-> 开发者：Kimi。用户拍板「B 为主 A 兜底」：采购入库差异的损耗单审核即终态，服务层再兜底防误扣。
+> 寮€鍙戣€咃細Kimi銆傜敤鎴锋媿鏉裤€孊 涓轰富 A 鍏滃簳銆嶏細閲囪喘鍏ュ簱宸紓鐨勬崯鑰楀崟瀹℃牳鍗崇粓鎬侊紝鏈嶅姟灞傚啀鍏滃簳闃茶鎵ｃ€?
 
-### 变更概述
+### 鍙樻洿姒傝堪
 
-1. **修复隐患**：采购入库差异自动生成的损耗单，差异部分的货未入库，「执行」再扣库存属双重扣减。现改为：列表页对来源=采购单的损耗单不显示「执行」按钮（B 为主），审核通过后可直接「关闭」；`LossOrderService::execute()` 对来源=采购单跳过库存扣减（A 兜底，防接口误调）。
-2. **采购单列表警示图标**：单号旁警示图标分色——红色=已生成损耗单待审核，橙色=允差阈值内仅留痕；hover 提示差异明细条数与短缺总量。
+1. **淇闅愭偅**锛氶噰璐叆搴撳樊寮傝嚜鍔ㄧ敓鎴愮殑鎹熻€楀崟锛屽樊寮傞儴鍒嗙殑璐ф湭鍏ュ簱锛屻€屾墽琛屻€嶅啀鎵ｅ簱瀛樺睘鍙岄噸鎵ｅ噺銆傜幇鏀逛负锛氬垪琛ㄩ〉瀵规潵婧?閲囪喘鍗曠殑鎹熻€楀崟涓嶆樉绀恒€屾墽琛屻€嶆寜閽紙B 涓轰富锛夛紝瀹℃牳閫氳繃鍚庡彲鐩存帴銆屽叧闂€嶏紱`LossOrderService::execute()` 瀵规潵婧?閲囪喘鍗曡烦杩囧簱瀛樻墸鍑忥紙A 鍏滃簳锛岄槻鎺ュ彛璇皟锛夈€?
+2. **閲囪喘鍗曞垪琛ㄨ绀哄浘鏍?*锛氬崟鍙锋梺璀︾ず鍥炬爣鍒嗚壊鈥斺€旂孩鑹?宸茬敓鎴愭崯鑰楀崟寰呭鏍革紝姗欒壊=鍏佸樊闃堝€煎唴浠呯暀鐥曪紱hover 鎻愮ず宸紓鏄庣粏鏉℃暟涓庣煭缂烘€婚噺銆?
 
-### 变更明细
+### 鍙樻洿鏄庣粏
 
-| 操作 | 文件 | 说明 |
+| 鎿嶄綔 | 鏂囦欢 | 璇存槑 |
 | :--- | :--- | :--- |
-| 完善 | Services/LossOrderService::execute | 来源=采购单跳过 stockOut，仅留账（注释说明防双重扣减） |
-| 完善 | Loss/LossOrderList::close | 来源=采购单且已审核的损耗单允许直接关闭 |
-| 完善 | loss-order-list.blade | 来源=采购单隐藏执行按钮；审核后显示关闭按钮（title 说明仅留痕） |
-| 完善 | Purchase/PurchaseOrderList + blade | withSum/withCount 预统计差异；警示图标分红（待审核损耗单）/橙（仅留痕）两色 + hover 摘要 |
-| 测试 | tests/Feature/DiscrepancyThresholdTest | 新增用例：采购来源损耗单执行后库存仍为实收数量 |
+| 瀹屽杽 | Services/LossOrderService::execute | 鏉ユ簮=閲囪喘鍗曡烦杩?stockOut锛屼粎鐣欒处锛堟敞閲婅鏄庨槻鍙岄噸鎵ｅ噺锛?|
+| 瀹屽杽 | Loss/LossOrderList::close | 鏉ユ簮=閲囪喘鍗曚笖宸插鏍哥殑鎹熻€楀崟鍏佽鐩存帴鍏抽棴 |
+| 瀹屽杽 | loss-order-list.blade | 鏉ユ簮=閲囪喘鍗曢殣钘忔墽琛屾寜閽紱瀹℃牳鍚庢樉绀哄叧闂寜閽紙title 璇存槑浠呯暀鐥曪級 |
+| 瀹屽杽 | Purchase/PurchaseOrderList + blade | withSum/withCount 棰勭粺璁″樊寮傦紱璀︾ず鍥炬爣鍒嗙孩锛堝緟瀹℃牳鎹熻€楀崟锛?姗欙紙浠呯暀鐥曪級涓よ壊 + hover 鎽樿 |
+| 娴嬭瘯 | tests/Feature/DiscrepancyThresholdTest | 鏂板鐢ㄤ緥锛氶噰璐潵婧愭崯鑰楀崟鎵ц鍚庡簱瀛樹粛涓哄疄鏀舵暟閲?|
 
-### Git 信息
+### Git 淇℃伅
 
-| 项目 | 值 |
+| 椤圭洰 | 鍊?|
 | :--- | :--- |
-| 分支 | bugfix（待用户确认后合并 main） |
-| 提交 | 见本次提交 |
-| 验证 | 测试 21 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint / view:cache 通过 |
+| 鍒嗘敮 | bugfix锛堝緟鐢ㄦ埛纭鍚庡悎骞?main锛?|
+| 鎻愪氦 | 瑙佹湰娆℃彁浜?|
+| 楠岃瘉 | 娴嬭瘯 21 閫氳繃 / 1 澶辫触锛圲nitConversionServiceTest 鏃㈡湁闂锛夛紱Pint / view:cache 閫氳繃 |
 
 ---
 
-## V2.0.7 — 供应商结算修复：周期结算模式落地 + 账务持平联动
+## V2.0.7 鈥?渚涘簲鍟嗙粨绠椾慨澶嶏細鍛ㄦ湡缁撶畻妯″紡钀藉湴 + 璐﹀姟鎸佸钩鑱斿姩
 
-> 开发者：Kimi。用户拍板：方向一（贴回表结构的周期结算）+ 口径 A（应付=实际入库金额−退货−服务费）。
+> 寮€鍙戣€咃細Kimi銆傜敤鎴锋媿鏉匡細鏂瑰悜涓€锛堣创鍥炶〃缁撴瀯鐨勫懆鏈熺粨绠楋級+ 鍙ｅ緞 A锛堝簲浠?瀹為檯鍏ュ簱閲戦鈭掗€€璐р垝鏈嶅姟璐癸級銆?
 
-### 变更概述
+### 鍙樻洿姒傝堪
 
-1. **修复断裂**：结算组件按表中不存在的幻影字段（purchase_order_id/settlement_date/note）实现，创建结算单必报 SQL 错误。重写为表结构设计的周期结算模式：供应商 + 结算周期 → 自动汇总周期内已入库/已完成采购单（按入库时间）生成结算明细，已结算采购单防重复计入。
-2. **账务持平（口径 A）**：应付 = Σ 实际入库金额 − 周期内已完成采购退货实际出库金额 − 服务费。入库差异按实收计价天然持平（少收的货不付钱），差异损耗单作留痕证据。
-3. **付款闭环**：移除不建付款记录的 confirmPayment 捷径；部分付款统一写 settlement_payments + 累计 paid_amount + 满额自动结清；新增超付拦截；仅待结算状态可删除（明细连带清理）。
-4. **详情弹窗**：补结算明细（采购单号+计价金额，有差异标注原订单金额）与付款记录；列表列改为周期/汇总/退货扣减/服务费/应付/已付。
-5. **模型清理**：SupplierSettlement 移除幻影 fillable/casts 与 purchaseOrder 关联（结算单与采购单为一对多，走 settlement_items）。
+1. **淇鏂**锛氱粨绠楃粍浠舵寜琛ㄤ腑涓嶅瓨鍦ㄧ殑骞诲奖瀛楁锛坧urchase_order_id/settlement_date/note锛夊疄鐜帮紝鍒涘缓缁撶畻鍗曞繀鎶?SQL 閿欒銆傞噸鍐欎负琛ㄧ粨鏋勮璁＄殑鍛ㄦ湡缁撶畻妯″紡锛氫緵搴斿晢 + 缁撶畻鍛ㄦ湡 鈫?鑷姩姹囨€诲懆鏈熷唴宸插叆搴?宸插畬鎴愰噰璐崟锛堟寜鍏ュ簱鏃堕棿锛夌敓鎴愮粨绠楁槑缁嗭紝宸茬粨绠楅噰璐崟闃查噸澶嶈鍏ャ€?
+2. **璐﹀姟鎸佸钩锛堝彛寰?A锛?*锛氬簲浠?= 危 瀹為檯鍏ュ簱閲戦 鈭?鍛ㄦ湡鍐呭凡瀹屾垚閲囪喘閫€璐у疄闄呭嚭搴撻噾棰?鈭?鏈嶅姟璐广€傚叆搴撳樊寮傛寜瀹炴敹璁′环澶╃劧鎸佸钩锛堝皯鏀剁殑璐т笉浠橀挶锛夛紝宸紓鎹熻€楀崟浣滅暀鐥曡瘉鎹€?
+3. **浠樻闂幆**锛氱Щ闄や笉寤轰粯娆捐褰曠殑 confirmPayment 鎹峰緞锛涢儴鍒嗕粯娆剧粺涓€鍐?settlement_payments + 绱 paid_amount + 婊￠鑷姩缁撴竻锛涙柊澧炶秴浠樻嫤鎴紱浠呭緟缁撶畻鐘舵€佸彲鍒犻櫎锛堟槑缁嗚繛甯︽竻鐞嗭級銆?
+4. **璇︽儏寮圭獥**锛氳ˉ缁撶畻鏄庣粏锛堥噰璐崟鍙?璁′环閲戦锛屾湁宸紓鏍囨敞鍘熻鍗曢噾棰濓級涓庝粯娆捐褰曪紱鍒楄〃鍒楁敼涓哄懆鏈?姹囨€?閫€璐ф墸鍑?鏈嶅姟璐?搴斾粯/宸蹭粯銆?
+5. **妯″瀷娓呯悊**锛歋upplierSettlement 绉婚櫎骞诲奖 fillable/casts 涓?purchaseOrder 鍏宠仈锛堢粨绠楀崟涓庨噰璐崟涓轰竴瀵瑰锛岃蛋 settlement_items锛夈€?
 
-### 变更明细
+### 鍙樻洿鏄庣粏
 
-| 操作 | 文件 | 说明 |
+| 鎿嶄綔 | 鏂囦欢 | 璇存槑 |
 | :--- | :--- | :--- |
-| 新增 | Services/SupplierSettlementService | generate()：周期内已入库采购单汇总（排除已结算）+ 退货扣减 + 服务费，事务建单+明细 |
-| 重写 | Finance/SupplierSettlementList | 表单改周期结算；列配置对齐真实字段；付款闭环+超付拦截；删除限制待结算 |
-| 完善 | Models/SupplierSettlement | 清理幻影字段 fillable/casts/purchaseOrder 关联 |
-| 完善 | supplier-settlement-list.blade | 表单/列表列/详情弹窗对齐周期结算；修复付款记录区 SettlementPayment 非限定类名隐患 |
-| 测试 | tests/Feature/SupplierSettlementTest | 6 条用例：周期汇总口径/防重复结算/空周期报错/组件表单建单/部分付款+超付拦截+结清/删除限制 |
+| 鏂板 | Services/SupplierSettlementService | generate()锛氬懆鏈熷唴宸插叆搴撻噰璐崟姹囨€伙紙鎺掗櫎宸茬粨绠楋級+ 閫€璐ф墸鍑?+ 鏈嶅姟璐癸紝浜嬪姟寤哄崟+鏄庣粏 |
+| 閲嶅啓 | Finance/SupplierSettlementList | 琛ㄥ崟鏀瑰懆鏈熺粨绠楋紱鍒楅厤缃榻愮湡瀹炲瓧娈碉紱浠樻闂幆+瓒呬粯鎷︽埅锛涘垹闄ら檺鍒跺緟缁撶畻 |
+| 瀹屽杽 | Models/SupplierSettlement | 娓呯悊骞诲奖瀛楁 fillable/casts/purchaseOrder 鍏宠仈 |
+| 瀹屽杽 | supplier-settlement-list.blade | 琛ㄥ崟/鍒楄〃鍒?璇︽儏寮圭獥瀵归綈鍛ㄦ湡缁撶畻锛涗慨澶嶄粯娆捐褰曞尯 SettlementPayment 闈為檺瀹氱被鍚嶉殣鎮?|
+| 娴嬭瘯 | tests/Feature/SupplierSettlementTest | 6 鏉＄敤渚嬶細鍛ㄦ湡姹囨€诲彛寰?闃查噸澶嶇粨绠?绌哄懆鏈熸姤閿?缁勪欢琛ㄥ崟寤哄崟/閮ㄥ垎浠樻+瓒呬粯鎷︽埅+缁撴竻/鍒犻櫎闄愬埗 |
 
-### 决策记录
+### 鍐崇瓥璁板綍
 
-| 决策 | 选择 | 说明 |
+| 鍐崇瓥 | 閫夋嫨 | 璇存槑 |
 | :--- | :--- | :--- |
-| 结算模式 | 周期结算（方向一） | 表结构+种子数据均按周期设计，组件是跑偏方 |
-| 应付口径 | 实际入库金额（口径 A） | 差异天然持平，扣减路径最短 |
-| 退货扣减口径 | 已完成退货的实际出库金额 | 与入库口径对称 |
-| 付款审核流 | 二期 | approval_status 字段保留，暂不接审核管理 |
+| 缁撶畻妯″紡 | 鍛ㄦ湡缁撶畻锛堟柟鍚戜竴锛?| 琛ㄧ粨鏋?绉嶅瓙鏁版嵁鍧囨寜鍛ㄦ湡璁捐锛岀粍浠舵槸璺戝亸鏂?|
+| 搴斾粯鍙ｅ緞 | 瀹為檯鍏ュ簱閲戦锛堝彛寰?A锛?| 宸紓澶╃劧鎸佸钩锛屾墸鍑忚矾寰勬渶鐭?|
+| 閫€璐ф墸鍑忓彛寰?| 宸插畬鎴愰€€璐х殑瀹為檯鍑哄簱閲戦 | 涓庡叆搴撳彛寰勫绉?|
+| 浠樻瀹℃牳娴?| 浜屾湡 | approval_status 瀛楁淇濈暀锛屾殏涓嶆帴瀹℃牳绠＄悊 |
 
-### Git 信息
+### Git 淇℃伅
 
-| 项目 | 值 |
+| 椤圭洰 | 鍊?|
 | :--- | :--- |
-| 分支 | feature/discrepancy-loss |
-| 提交 | 见本次提交 |
-| 验证 | 测试 27 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint / view:cache 通过 |
+| 鍒嗘敮 | feature/discrepancy-loss |
+| 鎻愪氦 | 瑙佹湰娆℃彁浜?|
+| 楠岃瘉 | 娴嬭瘯 27 閫氳繃 / 1 澶辫触锛圲nitConversionServiceTest 鏃㈡湁闂锛夛紱Pint / view:cache 閫氳繃 |
 
 ---
 
-## V2.0.8 — 供应商结算交互修复 + 演示数据对齐
+## V2.0.8 鈥?渚涘簲鍟嗙粨绠椾氦浜掍慨澶?+ 婕旂ず鏁版嵁瀵归綈
 
-> 开发者：Kimi。用户实测反馈修复。
+> 寮€鍙戣€咃細Kimi銆傜敤鎴峰疄娴嬪弽棣堜慨澶嶃€?
 
-### 变更概述
+### 鍙樻洿姒傝堪
 
-1. **修复弹窗关闭失效**：详情/付款弹窗使用 `wire:click="showXxx = false"` 赋值语法（Livewire 不执行），5 处全部改为 `closeDetailModal()` / `closePaymentModal()` 方法调用。
-2. **结算单号链接化**：与其他列表页一致——蓝色字体 hover 下划线，点击单号打开详情弹窗；移除操作列的眼睛预览图标。
-3. **演示数据对齐周期结算**：PO-20260725-00001 补 stocked_at/completed_at 与土豆明细 discrepancy_quantity=200；新增 PO-20260726-00003（丰润肉业·无差异 160000）与 PO-20260727-00004（丰润肉业·鲜虾短缺 200 有差异，订 120000 实收 100000），两单已入库；SS-20260728-00002 补两条结算明细，汇总 260000 − 服务费 3000 = 应付 257000，与结算单头一致。
+1. **淇寮圭獥鍏抽棴澶辨晥**锛氳鎯?浠樻寮圭獥浣跨敤 `wire:click="showXxx = false"` 璧嬪€艰娉曪紙Livewire 涓嶆墽琛岋級锛? 澶勫叏閮ㄦ敼涓?`closeDetailModal()` / `closePaymentModal()` 鏂规硶璋冪敤銆?
+2. **缁撶畻鍗曞彿閾炬帴鍖?*锛氫笌鍏朵粬鍒楄〃椤典竴鑷粹€斺€旇摑鑹插瓧浣?hover 涓嬪垝绾匡紝鐐瑰嚮鍗曞彿鎵撳紑璇︽儏寮圭獥锛涚Щ闄ゆ搷浣滃垪鐨勭溂鐫涢瑙堝浘鏍囥€?
+3. **婕旂ず鏁版嵁瀵归綈鍛ㄦ湡缁撶畻**锛歅O-20260725-00001 琛?stocked_at/completed_at 涓庡湡璞嗘槑缁?discrepancy_quantity=200锛涙柊澧?PO-20260726-00003锛堜赴娑﹁倝涓毬锋棤宸紓 160000锛変笌 PO-20260727-00004锛堜赴娑﹁倝涓毬烽矞铏剧煭缂?200 鏈夊樊寮傦紝璁?120000 瀹炴敹 100000锛夛紝涓ゅ崟宸插叆搴擄紱SS-20260728-00002 琛ヤ袱鏉＄粨绠楁槑缁嗭紝姹囨€?260000 鈭?鏈嶅姟璐?3000 = 搴斾粯 257000锛屼笌缁撶畻鍗曞ご涓€鑷淬€?
 
-### Git 信息
+### Git 淇℃伅
 
-| 项目 | 值 |
+| 椤圭洰 | 鍊?|
 | :--- | :--- |
-| 分支 | feature/discrepancy-loss |
-| 提交 | 见本次提交 |
-| 验证 | 测试 27 通过 / 1 失败（既有问题）；Pint / view:cache 通过；migrate:fresh + DemoDataSeeder 重跑验证数据一致 |
+| 鍒嗘敮 | feature/discrepancy-loss |
+| 鎻愪氦 | 瑙佹湰娆℃彁浜?|
+| 楠岃瘉 | 娴嬭瘯 27 閫氳繃 / 1 澶辫触锛堟棦鏈夐棶棰橈級锛汸int / view:cache 閫氳繃锛沵igrate:fresh + DemoDataSeeder 閲嶈窇楠岃瘉鏁版嵁涓€鑷?|
 
 ---
 
-## V2.0.9 — 采购退货双模式：关联退货 + 普通退货
+## V2.0.9 鈥?閲囪喘閫€璐у弻妯″紡锛氬叧鑱旈€€璐?+ 鏅€氶€€璐?
 
-> 开发者：Kimi。用户拍板：1A（数量上限=实际入库数量）、2A（普通退货供应商+仓库必填）、3A（普通退货单价明细行手工填写）。
+> 寮€鍙戣€咃細Kimi銆傜敤鎴锋媿鏉匡細1A锛堟暟閲忎笂闄?瀹為檯鍏ュ簱鏁伴噺锛夈€?A锛堟櫘閫氶€€璐т緵搴斿晢+浠撳簱蹇呭～锛夈€?A锛堟櫘閫氶€€璐у崟浠锋槑缁嗚鎵嬪伐濉啓锛夈€?
 
-### 变更概述
+### 鍙樻洿姒傝堪
 
-1. **双模式退货**：新增 `return_type`（1 普通 / 2 关联，默认关联）。关联退货沿用采购单明细调取；普通退货不关联采购单（`purchase_order_id` 可空），明细完全自定义。
-2. **关联退货上限修正**：退货数量拦截口径从订购数量收紧为**实际入库数量**——含入库差异时，少送的货不允许被退，保证退的货在库里。
-3. **普通退货明细工具**：创建弹窗支持逐行添加（SKU 下拉 + 数量 + 单价(元) + 原因）、下载 Excel 导入模板、按 SKU 编码匹配导入（未识别编码汇总提示）、导出明细 CSV（带 BOM）。
-4. **无单流程适配**：出库仓库普通退货取退货单头 `warehouse_id`；完成/作废时 `purchaseOrder?->updateReturnStatus()` 空安全，普通退货不触发采购单退货状态更新。
-5. **结算口径不变**：供应商结算 return_amount 按 supplier + completed_at 汇总已完成退货，天然兼容普通退货，无需改动。
-6. **详情页适配**：普通退货显示「普通退货（无关联采购单）」替代采购单链接，新增类型徽章。
+1. **鍙屾ā寮忛€€璐?*锛氭柊澧?`return_type`锛? 鏅€?/ 2 鍏宠仈锛岄粯璁ゅ叧鑱旓級銆傚叧鑱旈€€璐ф部鐢ㄩ噰璐崟鏄庣粏璋冨彇锛涙櫘閫氶€€璐т笉鍏宠仈閲囪喘鍗曪紙`purchase_order_id` 鍙┖锛夛紝鏄庣粏瀹屽叏鑷畾涔夈€?
+2. **鍏宠仈閫€璐т笂闄愪慨姝?*锛氶€€璐ф暟閲忔嫤鎴彛寰勪粠璁㈣喘鏁伴噺鏀剁揣涓?*瀹為檯鍏ュ簱鏁伴噺**鈥斺€斿惈鍏ュ簱宸紓鏃讹紝灏戦€佺殑璐т笉鍏佽琚€€锛屼繚璇侀€€鐨勮揣鍦ㄥ簱閲屻€?
+3. **鏅€氶€€璐ф槑缁嗗伐鍏?*锛氬垱寤哄脊绐楁敮鎸侀€愯娣诲姞锛圫KU 涓嬫媺 + 鏁伴噺 + 鍗曚环(鍏? + 鍘熷洜锛夈€佷笅杞?Excel 瀵煎叆妯℃澘銆佹寜 SKU 缂栫爜鍖归厤瀵煎叆锛堟湭璇嗗埆缂栫爜姹囨€绘彁绀猴級銆佸鍑烘槑缁?CSV锛堝甫 BOM锛夈€?
+4. **鏃犲崟娴佺▼閫傞厤**锛氬嚭搴撲粨搴撴櫘閫氶€€璐у彇閫€璐у崟澶?`warehouse_id`锛涘畬鎴?浣滃簾鏃?`purchaseOrder?->updateReturnStatus()` 绌哄畨鍏紝鏅€氶€€璐т笉瑙﹀彂閲囪喘鍗曢€€璐х姸鎬佹洿鏂般€?
+5. **缁撶畻鍙ｅ緞涓嶅彉**锛氫緵搴斿晢缁撶畻 return_amount 鎸?supplier + completed_at 姹囨€诲凡瀹屾垚閫€璐э紝澶╃劧鍏煎鏅€氶€€璐э紝鏃犻渶鏀瑰姩銆?
+6. **璇︽儏椤甸€傞厤**锛氭櫘閫氶€€璐ф樉绀恒€屾櫘閫氶€€璐э紙鏃犲叧鑱旈噰璐崟锛夈€嶆浛浠ｉ噰璐崟閾炬帴锛屾柊澧炵被鍨嬪窘绔犮€?
 
-### 变更明细
+### 鍙樻洿鏄庣粏
 
-| 操作 | 文件 | 说明 |
+| 鎿嶄綔 | 鏂囦欢 | 璇存槑 |
 | :--- | :--- | :--- |
-| 修改 | 迁移 000016_create_return_tables | `purchase_order_id` / `purchase_return_items.purchase_order_item_id` 可空；新增 `return_type` tinyint default 2 |
-| 完善 | Models/PurchaseReturn | TYPE_NORMAL/TYPE_LINKED 常量、typeMap、return_type_label 访问器 |
-| 完善 | Services/PurchaseReturnService | 原 create() 改名 createLinked()（超实际入库数量拦截）；新增 createNormal()；ship/complete/cancel 无单空安全 |
-| 重写 | Livewire/Purchase/PurchaseReturnList | 类型切换、formItems 明细行编辑、addItemRow/removeItemRow、Excel 导入/模板下载/明细导出、列表新增类型列 |
-| 修改 | purchase-return-list.blade | 创建弹窗双模式 UI；类型徽章列 |
-| 修改 | purchase-return-detail.blade | 普通退货无采购单时的显示与类型徽章 |
-| 测试 | tests/Feature/PurchaseReturnFlowTest | 7 条用例：关联创建计价/超实入拦截/未入库拦截/普通创建/空明细与零数量拦截/普通退货全流程扣库存/结算汇总口径 |
-| 文档 | docs/07、docs/12 | 采购退货章节补双模式用例与操作说明（07 用例统计 122→126） |
+| 淇敼 | 杩佺Щ 000016_create_return_tables | `purchase_order_id` / `purchase_return_items.purchase_order_item_id` 鍙┖锛涙柊澧?`return_type` tinyint default 2 |
+| 瀹屽杽 | Models/PurchaseReturn | TYPE_NORMAL/TYPE_LINKED 甯搁噺銆乼ypeMap銆乺eturn_type_label 璁块棶鍣?|
+| 瀹屽杽 | Services/PurchaseReturnService | 鍘?create() 鏀瑰悕 createLinked()锛堣秴瀹為檯鍏ュ簱鏁伴噺鎷︽埅锛夛紱鏂板 createNormal()锛泂hip/complete/cancel 鏃犲崟绌哄畨鍏?|
+| 閲嶅啓 | Livewire/Purchase/PurchaseReturnList | 绫诲瀷鍒囨崲銆乫ormItems 鏄庣粏琛岀紪杈戙€乤ddItemRow/removeItemRow銆丒xcel 瀵煎叆/妯℃澘涓嬭浇/鏄庣粏瀵煎嚭銆佸垪琛ㄦ柊澧炵被鍨嬪垪 |
+| 淇敼 | purchase-return-list.blade | 鍒涘缓寮圭獥鍙屾ā寮?UI锛涚被鍨嬪窘绔犲垪 |
+| 淇敼 | purchase-return-detail.blade | 鏅€氶€€璐ф棤閲囪喘鍗曟椂鐨勬樉绀轰笌绫诲瀷寰界珷 |
+| 娴嬭瘯 | tests/Feature/PurchaseReturnFlowTest | 7 鏉＄敤渚嬶細鍏宠仈鍒涘缓璁′环/瓒呭疄鍏ユ嫤鎴?鏈叆搴撴嫤鎴?鏅€氬垱寤?绌烘槑缁嗕笌闆舵暟閲忔嫤鎴?鏅€氶€€璐у叏娴佺▼鎵ｅ簱瀛?缁撶畻姹囨€诲彛寰?|
+| 鏂囨。 | docs/07銆乨ocs/12 | 閲囪喘閫€璐х珷鑺傝ˉ鍙屾ā寮忕敤渚嬩笌鎿嶄綔璇存槑锛?7 鐢ㄤ緥缁熻 122鈫?26锛?|
 
-### 决策记录
+### 鍐崇瓥璁板綍
 
-| 决策 | 选择 | 说明 |
+| 鍐崇瓥 | 閫夋嫨 | 璇存槑 |
 | :--- | :--- | :--- |
-| 1A 关联退货数量上限 | 实际入库数量 | 退的货必须在库里，与入库差异口径一致 |
-| 2A 普通退货必填项 | 供应商 + 仓库 | 供应商必填保证结算汇总口径；仓库必填保证出库扣库存有目标 |
-| 3A 普通退货单价 | 明细行手工填写 | 元输入、厘存储，灵活覆盖历史/零散退货价格 |
+| 1A 鍏宠仈閫€璐ф暟閲忎笂闄?| 瀹為檯鍏ュ簱鏁伴噺 | 閫€鐨勮揣蹇呴』鍦ㄥ簱閲岋紝涓庡叆搴撳樊寮傚彛寰勪竴鑷?|
+| 2A 鏅€氶€€璐у繀濉」 | 渚涘簲鍟?+ 浠撳簱 | 渚涘簲鍟嗗繀濉繚璇佺粨绠楁眹鎬诲彛寰勶紱浠撳簱蹇呭～淇濊瘉鍑哄簱鎵ｅ簱瀛樻湁鐩爣 |
+| 3A 鏅€氶€€璐у崟浠?| 鏄庣粏琛屾墜宸ュ～鍐?| 鍏冭緭鍏ャ€佸帢瀛樺偍锛岀伒娲昏鐩栧巻鍙?闆舵暎閫€璐т环鏍?|
 
-### Git 信息
+### Git 淇℃伅
 
-| 项目 | 值 |
+| 椤圭洰 | 鍊?|
 | :--- | :--- |
-| 分支 | feature/discrepancy-loss |
-| 提交 | 见本次提交 |
-| 验证 | 新增测试 7 通过；全量 34 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint / view:cache 通过；migrate:fresh + DemoDataSeeder 重跑验证 |
+| 鍒嗘敮 | feature/discrepancy-loss |
+| 鎻愪氦 | 瑙佹湰娆℃彁浜?|
+| 楠岃瘉 | 鏂板娴嬭瘯 7 閫氳繃锛涘叏閲?34 閫氳繃 / 1 澶辫触锛圲nitConversionServiceTest 鏃㈡湁闂锛夛紱Pint / view:cache 閫氳繃锛沵igrate:fresh + DemoDataSeeder 閲嶈窇楠岃瘉 |
 
 ---
 
-## V2.0.10 — 采购退货交互重构：头先行 + 详情页维护明细
+## V2.0.10 鈥?閲囪喘閫€璐т氦浜掗噸鏋勶細澶村厛琛?+ 璇︽儏椤电淮鎶ゆ槑缁?
 
-> 开发者：Kimi。用户实测反馈：创建弹窗太小，不适合整理明细——改为先存单头、保存后跳详情页再添加/导入/导出明细。
+> 寮€鍙戣€咃細Kimi銆傜敤鎴峰疄娴嬪弽棣堬細鍒涘缓寮圭獥澶皬锛屼笉閫傚悎鏁寸悊鏄庣粏鈥斺€旀敼涓哄厛瀛樺崟澶淬€佷繚瀛樺悗璺宠鎯呴〉鍐嶆坊鍔?瀵煎叆/瀵煎嚭鏄庣粏銆?
 
-### 变更概述
+### 鍙樻洿姒傝堪
 
-1. **两步建单**：新增弹窗只填单头（类型 / 关联采购单 或 供应商+仓库 / 原因备注），保存后自动跳转退货单详情页。
-2. **明细维护迁移至详情页**：待审核状态下明细表格可编辑——添加/删除行、普通退货下载导入模板 + Excel/CSV 导入（按 SKU 编码匹配）+ 导出明细 CSV，「保存明细」整单替换生效；非待审核状态只读。
-3. **服务层配套**：createLinked/createNormal 允许空头创建；新增 updateItems()（仅待审核，先删后建 + 重算金额，关联模式复用实际入库数量上限校验与重复行拦截）；approve() 拦截无明细单据（"请先添加退货明细再审核"）。
-4. **关联模式选行交互**：详情页明细行从采购单明细下拉选择，自动带出 SKU、可退上限（实际入库数量）、单价。
+1. **涓ゆ寤哄崟**锛氭柊澧炲脊绐楀彧濉崟澶达紙绫诲瀷 / 鍏宠仈閲囪喘鍗?鎴?渚涘簲鍟?浠撳簱 / 鍘熷洜澶囨敞锛夛紝淇濆瓨鍚庤嚜鍔ㄨ烦杞€€璐у崟璇︽儏椤点€?
+2. **鏄庣粏缁存姢杩佺Щ鑷宠鎯呴〉**锛氬緟瀹℃牳鐘舵€佷笅鏄庣粏琛ㄦ牸鍙紪杈戔€斺€旀坊鍔?鍒犻櫎琛屻€佹櫘閫氶€€璐т笅杞藉鍏ユā鏉?+ Excel/CSV 瀵煎叆锛堟寜 SKU 缂栫爜鍖归厤锛? 瀵煎嚭鏄庣粏 CSV锛屻€屼繚瀛樻槑缁嗐€嶆暣鍗曟浛鎹㈢敓鏁堬紱闈炲緟瀹℃牳鐘舵€佸彧璇汇€?
+3. **鏈嶅姟灞傞厤濂?*锛歝reateLinked/createNormal 鍏佽绌哄ご鍒涘缓锛涙柊澧?updateItems()锛堜粎寰呭鏍革紝鍏堝垹鍚庡缓 + 閲嶇畻閲戦锛屽叧鑱旀ā寮忓鐢ㄥ疄闄呭叆搴撴暟閲忎笂闄愭牎楠屼笌閲嶅琛屾嫤鎴級锛沘pprove() 鎷︽埅鏃犳槑缁嗗崟鎹紙"璇峰厛娣诲姞閫€璐ф槑缁嗗啀瀹℃牳"锛夈€?
+4. **鍏宠仈妯″紡閫夎浜や簰**锛氳鎯呴〉鏄庣粏琛屼粠閲囪喘鍗曟槑缁嗕笅鎷夐€夋嫨锛岃嚜鍔ㄥ甫鍑?SKU銆佸彲閫€涓婇檺锛堝疄闄呭叆搴撴暟閲忥級銆佸崟浠枫€?
 
-### 变更明细
+### 鍙樻洿鏄庣粏
 
-| 操作 | 文件 | 说明 |
+| 鎿嶄綔 | 鏂囦欢 | 璇存槑 |
 | :--- | :--- | :--- |
-| 完善 | Services/PurchaseReturnService | 空头创建；updateItems()；明细行创建提取为 createLinkedItem/createNormalItem；审核校验明细非空 |
-| 重写 | Livewire/Purchase/PurchaseReturnList | 移除明细行/导入导出逻辑；save() 创建后 redirect 详情页 |
-| 重写 | Livewire/Purchase/PurchaseReturnDetail | 迁入明细编辑：formItems 同步、addItemRow/pickOrderItem/removeItemRow/importItems/exportItemsTemplate/exportItems/saveItems |
-| 修改 | purchase-return-list.blade | 弹窗去除明细区，改为跳转提示 |
-| 修改 | purchase-return-detail.blade | 待审核可编辑明细表格（含工具栏），非待审核只读 |
-| 测试 | tests/Feature/PurchaseReturnFlowTest | 调整空头用例为审核拦截；新增 updateItems 整单替换+状态拦截、列表组件建单跳转，共 10 用例 |
-| 文档 | docs/07、docs/12 | 采购退货用例改两步流程+新增 TC-PUR-006e 空头审核拦截（统计 126→127）；用户手册 4.7 两步操作说明 |
+| 瀹屽杽 | Services/PurchaseReturnService | 绌哄ご鍒涘缓锛泆pdateItems()锛涙槑缁嗚鍒涘缓鎻愬彇涓?createLinkedItem/createNormalItem锛涘鏍告牎楠屾槑缁嗛潪绌?|
+| 閲嶅啓 | Livewire/Purchase/PurchaseReturnList | 绉婚櫎鏄庣粏琛?瀵煎叆瀵煎嚭閫昏緫锛泂ave() 鍒涘缓鍚?redirect 璇︽儏椤?|
+| 閲嶅啓 | Livewire/Purchase/PurchaseReturnDetail | 杩佸叆鏄庣粏缂栬緫锛歠ormItems 鍚屾銆乤ddItemRow/pickOrderItem/removeItemRow/importItems/exportItemsTemplate/exportItems/saveItems |
+| 淇敼 | purchase-return-list.blade | 寮圭獥鍘婚櫎鏄庣粏鍖猴紝鏀逛负璺宠浆鎻愮ず |
+| 淇敼 | purchase-return-detail.blade | 寰呭鏍稿彲缂栬緫鏄庣粏琛ㄦ牸锛堝惈宸ュ叿鏍忥級锛岄潪寰呭鏍稿彧璇?|
+| 娴嬭瘯 | tests/Feature/PurchaseReturnFlowTest | 璋冩暣绌哄ご鐢ㄤ緥涓哄鏍告嫤鎴紱鏂板 updateItems 鏁村崟鏇挎崲+鐘舵€佹嫤鎴€佸垪琛ㄧ粍浠跺缓鍗曡烦杞紝鍏?10 鐢ㄤ緥 |
+| 鏂囨。 | docs/07銆乨ocs/12 | 閲囪喘閫€璐х敤渚嬫敼涓ゆ娴佺▼+鏂板 TC-PUR-006e 绌哄ご瀹℃牳鎷︽埅锛堢粺璁?126鈫?27锛夛紱鐢ㄦ埛鎵嬪唽 4.7 涓ゆ鎿嶄綔璇存槑 |
 
-### Git 信息
+### Git 淇℃伅
 
-| 项目 | 值 |
+| 椤圭洰 | 鍊?|
 | :--- | :--- |
-| 分支 | feature/discrepancy-loss |
-| 提交 | 见本次提交 |
-| 验证 | 退货测试 10 通过；全量 37 通过 / 1 失败（UnitConversionServiceTest 既有问题）；Pint / view:cache 通过 |
+| 鍒嗘敮 | feature/discrepancy-loss |
+| 鎻愪氦 | 瑙佹湰娆℃彁浜?|
+| 楠岃瘉 | 閫€璐ф祴璇?10 閫氳繃锛涘叏閲?37 閫氳繃 / 1 澶辫触锛圲nitConversionServiceTest 鏃㈡湁闂锛夛紱Pint / view:cache 閫氳繃 |
 
 ---
 
-## V2.0.11 — 售后退货重构：对齐采购退货「头先行 + 详情页明细」模式
+## V2.0.11 鈥?鍞悗閫€璐ч噸鏋勶細瀵归綈閲囪喘閫€璐с€屽ご鍏堣 + 璇︽儏椤垫槑缁嗐€嶆ā寮?
 
-> 开发者：Kimi。用户拍板：售后退货统一为采购退货同款交互。
+> 寮€鍙戣€咃細Kimi銆傜敤鎴锋媿鏉匡細鍞悗閫€璐х粺涓€涓洪噰璐€€璐у悓娆句氦浜掋€?
 
-### 变更概述
+### 鍙樻洿姒傝堪
 
-1. **补齐缺失层**：售后退货此前无服务层、无详情页、明细从不写入（创建仅订单+商家+原因），且组件写 `note` 幻影字段（表字段为 remark，静默丢失）——本次全部修复。
-2. **新建 OrderReturnService**：空头建单（仅已签收/已锁定订单，商家自动取自订单）；updateItems() 整单替换（仅待审核）；数量上限 = 客户实收数量（actual_quantity ?: quantity），单价取实收单价；approve 拦截无明细单据；markReturned / refund（退款金额=退货总金额，明细 refund_amount 同步）/ cancel 全状态流转 + 审计日志。
-3. **新增详情页**：`/order-returns/{id}` 路由 + OrderReturnDetail 组件——摘要、待审核可编辑明细（订单明细下拉选行，自动带出可退上限/单价）、只读明细、状态按钮、超管回退、时间线（审核/退货/退款/作废时间）。
-4. **列表页配套**：退货单号蓝色链接进详情；新增弹窗头先行（选订单自动带商家，保存后跳详情页）；状态操作全部委托服务层；修 note→remark（列表列/导出/导入映射/表单）；列表新增退货金额列。
-5. **杂项修复**：迁移补 returned_at/refunded_at/cancelled_at 时间戳；helpers 补 order_return 状态徽章；演示数据 RT-20260729-00001 头金额 6900 → 6900000（与明细 500×13800 一致）。
+1. **琛ラ綈缂哄け灞?*锛氬敭鍚庨€€璐ф鍓嶆棤鏈嶅姟灞傘€佹棤璇︽儏椤点€佹槑缁嗕粠涓嶅啓鍏ワ紙鍒涘缓浠呰鍗?鍟嗗+鍘熷洜锛夛紝涓旂粍浠跺啓 `note` 骞诲奖瀛楁锛堣〃瀛楁涓?remark锛岄潤榛樹涪澶憋級鈥斺€旀湰娆″叏閮ㄤ慨澶嶃€?
+2. **鏂板缓 OrderReturnService**锛氱┖澶村缓鍗曪紙浠呭凡绛炬敹/宸查攣瀹氳鍗曪紝鍟嗗鑷姩鍙栬嚜璁㈠崟锛夛紱updateItems() 鏁村崟鏇挎崲锛堜粎寰呭鏍革級锛涙暟閲忎笂闄?= 瀹㈡埛瀹炴敹鏁伴噺锛坅ctual_quantity ?: quantity锛夛紝鍗曚环鍙栧疄鏀跺崟浠凤紱approve 鎷︽埅鏃犳槑缁嗗崟鎹紱markReturned / refund锛堥€€娆鹃噾棰?閫€璐ф€婚噾棰濓紝鏄庣粏 refund_amount 鍚屾锛? cancel 鍏ㄧ姸鎬佹祦杞?+ 瀹¤鏃ュ織銆?
+3. **鏂板璇︽儏椤?*锛歚/order-returns/{id}` 璺敱 + OrderReturnDetail 缁勪欢鈥斺€旀憳瑕併€佸緟瀹℃牳鍙紪杈戞槑缁嗭紙璁㈠崟鏄庣粏涓嬫媺閫夎锛岃嚜鍔ㄥ甫鍑哄彲閫€涓婇檺/鍗曚环锛夈€佸彧璇绘槑缁嗐€佺姸鎬佹寜閽€佽秴绠″洖閫€銆佹椂闂寸嚎锛堝鏍?閫€璐?閫€娆?浣滃簾鏃堕棿锛夈€?
+4. **鍒楄〃椤甸厤濂?*锛氶€€璐у崟鍙疯摑鑹查摼鎺ヨ繘璇︽儏锛涙柊澧炲脊绐楀ご鍏堣锛堥€夎鍗曡嚜鍔ㄥ甫鍟嗗锛屼繚瀛樺悗璺宠鎯呴〉锛夛紱鐘舵€佹搷浣滃叏閮ㄥ鎵樻湇鍔″眰锛涗慨 note鈫抮emark锛堝垪琛ㄥ垪/瀵煎嚭/瀵煎叆鏄犲皠/琛ㄥ崟锛夛紱鍒楄〃鏂板閫€璐ч噾棰濆垪銆?
+5. **鏉傞」淇**锛氳縼绉昏ˉ returned_at/refunded_at/cancelled_at 鏃堕棿鎴筹紱helpers 琛?order_return 鐘舵€佸窘绔狅紱婕旂ず鏁版嵁 RT-20260729-00001 澶撮噾棰?6900 鈫?6900000锛堜笌鏄庣粏 500脳13800 涓€鑷达級銆?
 
-### 变更明细
+### 鍙樻洿鏄庣粏
 
-| 操作 | 文件 | 说明 |
+| 鎿嶄綔 | 鏂囦欢 | 璇存槑 |
 | :--- | :--- | :--- |
-| 修改 | 迁移 000016_create_return_tables | order_returns 补 returned_at/refunded_at/cancelled_at |
-| 完善 | Models/OrderReturn | 三个时间戳入 fillable/casts |
-| 新增 | Services/OrderReturnService | create/updateItems/approve/markReturned/refund/cancel + 审计日志 |
-| 重写 | Livewire/Order/OrderReturnList | 头先行创建+跳转；状态流转委托服务层；note→remark 幻影字段修复 |
-| 新增 | Livewire/Order/OrderReturnDetail | 明细编辑（addItemRow/pickOrderItem/removeItemRow/exportItems/saveItems）+ 状态流转 + 回退 |
-| 修改 | order-return-list.blade | 单号链接化；弹窗头先行；remark 修复；退货金额列 |
-| 新增 | order-return-detail.blade | 待审核可编辑明细 + 只读明细 + 时间线 |
-| 修改 | helpers.php / routes/web.php | order_return 状态徽章；详情路由 |
-| 修复 | Demo/OrderDemoSeeder | RT-20260729-00001 头金额与明细对齐 |
-| 测试 | tests/Feature/OrderReturnFlowTest | 7 用例：空头建单/未签收拦截/实收计价+超量拦截/updateItems+状态拦截/空头审核拦截/全流程退款同步/组件建单跳转 |
-| 文档 | docs/07、docs/12 | TC-ORDER-006 系列 5 条（统计 127→131）；用户手册 4.8 重写 |
+| 淇敼 | 杩佺Щ 000016_create_return_tables | order_returns 琛?returned_at/refunded_at/cancelled_at |
+| 瀹屽杽 | Models/OrderReturn | 涓変釜鏃堕棿鎴冲叆 fillable/casts |
+| 鏂板 | Services/OrderReturnService | create/updateItems/approve/markReturned/refund/cancel + 瀹¤鏃ュ織 |
+| 閲嶅啓 | Livewire/Order/OrderReturnList | 澶村厛琛屽垱寤?璺宠浆锛涚姸鎬佹祦杞鎵樻湇鍔″眰锛沶ote鈫抮emark 骞诲奖瀛楁淇 |
+| 鏂板 | Livewire/Order/OrderReturnDetail | 鏄庣粏缂栬緫锛坅ddItemRow/pickOrderItem/removeItemRow/exportItems/saveItems锛? 鐘舵€佹祦杞?+ 鍥為€€ |
+| 淇敼 | order-return-list.blade | 鍗曞彿閾炬帴鍖栵紱寮圭獥澶村厛琛岋紱remark 淇锛涢€€璐ч噾棰濆垪 |
+| 鏂板 | order-return-detail.blade | 寰呭鏍稿彲缂栬緫鏄庣粏 + 鍙鏄庣粏 + 鏃堕棿绾?|
+| 淇敼 | helpers.php / routes/web.php | order_return 鐘舵€佸窘绔狅紱璇︽儏璺敱 |
+| 淇 | Demo/OrderDemoSeeder | RT-20260729-00001 澶撮噾棰濅笌鏄庣粏瀵归綈 |
+| 娴嬭瘯 | tests/Feature/OrderReturnFlowTest | 7 鐢ㄤ緥锛氱┖澶村缓鍗?鏈鏀舵嫤鎴?瀹炴敹璁′环+瓒呴噺鎷︽埅/updateItems+鐘舵€佹嫤鎴?绌哄ご瀹℃牳鎷︽埅/鍏ㄦ祦绋嬮€€娆惧悓姝?缁勪欢寤哄崟璺宠浆 |
+| 鏂囨。 | docs/07銆乨ocs/12 | TC-ORDER-006 绯诲垪 5 鏉★紙缁熻 127鈫?31锛夛紱鐢ㄦ埛鎵嬪唽 4.8 閲嶅啓 |
 
-### Git 信息
+### Git 淇℃伅
 
-| 项目 | 值 |
+| 椤圭洰 | 鍊?|
 | :--- | :--- |
-| 分支 | feature/discrepancy-loss |
-| 提交 | 见本次提交 |
-| 验证 | 售后退货测试 7 通过；全量测试、Pint、view:cache 见提交时状态；migrate:fresh + DemoDataSeeder 重跑验证 |
+| 鍒嗘敮 | feature/discrepancy-loss |
+| 鎻愪氦 | 瑙佹湰娆℃彁浜?|
+| 楠岃瘉 | 鍞悗閫€璐ф祴璇?7 閫氳繃锛涘叏閲忔祴璇曘€丳int銆乿iew:cache 瑙佹彁浜ゆ椂鐘舵€侊紱migrate:fresh + DemoDataSeeder 閲嶈窇楠岃瘉 |
 
 ---
 
-## V2.0.12 — 退货表单 bugfix：原因非必填 + 关联退货改仓
+## V2.0.12 鈥?閫€璐ц〃鍗?bugfix锛氬師鍥犻潪蹇呭～ + 鍏宠仈閫€璐ф敼浠?
 
-> 开发者：Kimi。用户实测反馈修复。
+> 寮€鍙戣€咃細Kimi銆傜敤鎴峰疄娴嬪弽棣堜慨澶嶃€?
 
-### 变更概述
+### 鍙樻洿姒傝堪
 
-1. **退货原因非必填**：采购退货（创建/编辑）与售后退货（创建）表单校验由 required 改 nullable，弹窗去除必填星标。
-2. **关联退货出库仓库开放手选**：原禁用状态导致无法改仓——现默认带出采购单入库仓库、允许改仓退货；createLinked() 新增 warehouseId 参数；出库扣库存统一以退货单头 warehouse_id 为准（原来关联退货取采购单仓库，会忽略单头改动）。
+1. **閫€璐у師鍥犻潪蹇呭～**锛氶噰璐€€璐э紙鍒涘缓/缂栬緫锛変笌鍞悗閫€璐э紙鍒涘缓锛夎〃鍗曟牎楠岀敱 required 鏀?nullable锛屽脊绐楀幓闄ゅ繀濉槦鏍囥€?
+2. **鍏宠仈閫€璐у嚭搴撲粨搴撳紑鏀炬墜閫?*锛氬師绂佺敤鐘舵€佸鑷存棤娉曟敼浠撯€斺€旂幇榛樿甯﹀嚭閲囪喘鍗曞叆搴撲粨搴撱€佸厑璁告敼浠撻€€璐э紱createLinked() 鏂板 warehouseId 鍙傛暟锛涘嚭搴撴墸搴撳瓨缁熶竴浠ラ€€璐у崟澶?warehouse_id 涓哄噯锛堝師鏉ュ叧鑱旈€€璐у彇閲囪喘鍗曚粨搴擄紝浼氬拷鐣ュ崟澶存敼鍔級銆?
 
-### Git 信息
+### Git 淇℃伅
 
-| 项目 | 值 |
+| 椤圭洰 | 鍊?|
 | :--- | :--- |
-| 分支 | feature/discrepancy-loss |
-| 提交 | 见本次提交 |
-| 验证 | 全量 44 通过 / 1 失败（既有问题）；Pint / view:cache 通过 |
+| 鍒嗘敮 | feature/discrepancy-loss |
+| 鎻愪氦 | 瑙佹湰娆℃彁浜?|
+| 楠岃瘉 | 鍏ㄩ噺 44 閫氳繃 / 1 澶辫触锛堟棦鏈夐棶棰橈級锛汸int / view:cache 閫氳繃 |
 
 ---
 
-## V2.0.13 — 损耗单明细行 + 损耗类型功能性常量
+## V2.0.13 鈥?鎹熻€楀崟鏄庣粏琛?+ 鎹熻€楃被鍨嬪姛鑳芥€у父閲?
 
-> 开发者：TeleAgent。08-28 损耗管理改进。
+> 寮€鍙戣€咃細TeleAgent銆?8-28 鎹熻€楃鐞嗘敼杩涖€?
 
-### 变更概述
+### 鍙樻洿姒傝堪
 
-1. **LossOrder 模型新增功能性来源类型常量**：LOSS_PURCHASE=7(采购少收)、LOSS_PICKING=8(拣货差异)、LOSS_DELIVERY=9(配送差异)，更新 typeMap()、sourceTypeMap()、PHPDoc。手动创建弹窗类型下拉框仅显示 1-6（备注型），7-9 由系统自动赋值。列表筛选下拉框显示全部 9 种类型。
-2. **createFromDiscrepancy() 使用 LOSS_PURCHASE**：采购入库差异自动生成的损耗单 loss_type 从 LOSS_OTHER 改为 LOSS_PURCHASE（主表和明细两处）。
-3. **LossOrderList 组件新增明细行管理**：addItemRow()/removeItemRow()/updatedFormItems()（SKU 选择自动带出成本价，cost_price 为 0 时 fallback 到 purchase_price）/formTotalAmountCents 计算属性。openCreateModal() 创建时自动添加一行空明细；openEditModal() 加载已有明细到表单。
-4. **save() 改用 LossOrderService::create()**：新建模式调用 Service 层创建损耗单（含明细），编辑模式删除旧明细重新创建，自动计算 total_amount。
-5. **弹窗 UI 改造**：仓库/类型/原因/备注改为两列布局，新增损耗明细行表格（SKU选择+成本价+数量+损耗金额+责任方+供应商+原因+删除行），底部合计金额，弹窗宽度 max-w-3xl。责任方选"供应商"时动态显示供应商下拉框。
+1. **LossOrder 妯″瀷鏂板鍔熻兘鎬ф潵婧愮被鍨嬪父閲?*锛歀OSS_PURCHASE=7(閲囪喘灏戞敹)銆丩OSS_PICKING=8(鎷ｈ揣宸紓)銆丩OSS_DELIVERY=9(閰嶉€佸樊寮?锛屾洿鏂?typeMap()銆乻ourceTypeMap()銆丳HPDoc銆傛墜鍔ㄥ垱寤哄脊绐楃被鍨嬩笅鎷夋浠呮樉绀?1-6锛堝娉ㄥ瀷锛夛紝7-9 鐢辩郴缁熻嚜鍔ㄨ祴鍊笺€傚垪琛ㄧ瓫閫変笅鎷夋鏄剧ず鍏ㄩ儴 9 绉嶇被鍨嬨€?
+2. **createFromDiscrepancy() 浣跨敤 LOSS_PURCHASE**锛氶噰璐叆搴撳樊寮傝嚜鍔ㄧ敓鎴愮殑鎹熻€楀崟 loss_type 浠?LOSS_OTHER 鏀逛负 LOSS_PURCHASE锛堜富琛ㄥ拰鏄庣粏涓ゅ锛夈€?
+3. **LossOrderList 缁勪欢鏂板鏄庣粏琛岀鐞?*锛歛ddItemRow()/removeItemRow()/updatedFormItems()锛圫KU 閫夋嫨鑷姩甯﹀嚭鎴愭湰浠凤紝cost_price 涓?0 鏃?fallback 鍒?purchase_price锛?formTotalAmountCents 璁＄畻灞炴€с€俹penCreateModal() 鍒涘缓鏃惰嚜鍔ㄦ坊鍔犱竴琛岀┖鏄庣粏锛沷penEditModal() 鍔犺浇宸叉湁鏄庣粏鍒拌〃鍗曘€?
+4. **save() 鏀圭敤 LossOrderService::create()**锛氭柊寤烘ā寮忚皟鐢?Service 灞傚垱寤烘崯鑰楀崟锛堝惈鏄庣粏锛夛紝缂栬緫妯″紡鍒犻櫎鏃ф槑缁嗛噸鏂板垱寤猴紝鑷姩璁＄畻 total_amount銆?
+5. **寮圭獥 UI 鏀归€?*锛氫粨搴?绫诲瀷/鍘熷洜/澶囨敞鏀逛负涓ゅ垪甯冨眬锛屾柊澧炴崯鑰楁槑缁嗚琛ㄦ牸锛圫KU閫夋嫨+鎴愭湰浠?鏁伴噺+鎹熻€楅噾棰?璐ｄ换鏂?渚涘簲鍟?鍘熷洜+鍒犻櫎琛岋級锛屽簳閮ㄥ悎璁￠噾棰濓紝寮圭獥瀹藉害 max-w-3xl銆傝矗浠绘柟閫?渚涘簲鍟?鏃跺姩鎬佹樉绀轰緵搴斿晢涓嬫媺妗嗐€?
 
-### 设计决策
-- 手动创建弹窗类型仅可选 1-6，功能性类型 7-9 不可手动选择
-- 列表筛选支持全部 9 种类型
-- 成本价自动带出 SKU 的 cost_price（加权平均成本价），为 0 时 fallback 到 purchase_price，允许手动修改
-- 编辑模式明细处理：删除旧明细重新创建（仅待审核状态可编辑，无库存变动风险）
+### 璁捐鍐崇瓥
+- 鎵嬪姩鍒涘缓寮圭獥绫诲瀷浠呭彲閫?1-6锛屽姛鑳芥€х被鍨?7-9 涓嶅彲鎵嬪姩閫夋嫨
+- 鍒楄〃绛涢€夋敮鎸佸叏閮?9 绉嶇被鍨?
+- 鎴愭湰浠疯嚜鍔ㄥ甫鍑?SKU 鐨?cost_price锛堝姞鏉冨钩鍧囨垚鏈环锛夛紝涓?0 鏃?fallback 鍒?purchase_price锛屽厑璁告墜鍔ㄤ慨鏀?
+- 缂栬緫妯″紡鏄庣粏澶勭悊锛氬垹闄ゆ棫鏄庣粏閲嶆柊鍒涘缓锛堜粎寰呭鏍哥姸鎬佸彲缂栬緫锛屾棤搴撳瓨鍙樺姩椋庨櫓锛?
 
-### 数据库变更
-无（无新增字段，仅常量定义和业务逻辑变更）
+### 鏁版嵁搴撳彉鏇?
+鏃狅紙鏃犳柊澧炲瓧娈碉紝浠呭父閲忓畾涔夊拰涓氬姟閫昏緫鍙樻洿锛?
 
-### 涉及文件
-| 变更 | 文件 | 说明 |
+### 娑夊強鏂囦欢
+| 鍙樻洿 | 鏂囦欢 | 璇存槑 |
 | :--- | :--- | :--- |
-| 修改 | app/Models/LossOrder.php | 新增常量 7/8/9 + typeMap/sourceTypeMap 补充 |
-| 修改 | app/Services/LossOrderService.php | createFromDiscrepancy() loss_type 改为 LOSS_PURCHASE |
-| 修改 | app/Livewire/Loss/LossOrderList.php | 新增明细行管理 + save() 改用 Service + render 传递变量 |
-| 修改 | resources/views/livewire/loss/loss-order-list.blade.php | 筛选下拉框 + 弹窗 UI 改造 |
+| 淇敼 | app/Models/LossOrder.php | 鏂板甯搁噺 7/8/9 + typeMap/sourceTypeMap 琛ュ厖 |
+| 淇敼 | app/Services/LossOrderService.php | createFromDiscrepancy() loss_type 鏀逛负 LOSS_PURCHASE |
+| 淇敼 | app/Livewire/Loss/LossOrderList.php | 鏂板鏄庣粏琛岀鐞?+ save() 鏀圭敤 Service + render 浼犻€掑彉閲?|
+| 淇敼 | resources/views/livewire/loss/loss-order-list.blade.php | 绛涢€変笅鎷夋 + 寮圭獥 UI 鏀归€?|
 
-### Git 信息
+### Git 淇℃伅
 
-| 项目 | 值 |
+| 椤圭洰 | 鍊?|
 | :--- | :--- |
-| 分支 | fix/bugfix-round-1 |
-| 验证 | PHP 语法检查 3 文件通过；view:clear + config:clear；admin:install --seed --reset --force 22 迁移 + 全部 Seeder 无错误 |
+| 鍒嗘敮 | fix/bugfix-round-1 |
+| 楠岃瘉 | PHP 璇硶妫€鏌?3 鏂囦欢閫氳繃锛泇iew:clear + config:clear锛沘dmin:install --seed --reset --force 22 杩佺Щ + 鍏ㄩ儴 Seeder 鏃犻敊璇?|

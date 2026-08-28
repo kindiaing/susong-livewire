@@ -69,6 +69,7 @@ use App\Livewire\System\BannerList;
 use App\Livewire\System\FinanceSettings;
 use App\Livewire\System\LoginLogList;
 use App\Livewire\System\NotificationHistory;
+use App\Livewire\System\NotificationList;
 use App\Livewire\System\OperationLogs;
 use App\Livewire\System\Settings;
 use App\Livewire\System\UnitList;
@@ -199,6 +200,7 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::get('/login-logs', LoginLogList::class)->name('login-logs');
     Route::get('/wechat-users', WechatUserList::class)->name('wechat-users');
     Route::get('/units', UnitList::class)->name('units');
+    Route::get('/system-notifications', NotificationList::class)->name('system-notifications');
 });
 
 // 开发演示页（无需登录，生产环境应移除）

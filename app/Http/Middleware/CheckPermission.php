@@ -125,6 +125,7 @@ class CheckPermission
         'login-logs'          => 'system.login-log.view',
         'wechat-users'        => 'system.wechat-user.view',
         'units'               => 'system.system-config.view',
+        'system-notifications' => 'system.notification.view',
     ];
 
     /**
