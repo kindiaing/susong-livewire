@@ -317,7 +317,7 @@ class PurchaseItemList extends Component
 
     public function render()
     {
-        $query = PurchaseItem::with('sku.product')->orderBy('id', 'desc');
+        $query = PurchaseItem::with('sku.product', 'sku.baseUnit')->orderBy('id', 'desc');
 
         if ($this->search) {
             $query->whereHas('sku', function ($q) {

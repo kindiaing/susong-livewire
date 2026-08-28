@@ -73,6 +73,19 @@
                             @case('expected_price')
                                 <td class="px-4 py-2 text-foreground">{{ money_format($item->expected_price) }}</td>
                                 @break
+                            @case('quantity')
+                                <td class="px-4 py-2 text-foreground whitespace-nowrap">
+                                    @php
+                                        $svc = app(\App\Services\UnitConversionService::class);
+                                        $humanQty = $svc->formatHuman($item->sku_id, $item->quantity);
+                                        $baseUnitName = $item->sku?->baseUnit?->name ?? '';
+                                    @endphp
+                                    {{ $item->quantity }}{{ $baseUnitName }}
+                                    @if($humanQty !== (string)$item->quantity)
+                                        <span class="text-xs text-muted-foreground ml-1">({{ $humanQty }})</span>
+                                    @endif
+                                </td>
+                                @break
                             @case('source_type')
                                 <td class="px-4 py-2 text-foreground">{{ \App\Models\PurchaseItem::sourceTypeMap()[$item->source_type] ?? '-' }}</td>
                                 @break
