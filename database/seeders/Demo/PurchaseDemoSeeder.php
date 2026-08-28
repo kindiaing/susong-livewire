@@ -158,10 +158,12 @@ class PurchaseDemoSeeder extends Seeder
             return;
         }
         $unitXiang = DB::table('units')->where('name', '箱')->value('id');
+        $supplier = DB::table('suppliers')->where('name', '海滨水产批发部')->first();
 
         if (! DB::table('purchase_items')->where('sku_id', $sku->id)->exists()) {
             DB::table('purchase_items')->insert([
                 'sku_id' => $sku->id,
+                'supplier_id' => $supplier?->id,
                 'quantity' => 1000,
                 'unit_id' => $unitXiang,
                 'unit_quantity' => 50,
