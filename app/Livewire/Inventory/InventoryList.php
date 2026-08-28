@@ -298,7 +298,7 @@ class InventoryList extends Component
 
     public function getExportQuery()
     {
-        return Inventory::with(['warehouse', 'sku.product'])->orderBy('id', 'desc');
+        return Inventory::with(['warehouse', 'sku.product.baseUnit'])->orderBy('id', 'desc');
     }
 
     public function getExportFileName(): string
@@ -334,7 +334,7 @@ class InventoryList extends Component
      */
     private function buildFilteredQuery()
     {
-        $query = Inventory::with(['warehouse', 'sku.product'])->orderBy('id', 'desc');
+        $query = Inventory::with(['warehouse', 'sku.product.baseUnit'])->orderBy('id', 'desc');
 
         if ($this->search) {
             $query->whereHas('sku', function ($q) {
@@ -367,6 +367,7 @@ class InventoryList extends Component
         foreach ($grouped as $skuId => $group) {
             $first = $group->first();
             $rows[] = [
+                'sku_id' => $skuId,
                 'sku_code' => $first->sku?->sku_code ?? '-',
                 'product_name' => $first->sku?->product?->name ?? '-',
                 'record_count' => $group->count(),
@@ -402,12 +403,13 @@ class InventoryList extends Component
             ->get();
 
         $skuIds = $aggregated->pluck('sku_id')->unique()->toArray();
-        $skuMap = Sku::with('product')->whereIn('id', $skuIds)->get()->keyBy('id');
+        $skuMap = Sku::with('product.baseUnit')->whereIn('id', $skuIds)->get()->keyBy('id');
 
         $rows = [];
         foreach ($aggregated as $row) {
             $sku = $skuMap->get($row->sku_id);
             $rows[] = [
+                'sku_id' => $row->sku_id,
                 'sku_code' => $sku?->sku_code ?? '-',
                 'product_name' => $sku?->product?->name ?? '-',
                 'record_count' => $row->record_count,

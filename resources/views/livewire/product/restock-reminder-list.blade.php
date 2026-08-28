@@ -75,7 +75,7 @@
                             <td class="px-4 py-2 text-foreground">{{ $item->sku?->sku_code ?? '-' }}</td>
                             @break
                         @case('threshold_quantity')
-                            <td class="px-4 py-2 text-foreground">{{ $item->threshold_quantity }}</td>
+                            <td class="px-4 py-2 text-foreground">{!! format_quantity($item->sku_id, $item->threshold_quantity, $item->sku?->baseUnit?->name) !!}</td>
                             @break
                         @case('remind_cycle')
                             <td class="px-4 py-2 text-foreground">{{ \App\Models\RestockReminder::remindCycleMap()[$item->remind_cycle] ?? '-' }}</td>

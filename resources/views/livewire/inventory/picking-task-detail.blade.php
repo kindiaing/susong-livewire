@@ -146,8 +146,8 @@
                 <tr class="hover:bg-muted/30 transition-colors">
                     <td class="px-4 py-2 text-foreground">{{ $item['sku_name'] }}</td>
                     <td class="px-4 py-2 text-muted-foreground">{{ $item['unit'] }}</td>
-                    <td class="px-4 py-2 text-right text-foreground">{{ $item['total_qty_display'] }}</td>
-                    <td class="px-4 py-2 text-right text-foreground">{{ $item['picked_qty_display'] }}</td>
+                    <td class="px-4 py-2 text-right text-foreground">{!! $item['total_qty_display'] !!}</td>
+                    <td class="px-4 py-2 text-right text-foreground">{!! $item['picked_qty_display'] !!}</td>
                     <td class="px-4 py-2 text-center">
                         @php $itemStatusMap = [1 => '待拣货', 2 => '已拣货', 3 => '差异']; @endphp
                         @php $itemColorMap = [1 => 'yellow', 2 => 'green', 3 => 'red']; @endphp
@@ -208,8 +208,8 @@
                         <td class="px-4 py-2 text-foreground">{{ $item['sku_name'] }}</td>
                         <td class="px-4 py-2 text-muted-foreground">{{ $item['unit'] }}</td>
                         <td class="px-4 py-2 text-muted-foreground">{{ $item['order_no'] }}</td>
-                        <td class="px-4 py-2 text-right text-foreground">{{ $item['required_qty_display'] }}</td>
-                        <td class="px-4 py-2 text-right text-foreground">{{ $item['picked_qty_display'] }}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{!! $item['required_qty_display'] !!}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{!! $item['picked_qty_display'] !!}</td>
                         <td class="px-4 py-2 text-center">
                             @php $ic = $itemColorMap[$item['status']] ?? 'gray'; @endphp
                             <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium bg-{{ $ic }}-100 text-{{ $ic }}-700">{{ $itemStatusMap[$item['status']] ?? '-' }}</span>
@@ -251,9 +251,9 @@
                     <td class="px-4 py-2 text-foreground font-medium">{{ $disc->discrepancy_no }}</td>
                     <td class="px-4 py-2 text-foreground">{{ $disc->sku?->sku_name ?? '-' }}</td>
                     <td class="px-4 py-2 text-muted-foreground">{{ $disc->type_label }}</td>
-                    <td class="px-4 py-2 text-right text-foreground">{{ $disc->expected_quantity }}</td>
-                    <td class="px-4 py-2 text-right text-foreground">{{ $disc->actual_quantity }}</td>
-                    <td class="px-4 py-2 text-right text-red-600 font-medium">{{ $disc->expected_quantity - $disc->actual_quantity }}</td>
+                    <td class="px-4 py-2 text-right text-foreground">{!! format_quantity($disc->sku_id, $disc->expected_quantity, $disc->sku?->baseUnit?->name) !!}</td>
+                    <td class="px-4 py-2 text-right text-foreground">{!! format_quantity($disc->sku_id, $disc->actual_quantity, $disc->sku?->baseUnit?->name) !!}</td>
+                    <td class="px-4 py-2 text-right text-red-600 font-medium">{!! format_quantity($disc->sku_id, $disc->expected_quantity - $disc->actual_quantity, $disc->sku?->baseUnit?->name) !!}</td>
                     <td class="px-4 py-2 text-center">
                         @php $discColorMap = [1 => 'orange', 2 => 'blue', 3 => 'green', 4 => 'gray', 5 => 'red']; @endphp
                         @php $dc = $discColorMap[$disc->status] ?? 'gray'; @endphp
@@ -287,7 +287,7 @@
                     </div>
                     <div class="flex justify-between mt-1">
                         <span class="text-muted-foreground">需求数量</span>
-                        <span class="text-foreground font-medium">{{ $editingRequiredQty }}</span>
+                        <span class="text-foreground font-medium">{!! format_quantity($editingSkuId, $editingRequiredQty) !!}</span>
                     </div>
                 </div>
                 <div>
@@ -307,7 +307,7 @@
                     <label class="block text-sm font-medium text-foreground mb-1">差异原因 <span class="text-red-500">*</span></label>
                     <textarea wire:model="inputDiffReason" rows="2" maxlength="255" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="实拣少于需求时必填，将生成差异单待处理"></textarea>
                 </div>
-                <p class="text-xs text-muted-foreground">缺口 {{ $editingRequiredQty - (int) $inputPickedQty }} 将按订单明细分摊并生成拣货差异单，差异处理台统一跟进</p>
+                <p class="text-xs text-muted-foreground">缺口 {!! format_quantity($editingSkuId, $editingRequiredQty - (int) $inputPickedQty) !!} 将按订单明细分摊并生成拣货差异单，差异处理台统一跟进</p>
                 @endif
             </div>
             <div class="flex justify-end gap-3 mt-6">

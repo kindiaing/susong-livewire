@@ -106,28 +106,12 @@
                         <span class="text-muted-foreground ml-1">{{ $item->sku?->product?->name }}</span>
                     </td>
                     <td class="px-3 py-1.5 text-right tabular-nums">
-                        @php
-                            $qtyDisplay = (string)$item->quantity;
-                            if ($item->sku && $item->sku->base_unit_id && $item->unit_id && $item->unit_quantity) {
-                                try {
-                                    $svc = app(\App\Services\UnitConversionService::class);
-                                    $qtyDisplay = $svc->formatWithConversion($item->sku_id, $item->unit_id, $item->unit_quantity);
-                                } catch (\Exception $e) {
-                                    $qtyDisplay = (string)$item->quantity;
-                                }
-                            } elseif ($item->sku && $item->sku->base_unit_id) {
-                                try {
-                                    $svc = app(\App\Services\UnitConversionService::class);
-                                    $qtyDisplay = $svc->formatHuman($item->sku_id, $item->quantity);
-                                } catch (\Exception $e) {}
-                            }
-                        @endphp
-                        {{ $qtyDisplay }}
+                        {!! format_quantity($item->sku_id, $item->quantity, $item->sku?->baseUnit?->name) !!}
                     </td>
                     <td class="px-3 py-1.5 text-right tabular-nums">{{ money_format($item->price) }}</td>
                     <td class="px-3 py-1.5 text-right tabular-nums {{ $item->strategy_price ? 'text-blue-600 font-medium' : 'text-muted-foreground' }}">{{ $item->strategy_price ? money_format($item->strategy_price) : '-' }}</td>
                     <td class="px-3 py-1.5 text-right tabular-nums font-medium">{{ money_format($item->amount) }}</td>
-                    <td class="px-3 py-1.5 text-right tabular-nums {{ $item->actual_quantity && $item->actual_quantity != $item->quantity ? 'text-orange-600 font-medium' : '' }}">{{ $item->actual_quantity ?: '-' }}</td>
+                    <td class="px-3 py-1.5 text-right tabular-nums {{ $item->actual_quantity && $item->actual_quantity != $item->quantity ? 'text-orange-600 font-medium' : '' }}">{!! $item->actual_quantity ? format_quantity($item->sku_id, $item->actual_quantity, $item->sku?->baseUnit?->name) : '-' !!}</td>
                     <td class="px-3 py-1.5 text-right tabular-nums">{{ $item->actual_amount ? money_format($item->actual_amount) : '-' }}</td>
                     <td class="px-3 py-1.5">
                         <div class="flex items-center gap-1">
@@ -146,7 +130,7 @@
                 <tr>
                     <td colspan="8" class="px-3 py-0.5 bg-orange-50 text-[11px] text-orange-700">
                         @if($item->discrepancy_quantity > 0)
-                        <span class="font-medium">入库差异 {{ $item->discrepancy_quantity }}</span>
+                        <span class="font-medium">入库差异 {!! format_quantity($item->sku_id, $item->discrepancy_quantity, $item->sku?->baseUnit?->name) !!}</span>
                         @endif
                         @if($item->discrepancy_reason)
                         <span>原因：{{ $item->discrepancy_reason }}</span>
@@ -391,7 +375,7 @@
                     @foreach($stockInItems as $i => $item)
                         <div class="grid grid-cols-[1fr_80px_80px_80px_80px_1fr] gap-2 px-4 py-2 items-center border-b last:border-b-0 text-sm">
                             <div class="text-foreground truncate">{{ $item['sku_name'] }}</div>
-                            <div class="text-muted-foreground text-right">{{ $item['quantity'] }}</div>
+                            <div class="text-muted-foreground text-right">{!! format_quantity($item['sku_id'] ?? 0, $item['quantity'] ?? 0) !!}</div>
                             <div>
                                 <input type="number" wire:model="stockInItems.{{ $i }}.actual_quantity" min="0" class="w-full h-7 rounded border border-input bg-background px-2 text-sm" />
                             </div>
@@ -399,7 +383,7 @@
                                 <input type="number" wire:model="stockInItems.{{ $i }}.actual_price" min="0" step="0.01" placeholder="0.00" class="w-full h-7 rounded border border-input bg-background px-2 text-sm" />
                             </div>
                             <div class="text-center @if($item['actual_quantity'] != $item['quantity']) text-orange-600 font-medium @else text-green-600 @endif">
-                                {{ $item['actual_quantity'] - $item['quantity'] }}
+                                {!! format_quantity($item['sku_id'] ?? 0, $item['actual_quantity'] - $item['quantity']) !!}
                             </div>
                             <div>
                                 <input type="text" wire:model="stockInItems.{{ $i }}.discrepancy_reason" placeholder="可选" class="w-full h-7 rounded border border-input bg-background px-2 text-sm" />

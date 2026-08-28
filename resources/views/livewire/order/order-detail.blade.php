@@ -130,23 +130,7 @@
                             @endphp
                         </td>
                         <td class="px-3 py-1.5 text-right tabular-nums">
-                            @php
-                                $qtyDisplay = (string)$item->quantity;
-                                if ($item->sku && $item->sku->base_unit_id && $item->unit_id && $item->unit_quantity) {
-                                    try {
-                                        $svc = app(\App\Services\UnitConversionService::class);
-                                        $qtyDisplay = $svc->formatWithConversion($item->sku_id, $item->unit_id, $item->unit_quantity);
-                                    } catch (\Exception $e) {
-                                        $qtyDisplay = (string)$item->quantity;
-                                    }
-                                } elseif ($item->sku && $item->sku->base_unit_id) {
-                                    try {
-                                        $svc = app(\App\Services\UnitConversionService::class);
-                                        $qtyDisplay = $svc->formatHuman($item->sku_id, $item->quantity);
-                                    } catch (\Exception $e) {}
-                                }
-                            @endphp
-                            {{ $qtyDisplay }}
+                            {!! format_quantity($item->sku_id, $item->quantity, $item->sku?->baseUnit?->name) !!}
                         </td>
                         <td class="px-3 py-1.5 text-right tabular-nums">{{ money_format($item->price) }}</td>
                         <td class="px-3 py-1.5 text-right tabular-nums font-medium">{{ money_format($item->subtotal) }}</td>
@@ -154,7 +138,7 @@
                             {{ $item->strategy_price ? money_format($item->strategy_price) : '-' }}
                         </td>
                         <td class="px-3 py-1.5 text-right tabular-nums {{ $item->actual_quantity && $item->actual_quantity != $item->quantity ? 'text-orange-600 font-medium' : '' }}">
-                            {{ $item->actual_quantity ?: '-' }}
+                            {!! $item->actual_quantity ? format_quantity($item->sku_id, $item->actual_quantity, $item->sku?->baseUnit?->name) : '-' !!}
                         </td>
                         <td class="px-3 py-1.5 text-right tabular-nums">
                             {{ $item->actual_subtotal ? money_format($item->actual_subtotal) : '-' }}

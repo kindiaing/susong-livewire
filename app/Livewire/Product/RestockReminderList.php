@@ -131,7 +131,7 @@ class RestockReminderList extends Component
 
     public function getExportQuery()
     {
-        return RestockReminder::with(['merchant', 'sku', 'discrepancy'])
+        return RestockReminder::with(['merchant', 'sku.baseUnit', 'discrepancy'])
             ->when($this->search, function ($q) {
                 $q->whereHas('merchant', fn ($q2) => $q2->where('name', 'like', "%{$this->search}%"))
                     ->orWhereHas('sku', fn ($q2) => $q2->where('sku_code', 'like', "%{$this->search}%"))
@@ -171,7 +171,7 @@ class RestockReminderList extends Component
 
     public function render()
     {
-        $query = RestockReminder::with(['merchant', 'sku', 'discrepancy'])->orderBy('id', 'desc');
+        $query = RestockReminder::with(['merchant', 'sku.baseUnit', 'discrepancy'])->orderBy('id', 'desc');
 
         if ($this->search) {
             $query->where(function ($q) {

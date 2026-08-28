@@ -98,7 +98,7 @@
                     <tr class="hover:bg-muted/30 transition-colors">
                         <td class="px-4 py-2 text-foreground">{{ $item->sku?->name ?? "SKU-{$item->sku_id}" }}</td>
                         <td class="px-4 py-2 text-foreground">{{ $typeMap[$item->loss_type] ?? '-' }}</td>
-                        <td class="px-4 py-2 text-right text-foreground">{{ $item->quantity }}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{!! format_quantity($item->sku_id, $item->quantity, $item->sku?->baseUnit?->name) !!}</td>
                         <td class="px-4 py-2 text-right text-foreground">{{ money_format($item->cost_price) }}</td>
                         <td class="px-4 py-2 text-right text-foreground font-medium">{{ money_format($item->loss_amount) }}</td>
                         <td class="px-4 py-2 text-foreground">{{ $responsiblePartyMap[$item->responsible_party] ?? '-' }}</td>

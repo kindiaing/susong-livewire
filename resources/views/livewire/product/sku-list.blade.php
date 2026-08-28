@@ -78,7 +78,7 @@
                             <td class="px-4 py-2 font-medium text-foreground font-mono">{{ $sku->sku_code }}</td>
                             @break
                         @case('stock')
-                            <td class="px-4 py-2 text-foreground">{{ $sku->stock }}</td>
+                            <td class="px-4 py-2 text-foreground">{!! format_quantity($sku->id, $sku->stock, $sku->baseUnit?->name) !!}</td>
                             @break
                         @case('approval_status')
                             <td class="px-4 py-2">{!! status_badge($sku->approval_status, 'sku_approval') !!}</td>

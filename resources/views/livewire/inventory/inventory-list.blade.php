@@ -97,13 +97,13 @@
                             </td>
                             @break
                         @case('total_stock')
-                            <td class="px-4 py-2 text-foreground">{{ $item->total_stock }}</td>
+                            <td class="px-4 py-2 text-foreground">{!! format_quantity($item->sku_id, $item->total_stock, $item->sku?->baseUnit?->name) !!}</td>
                             @break
                         @case('locked_stock')
-                            <td class="px-4 py-2 text-foreground">{{ $item->locked_stock }}</td>
+                            <td class="px-4 py-2 text-foreground">{!! format_quantity($item->sku_id, $item->locked_stock, $item->sku?->baseUnit?->name) !!}</td>
                             @break
                         @case('available_stock')
-                            <td class="px-4 py-2 {{ $item->available_stock <= $item->warning_value ? 'text-red-600 font-medium' : 'text-foreground' }}">{{ $item->available_stock }}</td>
+                            <td class="px-4 py-2 {{ $item->available_stock <= $item->warning_value ? 'text-red-600 font-medium' : 'text-foreground' }}">{!! format_quantity($item->sku_id, $item->available_stock, $item->sku?->baseUnit?->name) !!}</td>
                             @break
                         @case('batch_no')
                             <td class="px-4 py-2 text-muted-foreground">{{ $item->batch_no ?? '-' }}</td>
@@ -112,7 +112,7 @@
                             <td class="px-4 py-2 text-muted-foreground">{{ $item->expiry_date ? $item->expiry_date->format('Y-m-d') : '-' }}</td>
                             @break
                         @case('warning_value')
-                            <td class="px-4 py-2 text-muted-foreground">{{ $item->warning_value }}</td>
+                            <td class="px-4 py-2 text-muted-foreground">{!! format_quantity($item->sku_id, $item->warning_value, $item->sku?->baseUnit?->name) !!}</td>
                             @break
                         @case('created_at')
                             <td class="px-4 py-2 text-muted-foreground">{{ $item->created_at?->format('Y-m-d H:i') }}</td>
@@ -168,9 +168,9 @@
                         <td class="px-4 py-2 text-foreground font-mono">{{ $row['sku_code'] }}</td>
                         <td class="px-4 py-2 text-foreground">{{ $row['product_name'] }}</td>
                         <td class="px-4 py-2 text-right text-muted-foreground">{{ $row['record_count'] }}</td>
-                        <td class="px-4 py-2 text-right text-foreground">{{ $row['total_stock'] }}</td>
-                        <td class="px-4 py-2 text-right text-foreground">{{ $row['locked_stock'] }}</td>
-                        <td class="px-4 py-2 text-right {{ $row['available_stock'] <= 0 ? 'text-red-600 font-medium' : 'text-foreground' }}">{{ $row['available_stock'] }}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{!! format_quantity($row['sku_id'], $row['total_stock']) !!}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{!! format_quantity($row['sku_id'], $row['locked_stock']) !!}</td>
+                        <td class="px-4 py-2 text-right {{ $row['available_stock'] <= 0 ? 'text-red-600 font-medium' : 'text-foreground' }}">{!! format_quantity($row['sku_id'], $row['available_stock']) !!}</td>
                     </tr>
                     @empty
                     <tr><td colspan="6" class="px-6 py-8 text-center text-muted-foreground">暂无数据</td></tr>
@@ -209,9 +209,9 @@
                         <td class="px-4 py-2 text-foreground font-mono">{{ $row['sku_code'] }}</td>
                         <td class="px-4 py-2 text-foreground">{{ $row['product_name'] }}</td>
                         <td class="px-4 py-2 text-right text-muted-foreground">{{ $row['record_count'] }}</td>
-                        <td class="px-4 py-2 text-right text-foreground">{{ $row['total_stock'] }}</td>
-                        <td class="px-4 py-2 text-right text-foreground">{{ $row['locked_stock'] }}</td>
-                        <td class="px-4 py-2 text-right {{ $row['available_stock'] <= 0 ? 'text-red-600 font-medium' : 'text-foreground' }}">{{ $row['available_stock'] }}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{!! format_quantity($row['sku_id'], $row['total_stock']) !!}</td>
+                        <td class="px-4 py-2 text-right text-foreground">{!! format_quantity($row['sku_id'], $row['locked_stock']) !!}</td>
+                        <td class="px-4 py-2 text-right {{ $row['available_stock'] <= 0 ? 'text-red-600 font-medium' : 'text-foreground' }}">{!! format_quantity($row['sku_id'], $row['available_stock']) !!}</td>
                     </tr>
                     @empty
                     <tr><td colspan="6" class="px-6 py-8 text-center text-muted-foreground">暂无数据</td></tr>

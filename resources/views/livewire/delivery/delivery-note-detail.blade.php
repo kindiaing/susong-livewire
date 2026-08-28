@@ -127,10 +127,7 @@
                 <tr class="hover:bg-muted/30 transition-colors">
                     <td class="px-4 py-2 text-foreground">{{ $item->sku_name ?? $item->sku?->name ?? '-' }}</td>
                     <td class="px-4 py-2 text-muted-foreground">{{ $item->unit ?? '-' }}</td>
-                    <td class="px-4 py-2 text-right text-foreground">@php
-                        $svc = app(\App\Services\UnitConversionService::class);
-                        echo $svc->formatHuman($item->sku_id, $item->quantity);
-                    @endphp</td>
+                    <td class="px-4 py-2 text-right text-foreground">{!! format_quantity($item->sku_id, $item->quantity, $item->unit) !!}</td>
                     <td class="px-4 py-2 text-right">
                         @if($note->status === 2)
                             <input type="number"
@@ -142,10 +139,7 @@
                                 wire:change="confirmItemDelivery({{ $item->id }}, $event.target.value)"
                             />
                         @else
-                            <span class="text-foreground">@php
-                                $svc2 = app(\App\Services\UnitConversionService::class);
-                                echo $svc2->formatHuman($item->sku_id, $item->picked_quantity ?? 0);
-                            @endphp</span>
+                            <span class="text-foreground">{!! format_quantity($item->sku_id, $item->picked_quantity ?? 0, $item->unit) !!}</span>
                         @endif
                     </td>
                     <td class="px-4 py-2 text-muted-foreground font-mono text-xs">{{ $item->order_no ?? '-' }}</td>
@@ -188,11 +182,11 @@
                     </div>
                     <div class="flex justify-between mt-1">
                         <span class="text-muted-foreground">应送 / 实收</span>
-                        <span class="text-foreground font-medium">{{ $diffExpectedQty }} / {{ $diffActualQty }}</span>
+                        <span class="text-foreground font-medium">{!! format_quantity($diffSkuId, $diffExpectedQty) !!} / {!! format_quantity($diffSkuId, $diffActualQty) !!}</span>
                     </div>
                     <div class="flex justify-between mt-1">
                         <span class="text-muted-foreground">差异数量</span>
-                        <span class="text-red-600 font-medium">{{ $diffExpectedQty - $diffActualQty }}</span>
+                        <span class="text-red-600 font-medium">{!! format_quantity($diffSkuId, $diffExpectedQty - $diffActualQty) !!}</span>
                     </div>
                 </div>
                 <div>

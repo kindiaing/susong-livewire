@@ -25,6 +25,8 @@ class DeliveryNoteDetail extends Component
 
     public string $diffSkuName = '';
 
+    public ?int $diffSkuId = null;
+
     public int $diffExpectedQty = 0;
 
     public int $diffActualQty = 0;
@@ -156,6 +158,7 @@ class DeliveryNoteDetail extends Component
 
             $this->diffItemId = $item->id;
             $this->diffSkuName = $item->sku_name ?? $item->sku?->sku_name ?? '';
+            $this->diffSkuId = $item->sku_id;
             $this->diffExpectedQty = (int) $item->quantity;
             $this->diffActualQty = $pickedQty;
             $this->diffType = $pickedQty === 0
@@ -216,6 +219,7 @@ class DeliveryNoteDetail extends Component
     {
         $this->showDiffModal = false;
         $this->diffItemId = null;
+        $this->diffSkuId = null;
         $this->diffReason = '';
     }
 

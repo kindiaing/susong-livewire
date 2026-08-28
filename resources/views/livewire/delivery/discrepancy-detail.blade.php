@@ -53,15 +53,15 @@
         <div class="px-4 py-3 space-y-2 text-sm">
             <div class="flex justify-between">
                 <span class="text-muted-foreground">预期数量</span>
-                <span class="text-foreground font-medium">{{ $discrepancy->expected_quantity }}</span>
+                <span class="text-foreground font-medium">{!! format_quantity($discrepancy->sku_id, $discrepancy->expected_quantity, $discrepancy->sku?->baseUnit?->name) !!}</span>
             </div>
             <div class="flex justify-between">
                 <span class="text-muted-foreground">实际数量</span>
-                <span class="text-foreground font-medium">{{ $discrepancy->actual_quantity }}</span>
+                <span class="text-foreground font-medium">{!! format_quantity($discrepancy->sku_id, $discrepancy->actual_quantity, $discrepancy->sku?->baseUnit?->name) !!}</span>
             </div>
             <div class="flex justify-between">
                 <span class="text-muted-foreground">数量差异</span>
-                <span class="text-red-600 font-medium">{{ $discrepancy->quantity_diff }}</span>
+                <span class="text-red-600 font-medium">{!! format_quantity($discrepancy->sku_id, $discrepancy->quantity_diff, $discrepancy->sku?->baseUnit?->name) !!}</span>
             </div>
             <div class="flex justify-between">
                 <span class="text-muted-foreground">差异金额（估）</span>
@@ -120,7 +120,7 @@
                             · {{ \App\Models\RestockReminder::remindCycleMap()[$reminder->remind_cycle] ?? '-' }}
                         </div>
                         <div class="text-xs text-muted-foreground mt-0.5">
-                            阈值 {{ $reminder->threshold_quantity }} · {{ $reminder->remark ?? '-' }}
+                            阈值 {!! format_quantity($reminder->sku_id, $reminder->threshold_quantity) !!} · {{ $reminder->remark ?? '-' }}
                         </div>
                     </div>
                 </div>

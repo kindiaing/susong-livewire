@@ -108,7 +108,7 @@ class InventoryLogList extends Component
 
     public function getExportQuery()
     {
-        return InventoryLog::with(['warehouse', 'sku.product', 'operator'])->orderBy('id', 'desc');
+        return InventoryLog::with(['warehouse', 'sku.product.baseUnit', 'operator'])->orderBy('id', 'desc');
     }
 
     public function getExportFileName(): string
@@ -123,7 +123,7 @@ class InventoryLogList extends Component
 
     public function render()
     {
-        $query = InventoryLog::with(['warehouse', 'sku.product', 'operator'])->orderBy('id', 'desc');
+        $query = InventoryLog::with(['warehouse', 'sku.product.baseUnit', 'operator'])->orderBy('id', 'desc');
 
         if ($this->search) {
             $query->where(function ($q) {

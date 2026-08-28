@@ -91,7 +91,7 @@
                             <div class="text-sm text-foreground">{{ $typeMap[$item->type] ?? '-' }}</div>
                             @break
                         @case('quantity_diff')
-                            <div class="text-sm text-foreground">{{ $item->expected_quantity }} → {{ $item->actual_quantity }}（差 {{ $item->quantity_diff }}）</div>
+                            <div class="text-sm text-foreground">{!! format_quantity($item->sku_id, $item->expected_quantity, $item->sku?->baseUnit?->name) !!} → {!! format_quantity($item->sku_id, $item->actual_quantity, $item->sku?->baseUnit?->name) !!}（差 {!! format_quantity($item->sku_id, $item->quantity_diff, $item->sku?->baseUnit?->name) !!}）</div>
                             @break
                         @case('amount_diff')
                             <div class="text-sm text-foreground text-right">{{ money_format($item->amount_diff) }}</div>
@@ -172,7 +172,7 @@
                 </div>
                 <div class="flex justify-between">
                     <span class="text-muted-foreground">预期 / 实际（差异）</span>
-                    <span class="text-foreground">{{ $processing->expected_quantity }} / {{ $processing->actual_quantity }}（<span class="text-red-600">{{ $processing->quantity_diff }}</span>）</span>
+                    <span class="text-foreground">{!! format_quantity($processing->sku_id, $processing->expected_quantity, $processing->sku?->baseUnit?->name) !!} / {!! format_quantity($processing->sku_id, $processing->actual_quantity, $processing->sku?->baseUnit?->name) !!}（<span class="text-red-600">{!! format_quantity($processing->sku_id, $processing->quantity_diff, $processing->sku?->baseUnit?->name) !!}</span>）</span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-muted-foreground">差异金额（估）</span>

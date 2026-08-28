@@ -175,10 +175,10 @@
                         <span class="font-mono text-foreground">{{ $item->sku?->sku_code }}</span>
                         <span class="text-muted-foreground ml-1">{{ $item->sku?->product?->name }}</span>
                     </td>
-                    <td class="px-3 py-1.5 text-right tabular-nums">{{ $item->quantity }}</td>
+                    <td class="px-3 py-1.5 text-right tabular-nums">{!! format_quantity($item->sku_id, $item->quantity, $item->sku?->baseUnit?->name) !!}</td>
                     <td class="px-3 py-1.5 text-right tabular-nums">{{ money_format($item->price) }}</td>
                     <td class="px-3 py-1.5 text-right tabular-nums font-medium">{{ money_format($item->amount) }}</td>
-                    <td class="px-3 py-1.5 text-right tabular-nums">{{ $item->actual_quantity ?: '-' }}</td>
+                    <td class="px-3 py-1.5 text-right tabular-nums">{!! $item->actual_quantity ? format_quantity($item->sku_id, $item->actual_quantity, $item->sku?->baseUnit?->name) : '-' !!}</td>
                     <td class="px-3 py-1.5 text-right tabular-nums">{{ $item->actual_amount ? money_format($item->actual_amount) : '-' }}</td>
                     <td class="px-3 py-1.5 text-muted-foreground truncate">{{ $item->reason ?? '-' }}</td>
                 </tr>

@@ -312,6 +312,7 @@ class PurchaseOrderDetail extends Component
         foreach ($this->order->items as $item) {
             $this->stockInItems[] = [
                 'id' => $item->id,
+                'sku_id' => $item->sku_id,
                 'sku_name' => $item->sku?->sku_code.' - '.($item->sku?->product?->name ?? ''),
                 'quantity' => $item->quantity,
                 'price' => $this->centsToYuan($item->price),

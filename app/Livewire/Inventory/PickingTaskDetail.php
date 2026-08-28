@@ -98,13 +98,13 @@ class PickingTaskDetail extends Component
                 $status = PickingTaskItem::STATUS_DISCREPANCY;
             }
 
-            // human 格式化（有换算配置时显示 "2箱1件"，无配置则显示原始数字）
-            $svc = app(UnitConversionService::class);
+            // 数量格式化：880斤 (14箱4斤)
+            $baseUnitName = $first->sku?->baseUnit?->name;
             $totalDisplay = $first->sku?->base_unit_id
-                ? $svc->formatHuman($skuId, $totalQuantity)
+                ? format_quantity($skuId, $totalQuantity, $baseUnitName)
                 : (string) $totalQuantity;
             $pickedDisplay = $first->sku?->base_unit_id
-                ? $svc->formatHuman($skuId, $pickedQuantity)
+                ? format_quantity($skuId, $pickedQuantity, $baseUnitName)
                 : (string) $pickedQuantity;
 
             return [
@@ -156,13 +156,13 @@ class PickingTaskDetail extends Component
                 'sku_count' => $items->count(),
                 'status' => $status,
                 'items' => $items->map(function ($item) {
-                    $svc = app(UnitConversionService::class);
                     $skuId = $item->sku_id;
+                    $uName = $item->sku?->baseUnit?->name;
                     $requiredDisplay = $item->sku?->base_unit_id
-                        ? $svc->formatHuman($skuId, $item->required_quantity)
+                        ? format_quantity($skuId, $item->required_quantity, $uName)
                         : (string) $item->required_quantity;
                     $pickedDisplay = $item->sku?->base_unit_id
-                        ? $svc->formatHuman($skuId, $item->picked_quantity)
+                        ? format_quantity($skuId, $item->picked_quantity, $uName)
                         : (string) $item->picked_quantity;
 
                     return [

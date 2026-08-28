@@ -88,10 +88,10 @@
                             <td class="px-4 py-2 {{ $item->quantity >= 0 ? 'text-green-600' : 'text-red-600' }}">{{ $item->quantity >= 0 ? '+' : '' }}{{ $item->quantity }}</td>
                             @break
                         @case('before_stock')
-                            <td class="px-4 py-2 text-muted-foreground">{{ $item->before_stock }}</td>
+                            <td class="px-4 py-2 text-muted-foreground">{!! format_quantity($item->sku_id, $item->before_stock, $item->sku?->baseUnit?->name) !!}</td>
                             @break
                         @case('after_stock')
-                            <td class="px-4 py-2 text-foreground">{{ $item->after_stock }}</td>
+                            <td class="px-4 py-2 text-foreground">{!! format_quantity($item->sku_id, $item->after_stock, $item->sku?->baseUnit?->name) !!}</td>
                             @break
                         @case('reason')
                             <td class="px-4 py-2 text-muted-foreground truncate">{{ $item->reason ?: '-' }}</td>
