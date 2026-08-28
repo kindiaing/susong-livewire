@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
  * @property string $loss_no 损耗单号
  * @property int $warehouse_id 仓库ID
  * @property int $total_amount 损耗总金额（厘）
- * @property int $loss_type 主要损耗类型：1存储腐坏，2称重失水，3过期报废，4加工损耗，5盘点差异，6其他
+ * @property int $loss_type 损耗类型：1存储腐坏，2称重失水，3过期报废，4加工损耗，5盘点差异，6其他，7采购少收，8拣货差异，9配送差异
  * @property int $status 状态：1待审核，2已通过，3已执行，4已关闭，9已作废
  * @property int $approval_status 审核状态：1待审核，2已通过，3已拒绝
  * @property int|null $applicant_id 申请人ID
@@ -38,6 +38,11 @@ class LossOrder extends Model
     public const LOSS_PROCESS = 4;
     public const LOSS_INVENTORY = 5;
     public const LOSS_OTHER = 6;
+
+    // 功能性来源类型（系统自动赋值，手动创建不可选）
+    public const LOSS_PURCHASE = 7;
+    public const LOSS_PICKING = 8;
+    public const LOSS_DELIVERY = 9;
 
     // 状态常量
     public const STATUS_PENDING = 1;
@@ -93,6 +98,8 @@ class LossOrder extends Model
     {
         return [
             'purchase_order' => '采购入库差异',
+            'picking' => '拣货差异',
+            'delivery' => '配送差异',
             'manual' => '手工创建',
         ];
     }
@@ -117,6 +124,9 @@ class LossOrder extends Model
             self::LOSS_PROCESS => '加工损耗',
             self::LOSS_INVENTORY => '盘点差异',
             self::LOSS_OTHER => '其他',
+            self::LOSS_PURCHASE => '采购少收',
+            self::LOSS_PICKING => '拣货差异',
+            self::LOSS_DELIVERY => '配送差异',
         ];
     }
 

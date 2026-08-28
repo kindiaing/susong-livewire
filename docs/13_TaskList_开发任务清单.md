@@ -1,5 +1,55 @@
+---
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: 'b97f2f80-2de9-4db3-b7bb-30350cc0661e'
+  PropagateID: 'b97f2f80-2de9-4db3-b7bb-30350cc0661e'
+  ReservedCode1: '2b88e147-9b64-4d5c-8c92-01251ff86a3a'
+  ReservedCode2: '2b88e147-9b64-4d5c-8c92-01251ff86a3a'
+---
+
 # 寮€鍙戜换鍔℃竻鍗?
 > 鎸夋棩涓哄崟浣嶈褰曞紑鍙戜换鍔℃竻鍗曞拰寰呭姙娓呭崟锛屾瘡瀹屾垚涓€椤规爣璁扮姸鎬併€傛柊澧炲唴瀹圭疆浜庨《閮紙鍊掑簭锛夈€?
+---
+
+# 开发任务清单
+> 按日为单位记录开发任务清单和待办清单，每完成一项标记状态。新增内容置于顶部（倒序）。
+---
+
+## 2026-08-28（损耗单明细行 + 损耗类型常量）
+### 已完成任务
+| 序号 | 功能模块 | 任务内容 | 状态 |
+| :--- | :--- | :--- | :--- |
+| 1 | 损耗管理 | LossOrder 模型新增功能性来源类型常量：LOSS_PURCHASE=7(采购少收)、LOSS_PICKING=8(拣货差异)、LOSS_DELIVERY=9(配送差异)，更新 typeMap() 和 sourceTypeMap()，更新 PHPDoc | ✅ |
+| 2 | 损耗管理 | LossOrderService::createFromDiscrepancy() 中 loss_type 从 LOSS_OTHER 改为 LOSS_PURCHASE，使采购入库差异自动生成的损耗单标记为"采购少收" | ✅ |
+| 3 | 损耗管理 | LossOrderList 组件新增明细行管理：addItemRow()/removeItemRow()/updatedFormItems()（SKU 选择自动带出成本价，cost_price 为 0 时 fallback 到 purchase_price）/formTotalAmountCents 计算属性 | ✅ |
+| 4 | 损耗管理 | LossOrderList::save() 改用 LossOrderService::create() 创建损耗单（含明细），编辑模式删除旧明细重新创建，自动计算 total_amount | ✅ |
+| 5 | 损耗管理 | openCreateModal() 新增方法，创建时自动添加一行空明细；openEditModal() 加载已有明细到表单 | ✅ |
+| 6 | 损耗管理 | loss-order-list.blade.php 弹窗改造：仓库/类型/原因/备注改为两列布局，新增损耗明细行表格（SKU选择+成本价+数量+损耗金额+责任方+供应商+原因+删除行），底部合计金额，弹窗宽度 max-w-3xl | ✅ |
+| 7 | 损耗管理 | 列表页筛选下拉框新增 7-9 类型选项（采购少收/拣货差异/配送差异），手动创建弹窗类型下拉框仅显示 1-6（功能性类型不可手动选择） | ✅ |
+
+### 涉及文件
+
+**模型（1 个文件）：**
+- `app/Models/LossOrder.php` — 新增 LOSS_PURCHASE=7/LOSS_PICKING=8/LOSS_DELIVERY=9 常量 + typeMap() 补充 + sourceTypeMap() 补充 picking/delivery + PHPDoc 更新
+
+**服务（1 个文件）：**
+- `app/Services/LossOrderService.php` — createFromDiscrepancy() 中 loss_type 从 LOSS_OTHER 改为 LOSS_PURCHASE（主表和明细两处）
+
+**Livewire 组件（1 个文件）：**
+- `app/Livewire/Loss/LossOrderList.php` — 新增 formItems 属性 + openCreateModal/addItemRow/removeItemRow/updatedFormItems/getFormTotalAmountCentsProperty + save() 改用 LossOrderService::create() + openEditModal 加载明细 + resetForm 清空明细 + render() 传递 suppliers/skus/formTotalAmount + 引入 Sku/Supplier/LossOrderItem/DB
+
+**Blade 视图（1 个文件）：**
+- `resources/views/livewire/loss/loss-order-list.blade.php` — 筛选下拉框加 7-9 类型 + 弹窗改两列布局 + 新增损耗明细行表格（SKU/成本价/数量/金额/责任方/供应商/原因/删除）+ 合计行 + 弹窗宽度 max-w-3xl
+
+### 设计决策
+- 手动创建弹窗类型下拉框仅显示 1-6（备注型），7-9 由系统自动赋值，不可手动选择
+- 列表筛选下拉框显示全部 9 种类型，支持筛选自动生成的损耗单
+- 成本价自动带出 SKU 的 cost_price（加权平均成本价），为 0 时 fallback 到 purchase_price，允许手动修改
+- 编辑模式明细处理：删除旧明细重新创建（仅待审核状态可编辑，无库存变动风险）
+- 责任方选"供应商"时动态显示供应商下拉框，选"平台"时显示"—"
+
 ---
 
 ## 2026-08-28（差异处理二期 + 付款审核流）

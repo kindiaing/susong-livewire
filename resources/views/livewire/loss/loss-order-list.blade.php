@@ -129,6 +129,9 @@
             <option value="4">加工损耗</option>
             <option value="5">盘点差异</option>
             <option value="6">其他</option>
+            <option value="7">采购少收</option>
+            <option value="8">拣货差异</option>
+            <option value="9">配送差异</option>
         </select>
         <select wire:model.live="filterStatus" class="flex h-9 w-36 rounded-md border border-input bg-background px-3 text-sm">
             <option value="-1">全部状态</option>
@@ -241,7 +244,7 @@
     @if($showModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
-        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-3xl mx-4 p-6 max-h-[85vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-foreground">{{ $editingId ? '编辑损耗单' : '新增损耗单' }}
                     @if($editingStatusLabel)
@@ -253,37 +256,134 @@
                 </button>
             </div>
             <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">仓库 <span class="text-red-500">*</span></label>
-                    <select wire:model="formWarehouseId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                        <option value="0">请选择仓库</option>
-                        @foreach($warehouses as $w)
-                            <option value="{{ $w->id }}">{{ $w->name }}</option>
-                        @endforeach
-                    </select>
-                    @error('formWarehouseId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">仓库 <span class="text-red-500">*</span></label>
+                        <select wire:model="formWarehouseId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                            <option value="0">请选择仓库</option>
+                            @foreach($warehouses as $w)
+                                <option value="{{ $w->id }}">{{ $w->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('formWarehouseId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">损耗类型 <span class="text-red-500">*</span></label>
+                        <select wire:model="formLossType" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                            <option value="1">存储腐坏</option>
+                            <option value="2">称重失水</option>
+                            <option value="3">过期报废</option>
+                            <option value="4">加工损耗</option>
+                            <option value="5">盘点差异</option>
+                            <option value="6">其他</option>
+                        </select>
+                        @error('formLossType') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">损耗类型 <span class="text-red-500">*</span></label>
-                    <select wire:model="formLossType" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                        <option value="1">存储腐坏</option>
-                        <option value="2">称重失水</option>
-                        <option value="3">过期报废</option>
-                        <option value="4">加工损耗</option>
-                        <option value="5">盘点差异</option>
-                        <option value="6">其他</option>
-                    </select>
-                    @error('formLossType') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">损耗原因</label>
+                        <input type="text" wire:model="formReason" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="可选" />
+                        @error('formReason') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">备注</label>
+                        <input type="text" wire:model="formRemark" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="可选" />
+                        @error('formRemark') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
                 </div>
+
+                {{-- 损耗明细行 --}}
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">损耗原因</label>
-                    <input type="text" wire:model="formReason" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="可选" />
-                    @error('formReason') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">备注</label>
-                    <textarea wire:model="formRemark" rows="2" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="可选"></textarea>
-                    @error('formRemark') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-sm font-medium text-foreground">损耗明细 <span class="text-red-500">*</span></label>
+                        <button type="button" wire:click="addItemRow" class="rounded-md border border-input px-2 py-1 text-xs hover:bg-accent transition-colors">+ 添加行</button>
+                    </div>
+                    @if(count($formItems) > 0)
+                    <div class="overflow-x-auto rounded-md border border-input">
+                        <table class="w-full text-sm min-w-[760px]">
+                            <thead>
+                                <tr class="border-b text-[11px] font-medium text-muted-foreground bg-muted/30">
+                                    <th class="px-3 py-1.5 text-left">SKU</th>
+                                    <th class="px-3 py-1.5 text-right w-[100px]">成本价（元）</th>
+                                    <th class="px-3 py-1.5 text-right w-[90px]">数量</th>
+                                    <th class="px-3 py-1.5 text-right w-[100px]">损耗金额</th>
+                                    <th class="px-3 py-1.5 text-left w-[100px]">责任方</th>
+                                    <th class="px-3 py-1.5 text-left w-[120px]">供应商</th>
+                                    <th class="px-3 py-1.5 text-left w-[120px]">原因</th>
+                                    <th class="px-3 py-1.5 text-center w-[40px]"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y">
+                                @foreach($formItems as $i => $row)
+                                <tr wire:key="loss-item-{{ $i }}">
+                                    <td class="px-3 py-1.5">
+                                        <select wire:model="formItems.{{ $i }}.sku_id" class="w-full h-8 rounded border border-input bg-background px-1.5 text-xs">
+                                            <option value="0">选择 SKU</option>
+                                            @foreach($skus as $sku)
+                                            <option value="{{ $sku->id }}">{{ $sku->product?->name ?? 'SKU' }}（{{ $sku->sku_code }}）</option>
+                                            @endforeach
+                                        </select>
+                                        @error("formItems.{$i}.sku_id") <p class="text-red-500 text-xs mt-0.5">{{ $message }}</p> @enderror
+                                    </td>
+                                    <td class="px-3 py-1.5">
+                                        <input type="text" wire:model="formItems.{{ $i }}.cost_price_yuan" placeholder="0.00" class="w-full h-8 rounded border border-input bg-background px-1.5 text-xs text-right" />
+                                        @error("formItems.{$i}.cost_price_yuan") <p class="text-red-500 text-xs mt-0.5">{{ $message }}</p> @enderror
+                                    </td>
+                                    <td class="px-3 py-1.5">
+                                        <input type="number" wire:model="formItems.{{ $i }}.quantity" min="1" class="w-full h-8 rounded border border-input bg-background px-1.5 text-xs text-right" />
+                                        @error("formItems.{$i}.quantity") <p class="text-red-500 text-xs mt-0.5">{{ $message }}</p> @enderror
+                                    </td>
+                                    <td class="px-3 py-1.5 text-right text-muted-foreground tabular-nums">
+                                        @php
+                                            $rowQty = (int) ($row['quantity'] ?? 0);
+                                            $rowPrice = (float) ($row['cost_price_yuan'] ?? 0);
+                                            $rowAmount = $rowQty * $rowPrice;
+                                        @endphp
+                                        {{ number_format($rowAmount, 2) }}
+                                    </td>
+                                    <td class="px-3 py-1.5">
+                                        <select wire:model="formItems.{{ $i }}.responsible_party" class="w-full h-8 rounded border border-input bg-background px-1.5 text-xs">
+                                            <option value="1">平台</option>
+                                            <option value="2">供应商</option>
+                                        </select>
+                                    </td>
+                                    <td class="px-3 py-1.5">
+                                        @if(($row['responsible_party'] ?? 1) == 2)
+                                        <select wire:model="formItems.{{ $i }}.supplier_id" class="w-full h-8 rounded border border-input bg-background px-1.5 text-xs">
+                                            <option value="0">选择供应商</option>
+                                            @foreach($suppliers as $supplier)
+                                            <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                                            @endforeach
+                                        </select>
+                                        @else
+                                        <span class="text-xs text-muted-foreground">—</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-3 py-1.5">
+                                        <input type="text" wire:model="formItems.{{ $i }}.reason" placeholder="可选" class="w-full h-8 rounded border border-input bg-background px-1.5 text-xs" />
+                                    </td>
+                                    <td class="px-3 py-1.5 text-center">
+                                        <button type="button" wire:click="removeItemRow({{ $i }})" class="text-red-500 hover:text-red-700" title="删除行"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                            <tfoot>
+                                <tr class="border-t-2">
+                                    <td colspan="3" class="px-3 py-1.5 text-right text-xs text-muted-foreground">合计</td>
+                                    <td class="px-3 py-1.5 text-right text-xs font-bold text-foreground tabular-nums">{{ money_format($formTotalAmount) }}</td>
+                                    <td colspan="4"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <p class="text-xs text-muted-foreground mt-1">选择 SKU 后自动带出成本价（加权平均成本价，为 0 时取采购价），可手动修改。损耗金额 = 成本价 × 数量，自动计算。</p>
+                    @else
+                    <div class="rounded-md border border-dashed border-input px-4 py-8 text-center text-sm text-muted-foreground">
+                        暂无明细。点击右上角「+ 添加行」录入损耗商品。
+                    </div>
+                    @endif
                 </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">

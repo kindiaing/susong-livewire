@@ -1,3 +1,14 @@
+---
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: '0f25e37b-3aa6-436c-9854-df50fb8560f9'
+  PropagateID: '0f25e37b-3aa6-436c-9854-df50fb8560f9'
+  ReservedCode1: 'b7c8d861-3212-4b26-87b5-16ef4258dd5e'
+  ReservedCode2: 'b7c8d861-3212-4b26-87b5-16ef4258dd5e'
+---
+
 # 开发迭代日志
 
 对应 PRD 版本：V1.2
@@ -1553,3 +1564,41 @@
 | 分支 | feature/discrepancy-loss |
 | 提交 | 见本次提交 |
 | 验证 | 全量 44 通过 / 1 失败（既有问题）；Pint / view:cache 通过 |
+
+---
+
+## V2.0.13 — 损耗单明细行 + 损耗类型功能性常量
+
+> 开发者：TeleAgent。08-28 损耗管理改进。
+
+### 变更概述
+
+1. **LossOrder 模型新增功能性来源类型常量**：LOSS_PURCHASE=7(采购少收)、LOSS_PICKING=8(拣货差异)、LOSS_DELIVERY=9(配送差异)，更新 typeMap()、sourceTypeMap()、PHPDoc。手动创建弹窗类型下拉框仅显示 1-6（备注型），7-9 由系统自动赋值。列表筛选下拉框显示全部 9 种类型。
+2. **createFromDiscrepancy() 使用 LOSS_PURCHASE**：采购入库差异自动生成的损耗单 loss_type 从 LOSS_OTHER 改为 LOSS_PURCHASE（主表和明细两处）。
+3. **LossOrderList 组件新增明细行管理**：addItemRow()/removeItemRow()/updatedFormItems()（SKU 选择自动带出成本价，cost_price 为 0 时 fallback 到 purchase_price）/formTotalAmountCents 计算属性。openCreateModal() 创建时自动添加一行空明细；openEditModal() 加载已有明细到表单。
+4. **save() 改用 LossOrderService::create()**：新建模式调用 Service 层创建损耗单（含明细），编辑模式删除旧明细重新创建，自动计算 total_amount。
+5. **弹窗 UI 改造**：仓库/类型/原因/备注改为两列布局，新增损耗明细行表格（SKU选择+成本价+数量+损耗金额+责任方+供应商+原因+删除行），底部合计金额，弹窗宽度 max-w-3xl。责任方选"供应商"时动态显示供应商下拉框。
+
+### 设计决策
+- 手动创建弹窗类型仅可选 1-6，功能性类型 7-9 不可手动选择
+- 列表筛选支持全部 9 种类型
+- 成本价自动带出 SKU 的 cost_price（加权平均成本价），为 0 时 fallback 到 purchase_price，允许手动修改
+- 编辑模式明细处理：删除旧明细重新创建（仅待审核状态可编辑，无库存变动风险）
+
+### 数据库变更
+无（无新增字段，仅常量定义和业务逻辑变更）
+
+### 涉及文件
+| 变更 | 文件 | 说明 |
+| :--- | :--- | :--- |
+| 修改 | app/Models/LossOrder.php | 新增常量 7/8/9 + typeMap/sourceTypeMap 补充 |
+| 修改 | app/Services/LossOrderService.php | createFromDiscrepancy() loss_type 改为 LOSS_PURCHASE |
+| 修改 | app/Livewire/Loss/LossOrderList.php | 新增明细行管理 + save() 改用 Service + render 传递变量 |
+| 修改 | resources/views/livewire/loss/loss-order-list.blade.php | 筛选下拉框 + 弹窗 UI 改造 |
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | fix/bugfix-round-1 |
+| 验证 | PHP 语法检查 3 文件通过；view:clear + config:clear；admin:install --seed --reset --force 22 迁移 + 全部 Seeder 无错误 |
