@@ -360,6 +360,12 @@ class UnitConversionService
             if ($baseUnitName) {
                 $display .= "（{$baseQty}{$baseUnitName}）";
             }
+        } elseif ($isBaseUnit && $unitQuantity > 0) {
+            // 选的是 base_unit 时，反向换算成大单位显示
+            $humanQty = $this->formatHuman($skuId, $unitQuantity);
+            if ($humanQty !== (string) $unitQuantity) {
+                $display .= "（{$humanQty}）";
+            }
         }
 
         return $display;
