@@ -119,6 +119,45 @@ function weight_to_liangin(string|float|null $jin): int
 }
 
 /**
+ * 数量格式化：base_unit 数量 → 最小单位 + 括号内大单位换算
+ *
+ * 示例：880斤 → "880斤 (14箱4斤)"
+ * 示例：50斤 → "50斤 (1箱)"
+ * 示例：无换算链 → "880"
+ *
+ * @param  int  $skuId     SKU ID
+ * @param  int  $baseQty   base_unit 数量
+ * @param  string|null  $baseUnitName  最小单位名（传入可省去查 DB）
+ * @return string
+ */
+function format_quantity(int $skuId, int $baseQty, ?string $baseUnitName = null): string
+{
+    if ($baseQty === 0) {
+        return $baseUnitName ? '0' . $baseUnitName : '0';
+    }
+
+    try {
+        $svc = app(\App\Services\UnitConversionService::class);
+        $human = $svc->formatHuman($skuId, $baseQty);
+
+        if (! $baseUnitName) {
+            $sku = \App\Models\Sku::with('baseUnit')->find($skuId);
+            $baseUnitName = $sku?->baseUnit?->name ?? '';
+        }
+
+        $display = $baseQty . $baseUnitName;
+
+        if ($human !== (string) $baseQty) {
+            $display .= ' <span class="text-xs text-muted-foreground">(' . $human . ')</span>';
+        }
+
+        return $display;
+    } catch (\Throwable $e) {
+        return $baseQty . ($baseUnitName ?? '');
+    }
+}
+
+/**
  * 获取系统配置值（全局助手函数）
  * 例：setting('per_page', 10) → 10
  */
