@@ -146,7 +146,7 @@
                             <p class="text-xs text-muted-foreground mt-1">基础数量：{{ $formQuantity }}</p>
                         @endif
                         @error('formQuantity') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>>
+                    </div>
                     <div>
                         <label class="block text-sm font-medium text-foreground mb-1">来源</label>
                         <select wire:model="formSourceType" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
