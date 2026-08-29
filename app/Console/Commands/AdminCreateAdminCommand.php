@@ -49,14 +49,7 @@ class AdminCreateAdminCommand extends Command
 
         $role = $this->option('role') ?: ($force ? 'super_admin' : select(
             label: '请选择管理角色',
-            options: [
-                'super_admin' => '超级管理员',
-                'operator' => '运营专员',
-                'operator_manager' => '运营经理',
-                'finance' => '财务专员',
-                'cashier' => '出纳',
-                'finance_manager' => '财务经理',
-            ],
+            options: Role::orderBy('id')->pluck('display_name', 'name')->toArray(),
             default: 'super_admin',
         ));
 

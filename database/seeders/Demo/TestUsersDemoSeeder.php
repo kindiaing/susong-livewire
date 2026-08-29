@@ -9,16 +9,14 @@ use Illuminate\Support\Facades\DB;
 /**
  * 测试用户 Seeder
  *
- * 为每个系统角色创建一个测试用户。
- * 依赖 SystemDataSeeder 已运行（角色和权限已就位）。
- */
+ * 为运营/财务/拣货/配送/商家等角色创建测试用户。
+ * 超管和管理员账号请使用 admin:create-admin 命令创建。
+ * 依赖 SystemDataSeeder 已运行（角色和权限已就位） */
 class TestUsersDemoSeeder extends Seeder
 {
     public function run(): void
     {
         $testUsers = [
-            ['role' => 'super_admin', 'username' => 'superadmin', 'name' => '超级管理员', 'phone' => '13800000000', 'email' => 'superadmin@susong.test'],
-            ['role' => 'admin', 'username' => 'admin1', 'name' => '管理员', 'phone' => '13800000009', 'email' => 'admin@susong.test'],
             ['role' => 'operator', 'username' => 'operator1', 'name' => '张运营', 'phone' => '13800000001', 'email' => 'operator@susong.test'],
             ['role' => 'operator_manager', 'username' => 'ops_manager', 'name' => '李运营经理', 'phone' => '13800000002', 'email' => 'ops_manager@susong.test'],
             ['role' => 'finance', 'username' => 'finance1', 'name' => '王财务', 'phone' => '13800000003', 'email' => 'finance@susong.test'],

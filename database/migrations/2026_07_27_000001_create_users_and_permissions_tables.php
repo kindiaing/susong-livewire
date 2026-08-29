@@ -117,6 +117,7 @@ return new class extends Migration
 
         DB::table('roles')->insert([
             ['name' => 'super_admin', 'guard_name' => 'web', 'display_name' => '超级管理员', 'description' => '全部功能、系统配置、账号管理', 'created_at' => $now, 'updated_at' => $now],
+            ['name' => 'admin', 'guard_name' => 'web', 'display_name' => '管理员', 'description' => '管理后台全模块操作、状态回退、单据作废', 'created_at' => $now, 'updated_at' => $now],
             ['name' => 'operator', 'guard_name' => 'web', 'display_name' => '运营专员', 'description' => '商品、订单、商家、供应商管理', 'created_at' => $now, 'updated_at' => $now],
             ['name' => 'operator_manager', 'guard_name' => 'web', 'display_name' => '运营经理', 'description' => '运营审核、商品/订单/价格策略审核确认', 'created_at' => $now, 'updated_at' => $now],
             ['name' => 'finance', 'guard_name' => 'web', 'display_name' => '财务专员', 'description' => '应收、结算、发票、审计', 'created_at' => $now, 'updated_at' => $now],
@@ -125,23 +126,6 @@ return new class extends Migration
             ['name' => 'picker', 'guard_name' => 'web', 'display_name' => '拣货员', 'description' => '拣货任务、称重改价', 'created_at' => $now, 'updated_at' => $now],
             ['name' => 'driver', 'guard_name' => 'web', 'display_name' => '配送司机', 'description' => '配送任务、轨迹、签收', 'created_at' => $now, 'updated_at' => $now],
             ['name' => 'merchant', 'guard_name' => 'web', 'display_name' => '商家', 'description' => '小程序商家端', 'created_at' => $now, 'updated_at' => $now],
-        ]);
-
-        $superAdminRoleId = DB::table('roles')->where('name', 'super_admin')->value('id');
-        $userId = DB::table('users')->insertGetId([
-            'username' => 'seeding',
-            'password' => Hash::make('Password'),
-            'name' => '系统管理员',
-            'phone' => '15690631151',
-            'email' => 'seeding@ihopeso.cn',
-            'status' => 1,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-        DB::table('model_has_roles')->insert([
-            'role_id' => $superAdminRoleId,
-            'model_type' => 'App\\Models\\User',
-            'model_id' => $userId,
         ]);
     }
 

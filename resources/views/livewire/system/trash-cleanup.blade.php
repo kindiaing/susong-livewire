@@ -2,7 +2,7 @@
     {{-- 页面标题 --}}
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-foreground">数据清理</h1>
-        <p class="text-muted-foreground mt-1">统计并永久清理已软删除的业务单据，仅超级管理员可操作</p>
+        <p class="text-muted-foreground mt-1">统计并永久清理已软删除的业务单据，仅管理员可操作</p>
     </div>
 
     {{-- 总览卡片 --}}

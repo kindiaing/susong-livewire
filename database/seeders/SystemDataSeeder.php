@@ -10,10 +10,13 @@ use Illuminate\Database\Seeder;
 /**
  * 核心数据 Seeder
  *
- * - 确保 9 个系统角色存在
+ * - 确保 10 个系统角色存在
  * - 创建权限树（模块 → 页面 → 按钮），三级格式命名（模块.页面.动作）
  * - 每个页面级权限自动生成对应的 .view 页面访问权限
- * - 为首个注册用户分配 super_admin 角色 + 全部权限
+ * - 为各角色分配对应权限
+ * - 创建默认供应商/仓库/单位
+ *
+ * 不创建用户账号——请使用 admin:create-admin 命令创建第一个管理员。
  *
  * 此 Seeder 由 DatabaseSeeder 自动调用，适用于生产环境。
  */
@@ -149,6 +152,7 @@ class SystemDataSeeder extends Seeder
                 'system.banner' => ['display_name' => '轮播管理', 'buttons' => ['system.banner.create', 'system.banner.edit', 'system.banner.delete']],
                 'system.notification' => ['display_name' => '通知管理', 'buttons' => ['system.notification.create']],
                 'system.wechat-user' => ['display_name' => '微信用户', 'buttons' => []],
+                'system.trash-cleanup' => ['display_name' => '数据清理', 'buttons' => []],
             ],
         ],
     ];
@@ -216,7 +220,7 @@ class SystemDataSeeder extends Seeder
         Permission::query()->delete();
 
         $this->createPermissionTree();
-        $this->assignSeedingSuperAdmin();
+        $this->assignRolePermissions();
         $this->ensureDefaultSupplier();
         $this->ensureDefaultWarehouse();
         $this->ensureDefaultUnits();
@@ -292,7 +296,7 @@ class SystemDataSeeder extends Seeder
         }
     }
 
-    protected function assignSeedingSuperAdmin(): void
+    protected function assignRolePermissions(): void
     {
         $superAdminRole = Role::where('name', 'super_admin')->first();
         if ($superAdminRole) {
@@ -414,13 +418,6 @@ class SystemDataSeeder extends Seeder
                 $permissions = Permission::whereIn('name', $permissionNames)->get();
                 $role->syncPermissions($permissions);
             }
-        }
-
-        // 第一个注册用户自动分配 super_admin 角色（不硬编码 username，适配任意部署）
-        $firstUser = \App\Models\User::oldest()->first();
-        if ($firstUser) {
-            $firstUser->assignRole('super_admin');
-            $firstUser->syncPermissions(Permission::all());
         }
     }
 

@@ -57,12 +57,12 @@ class AdminInstallCommand extends Command
             Artisan::call('migrate', ['--force' => true], $this->output);
         }
 
-        $this->info('  ✓ 迁移完成（角色、审核配置、系统配置、管理员账号已由 Migration 自动初始化）');
+        $this->info('  ✓ 迁移完成（角色、审核配置、系统配置已由 Migration 自动初始化）');
 
         // 清理 Spatie 权限缓存（migrate:fresh 重建表后旧缓存会干扰 Seeder）
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // 2. 运行 Seeder（系统内置数据：角色权限 + 超级管理员 + 系统配置）
+        // 2. 运行 Seeder（系统内置数据：角色权限 + 系统配置）
         $this->newLine();
         $this->info('[2/3] 初始化系统内置数据...');
         Artisan::call('db:seed', ['--class' => 'SystemDataSeeder', '--force' => true], $this->output);
@@ -83,10 +83,11 @@ class AdminInstallCommand extends Command
         $this->info('╔══════════════════════════════════════╗');
         $this->info('║         安装完成！                    ║');
         $this->info('╚══════════════════════════════════════╝');
-        $this->line('  管理员用户名: <info>seeding</info>');
-        $this->line('  管理员邮箱:   <info>seeding@ihopeso.cn</info>');
-        $this->line('  管理员手机:   <info>15690631151</info>');
-        $this->line('  默认密码:     <info>Password</info>');
+        $this->newLine();
+
+        $this->warn('  尚未创建管理员账号，请执行以下命令创建：');
+        $this->line('    <info>php artisan admin:create-admin</info>          # 交互式创建超管/管理员');
+        $this->line('    <info>php artisan admin:create-admin --force</info>  # 快速创建默认超管');
         $this->newLine();
 
         if ($seed) {

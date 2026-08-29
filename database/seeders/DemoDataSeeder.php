@@ -34,7 +34,7 @@ class DemoDataSeeder extends Seeder
      * 顺序即为依赖顺序，不可随意调整
      */
     public static array $modules = [
-        'test-users'   => ['class' => TestUsersDemoSeeder::class,   'label' => '测试用户（9 个角色各 1 个测试用户）'],
+        'test-users'   => ['class' => TestUsersDemoSeeder::class,   'label' => '测试用户（8 个角色各 1 个测试用户）'],
         'organization' => ['class' => OrganizationDemoSeeder::class, 'label' => '组织主体（供应商/商家/司机/车辆/线路）'],
         'product'      => ['class' => ProductDemoSeeder::class,      'label' => '商品管理（分类/商品/SKU/条码/关键词）'],
         'purchase'     => ['class' => PurchaseDemoSeeder::class,     'label' => '采购管理（采购单/待采清单/采购退货）'],

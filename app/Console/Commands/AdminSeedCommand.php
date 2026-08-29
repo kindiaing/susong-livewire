@@ -110,7 +110,7 @@ class AdminSeedCommand extends Command
         $this->info('╚══════════════════════════════════════╝');
 
         if (! $demoSpecified) {
-            $this->line('  超级管理员: <info>seeding</info>  密码: <info>Password</info>');
+            $this->line('  超管/管理员请使用 admin:create-admin 命令创建');
         }
         if (! $system) {
             $this->line('  测试用户密码均为: <info>Password</info>');
@@ -131,7 +131,7 @@ class AdminSeedCommand extends Command
         $this->newLine();
 
         $this->line('  <info>核心数据</info>');
-        $this->line('    system       SystemDataSeeder（9角色+140权限+首个用户角色分配）');
+        $this->line('    system       SystemDataSeeder（10角色+权限树+默认供应商/仓库/单位）');
         $this->newLine();
 
         $this->line('  <info>测试数据（10 个模块）</info>');
