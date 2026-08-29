@@ -1,4 +1,28 @@
 <x-ui.slide-panel title="界面设置" width="380px" storeKey="uiSettings">
+    {{-- 界面宽度 --}}
+    <div class="px-5 pt-5 pb-2">
+        <h4 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">界面宽度</h4>
+    </div>
+
+    <div class="px-5 py-3 border-b border-border">
+        <p class="text-sm font-medium text-foreground mb-2">内容区域宽度</p>
+        <p class="text-xs text-muted-foreground mb-3">切换列表页内容区域的显示宽度，全屏模式下左右保留 48px 内边距</p>
+        <div class="grid grid-cols-3 gap-2">
+            <button type="button" wire:click="setContentWidth('default')"
+                class="px-3 py-2 rounded-lg border text-xs font-medium transition-colors {{ $contentWidth === 'default' ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:bg-muted/30' }}">
+                默认
+            </button>
+            <button type="button" wire:click="setContentWidth('wide')"
+                class="px-3 py-2 rounded-lg border text-xs font-medium transition-colors {{ $contentWidth === 'wide' ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:bg-muted/30' }}">
+                宽
+            </button>
+            <button type="button" wire:click="setContentWidth('full')"
+                class="px-3 py-2 rounded-lg border text-xs font-medium transition-colors {{ $contentWidth === 'full' ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:bg-muted/30' }}">
+                全屏
+            </button>
+        </div>
+    </div>
+
     {{-- 通知设置 --}}
     <div class="px-5 pt-5 pb-2">
         <h4 class="text-xs font-semibold text-muted-foreground uppercase tracking-wider">通知</h4>

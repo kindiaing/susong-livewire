@@ -74,7 +74,7 @@
             @foreach($visibleCols as $col)
                 <div>{{ $col['label'] }}</div>
             @endforeach
-            <div>操作</div>
+            <div class="action-col">操作</div>
         </div>
 
         @forelse($suppliers as $supplier)
@@ -103,7 +103,7 @@
                             <div class="text-sm text-foreground truncate">{{ $supplier->{$col['key']} ?? '-' }}</div>
                     @endswitch
                 @endforeach
-                <div class="flex items-center gap-2">
+                <div class="action-col flex items-center gap-2">
                     @can('org.supplier.edit')
                     <button type="button" wire:click="openEditModal({{ $supplier->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
                     @endcan

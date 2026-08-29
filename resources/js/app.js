@@ -111,6 +111,22 @@ document.addEventListener('alpine:init', () => {
     Alpine.store('uiSettings', {
         open: false,
         closeOnOutside: window.__UI_CLOSE_ON_OUTSIDE ?? true,
+        contentWidth: window.__UI_CONTENT_WIDTH ?? 'default',
+        applyContentWidth() {
+            const wrapper = document.getElementById('content-wrapper');
+            if (!wrapper) return;
+            const base = 'mx-auto py-6';
+            const widthMap = {
+                default: 'max-w-7xl px-4 sm:px-6 lg:px-8',
+                wide: 'max-w-[1600px] px-4 sm:px-6 lg:px-8',
+                full: 'max-w-none px-12',
+            };
+            // 移除旧宽度 class
+            wrapper.classList.remove('max-w-7xl', 'max-w-[1600px]', 'max-w-none', 'px-4', 'sm:px-6', 'lg:px-8', 'px-12');
+            // 添加新宽度 class
+            const classes = (widthMap[this.contentWidth] || widthMap.default).split(' ');
+            classes.forEach(c => wrapper.classList.add(c));
+        },
     });
 });
 

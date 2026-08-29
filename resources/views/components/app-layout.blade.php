@@ -13,12 +13,21 @@
     @php
         try {
             $uiCloseOnOutside = \App\Support\Setting::get('ui_close_on_outside', true);
+            $contentWidth = \App\Models\UserPreference::getPreference(auth()->id(), 'content_width') ?? 'default';
+            $widthClass = match($contentWidth) {
+                'wide' => 'max-w-[1600px]',
+                'full' => 'max-w-none px-12',
+                default => 'max-w-7xl',
+            };
         } catch (\Throwable) {
             $uiCloseOnOutside = true;
+            $contentWidth = 'default';
+            $widthClass = 'max-w-7xl';
         }
     @endphp
     <script>
         window.__UI_CLOSE_ON_OUTSIDE = {{ $uiCloseOnOutside ? 'true' : 'false' }};
+        window.__UI_CONTENT_WIDTH = '{{ $contentWidth ?? 'default' }}';
         // 注入 Laravel 用户信息供 Echo 认证使用
         window.Laravel = { userId: {{ auth()->id() ?? 'null' }} };
     </script>
@@ -30,7 +39,13 @@
 
         {{-- 主内容区 --}}
         <main class="flex-1">
-            <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+            <div x-data id="content-wrapper"
+                :class="{
+                    'mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8': $store.uiSettings?.contentWidth === 'default',
+                    'mx-auto max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8': $store.uiSettings?.contentWidth === 'wide',
+                    'mx-auto max-w-none px-12 py-6': $store.uiSettings?.contentWidth === 'full',
+                }"
+                class="mx-auto {{ $widthClass }} px-4 py-6 sm:px-6 lg:px-8">
                 {{ $slot }}
             </div>
         </main>

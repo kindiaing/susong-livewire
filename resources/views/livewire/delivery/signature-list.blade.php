@@ -53,7 +53,7 @@
             @foreach($visibleCols as $col)
                 <div>{{ $col['label'] }}</div>
             @endforeach
-            <div>操作</div>
+            <div class="action-col">操作</div>
         </div>
 
         @forelse($items as $item)
@@ -86,7 +86,7 @@
                             <div class="text-sm text-foreground truncate">{{ $item->{$col['key']} ?? '-' }}</div>
                     @endswitch
                 @endforeach
-                <div class="flex items-center gap-2">
+                <div class="action-col flex items-center gap-2">
                     @can('delivery.signature.delete')
                     <button type="button" wire:click="confirmDelete({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
                     @endcan

@@ -70,7 +70,7 @@
             @foreach($visibleCols as $col)
                 <div>{{ $col['label'] }}</div>
             @endforeach
-            <div>操作</div>
+            <div class="action-col">操作</div>
         </div>
 
         @forelse($items as $item)
@@ -115,7 +115,7 @@
                             <div class="text-sm text-foreground truncate">{{ $item->{$col['key']} ?? '-' }}</div>
                     @endswitch
                 @endforeach
-                <div class="flex items-center gap-2">
+                <div class="action-col flex items-center gap-2">
                     @if($item->status === 1 && $this->canProcess())
                     <button type="button" wire:click="markProcessing({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 transition-colors" title="标记处理中"><x-ui.icon name="clock" class="w-3.5 h-3.5" /></button>
                     @endif

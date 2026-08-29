@@ -38,7 +38,7 @@
                     @foreach($visibleCols as $col)
                     <th class="px-4 py-2 text-left">{{ $col['label'] }}</th>
                     @endforeach
-                    <th class="px-4 py-2 text-left w-24">操作</th>
+                    <th class="px-4 py-2 text-left w-24 action-col">操作</th>
                 </tr>
             </thead>
             <tbody>
@@ -66,7 +66,7 @@
                             <td class="px-4 py-2 text-foreground">{{ $item->{$col['key']} ?? '-' }}</td>
                     @endswitch
                     @endforeach
-                    <td class="px-4 py-2">
+                    <td class="px-4 py-2 action-col">
                         <div class="flex items-center gap-2">
                             @can('system.wechat-user.delete')
                             <button type="button" wire:click="confirmDelete({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>

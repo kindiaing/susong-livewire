@@ -49,7 +49,7 @@
                     @foreach($visibleCols as $col)
                     <th class="px-4 py-2.5 text-left">{{ $col['label'] }}</th>
                     @endforeach
-                    <th class="px-4 py-2.5 text-right w-28">操作</th>
+                    <th class="px-4 py-2.5 text-right w-28 action-col">操作</th>
                 </tr>
             </thead>
             <tbody>
@@ -113,7 +113,7 @@
                             <td class="px-4 py-2 text-foreground">{{ $user->{$col['key']} ?? '—' }}</td>
                     @endswitch
                     @endforeach
-                    <td class="px-4 py-2 text-right">
+                    <td class="px-4 py-2 text-right action-col">
                         <div class="inline-flex items-center gap-0.5">
                             {{-- 编辑 --}}
                             @can('user.user.edit')

@@ -45,7 +45,7 @@
                     @foreach($visibleCols as $col)
                     <th class="px-4 py-2 text-left">{{ $col['label'] }}</th>
                     @endforeach
-                    <th class="px-4 py-2 text-left w-24">操作</th>
+                    <th class="px-4 py-2 text-left w-24 action-col">操作</th>
                 </tr>
             </thead>
             <tbody>
@@ -73,7 +73,7 @@
                             <td class="px-4 py-2 text-foreground">{{ $tpl->{$col['key']} ?? '-' }}</td>
                     @endswitch
                     @endforeach
-                    <td class="px-4 py-2">
+                    <td class="px-4 py-2 action-col">
                         <div class="flex items-center gap-2">
                             @can('order.cart.edit')
                             <button type="button" wire:click="openEditModal({{ $tpl->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>

@@ -159,7 +159,7 @@
             @foreach($visibleCols as $col)
                 <div>{{ $col['label'] }}</div>
             @endforeach
-            <div>操作</div>
+            <div class="action-col">操作</div>
         </div>
 
         @forelse($items as $item)
@@ -209,7 +209,7 @@
                             <div class="text-sm text-foreground truncate">{{ $item->{$col['key']} ?? '-' }}</div>
                     @endswitch
                 @endforeach
-                <div class="flex items-center gap-2">
+                <div class="action-col flex items-center gap-2">
                     @can('delivery.delivery-note.deliver')
                     @if($item->status === 1)
                     <button type="button" wire:click="markDelivered({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">已分货</button>

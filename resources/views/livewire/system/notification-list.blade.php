@@ -44,7 +44,7 @@
                     <th class="px-4 py-2 text-left">发送范围</th>
                     <th class="px-4 py-2 text-left">内容预览</th>
                     <th class="px-4 py-2 text-left">创建时间</th>
-                    <th class="px-4 py-2 text-left w-16">操作</th>
+                    <th class="px-4 py-2 text-left w-16 action-col">操作</th>
                 </tr>
             </thead>
             <tbody>
@@ -73,7 +73,7 @@
                     </td>
                     <td class="px-4 py-2 text-muted-foreground truncate max-w-xs">{{ $item->content ?? '-' }}</td>
                     <td class="px-4 py-2 text-muted-foreground">{{ $item->created_at?->format('Y-m-d H:i') }}</td>
-                    <td class="px-4 py-2">
+                    <td class="px-4 py-2 action-col">
                         <div class="flex items-center gap-2">
                             @can('system.notification.create')
                             <button type="button" wire:click="confirmDelete({{ $item->id }})"

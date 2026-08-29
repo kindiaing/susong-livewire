@@ -152,7 +152,7 @@
             @foreach($visibleCols as $col)
                 <div>{{ $col['label'] }}</div>
             @endforeach
-            <div>操作</div>
+            <div class="action-col">操作</div>
         </div>
 
         @forelse($items as $item)
