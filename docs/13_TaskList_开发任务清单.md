@@ -1,8 +1,49 @@
+---
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: '74d07cbd-46d9-43cc-890f-31f6b3e046b9'
+  PropagateID: '74d07cbd-46d9-43cc-890f-31f6b3e046b9'
+  ReservedCode1: '4a54f186-3c24-40c5-8b65-f814a19aaa53'
+  ReservedCode2: '4a54f186-3c24-40c5-8b65-f814a19aaa53'
+---
+
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: 'b20f70d8-0208-4596-9c09-83debe2c9ec6'
+  PropagateID: 'b20f70d8-0208-4596-9c09-83debe2c9ec6'
+  ReservedCode1: '82e81fd7-b8f6-4f0d-92ca-8984c539a0fe'
+  ReservedCode2: '82e81fd7-b8f6-4f0d-92ca-8984c539a0fe'
+---
 
 # 瀵偓閸欐垳鎹㈤崝鈩冪閸?
 > 閹稿妫╂稉鍝勫礋娴ｅ秷顔囪ぐ鏇炵磻閸欐垳鎹㈤崝鈩冪閸楁洖鎷板鍛濞撳懎宕熼敍灞剧槨鐎瑰本鍨氭稉鈧い瑙勭垼鐠佹壆濮搁幀浣碘偓鍌涙煀婢х偛鍞寸€瑰湱鐤嗘禍搴ㄣ€婇柈顭掔礄閸婃帒绨敍澶堚偓?
 ---
 
+## 2026-08-29（明细页 Tab 化改造第二批）
+### 已完成任务
+| 序号 | 功能模块 | 任务内容 | 状态 |
+| :--- | :--- | :--- | :--- |
+| 1 | 明细页改造 | 6 个模型新增 auditLogs() morphMany：SupplierSettlement/Receivable/Recharge/Invoice/MerchantAccount/DeliveryRoute | ✅ |
+| 2 | 明细页改造 | 6 个组件 with() 加 auditLogs.operator + render() 加载审计日志 | ✅ |
+| 3 | 明细页改造 | 6 个 Blade 视图 Tab 化改造（含 x-data/x-show/x-transition/AuditLog 表格） | ✅ |
+| 4 | 明细页改造 | 语法检查 + view:cache + view:clear + UTF-8 无 BOM 验证 | ✅ |
+
+### 涉及文件
+- 模型层 6 个：SupplierSettlement/Receivable/Recharge/Invoice/MerchantAccount/DeliveryRoute
+- 组件层 6 个：SupplierSettlementDetail/ReceivableDetail/RechargeDetail/InvoiceDetail/MerchantAccountDetail/DeliveryRouteDetail
+- 视图层 6 个：supplier-settlement-detail/receivable-detail/recharge-detail/invoice-detail/merchant-account-detail/delivery-route-detail
+
+### Git 信息
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | bugfix |
+| Commit | 8a45233 |
+
+---
 # 寮€鍙戜换鍔℃竻鍗?
 > 鎸夋棩涓哄崟浣嶈褰曞紑鍙戜换鍔℃竻鍗曞拰寰呭姙娓呭崟锛屾瘡瀹屾垚涓€椤规爣璁扮姸鎬併€傛柊澧炲唴瀹圭疆浜庨《閮紙鍊掑簭锛夈€?
 ---

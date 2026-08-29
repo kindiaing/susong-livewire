@@ -1,3 +1,23 @@
+---
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: '5f33a0e5-ec6f-4dd2-bdb3-5e58d1f2ebd9'
+  PropagateID: '5f33a0e5-ec6f-4dd2-bdb3-5e58d1f2ebd9'
+  ReservedCode1: '24afb12b-6568-4132-b1ed-383ef20e9c81'
+  ReservedCode2: '24afb12b-6568-4132-b1ed-383ef20e9c81'
+---
+
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: '0d91c2c2-1b9f-4d7b-b899-385169ebb1a9'
+  PropagateID: '0d91c2c2-1b9f-4d7b-b899-385169ebb1a9'
+  ReservedCode1: 'b086fd96-cf26-4f04-93ff-3519477417c3'
+  ReservedCode2: 'b086fd96-cf26-4f04-93ff-3519477417c3'
+---
 
 # 寮€鍙戣凯浠ｆ棩蹇?
 
@@ -9,6 +29,61 @@
 
 ---
 
+## V2.0.16 | 明细页 Tab 化改造（第二批）
+
+负责人：项目负责人
+参与开发人员：后端开发
+完成时间：2026-08-29
+
+### 1 本次新增功能清单
+
+| 序号 | 功能模块 | 功能点 | 开发人 | 完成时间 | 状态 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | 明细页改造 | 6 个无表格明细页 Tab 化改造：供应商结算/应收/充值/发票/客户账户/配送线路详情页统一选项卡+动画切换+状态变更记录 | 后端 | 2026-08-29 | ✅ |
+
+### 2 修改文件
+
+| 操作 | 文件 | 说明 |
+| :--- | :--- | :--- |
+| 修改 | app/Models/SupplierSettlement.php | 新增 auditLogs() morphMany 关系 |
+| 修改 | app/Models/Receivable.php | 新增 auditLogs() morphMany 关系 |
+| 修改 | app/Models/Recharge.php | 新增 auditLogs() morphMany 关系 |
+| 修改 | app/Models/Invoice.php | 新增 auditLogs() morphMany 关系 |
+| 修改 | app/Models/MerchantAccount.php | 新增 auditLogs() morphMany 关系 |
+| 修改 | app/Models/DeliveryRoute.php | 新增 auditLogs() morphMany 关系 |
+| 修改 | app/Livewire/Finance/SupplierSettlementDetail.php | with() 加 auditLogs.operator，render() 加载审计日志 |
+| 修改 | app/Livewire/Finance/ReceivableDetail.php | with() 加 auditLogs.operator，render() 加载审计日志 |
+| 修改 | app/Livewire/Finance/RechargeDetail.php | with() 加 auditLogs.operator，render() 加载审计日志 |
+| 修改 | app/Livewire/Finance/InvoiceDetail.php | with() 加 auditLogs.operator，render() 加载审计日志 |
+| 修改 | app/Livewire/Finance/MerchantAccountDetail.php | with() 加 auditLogs.operator，render() 加载审计日志 |
+| 修改 | app/Livewire/Delivery/DeliveryRouteDetail.php | with() 加 auditLogs.operator，render() 加载审计日志 |
+| 修改 | resources/views/livewire/finance/supplier-settlement-detail.blade.php | Tab 化：info(金额+明细)/payments/logs |
+| 修改 | resources/views/livewire/finance/receivable-detail.blade.php | Tab 化：info(金额)/payments/logs |
+| 修改 | resources/views/livewire/finance/recharge-detail.blade.php | Tab 化：info(金额+审核)/logs |
+| 修改 | resources/views/livewire/finance/invoice-detail.blade.php | Tab 化：info(发票信息)/logs(状态轨迹替换为AuditLog) |
+| 修改 | resources/views/livewire/finance/merchant-account-detail.blade.php | Tab 化：info(余额+资金)/recharges/logs |
+| 修改 | resources/views/livewire/delivery/delivery-route-detail.blade.php | Tab 化：stops(商家点位)/logs |
+
+### 3 Tab 结构说明
+
+| 页面 | Tab 数 | Tab 内容 |
+| :--- | :--- | :--- |
+| 供应商结算详情 | 3 | info(金额构成+结算明细) / payments(付款记录) / logs(状态变更记录) |
+| 应收详情 | 3 | info(金额构成) / payments(收款记录) / logs(状态变更记录) |
+| 充值详情 | 2 | info(充值金额+审核信息) / logs(状态变更记录) |
+| 发票详情 | 2 | info(发票信息) / logs(状态轨迹替换为 AuditLog) |
+| 客户账户详情 | 3 | info(余额+资金汇总) / recharges(充值记录) / logs(状态变更记录) |
+| 配送线路详情 | 2 | stops(商家点位) / logs(状态变更记录) |
+
+### Git 信息
+
+| 项目 | 值 |
+| :--- | :--- |
+| 分支 | bugfix |
+| Commit | 8a45233 |
+| 验证 | PHP 语法检查 6 文件通过；view:cache + view:clear 通过；UTF-8 无 BOM 验证通过；路由检查通过 |
+
+---
 ## V2.0.14 | 杩唬鍛ㄦ湡锛?026-08-28
 
 璐熻矗浜猴細椤圭洰璐熻矗浜?
