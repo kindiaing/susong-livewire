@@ -280,7 +280,6 @@
         </table>
         </div>
     </div>
-    </div>
     @else
     <div class="rounded-lg border bg-card px-6 py-12 text-center text-sm text-muted-foreground">暂无差异单</div>
     @endif

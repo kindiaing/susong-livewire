@@ -178,9 +178,6 @@
         @endif
     </div>
 
-    </div>
-    </div>
-
     {{-- Tab 内容：状态变更记录 --}}
     <div x-show="activeTab === 'logs'" x-transition>
         @if($note->auditLogs->isNotEmpty())
