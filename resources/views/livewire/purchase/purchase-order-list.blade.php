@@ -264,6 +264,14 @@
                     @error('formSupplierId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">仓库 <span class="text-red-500">*</span></label>
+                    <select wire:model="formWarehouseId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        <option value="0">请选择仓库</option>
+                        @foreach($warehouses as $w)<option value="{{ $w->id }}">{{ $w->name }}</option>@endforeach
+                    </select>
+                    @error('formWarehouseId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
                     <label class="block text-sm font-medium text-foreground mb-1">采购日期</label>
                     <input type="date" wire:model="formPurchaseDate" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
                 </div>

@@ -185,6 +185,17 @@
                     <input type="text" wire:model="formTaxNo" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="请输入税号" />
                     @error('formTaxNo') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">发票文件</label>
+                    @if($existingFileUrl)
+                    <div class="mb-2">
+                        <a href="{{ asset('storage/' . $existingFileUrl) }}" target="_blank" class="text-blue-600 hover:underline text-sm">查看当前文件</a>
+                    </div>
+                    @endif
+                    <input type="file" wire:model="formFileUrl" class="flex w-full text-sm" accept=".pdf,.jpg,.jpeg,.png" />
+                    @error('formFileUrl') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    <p class="text-xs text-muted-foreground mt-1">支持 PDF/JPG/PNG，最大 10MB{{ $editingId ? '，上传新文件将替换旧文件' : '' }}</p>
+                </div>
             </div>
             <div class="flex justify-end gap-3 mt-6">
                 <button type="button" wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>

@@ -92,6 +92,11 @@ class CorrectionAuthorizationList extends Component
         ];
     }
 
+    public function getImportRequiredFields(): array
+    {
+        return ['更正类型', '更正原因'];
+    }
+
     public function getPageIds(): array
     {
         return CorrectionAuthorization::orderBy('id', 'desc')->limit(20)->pluck('id')->toArray();

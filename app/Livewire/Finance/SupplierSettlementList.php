@@ -41,6 +41,8 @@ class SupplierSettlementList extends Component
 
     public string $formServiceFee = '';
 
+    public string $formEditServiceFee = '';
+
     // 部分付款弹窗
     public bool $showPaymentModal = false;
 
@@ -109,6 +111,50 @@ class SupplierSettlementList extends Component
             '应付金额(元)' => 'payable_amount',
             '汇总金额(元)' => 'total_amount',
         ];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['供应商ID', '结算周期开始', '结算周期结束'];
+    }
+
+    public function openEditModal(int $id): void
+    {
+        $item = SupplierSettlement::findOrFail($id);
+        if (! $item->canEdit()) {
+            $this->toastError('仅待结算状态可编辑');
+
+            return;
+        }
+        $this->editingId = $id;
+        $this->formEditServiceFee = $this->centsToYuan($item->service_fee);
+        $this->showModal = true;
+    }
+
+    public function saveEdit(): void
+    {
+        $item = SupplierSettlement::findOrFail($this->editingId);
+        if (! $item->canEdit()) {
+            $this->toastError('仅待结算状态可编辑');
+            $this->showModal = false;
+            $this->resetForm();
+
+            return;
+        }
+
+        $validated = $this->validate([
+            'formEditServiceFee' => 'nullable|numeric|min:0',
+        ]);
+
+        $newFee = money_to_cents($validated['formEditServiceFee'] ?: '0');
+        $item->update([
+            'service_fee' => $newFee,
+            'payable_amount' => $item->total_amount - $item->return_amount - $newFee,
+        ]);
+
+        $this->toastSuccess('结算单已更新');
+        $this->showModal = false;
+        $this->resetForm();
     }
 
     public function getPageIds(): array
@@ -260,6 +306,7 @@ class SupplierSettlementList extends Component
         $this->formStartDate = '';
         $this->formEndDate = '';
         $this->formServiceFee = '';
+        $this->formEditServiceFee = '';
     }
 
     public function render()

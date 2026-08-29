@@ -92,6 +92,11 @@ class OrderReturnList extends Component
         ];
     }
 
+    public function getImportRequiredFields(): array
+    {
+        return ['订单ID', '商家ID', '退货原因'];
+    }
+
     public function getImportUniqueBy(): array
     {
         return ['order_id'];

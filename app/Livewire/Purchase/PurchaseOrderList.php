@@ -10,6 +10,7 @@ use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
+use App\Models\Warehouse;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -28,6 +29,8 @@ class PurchaseOrderList extends Component
     public int $filterStatus = -1;
 
     public int $formSupplierId = 0;
+
+    public int $formWarehouseId = 0;
 
     public string $formPurchaseDate = '';
 
@@ -50,6 +53,7 @@ class PurchaseOrderList extends Component
         $this->editingStatusLabel = $order->status_label;
         $this->editingStatusColor = 'yellow';
         $this->formSupplierId = $order->supplier_id;
+        $this->formWarehouseId = $order->warehouse_id ?? 0;
         $this->formPurchaseDate = $order->purchase_date?->format('Y-m-d') ?? '';
         $this->formRemark = $order->remark ?? '';
         $this->showModal = true;
@@ -59,12 +63,14 @@ class PurchaseOrderList extends Component
     {
         $validated = $this->validate([
             'formSupplierId' => 'required|integer|min:1',
+            'formWarehouseId' => 'required|integer|min:1',
             'formPurchaseDate' => 'nullable|date',
             'formRemark' => 'nullable|string|max:500',
         ]);
 
         $data = [
             'supplier_id' => $validated['formSupplierId'],
+            'warehouse_id' => $validated['formWarehouseId'],
             'purchase_date' => $validated['formPurchaseDate'] ?: null,
             'remark' => $validated['formRemark'] ?: null,
         ];
@@ -146,6 +152,7 @@ class PurchaseOrderList extends Component
     {
         $this->editingId = null;
         $this->formSupplierId = 0;
+        $this->formWarehouseId = 0;
         $this->formPurchaseDate = '';
         $this->formRemark = '';
     }
@@ -252,10 +259,11 @@ class PurchaseOrderList extends Component
 
         $orders = $query->paginate(setting('per_page', 10));
         $suppliers = Supplier::orderBy('name')->get();
+        $warehouses = Warehouse::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
 
-        return view('livewire.purchase.purchase-order-list', compact('orders', 'suppliers', 'allColumns', 'selectedCount'))
+        return view('livewire.purchase.purchase-order-list', compact('orders', 'suppliers', 'warehouses', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('采购单管理');
     }

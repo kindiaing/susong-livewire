@@ -35,6 +35,8 @@ class ReceivableList extends Component
     public int $formOrderId = 0;
     public int $formMerchantId = 0;
     public string $formAmount = '';
+    public string $formDueDate = '';
+    public string $formRemark = '';
 
     // 部分收款弹窗
     public bool $showReceiveModal = false;
@@ -108,26 +110,60 @@ class ReceivableList extends Component
 
     public function save(): void
     {
-        $this->validate([
-            'formOrderId' => 'required|integer|exists:orders,id',
-            'formMerchantId' => 'required|integer|exists:merchants,id',
-            'formAmount' => 'required|numeric|min:0.01',
-        ]);
+        if ($this->editingId) {
+            $item = Receivable::findOrFail($this->editingId);
+            if (! $item->canEdit()) {
+                $this->toastError('当前状态不可编辑，仅未结算状态可编辑');
+                $this->showModal = false;
+                $this->resetForm();
 
-        Receivable::create([
-            'receivable_no' => generate_sequence_no('RC', 'receivables', 'receivable_no'),
-            'order_id' => $this->formOrderId,
-            'merchant_id' => $this->formMerchantId,
-            'original_amount' => money_to_cents($this->formAmount),
-            'adjusted_amount' => money_to_cents($this->formAmount),
-            'received_amount' => 0,
-            'status' => 1,
-            'approval_status' => 1,
-        ]);
+                return;
+            }
+            $validated = $this->validate([
+                'formDueDate' => 'nullable|date',
+                'formRemark' => 'nullable|string|max:500',
+            ]);
+            $item->update([
+                'due_date' => $validated['formDueDate'] ?: null,
+                'remark' => $validated['formRemark'] ?: null,
+            ]);
+            $this->toastSuccess('应收账款已更新');
+        } else {
+            $this->validate([
+                'formOrderId' => 'required|integer|exists:orders,id',
+                'formMerchantId' => 'required|integer|exists:merchants,id',
+                'formAmount' => 'required|numeric|min:0.01',
+            ]);
 
-        $this->toastSuccess('应收账款已创建');
+            Receivable::create([
+                'receivable_no' => generate_sequence_no('RC', 'receivables', 'receivable_no'),
+                'order_id' => $this->formOrderId,
+                'merchant_id' => $this->formMerchantId,
+                'original_amount' => money_to_cents($this->formAmount),
+                'adjusted_amount' => money_to_cents($this->formAmount),
+                'received_amount' => 0,
+                'status' => 1,
+                'approval_status' => 1,
+            ]);
+
+            $this->toastSuccess('应收账款已创建');
+        }
         $this->showModal = false;
         $this->resetForm();
+    }
+
+    public function openEditModal(int $id): void
+    {
+        $item = Receivable::findOrFail($id);
+        if (! $item->canEdit()) {
+            $this->toastError('当前状态不可编辑，仅未结算状态可编辑');
+
+            return;
+        }
+        $this->editingId = $id;
+        $this->formDueDate = $item->due_date?->format('Y-m-d') ?? '';
+        $this->formRemark = $item->remark ?? '';
+        $this->showModal = true;
     }
 
     public function openReceiveModal(int $id): void
@@ -247,6 +283,8 @@ class ReceivableList extends Component
         $this->formOrderId = 0;
         $this->formMerchantId = 0;
         $this->formAmount = '';
+        $this->formDueDate = '';
+        $this->formRemark = '';
     }
 
     public function render()

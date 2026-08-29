@@ -89,6 +89,11 @@ class PriceApportionmentList extends Component
         ];
     }
 
+    public function getImportRequiredFields(): array
+    {
+        return ['均摊类型'];
+    }
+
     public function getPageIds(): array
     {
         return PriceApportionment::orderBy('id', 'desc')->limit(20)->pluck('id')->toArray();

@@ -258,6 +258,11 @@ class MerchantSkuVisibilityList extends Component
         ];
     }
 
+    public function getImportRequiredFields(): array
+    {
+        return ['商家ID', '配置类型', '商品ID', 'SKU ID', '是否可见'];
+    }
+
     public function getImportUniqueBy(): array
     {
         return ['merchant_id', 'target_type', 'product_id', 'sku_id'];

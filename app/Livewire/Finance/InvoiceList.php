@@ -39,6 +39,10 @@ class InvoiceList extends Component
 
     public string $formTaxNo = '';
 
+    public $formFileUrl = null;
+
+    public string $existingFileUrl = '';
+
     public static array $statusMap = [
         1 => '待开具', 2 => '已开具', 3 => '已寄出',
     ];
@@ -105,6 +109,11 @@ class InvoiceList extends Component
         ];
     }
 
+    public function getImportRequiredFields(): array
+    {
+        return ['类型', '抬头', '税号'];
+    }
+
     public function getPageIds(): array
     {
         return $this->getExportQuery()->forPage($this->getPage(), 20)->pluck('id')->toArray();
@@ -131,6 +140,8 @@ class InvoiceList extends Component
         $this->formType = $item->type;
         $this->formTitle = $item->title ?? '';
         $this->formTaxNo = $item->tax_no ?? '';
+        $this->existingFileUrl = $item->file_url ?? '';
+        $this->formFileUrl = null;
         $this->showModal = true;
     }
 
@@ -147,7 +158,13 @@ class InvoiceList extends Component
             'formType' => 'required|integer|in:1,2',
             'formTitle' => 'required|string|max:200',
             'formTaxNo' => 'required|string|max:50',
+            'formFileUrl' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
         ]);
+
+        $fileUrl = null;
+        if ($this->formFileUrl) {
+            $fileUrl = $this->formFileUrl->store('invoices', 'public');
+        }
 
         if ($this->editingId) {
             $item = Invoice::findOrFail($this->editingId);
@@ -158,13 +175,17 @@ class InvoiceList extends Component
 
                 return;
             }
-            $item->update([
+            $updateData = [
                 'target_id' => $this->formMerchantId,
                 'amount' => money_to_cents($this->formAmount),
                 'type' => $this->formType,
                 'title' => $this->formTitle,
                 'tax_no' => $this->formTaxNo,
-            ]);
+            ];
+            if ($fileUrl) {
+                $updateData['file_url'] = $fileUrl;
+            }
+            $item->update($updateData);
             $this->toastSuccess('发票已更新');
         } else {
             Invoice::create([
@@ -174,6 +195,7 @@ class InvoiceList extends Component
                 'amount' => money_to_cents($this->formAmount),
                 'title' => $this->formTitle,
                 'tax_no' => $this->formTaxNo,
+                'file_url' => $fileUrl,
                 'status' => 1,
                 'applied_at' => now(),
             ]);
@@ -237,6 +259,8 @@ class InvoiceList extends Component
         $this->formType = 1;
         $this->formTitle = '';
         $this->formTaxNo = '';
+        $this->formFileUrl = null;
+        $this->existingFileUrl = '';
     }
 
     public function render()

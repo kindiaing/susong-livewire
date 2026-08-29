@@ -327,6 +327,11 @@
                     @error('formBatch') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">送达日期 <span class="text-red-500">*</span></label>
+                    <input type="date" wire:model="formDeliveryDate" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                    @error('formDeliveryDate') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div>
                     <label class="block text-sm font-medium text-foreground mb-1">备注</label>
                     <textarea wire:model="formRemark" rows="2" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="可选"></textarea>
                     @error('formRemark') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror

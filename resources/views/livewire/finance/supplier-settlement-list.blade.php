@@ -108,6 +108,11 @@
                     @endswitch
                 @endforeach
                 <div class="action-col flex items-center gap-0.5">
+                    @can('finance.supplier-settlement.edit')
+                    @if($item->canEdit())
+                    <button type="button" wire:click="openEditModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil" class="w-3.5 h-3.5" /></button>
+                    @endif
+                    @endcan
                     @can('finance.supplier-settlement.create')
                     @if($item->status === 1 || $item->status === 2)
                     <button type="button" wire:click="openPartialPayment({{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="付款"><x-ui.icon name="banknotes" class="w-3.5 h-3.5" /></button>
@@ -189,17 +194,35 @@
 
     <div class="mt-4">{{ $items->links() }}</div>
 
-    {{-- 新增弹窗 --}}
+    {{-- 新增/编辑弹窗 --}}
     @if($showModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-foreground">新增结算</h2>
+                <h2 class="text-lg font-semibold text-foreground">{{ $editingId ? '编辑结算单' : '新增结算' }}</h2>
                 <button type="button" wire:click="closeModal" class="text-muted-foreground hover:text-foreground transition-colors">
                     <x-ui.icon name="x-mark" class="w-5 h-5" />
                 </button>
             </div>
+            @if($editingId)
+            {{-- 编辑模式：仅可修改服务费 --}}
+            <div class="space-y-4">
+                <div class="rounded-md bg-muted p-3 text-xs text-muted-foreground">
+                    <p>结算单由系统自动汇总生成，仅可修改服务费。修改后应付金额将自动重新计算。</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">服务费（元）</label>
+                    <input type="text" wire:model="formEditServiceFee" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="服务费（元）" />
+                    @error('formEditServiceFee') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="saveEdit" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">更新</button>
+            </div>
+            @else
+            {{-- 创建模式 --}}
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">供应商 <span class="text-red-500">*</span></label>
@@ -237,6 +260,7 @@
                 <button type="button" wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
                 <button type="button" wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
             </div>
+            @endif
         </div>
     </div>
     @endif

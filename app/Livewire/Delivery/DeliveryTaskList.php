@@ -47,6 +47,8 @@ class DeliveryTaskList extends Component
 
     public int $formBatch = 1;
 
+    public string $formDeliveryDate = '';
+
     public string $formRemark = '';
 
     // 生成任务弹窗
@@ -133,6 +135,7 @@ class DeliveryTaskList extends Component
         $this->formDriverId = $item->driver_id ?? 0;
         $this->formVehicleId = $item->vehicle_id ?? 0;
         $this->formBatch = $item->batch;
+        $this->formDeliveryDate = $item->delivery_date?->format('Y-m-d') ?? '';
         $this->formRemark = $item->remark ?? '';
         $this->showModal = true;
     }
@@ -143,6 +146,7 @@ class DeliveryTaskList extends Component
             'formDriverId' => 'nullable|integer',
             'formVehicleId' => 'nullable|integer',
             'formBatch' => 'required|in:1,2',
+            'formDeliveryDate' => 'required|date',
             'formRemark' => 'nullable|string|max:500',
         ]);
 
@@ -158,6 +162,7 @@ class DeliveryTaskList extends Component
             'driver_id' => $validated['formDriverId'] ?: null,
             'vehicle_id' => $validated['formVehicleId'] ?: null,
             'batch' => $validated['formBatch'],
+            'delivery_date' => $validated['formDeliveryDate'],
             'remark' => $validated['formRemark'],
         ]);
 
@@ -516,6 +521,7 @@ class DeliveryTaskList extends Component
         $this->formDriverId = 0;
         $this->formVehicleId = 0;
         $this->formBatch = 1;
+        $this->formDeliveryDate = '';
         $this->formRemark = '';
     }
 
@@ -573,6 +579,11 @@ class DeliveryTaskList extends Component
             '车辆ID' => 'vehicle_id',
             '批次' => 'batch',
         ];
+    }
+
+    public function getImportRequiredFields(): array
+    {
+        return ['任务编号', '线路ID', '送达日期', '批次'];
     }
 
     public function getPageIds(): array

@@ -275,6 +275,11 @@ class DiscrepancyList extends Component
         ];
     }
 
+    public function getImportRequiredFields(): array
+    {
+        return ['差异编号', '差异类型'];
+    }
+
     public function getPageIds(): array
     {
         return Discrepancy::orderBy('id', 'desc')->limit(20)->pluck('id')->toArray();

@@ -174,6 +174,14 @@ class OrderList extends Component
         $this->editingId = $id;
         $this->editingStatusLabel = $order->status_label;
         $this->editingStatusColor = 'yellow';
+        $this->formMerchantId = $order->merchant_id;
+        $this->formSettlementType = $order->settlement_type;
+        $this->formBatch = $order->batch;
+        $this->formContactName = $order->contact_name ?? '';
+        $this->formContactPhone = $order->contact_phone ?? '';
+        $this->formDeliveryAddress = $order->delivery_address ?? '';
+        $this->formOrderDate = $order->order_date?->format('Y-m-d') ?? '';
+        $this->formDeliveryDate = $order->delivery_date?->format('Y-m-d') ?? '';
         $this->formRemark = $order->remark ?? '';
         $this->showModal = true;
     }
@@ -190,9 +198,25 @@ class OrderList extends Component
                 return;
             }
             $validated = $this->validate([
+                'formSettlementType' => 'required|integer|in:1,2,3',
+                'formBatch' => 'required|integer|in:1,2',
+                'formContactName' => 'nullable|string|max:50',
+                'formContactPhone' => 'nullable|string|max:20',
+                'formDeliveryAddress' => 'nullable|string|max:255',
+                'formOrderDate' => 'nullable|date',
+                'formDeliveryDate' => 'nullable|date',
                 'formRemark' => 'nullable|string|max:500',
             ]);
-            Order::findOrFail($this->editingId)->update(['remark' => $validated['formRemark']]);
+            $order->update([
+                'settlement_type' => $validated['formSettlementType'],
+                'batch' => $validated['formBatch'],
+                'contact_name' => $validated['formContactName'] ?: null,
+                'contact_phone' => $validated['formContactPhone'] ?: null,
+                'delivery_address' => $validated['formDeliveryAddress'] ?: null,
+                'order_date' => $validated['formOrderDate'] ?: null,
+                'delivery_date' => $validated['formDeliveryDate'] ?: null,
+                'remark' => $validated['formRemark'],
+            ]);
             $this->toastSuccess('订单已更新');
         } else {
             $validated = $this->validate([
