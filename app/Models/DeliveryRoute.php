@@ -136,4 +136,12 @@ class DeliveryRoute extends Model
     {
         return $query->orderBy('sort')->orderBy('id');
     }
+
+    /**
+     * 关联审计日志
+     */
+    public function auditLogs()
+    {
+        return $this->morphMany(AuditLog::class, 'model', 'model_type', 'model_id');
+    }
 }

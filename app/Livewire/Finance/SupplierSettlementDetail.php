@@ -32,7 +32,7 @@ class SupplierSettlementDetail extends Component
 
     public function loadSettlement(int $id): void
     {
-        $this->settlement = SupplierSettlement::with(['supplier', 'items.purchaseOrder', 'payments', 'closedBy'])
+        $this->settlement = SupplierSettlement::with(['supplier', 'items.purchaseOrder', 'payments', 'closedBy', 'auditLogs.operator'])
             ->findOrFail($id);
     }
 
@@ -140,9 +140,10 @@ class SupplierSettlementDetail extends Component
     {
         $paymentMethodMap = SettlementPayment::paymentMethodMap();
         $remainingAmount = $this->remainingAmount;
+        $auditLogs = $this->settlement->auditLogs()->orderByDesc('id')->take(50)->get();
 
         return view('livewire.finance.supplier-settlement-detail', compact(
-            'paymentMethodMap', 'remainingAmount'
+            'paymentMethodMap', 'remainingAmount', 'auditLogs'
         ))
             ->layout('components.app-layout')
             ->title("结算详情 {$this->settlement->settlement_no}");

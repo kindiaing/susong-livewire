@@ -33,7 +33,7 @@ class ReceivableDetail extends Component
 
     public function loadReceivable(int $id): void
     {
-        $this->receivable = Receivable::with(['order', 'merchant', 'payments.operator', 'closedByUser'])
+        $this->receivable = Receivable::with(['order', 'merchant', 'payments.operator', 'closedByUser', 'auditLogs.operator'])
             ->findOrFail($id);
     }
 
@@ -154,9 +154,10 @@ class ReceivableDetail extends Component
         $paymentMethodMap = ReceivablePayment::paymentMethodMap();
         $isOverdue = $this->isOverdue;
         $remainingAmount = $this->remainingAmount;
+        $auditLogs = $this->receivable->auditLogs()->orderByDesc('id')->take(50)->get();
 
         return view('livewire.finance.receivable-detail', compact(
-            'settlementMap', 'paymentMethodMap', 'isOverdue', 'remainingAmount'
+            'settlementMap', 'paymentMethodMap', 'isOverdue', 'remainingAmount', 'auditLogs'
         ))
             ->layout('components.app-layout')
             ->title("应收详情 {$this->receivable->receivable_no}");

@@ -19,7 +19,7 @@ class InvoiceDetail extends Component
 
     public function loadInvoice(int $id): void
     {
-        $this->invoice = Invoice::with(['merchant', 'supplier'])->findOrFail($id);
+        $this->invoice = Invoice::with(['merchant', 'supplier', 'auditLogs.operator'])->findOrFail($id);
     }
 
     public function issue(): void
@@ -65,9 +65,10 @@ class InvoiceDetail extends Component
             Invoice::STATUS_SENT => 'blue',
         ];
         $typeMap = Invoice::typeMap();
+        $auditLogs = $this->invoice->auditLogs()->orderByDesc('id')->take(50)->get();
 
         return view('livewire.finance.invoice-detail', compact(
-            'statusMap', 'statusColorMap', 'typeMap'
+            'statusMap', 'statusColorMap', 'typeMap', 'auditLogs'
         ))
             ->layout('components.app-layout')
             ->title("发票详情 {$this->invoice->invoice_no}");

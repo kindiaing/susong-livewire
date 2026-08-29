@@ -190,4 +190,12 @@ class Receivable extends Model
 
         return array_filter(self::statusMap(), fn ($status) => $status < $this->status, ARRAY_FILTER_USE_KEY);
     }
+
+    /**
+     * 关联审计日志
+     */
+    public function auditLogs()
+    {
+        return $this->morphMany(AuditLog::class, 'model', 'model_type', 'model_id');
+    }
 }

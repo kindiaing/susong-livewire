@@ -20,7 +20,7 @@ class MerchantAccountDetail extends Component
 
     public function loadAccount(int $id): void
     {
-        $this->account = MerchantAccount::with(['merchant'])->findOrFail($id);
+        $this->account = MerchantAccount::with(['merchant', 'auditLogs.operator'])->findOrFail($id);
     }
 
     public function getAvailableBalanceProperty(): int
@@ -38,8 +38,11 @@ class MerchantAccountDetail extends Component
             ->limit(10)
             ->get();
 
+        // 审计日志
+        $auditLogs = $this->account->auditLogs()->orderByDesc('id')->take(50)->get();
+
         return view('livewire.finance.merchant-account-detail', compact(
-            'availableBalance', 'recentRecharges'
+            'availableBalance', 'recentRecharges', 'auditLogs'
         ))
             ->layout('components.app-layout')
             ->title("客户账户 {$this->account->merchant?->name}");

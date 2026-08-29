@@ -45,6 +45,7 @@ class DeliveryRouteDetail extends Component
             'warehouse',
             'defaultDriver',
             'defaultVehicle',
+            'auditLogs.operator',
         ])->findOrFail($this->routeId);
     }
 
@@ -188,8 +189,9 @@ class DeliveryRouteDetail extends Component
     {
         $route = $this->route;
         $stops = $route->stops;
+        $auditLogs = $this->route->auditLogs()->orderByDesc('id')->take(50)->get();
 
-        return view('livewire.delivery.delivery-route-detail', compact('route', 'stops'))
+        return view('livewire.delivery.delivery-route-detail', compact('route', 'stops', 'auditLogs'))
             ->layout('components.app-layout')
             ->title("配送线路 - {$route->name}");
     }

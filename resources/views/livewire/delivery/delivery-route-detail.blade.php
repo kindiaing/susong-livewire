@@ -1,4 +1,4 @@
-<div class="">
+<div class="" x-data="{ activeTab: 'stops' }">
     {{-- 页面标题 --}}
     <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-3">
@@ -94,92 +94,163 @@
         </div>
     </div>
 
-    {{-- 商家列表（列拖拽排序） --}}
-    <div class="rounded-lg border bg-card">
-        <div class="flex items-center justify-between px-6 py-4 border-b">
-            <h2 class="text-base font-semibold text-foreground">商家点位 <span class="text-muted-foreground font-normal text-sm ml-2">（拖拽卡片调整配送顺序）</span></h2>
-            @can('delivery.route.stop-manage')
-            <button type="button" wire:click="openAddMerchantModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
-                <x-ui.icon name="plus" class="w-4 h-4" />
-                添加商家
+    {{-- Tab 切换 --}}
+    <div class="border-b mb-4">
+        <nav class="flex gap-6">
+            <button type="button" @click="activeTab = 'stops'" :class="activeTab === 'stops' ? 'border-blue-600 text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'" class="pb-2 text-sm font-medium border-b-2 transition-colors">
+                商家点位
+                @if($stops->count() > 0)
+                    <span class="ml-1.5 inline-flex items-center justify-center rounded-full bg-blue-100 text-blue-700 text-[10px] font-medium px-1.5 py-0.5 leading-none">{{ $stops->count() }}</span>
+                @endif
             </button>
-            @endcan
-        </div>
+            <button type="button" @click="activeTab = 'logs'" :class="activeTab === 'logs' ? 'border-blue-600 text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'" class="pb-2 text-sm font-medium border-b-2 transition-colors">
+                状态变更记录
+                @if($auditLogs->count() > 0)
+                    <span class="ml-1.5 inline-flex items-center justify-center rounded-full bg-muted text-muted-foreground text-[10px] font-medium px-1.5 py-0.5 leading-none">{{ $auditLogs->count() }}</span>
+                @endif
+            </button>
+        </nav>
+    </div>
 
-        @if($stops->count() > 0)
-        <div x-data="{ dragged: null }" class="flex gap-3 p-4 overflow-x-auto">
-            @foreach($stops as $index => $stop)
-            <div class="flex-shrink-0 w-56 rounded-lg border bg-background overflow-hidden {{ ! $stop->is_active ? 'opacity-50' : '' }} hover:shadow-md transition-shadow"
-                 draggable="true"
-                 x-on:dragstart="dragged = $el; $el.style.opacity = '0.4'"
-                 x-on:dragend="dragged = null; $el.style.opacity = '1'"
-                 x-on:dragover.prevent="$el.style.borderLeftWidth = '3px'; $el.style.borderLeftColor = '#3b82f6'"
-                 x-on:dragleave="$el.style.borderLeftWidth = '1px'; $el.style.borderLeftColor = ''"
-                 x-on:drop.prevent="
-                     $el.style.borderLeftWidth = '1px';
-                     $el.style.borderLeftColor = '';
-                     const from = dragged;
-                     const to = $el;
-                     const parent = from.parentNode;
-                     const allItems = [...parent.querySelectorAll('[draggable]')];
-                     const fromIdx = allItems.indexOf(from);
-                     const toIdx = allItems.indexOf(to);
-                     if (fromIdx < toIdx) { to.after(from); } else { to.before(from); }
-                     const ids = [...parent.querySelectorAll('[draggable]')].map(el => el.dataset.stopId);
-                     $el.dispatchEvent(new CustomEvent('reorder-stops', { detail: { ids }, bubbles: true }));
-                 "
-                 data-stop-id="{{ $stop->id }}"
-                 wire:key="stop-{{ $stop->id }}"
-            >
-                {{-- 序号条 --}}
-                <div class="flex items-center justify-between px-3 py-1.5 bg-muted/40 border-b">
-                    <div class="flex items-center gap-2">
-                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold">{{ $stop->sequence_no }}</span>
-                        <span class="text-xs text-muted-foreground">第{{ $stop->sequence_no }}站</span>
-                    </div>
-                    <div class="text-muted-foreground/60 cursor-grab active:cursor-grabbing">
-                        <x-ui.icon name="bars-3" class="w-4 h-4" />
-                    </div>
-                </div>
-                {{-- 内容 --}}
-                <div class="px-3 py-2.5 space-y-2">
-                    <div class="text-sm font-semibold text-foreground truncate">{{ $stop->merchant?->name ?? '-' }}</div>
-                    <div class="text-xs text-muted-foreground flex items-start gap-1.5">
-                        <x-ui.icon name="map-pin" class="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                        <span class="line-clamp-2">{{ $stop->address ?: $stop->merchant?->address ?? '-' }}</span>
-                    </div>
-                    <div class="text-xs text-muted-foreground flex items-center gap-1.5">
-                        <x-ui.icon name="phone" class="w-3.5 h-3.5 flex-shrink-0" />
-                        <span>{{ $stop->merchant?->contact_phone ?? '-' }}</span>
-                    </div>
-                    <div class="text-xs text-muted-foreground flex items-center gap-1.5">
-                        <x-ui.icon name="clock" class="w-3.5 h-3.5 flex-shrink-0" />
-                        <span>停留 {{ $stop->default_service_time }} 分钟</span>
-                    </div>
-                </div>
-                {{-- 状态 + 操作 --}}
-                <div class="flex items-center justify-between px-3 py-2 border-t bg-muted/20">
-                    <span class="inline-flex items-center gap-1 text-xs {{ $stop->is_active ? 'text-green-600' : 'text-gray-400' }}">
-                        <span class="inline-block w-2 h-2 rounded-full {{ $stop->is_active ? 'bg-green-500' : 'bg-gray-300' }}"></span>
-                        {{ $stop->is_active ? '启用' : '停用' }}
-                    </span>
-                    <div class="flex items-center gap-0.5">
-                        @can('delivery.route.stop-manage')
-                        <button type="button" wire:click="openEditStopModal({{ $stop->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
-                        <button type="button" wire:click="toggleStopActive({{ $stop->id }})" class="p-1 rounded {{ $stop->is_active ? 'text-gray-500 hover:bg-gray-50' : 'text-green-600 hover:bg-green-50' }} transition-colors" title="{{ $stop->is_active ? '停用' : '启用' }}">
-                            <x-ui.icon name="{{ $stop->is_active ? 'eye-slash' : 'eye' }}" class="w-3.5 h-3.5" />
-                        </button>
-                        <button type="button" wire:click="removeStop({{ $stop->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="移除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
-                        @endcan
-                    </div>
-                </div>
+    {{-- Tab 内容：商家列表（列拖拽排序） --}}
+    <div x-show="activeTab === 'stops'">
+        <div class="rounded-lg border bg-card">
+            <div class="flex items-center justify-between px-6 py-4 border-b">
+                <h2 class="text-base font-semibold text-foreground">商家点位 <span class="text-muted-foreground font-normal text-sm ml-2">（拖拽卡片调整配送顺序）</span></h2>
+                @can('delivery.route.stop-manage')
+                <button type="button" wire:click="openAddMerchantModal" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                    <x-ui.icon name="plus" class="w-4 h-4" />
+                    添加商家
+                </button>
+                @endcan
             </div>
-            @endforeach
+
+            @if($stops->count() > 0)
+            <div x-data="{ dragged: null }" class="flex gap-3 p-4 overflow-x-auto">
+                @foreach($stops as $index => $stop)
+                <div class="flex-shrink-0 w-56 rounded-lg border bg-background overflow-hidden {{ ! $stop->is_active ? 'opacity-50' : '' }} hover:shadow-md transition-shadow"
+                     draggable="true"
+                     x-on:dragstart="dragged = $el; $el.style.opacity = '0.4'"
+                     x-on:dragend="dragged = null; $el.style.opacity = '1'"
+                     x-on:dragover.prevent="$el.style.borderLeftWidth = '3px'; $el.style.borderLeftColor = '#3b82f6'"
+                     x-on:dragleave="$el.style.borderLeftWidth = '1px'; $el.style.borderLeftColor = ''"
+                     x-on:drop.prevent="
+                         $el.style.borderLeftWidth = '1px';
+                         $el.style.borderLeftColor = '';
+                         const from = dragged;
+                         const to = $el;
+                         const parent = from.parentNode;
+                         const allItems = [...parent.querySelectorAll('[draggable]')];
+                         const fromIdx = allItems.indexOf(from);
+                         const toIdx = allItems.indexOf(to);
+                         if (fromIdx < toIdx) { to.after(from); } else { to.before(from); }
+                         const ids = [...parent.querySelectorAll('[draggable]')].map(el => el.dataset.stopId);
+                         $el.dispatchEvent(new CustomEvent('reorder-stops', { detail: { ids }, bubbles: true }));
+                     "
+                     data-stop-id="{{ $stop->id }}"
+                     wire:key="stop-{{ $stop->id }}"
+                >
+                    {{-- 序号条 --}}
+                    <div class="flex items-center justify-between px-3 py-1.5 bg-muted/40 border-b">
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold">{{ $stop->sequence_no }}</span>
+                            <span class="text-xs text-muted-foreground">第{{ $stop->sequence_no }}站</span>
+                        </div>
+                        <div class="text-muted-foreground/60 cursor-grab active:cursor-grabbing">
+                            <x-ui.icon name="bars-3" class="w-4 h-4" />
+                        </div>
+                    </div>
+                    {{-- 内容 --}}
+                    <div class="px-3 py-2.5 space-y-2">
+                        <div class="text-sm font-semibold text-foreground truncate">{{ $stop->merchant?->name ?? '-' }}</div>
+                        <div class="text-xs text-muted-foreground flex items-start gap-1.5">
+                            <x-ui.icon name="map-pin" class="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                            <span class="line-clamp-2">{{ $stop->address ?: $stop->merchant?->address ?? '-' }}</span>
+                        </div>
+                        <div class="text-xs text-muted-foreground flex items-center gap-1.5">
+                            <x-ui.icon name="phone" class="w-3.5 h-3.5 flex-shrink-0" />
+                            <span>{{ $stop->merchant?->contact_phone ?? '-' }}</span>
+                        </div>
+                        <div class="text-xs text-muted-foreground flex items-center gap-1.5">
+                            <x-ui.icon name="clock" class="w-3.5 h-3.5 flex-shrink-0" />
+                            <span>停留 {{ $stop->default_service_time }} 分钟</span>
+                        </div>
+                    </div>
+                    {{-- 状态 + 操作 --}}
+                    <div class="flex items-center justify-between px-3 py-2 border-t bg-muted/20">
+                        <span class="inline-flex items-center gap-1 text-xs {{ $stop->is_active ? 'text-green-600' : 'text-gray-400' }}">
+                            <span class="inline-block w-2 h-2 rounded-full {{ $stop->is_active ? 'bg-green-500' : 'bg-gray-300' }}"></span>
+                            {{ $stop->is_active ? '启用' : '停用' }}
+                        </span>
+                        <div class="flex items-center gap-0.5">
+                            @can('delivery.route.stop-manage')
+                            <button type="button" wire:click="openEditStopModal({{ $stop->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
+                            <button type="button" wire:click="toggleStopActive({{ $stop->id }})" class="p-1 rounded {{ $stop->is_active ? 'text-gray-500 hover:bg-gray-50' : 'text-green-600 hover:bg-green-50' }} transition-colors" title="{{ $stop->is_active ? '停用' : '启用' }}">
+                                <x-ui.icon name="{{ $stop->is_active ? 'eye-slash' : 'eye' }}" class="w-3.5 h-3.5" />
+                            </button>
+                            <button type="button" wire:click="removeStop({{ $stop->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="移除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
+                            @endcan
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            @else
+            <div class="px-6 py-12 text-center text-sm text-muted-foreground">
+                暂无商家点位，请点击「添加商家」按钮添加
+            </div>
+            @endif
+        </div>
+    </div>
+
+    {{-- Tab 内容：状态变更记录 --}}
+    <div x-show="activeTab === 'logs'" x-transition>
+        @if($auditLogs->isNotEmpty())
+        <div class="rounded-lg border bg-card">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b text-[11px] font-medium text-muted-foreground bg-muted/30">
+                        <th class="px-4 py-2 text-left w-[180px]">时间</th>
+                        <th class="px-4 py-2 text-left w-[120px]">操作</th>
+                        <th class="px-4 py-2 text-left">状态变更</th>
+                        <th class="px-4 py-2 text-left w-[120px]">操作人</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($auditLogs as $log)
+                    <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors">
+                        <td class="px-4 py-2 text-muted-foreground tabular-nums">{{ $log->created_at?->format('Y-m-d H:i:s') }}</td>
+                        <td class="px-4 py-2">
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium
+                                @if($log->action === 'cancel') bg-red-100 text-red-700
+                                @elseif($log->action === 'rollback') bg-purple-100 text-purple-700
+                                @elseif($log->action === 'status_change') bg-blue-100 text-blue-700
+                                @elseif($log->action === 'create') bg-green-100 text-green-700
+                                @elseif($log->action === 'approve') bg-green-100 text-green-700
+                                @elseif($log->action === 'complete') bg-green-100 text-green-700
+                                @else bg-muted text-muted-foreground
+                                @endif
+                            ">{{ $log->action_label }}</span>
+                        </td>
+                        <td class="px-4 py-2">
+                            @php
+                                $before = $log->before_data ?? [];
+                                $after = $log->after_data ?? [];
+                            @endphp
+                            @if(!empty($before) || !empty($after))
+                                <span class="text-xs text-muted-foreground">{{ json_encode(array_diff_key($after ?? [], $before ?? []), JSON_UNESCAPED_UNICODE) }}</span>
+                            @else
+                                <span class="text-muted-foreground">-</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-2 text-foreground">{{ $log->operator?->name ?? '系统' }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
         @else
-        <div class="px-6 py-12 text-center text-sm text-muted-foreground">
-            暂无商家点位，请点击「添加商家」按钮添加
-        </div>
+        <div class="rounded-lg border bg-card px-6 py-12 text-center text-sm text-muted-foreground">暂无状态变更记录</div>
         @endif
     </div>
 

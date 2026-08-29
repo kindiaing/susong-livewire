@@ -23,7 +23,7 @@ class RechargeDetail extends Component
 
     public function loadRecharge(int $id): void
     {
-        $this->recharge = Recharge::with(['merchant', 'operator'])->findOrFail($id);
+        $this->recharge = Recharge::with(['merchant', 'operator', 'auditLogs.operator'])->findOrFail($id);
     }
 
     public function approve(): void
@@ -116,9 +116,10 @@ class RechargeDetail extends Component
             Recharge::STATUS_FAILED => 'red',
         ];
         $paymentMethodMap = Recharge::paymentMethodMap();
+        $auditLogs = $this->recharge->auditLogs()->orderByDesc('id')->take(50)->get();
 
         return view('livewire.finance.recharge-detail', compact(
-            'statusMap', 'statusColorMap', 'paymentMethodMap'
+            'statusMap', 'statusColorMap', 'paymentMethodMap', 'auditLogs'
         ))
             ->layout('components.app-layout')
             ->title("充值详情 {$this->recharge->transaction_no}");
