@@ -93,10 +93,10 @@
                             <div class="text-sm text-foreground truncate">{{ $item->{$col['key']} ?? '-' }}</div>
                     @endswitch
                 @endforeach
-                <div class="action-col flex items-center gap-2">
+                <div class="action-col flex items-center gap-0.5">
                     @if($item->status === 1)
-                        <button type="button" wire:click="approve({{ $item->id }})" class="text-green-600 hover:text-green-700 text-sm">通过</button>
-                        <button type="button" wire:click="reject({{ $item->id }})" class="text-red-600 hover:text-red-700 text-sm">拒绝</button>
+                        <button type="button" wire:click="approve({{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="通过"><x-ui.icon name="check" class="w-3.5 h-3.5" /></button>
+                        <button type="button" wire:click="reject({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="拒绝"><x-ui.icon name="x-circle" class="w-3.5 h-3.5" /></button>
                     @endif
                     @can('finance.correction-authorization.delete')
                     <button type="button" wire:click="confirmDelete({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>

@@ -228,7 +228,7 @@
                             <div class="text-sm text-foreground truncate">{{ $order->{$col['key']} ?? '-' }}</div>
                     @endswitch
                 @endforeach
-                <div class="action-col flex items-center gap-2">
+                <div class="action-col flex items-center gap-0.5">
                     @can('order.order.edit')
                     @if($order->canEdit())
                     <button type="button" wire:click="openEditModal({{ $order->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
@@ -236,17 +236,17 @@
                     @endcan
                     @can('order.order.create')
                     @if($order->status === 1)
-                    <button type="button" wire:click="confirmOrder({{ $order->id }})" class="text-green-600 hover:text-green-700 text-sm">确认</button>
+                    <button type="button" wire:click="confirmOrder({{ $order->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="确认"><x-ui.icon name="check" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
                     @can('order.order.create')
                     @if(!in_array($order->status, [4, 5, 9]))
-                    <button type="button" wire:click="cancelOrder({{ $order->id }})" class="text-orange-600 hover:text-orange-700 text-sm">作废</button>
+                    <button type="button" wire:click="cancelOrder({{ $order->id }})" class="p-1 rounded text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors" title="作废"><x-ui.icon name="x-circle" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
                     @can('order.order.create')
                     @if($order->status === 3)
-                    <button type="button" wire:click="completeOrder({{ $order->id }})" class="text-green-600 hover:text-green-700 text-sm">完成</button>
+                    <button type="button" wire:click="completeOrder({{ $order->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="完成"><x-ui.icon name="check-circle" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
                     @can('order.order.delete')

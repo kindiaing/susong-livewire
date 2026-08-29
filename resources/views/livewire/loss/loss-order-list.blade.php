@@ -167,7 +167,7 @@
                     @foreach($visibleCols as $col)
                     <th class="px-4 py-2 text-left">{{ $col['label'] }}</th>
                     @endforeach
-                    <th class="px-4 py-2 text-left w-24 action-col">操作</th>
+                    <th class="px-4 py-2 text-right w-24 action-col">操作</th>
                 </tr>
             </thead>
             <tbody>
@@ -208,16 +208,16 @@
                     @endswitch
                     @endforeach
                     <td class="px-4 py-2 action-col">
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-0.5">
                             @can('loss.loss-order.edit')
                             @if($item->approval_status === 1)
-                                <button type="button" wire:click="confirmApprove({{ $item->id }})" class="text-green-600 hover:text-green-700 text-sm">审核</button>
+                                <button type="button" wire:click="confirmApprove({{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="审核"><x-ui.icon name="check" class="w-3.5 h-3.5" /></button>
                             @endif
                             @if($item->status === 2 && $item->source_type !== 'purchase_order')
-                                <button type="button" wire:click="execute({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">执行</button>
+                                <button type="button" wire:click="execute({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="执行"><x-ui.icon name="bolt" class="w-3.5 h-3.5" /></button>
                             @endif
                             @if($item->status === 3 || ($item->status === 2 && $item->source_type === 'purchase_order'))
-                                <button type="button" wire:click="close({{ $item->id }})" class="text-orange-600 hover:text-orange-700 text-sm" title="{{ $item->source_type === 'purchase_order' && $item->status === 2 ? '采购入库差异仅账务留痕不扣库存，审核后可直接关闭' : '' }}">关闭</button>
+                                <button type="button" wire:click="close({{ $item->id }})" class="p-1 rounded text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors" title="{{ $item->source_type === 'purchase_order' && $item->status === 2 ? '采购入库差异仅账务留痕不扣库存，审核后可直接关闭' : '关闭' }}"><x-ui.icon name="x-circle" class="w-3.5 h-3.5" /></button>
                             @endif
                             @if($item->canEdit())
                                 <button type="button" wire:click="openEditModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>

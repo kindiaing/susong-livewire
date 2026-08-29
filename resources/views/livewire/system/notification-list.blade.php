@@ -44,7 +44,7 @@
                     <th class="px-4 py-2 text-left">发送范围</th>
                     <th class="px-4 py-2 text-left">内容预览</th>
                     <th class="px-4 py-2 text-left">创建时间</th>
-                    <th class="px-4 py-2 text-left w-16 action-col">操作</th>
+                    <th class="px-4 py-2 text-right w-16 action-col">操作</th>
                 </tr>
             </thead>
             <tbody>

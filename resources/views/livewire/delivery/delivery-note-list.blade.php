@@ -209,15 +209,15 @@
                             <div class="text-sm text-foreground truncate">{{ $item->{$col['key']} ?? '-' }}</div>
                     @endswitch
                 @endforeach
-                <div class="action-col flex items-center gap-2">
+                <div class="action-col flex items-center gap-0.5">
                     @can('delivery.delivery-note.deliver')
                     @if($item->status === 1)
-                    <button type="button" wire:click="markDelivered({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">已分货</button>
+                    <button type="button" wire:click="markDelivered({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="已分货"><x-ui.icon name="check" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
                     @can('delivery.delivery-note.sign')
                     @if($item->status === 2)
-                    <button type="button" wire:click="markSigned({{ $item->id }})" class="text-green-600 hover:text-green-700 text-sm">已签收</button>
+                    <button type="button" wire:click="markSigned({{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="已签收"><x-ui.icon name="check-circle" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
                     @can('delivery.delivery-note.cancel')

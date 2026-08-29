@@ -78,7 +78,7 @@
                     @foreach($visibleCols as $col)
                     <th class="px-4 py-2 text-left">{{ $col['label'] }}</th>
                     @endforeach
-                    <th class="px-4 py-2 text-left w-28 action-col">操作</th>
+                    <th class="px-4 py-2 text-right w-28 action-col">操作</th>
                 </tr>
             </thead>
             <tbody>
@@ -122,7 +122,7 @@
                             <td class="px-4 py-2 text-foreground">{{ $record->{$col['key']} ?? '-' }}</td>
                     @endswitch
                     @endforeach
-                    <td class="px-4 py-2 action-col action-col">
+                    <td class="px-4 py-2 action-col">
                         <div class="inline-flex items-center gap-0.5">
                             @can('product.visibility.edit')
                             <button type="button" wire:click="openEditModal({{ $record->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>

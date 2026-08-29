@@ -106,7 +106,7 @@
                             <div class="text-sm text-foreground truncate">{{ $item->{$col['key']} ?? '-' }}</div>
                     @endswitch
                 @endforeach
-                <div class="action-col flex items-center gap-2">
+                <div class="action-col flex items-center gap-0.5">
                     @can('finance.invoice.edit')
                     @if($item->canEdit())
                     <button type="button" wire:click="openEditModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
@@ -114,12 +114,12 @@
                     @endcan
                     @can('finance.invoice.create')
                     @if($item->status === 1)
-                    <button type="button" wire:click="issue({{ $item->id }})" class="text-green-600 hover:text-green-700 text-sm">开具</button>
+                    <button type="button" wire:click="issue({{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="开具"><x-ui.icon name="document-text" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
                     @can('finance.invoice.create')
                     @if($item->status === 2)
-                    <button type="button" wire:click="send({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">寄出</button>
+                    <button type="button" wire:click="send({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="寄出"><x-ui.icon name="truck" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
                     @can('finance.invoice.delete')

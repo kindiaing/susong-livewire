@@ -59,7 +59,7 @@
                     @foreach($visibleCols as $col)
                     <th class="px-4 py-2 text-left">{{ $col['label'] }}</th>
                     @endforeach
-                    <th class="px-4 py-2 text-left w-24 action-col">操作</th>
+                    <th class="px-4 py-2 text-right w-24 action-col">操作</th>
                 </tr>
             </thead>
             <tbody>
@@ -101,13 +101,13 @@
                     @endswitch
                     @endforeach
                     <td class="px-4 py-2 action-col">
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-0.5">
                             @can('product.product.edit')
                             <button type="button" wire:click="openEditModal({{ $sku->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
                             @endcan
                             @can('product.product.edit')
-                            <button type="button" wire:click="toggleStatus({{ $sku->id }})" class="text-sm {{ $sku->status === 1 ? 'text-orange-600 hover:text-orange-700' : 'text-green-600 hover:text-green-700' }}">
-                                {{ $sku->status === 1 ? '禁用' : '启用' }}
+                            <button type="button" wire:click="toggleStatus({{ $sku->id }})" class="p-1 rounded {{ $sku->status === 1 ? 'text-orange-600 hover:bg-orange-50 hover:text-orange-700' : 'text-green-600 hover:bg-green-50 hover:text-green-700' }} transition-colors" title="{{ $sku->status === 1 ? '禁用' : '启用' }}">
+                                <x-ui.icon name="{{ $sku->status === 1 ? 'eye-slash' : 'eye' }}" class="w-3.5 h-3.5" />
                             </button>
                             @endcan
                             @if($isSuperAdmin)

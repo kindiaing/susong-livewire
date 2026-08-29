@@ -247,7 +247,7 @@
                             <div class="text-sm text-foreground truncate">{{ $item->{$col['key']} ?? '-' }}</div>
                     @endswitch
                 @endforeach
-                <div class="action-col flex items-center gap-2">
+                <div class="action-col flex items-center gap-0.5">
                     @can('delivery.delivery-task.edit')
                     @if($item->canEdit())
                     <button type="button" wire:click="openEditModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
@@ -255,17 +255,17 @@
                     @endcan
                     @can('delivery.delivery-task.create')
                     @if(in_array($item->status, [1, 2]))
-                    <button type="button" wire:click="startDelivery({{ $item->id }})" class="text-green-600 hover:text-green-700 text-sm">开始配送</button>
+                    <button type="button" wire:click="startDelivery({{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="开始配送"><x-ui.icon name="truck" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
                     @can('delivery.delivery-task.create')
                     @if($item->status === 3)
-                    <button type="button" wire:click="completeDelivery({{ $item->id }})" class="text-green-600 hover:text-green-700 text-sm">完成</button>
+                    <button type="button" wire:click="completeDelivery({{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="完成"><x-ui.icon name="check-circle" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
                     @can('delivery.delivery-task.create')
                     @if($item->canTransitionTo(\App\Models\DeliveryTask::STATUS_CANCELLED))
-                    <button type="button" wire:click="cancelDelivery({{ $item->id }})" class="text-orange-600 hover:text-orange-700 text-sm">作废</button>
+                    <button type="button" wire:click="cancelDelivery({{ $item->id }})" class="p-1 rounded text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors" title="作废"><x-ui.icon name="x-circle" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
                     @can('delivery.delivery-task.delete')

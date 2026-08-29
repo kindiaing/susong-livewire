@@ -97,10 +97,10 @@
                             <div class="text-sm text-foreground truncate">{{ $item->{$col['key']} ?? '-' }}</div>
                     @endswitch
                 @endforeach
-                <div class="action-col flex items-center gap-2">
+                <div class="action-col flex items-center gap-0.5">
                     @can('finance.receivable.create')
                     @if(!in_array($item->status, [\App\Models\Receivable::STATUS_SETTLED, \App\Models\Receivable::STATUS_CLOSED]))
-                    <button type="button" wire:click="openReceiveModal({{ $item->id }})" class="text-green-600 hover:text-green-700 text-sm">收款</button>
+                    <button type="button" wire:click="openReceiveModal({{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="收款"><x-ui.icon name="banknotes" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
                     @can('finance.receivable.delete')

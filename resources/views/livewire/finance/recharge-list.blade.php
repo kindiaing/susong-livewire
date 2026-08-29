@@ -97,7 +97,7 @@
                             <div class="text-sm text-foreground truncate">{{ $item->{$col['key']} ?? '-' }}</div>
                     @endswitch
                 @endforeach
-                <div class="action-col flex items-center gap-2">
+                <div class="action-col flex items-center gap-0.5">
                     @can('finance.recharge.edit')
                     @if($item->canEdit())
                     <button type="button" wire:click="openEditModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
@@ -105,13 +105,13 @@
                     @endcan
                     @can('finance.recharge.create')
                     @if($item->status === 1)
-                    <button type="button" wire:click="approve({{ $item->id }})" class="text-green-600 hover:text-green-700 text-sm">通过</button>
-                    <button type="button" wire:click="reject({{ $item->id }})" class="text-orange-600 hover:text-orange-700 text-sm">拒绝</button>
+                    <button type="button" wire:click="approve({{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="通过"><x-ui.icon name="check" class="w-3.5 h-3.5" /></button>
+                    <button type="button" wire:click="reject({{ $item->id }})" class="p-1 rounded text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors" title="拒绝"><x-ui.icon name="x-circle" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
                     @can('finance.recharge.create')
                     @if($item->status === 2)
-                    <button type="button" wire:click="confirmArrival({{ $item->id }})" class="text-blue-600 hover:text-blue-700 text-sm">确认到账</button>
+                    <button type="button" wire:click="confirmArrival({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="确认到账"><x-ui.icon name="check-circle" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
                     @can('finance.recharge.delete')

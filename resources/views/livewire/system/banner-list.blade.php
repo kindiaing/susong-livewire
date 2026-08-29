@@ -39,7 +39,7 @@
                     @foreach($visibleCols as $col)
                     <th class="px-4 py-2 text-left">{{ $col['label'] }}</th>
                     @endforeach
-                    <th class="px-4 py-2 text-left w-24 action-col">操作</th>
+                    <th class="px-4 py-2 text-right w-24 action-col">操作</th>
                 </tr>
             </thead>
             <tbody>

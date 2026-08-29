@@ -103,13 +103,13 @@
                             <div class="text-sm text-foreground truncate">{{ $supplier->{$col['key']} ?? '-' }}</div>
                     @endswitch
                 @endforeach
-                <div class="action-col flex items-center gap-2">
+                <div class="action-col flex items-center gap-0.5">
                     @can('org.supplier.edit')
                     <button type="button" wire:click="openEditModal({{ $supplier->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
                     @endcan
                     @can('org.supplier.edit')
-                    <button type="button" wire:click="toggleStatus({{ $supplier->id }})" class="text-sm {{ $supplier->status === 1 ? 'text-orange-600 hover:text-orange-700' : 'text-green-600 hover:text-green-700' }}">
-                        {{ $supplier->status === 1 ? '禁用' : '启用' }}
+                    <button type="button" wire:click="toggleStatus({{ $supplier->id }})" class="p-1 rounded {{ $supplier->status === 1 ? 'text-orange-600 hover:bg-orange-50 hover:text-orange-700' : 'text-green-600 hover:bg-green-50 hover:text-green-700' }} transition-colors" title="{{ $supplier->status === 1 ? '禁用' : '启用' }}">
+                        <x-ui.icon name="{{ $supplier->status === 1 ? 'eye-slash' : 'eye' }}" class="w-3.5 h-3.5" />
                     </button>
                     @endcan
                     @can('org.supplier.delete')

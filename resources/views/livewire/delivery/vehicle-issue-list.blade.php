@@ -217,33 +217,6 @@
     @endif
 
     @include('partials.column-modal')
-
-    {{-- 导出弹窗 --}}
-    @if($showExportModal)
-    <div class="fixed inset-0 z-50 flex items-center justify-center">
-        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
-        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-foreground">导出 Excel</h2>
-                <button type="button" wire:click="closeExportModal" class="text-muted-foreground hover:text-foreground transition-colors">
-                    <x-ui.icon name="x-mark" class="w-5 h-5" />
-                </button>
-            </div>
-            <div class="space-y-2">
-                @foreach($allColumns as $col)
-                @if(!empty($col['exportable']))
-                <label class="flex items-center gap-2 text-sm text-foreground cursor-pointer hover:bg-muted/50 rounded px-2 py-1.5 transition-colors">
-                    <input type="checkbox" value="{{ $col['key'] }}" wire:model.live="exportColumns" class="rounded" />
-                    {{ $col['label'] }}
-                </label>
-                @endif
-                @endforeach
-            </div>
-            <div class="flex justify-end gap-3 mt-6">
-                <button type="button" wire:click="closeExportModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button type="button" wire:click="export" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">导出</button>
-            </div>
-        </div>
-    </div>
-    @endif
+    @include('partials.export-modal')
+    @include('partials.delete-confirm')
 </div>
