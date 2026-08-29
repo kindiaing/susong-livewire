@@ -1,4 +1,3 @@
-
 # Setup 系统安装部署配置手册
 
 对应 PRD 版本：V1.2
@@ -126,30 +125,34 @@ composer install --optimize-autoloader --no-dev
 # 5. 生成应用密钥
 php artisan key:generate
 
-# 6. 初始化数据库（迁移 + 种子 + 管理员，一条命令搞定）
+# 6. 初始化数据库（清空并重建 + 迁移 + 内置数据）
 php artisan admin:install
 
 # 如需测试数据，使用：
 # php artisan admin:install --seed
 
-# 7. 创建存储目录软链接
+# 7. 创建管理员账号（交互式或指定参数）
+php artisan admin:create-admin
+# 快速创建默认超管：php artisan admin:create-admin --force
+
+# 8. 创建存储目录软链接
 php artisan storage:link
 
-# 8. 缓存优化
+# 9. 缓存优化
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-# 9. 设置目录权限
+# 10. 设置目录权限
 sudo chown -R www-data:www-data /var/www/susong
 sudo chmod -R 755 /var/www/susong
 sudo chmod -R 775 storage bootstrap/cache
 
-# 10. 前端构建（项目根目录执行）
+# 11. 前端构建（项目根目录执行）
 npm install
 npm run build
 
-# 11. 启动服务（使用 deploy 脚本）
+# 12. 启动服务（使用 deploy 脚本）
 chmod +x docs/attach/install.sh
 ./docs/attach/install.sh
 ```
@@ -172,23 +175,27 @@ composer install
 REM 5. 生成密钥
 php artisan key:generate
 
-REM 6. 初始化数据库（迁移 + 种子 + 管理员）
+REM 6. 初始化数据库（清空并重建 + 迁移 + 内置数据）
 php artisan admin:install
 
-REM 7. 前端构建
+REM 7. 创建管理员账号
+php artisan admin:create-admin
+REM 快速创建默认超管：php artisan admin:create-admin --force
+
+REM 8. 前端构建
 npm install
 npm run build
 
-REM 8. 创建存储链接
+REM 9. 创建存储链接
 php artisan storage:link
 
-REM 9. 启动开发服务
+REM 10. 启动开发服务
 php artisan serve
 
-REM 10. 启动 Reverb WebSocket 服务（新终端窗口）
+REM 11. 启动 Reverb WebSocket 服务（新终端窗口）
 php artisan reverb:start
 
-REM 11. 启动 Vite 前端热更新（新终端窗口，开发时使用）
+REM 12. 启动 Vite 前端热更新（新终端窗口，开发时使用）
 npm run dev
 
 REM 提示：Reverb 和 Vite 需要保持运行，勿关闭窗口
@@ -492,7 +499,9 @@ sudo certbot renew --dry-run
 
 ### 9.1 迁移执行顺序
 
-系统共 22 个 Migration，按业务依赖顺序执行。`php artisan migrate` 命令会自动按时间戳顺序执行：
+系统共 22 个 Migration，按业务依赖顺序执行。`php artisan migrate` 命令会自动按时间戳顺序执行。
+
+> **注意**：Migration 只创建表结构和角色，不再创建用户账号。安装完成后需使用 `admin:create-admin` 命令创建管理员。
 
 1. 用户与权限（users, roles, permissions 及关联表）
 2. 组织主体（suppliers, merchants, delivery_routes, drivers, vehicles, driver_vehicles, merchant_addresses）
@@ -522,10 +531,11 @@ sudo certbot renew --dry-run
 
 | 数据类别 | 说明 |
 | :--- | :--- |
-| 超级管理员账号 | seeding / Password（Migration 8.1 自动创建，首次 `php artisan migrate` 即可用） |
-| 9 个系统角色 | 超级管理员、运营专员、运营经理、财务专员、出纳、财务经理、拣货员、司机、商家（Migration 8.1 自动创建） |
+| 10 个系统角色 | 超级管理员、管理员、运营专员、运营经理、财务专员、出纳、财务经理、拣货员、配送司机、商家（Migration 自动创建，super_admin=1, admin=2 顺序固定） |
 | 19 个审核节点配置 | approval_type_configs 默认记录（前 10 个 P0 节点 + 第 19 条损耗审核默认开启） |
 | 6 条系统默认配置 | system_configs 默认键值（Migration 自动创建，增强后共 24 条，分 7 组：基础 8/订单 3/配送 3/财务 3/库存 3/审核 2/界面 2） |
+
+> **注意**：Migration 不再创建用户账号。安装完成后请使用 `admin:create-admin` 命令创建第一个管理员。
 
 #### 9.2.2 Seeder 种子数据
 
@@ -533,8 +543,8 @@ Seeder 分为**核心数据**和**测试数据**两层，详见 `03_DB` 文档�
 
 | 数据类别 | Seeder | 说明 |
 | :--- | :--- | :--- |
-| 核心数据 | SystemDataSeeder | 为 Migration 创建的 seeding 账户分配 super_admin 角色 + 全部 140 权限 |
-| 测试数据 | DemoDataSeeder（总入口） | 调用 Demo/ 下 10 个分模块 Seeder，按依赖顺序填充业务示例数据 |
+| 核心数据 | SystemDataSeeder | 创建权限树（213 条）+ 为 10 个角色分配对应权限 + 默认供应商/仓库/单位。不创建用户 |
+| 测试数据 | DemoDataSeeder（总入口） | 调用 Demo/ 下 11 个分模块 Seeder，按依赖顺序填充业务示例数据 |
 | 分模块测试 | Demo/*.php | 可独立运行指定模块（如 `--demo=organization` 仅填充组织主体测试数据） |
 
 **双入口调用方式：**
@@ -552,6 +562,8 @@ php artisan admin:seed --demo                # 全部测试数据
 php artisan admin:seed --demo=organization   # 仅 organization 模块测试数据
 php artisan admin:seed --list                # 列出所有可用 Seeder 模块
 ```
+
+> **注意**：Seeder 不再创建用户账号。请使用 `admin:create-admin` 命令创建管理员。
 
 ---
 
@@ -587,8 +599,8 @@ php artisan admin:seed --list                # 列出所有可用 Seeder 模块
 
 | 命令 | 说明 | 核心选项 |
 |:---|:---|:---|
-| `admin:install` | 安装/初始化数据库 | `--seed` `--reset` `--force` |
-| `admin:fresh` | 清空并重建数据库 | `--seed` `--force` |
+| `admin:install` | 安装/初始化数据库（清空并重建） | `--seed` `--force` |
+| `admin:fresh` | 清空并重建数据库（admin:install 别名） | `--seed` `--force` |
 | `admin:seed` | 运行种子数据 | `--fresh` `--system` `--demo[=MODULE]` `--list` `--force` |
 | `admin:create-admin` | 创建管理员账户 | `--name=` `--email=` `--password=` `--role=super_admin` `--guard=web` |
 | `admin:create-user` | 创建普通用户 | `--name=` `--email=` `--password=` `--role=` `--guard=web` `--active=1` |
@@ -599,7 +611,103 @@ php artisan admin:seed --list                # 列出所有可用 Seeder 模块
 
 > **废弃命令**：`admin:make-user`（统一用 `admin:create-admin` 替代）
 
-### 10.3 快速操作速查
+### 10.3 核心命令详细说明
+
+#### 10.3.1 `admin:install` — 数据库安装/初始化
+
+清空并重建数据库（migrate:fresh），运行系统内置 Seeder（角色、权限、审核配置、系统配置），不创建用户。
+
+```bash
+# 标准安装（清空 + 重建 + 内置数据）
+php artisan admin:install
+
+# 安装并导入测试数据
+php artisan admin:install --seed
+
+# 强制执行（跳过确认提示，用于脚本/CI）
+php artisan admin:install --force
+
+# 组合：安装 + 测试数据 + 跳过确认
+php artisan admin:install --seed --force
+```
+
+| 选项 | 说明 |
+|:---|:---|
+| `--seed` | 同时导入测试数据（DemoDataSeeder） |
+| `--force` | 跳过确认提示 |
+
+> **注意**：此命令始终执行 `migrate:fresh`（会清空所有数据），适用于首次部署和开发环境重置。安装完成后需执行 `admin:create-admin` 创建管理员。
+
+#### 10.3.2 `admin:create-admin` — 创建管理员账号
+
+交互式创建管理员（super_admin 或 admin 角色），角色列表从数据库动态读取。
+
+```bash
+# 交互式创建（推荐，会提示输入姓名/邮箱/密码/角色）
+php artisan admin:create-admin
+
+# 指定参数创建
+php artisan admin:create-admin --name=Admin --email=admin@example.com --password=Secret123
+
+# 快速创建默认超管（admin@example.com / Password）
+php artisan admin:create-admin --force
+
+# 指定角色（默认 super_admin）
+php artisan admin:create-admin --role=admin
+```
+
+| 选项 | 说明 |
+|:---|:---|
+| `--name=` | 管理员姓名（默认 Admin） |
+| `--email=` | 登录邮箱（默认 admin@example.com） |
+| `--password=` | 登录密码（默认 Password） |
+| `--role=` | 角色（默认 super_admin，可选 admin） |
+| `--force` | 跳过确认，使用默认值快速创建 |
+
+> **注意**：角色列表从数据库 `roles` 表动态读取，非硬编码。首次安装后应立即执行此命令创建管理员。
+
+#### 10.3.3 `admin:create-user` — 创建普通用户
+
+交互式创建普通用户，角色列表从数据库动态读取。
+
+```bash
+# 交互式创建
+php artisan admin:create-user
+
+# 指定参数创建
+php artisan admin:create-user --name=张三 --email=zhangsan@example.com --password=Secret123 --role=operator
+```
+
+| 选项 | 说明 |
+|:---|:---|
+| `--name=` | 用户姓名 |
+| `--email=` | 登录邮箱 |
+| `--password=` | 登录密码 |
+| `--role=` | 角色（从数据库动态读取，如 operator/finance/driver/merchant 等） |
+| `--active=` | 是否启用（默认 1） |
+
+#### 10.3.4 `admin:seed` — 种子数据管理
+
+运行种子数据，支持核心数据与测试数据分层导入。
+
+```bash
+# 运行全部种子（核心 + 测试）
+php artisan admin:seed
+
+# 仅核心数据（角色/权限分配/默认配置）
+php artisan admin:seed --system
+
+# 全部测试数据
+php artisan admin:seed --demo
+
+# 指定模块测试数据
+php artisan admin:seed --demo=organization
+
+# 列出所有可用 Seeder 模块
+php artisan admin:seed --list
+```
+
+### 10.4 快速操作速查
 
 ```bash
 # ── 首次部署 ─────────────────────────────

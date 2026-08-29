@@ -31,7 +31,7 @@ class AdminFreshCommand extends Command
 
         $this->info('正在清空并重建数据库...');
 
-        $installArgs = ['--reset' => true, '--force' => true];
+        $installArgs = ['--force' => true];
         if ($seed) {
             $installArgs['--seed'] = true;
         }

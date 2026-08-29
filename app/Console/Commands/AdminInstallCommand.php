@@ -14,7 +14,6 @@ class AdminInstallCommand extends Command
 {
     protected $signature = 'admin:install
                             {--seed : 同时导入测试数据}
-                            {--reset : 先清空数据库（migrate:fresh）}
                             {--force : 强制执行，不确认}';
 
     protected $description = '安装/初始化数据库（迁移 + 种子 + 权限 + 管理员）';
@@ -28,17 +27,12 @@ class AdminInstallCommand extends Command
 
         $seed = $this->option('seed');
         $force = $this->option('force');
-        $reset = $this->option('reset');
 
         // 确认
         if (! $force) {
-            $mode = $reset
-                ? ($seed ? '重置数据库 + 测试数据' : '重置数据库（仅基础数据）')
-                : ($seed ? '安装 + 测试数据' : '仅安装（不含测试数据）');
+            $mode = $seed ? '安装 + 测试数据' : '仅安装（不含测试数据）';
 
-            if ($reset) {
-                $this->warn('⚠ --reset 将删除所有数据！');
-            }
+            $this->warn('⚠ 此操作将清空并重建数据库！');
 
             if (! confirm("即将执行 [{$mode}]，是否继续？", default: false)) {
                 $this->info('已取消。');
@@ -46,16 +40,11 @@ class AdminInstallCommand extends Command
             }
         }
 
-        // 1. 迁移
+        // 1. 迁移（始终 migrate:fresh，清空并重建）
         $this->newLine();
-        $this->info('[1/3] 执行数据库迁移...');
-
-        if ($reset) {
-            $this->warn('  ⚠ 使用 migrate:fresh，将清空所有数据！');
-            Artisan::call('migrate:fresh', ['--force' => true], $this->output);
-        } else {
-            Artisan::call('migrate', ['--force' => true], $this->output);
-        }
+        $this->info('[1/3] 执行数据库迁移（migrate:fresh）...');
+        $this->warn('  ⚠ 将清空所有数据并重建！');
+        Artisan::call('migrate:fresh', ['--force' => true], $this->output);
 
         $this->info('  ✓ 迁移完成（角色、审核配置、系统配置已由 Migration 自动初始化）');
 
