@@ -40,6 +40,168 @@
         </div>
     </section>
 
+    {{-- ==================== 操作按钮图标全集 ==================== --}}
+    <section>
+        <h2 class="text-lg font-semibold mb-1">操作按钮图标全集</h2>
+        <p class="text-sm text-muted-foreground mb-4">系统所有行操作按钮图标统一规范：<code class="text-xs bg-muted px-1.5 py-0.5 rounded">p-1 rounded</code> + <code class="text-xs bg-muted px-1.5 py-0.5 rounded">w-3.5 h-3.5</code> + <code class="text-xs bg-muted px-1.5 py-0.5 rounded">gap-0.5</code>，<code class="text-xs bg-muted px-1.5 py-0.5 rounded">title=</code> 悬停提示</p>
+
+        {{-- 基础三件套 --}}
+        <div class="rounded-lg border bg-card p-4 mb-4">
+            <h3 class="text-sm font-semibold mb-3 text-muted-foreground">基础操作（列表行标准三件套）</h3>
+            <div class="flex flex-wrap items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <button type="button" class="p-1 rounded text-blue-600 hover:bg-blue-50" title="编辑"><x-ui.icon name="pencil-square" class="w-3.5 h-3.5" /></button>
+                    <div class="text-xs">
+                        <div class="font-medium">编辑 <code class="text-muted-foreground">pencil-square</code></div>
+                        <div class="text-muted-foreground">text-blue-600</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="p-1 rounded text-red-600 hover:bg-red-50" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
+                    <div class="text-xs">
+                        <div class="font-medium">删除 <code class="text-muted-foreground">trash</code></div>
+                        <div class="text-muted-foreground">text-red-600</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="#" class="p-1 rounded text-green-600 hover:bg-green-50" title="详情"><x-ui.icon name="eye" class="w-3.5 h-3.5" /></a>
+                    <div class="text-xs">
+                        <div class="font-medium">详情 <code class="text-muted-foreground">eye</code></div>
+                        <div class="text-muted-foreground">text-green-600</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- 状态流转 --}}
+        <div class="rounded-lg border bg-card p-4 mb-4">
+            <h3 class="text-sm font-semibold mb-3 text-muted-foreground">单据状态流转</h3>
+            <div class="flex flex-wrap items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <button type="button" class="p-1 rounded text-green-600 hover:bg-green-50" title="审核通过"><x-ui.icon name="check" class="w-3.5 h-3.5" /></button>
+                    <div class="text-xs"><div class="font-medium">审核/通过 <code class="text-muted-foreground">check</code></div><div class="text-muted-foreground">text-green-600</div></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="p-1 rounded text-orange-600 hover:bg-orange-50" title="出库"><x-ui.icon name="truck" class="w-3.5 h-3.5" /></button>
+                    <div class="text-xs"><div class="font-medium">出库/配送 <code class="text-muted-foreground">truck</code></div><div class="text-muted-foreground">text-orange-600</div></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="p-1 rounded text-green-600 hover:bg-green-50" title="完成"><x-ui.icon name="check-circle" class="w-3.5 h-3.5" /></button>
+                    <div class="text-xs"><div class="font-medium">完成 <code class="text-muted-foreground">check-circle</code></div><div class="text-muted-foreground">text-green-600</div></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="p-1 rounded text-red-600 hover:bg-red-50" title="作废"><x-ui.icon name="x-circle" class="w-3.5 h-3.5" /></button>
+                    <div class="text-xs"><div class="font-medium">作废/取消 <code class="text-muted-foreground">x-circle</code></div><div class="text-muted-foreground">text-red-600</div></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="p-1 rounded text-purple-600 hover:bg-purple-50" title="回退"><x-ui.icon name="arrow-uturn-left" class="w-3.5 h-3.5" /></button>
+                    <div class="text-xs"><div class="font-medium">状态回退 <code class="text-muted-foreground">arrow-uturn-left</code></div><div class="text-muted-foreground">text-purple-600</div></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="p-1 rounded text-blue-600 hover:bg-blue-50" title="标记处理中"><x-ui.icon name="clock" class="w-3.5 h-3.5" /></button>
+                    <div class="text-xs"><div class="font-medium">处理中 <code class="text-muted-foreground">clock</code></div><div class="text-muted-foreground">text-blue-600</div></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="p-1 rounded text-red-600 hover:bg-red-50" title="转入争议"><x-ui.icon name="shield-exclamation" class="w-3.5 h-3.5" /></button>
+                    <div class="text-xs"><div class="font-medium">转入争议 <code class="text-muted-foreground">shield-exclamation</code></div><div class="text-muted-foreground">text-red-600</div></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="p-1 rounded text-blue-600 hover:bg-blue-50" title="处理"><x-ui.icon name="adjustments" class="w-3.5 h-3.5" /></button>
+                    <div class="text-xs"><div class="font-medium">处理 <code class="text-muted-foreground">adjustments</code></div><div class="text-muted-foreground">text-blue-600</div></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="p-1 rounded text-green-600 hover:bg-green-50" title="回库"><x-ui.icon name="arrow-down-tray" class="w-3.5 h-3.5" /></button>
+                    <div class="text-xs"><div class="font-medium">回库 <code class="text-muted-foreground">arrow-down-tray</code></div><div class="text-muted-foreground">text-green-600</div></div>
+                </div>
+            </div>
+        </div>
+
+        {{-- 通用操作 --}}
+        <div class="rounded-lg border bg-card p-4 mb-4">
+            <h3 class="text-sm font-semibold mb-3 text-muted-foreground">通用操作（工具栏）</h3>
+            <div class="flex flex-wrap items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <button type="button" class="inline-flex items-center gap-1 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"><x-ui.icon name="plus" class="w-3.5 h-3.5" />新增</button>
+                    <div class="text-xs"><div class="font-medium"><code class="text-muted-foreground">plus</code></div></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-accent"><x-ui.icon name="arrow-down-tray" class="w-3.5 h-3.5" />导入</button>
+                    <div class="text-xs"><div class="font-medium"><code class="text-muted-foreground">arrow-down-tray</code></div></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-accent"><x-ui.icon name="arrow-up-tray" class="w-3.5 h-3.5" />导出</button>
+                    <div class="text-xs"><div class="font-medium"><code class="text-muted-foreground">arrow-up-tray</code></div></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="p-1 rounded text-muted-foreground hover:bg-accent" title="关闭"><x-ui.icon name="x-mark" class="w-3.5 h-3.5" /></button>
+                    <div class="text-xs"><div class="font-medium">关闭 <code class="text-muted-foreground">x-mark</code></div></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="p-1 rounded text-muted-foreground hover:bg-accent" title="列配置"><x-ui.icon name="adjustments" class="w-3.5 h-3.5" /></button>
+                    <div class="text-xs"><div class="font-medium">列配置 <code class="text-muted-foreground">adjustments</code></div></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="p-1 rounded text-muted-foreground hover:bg-accent" title="重置筛选"><x-ui.icon name="x-mark" class="w-3.5 h-3.5" /></button>
+                    <div class="text-xs"><div class="font-medium">重置 <code class="text-muted-foreground">x-mark</code></div></div>
+                </div>
+            </div>
+        </div>
+
+        {{-- 切换操作 --}}
+        <div class="rounded-lg border bg-card p-4 mb-4">
+            <h3 class="text-sm font-semibold mb-3 text-muted-foreground">切换操作（启用/停用）</h3>
+            <div class="flex flex-wrap items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <button type="button" class="p-1 rounded text-green-600 hover:bg-green-50" title="启用"><x-ui.icon name="eye" class="w-3.5 h-3.5" /></button>
+                    <div class="text-xs"><div class="font-medium">启用 <code class="text-muted-foreground">eye</code></div><div class="text-muted-foreground">text-green-600</div></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="p-1 rounded text-muted-foreground hover:bg-accent" title="停用"><x-ui.icon name="eye-slash" class="w-3.5 h-3.5" /></button>
+                    <div class="text-xs"><div class="font-medium">停用 <code class="text-muted-foreground">eye-slash</code></div><div class="text-muted-foreground">text-muted-foreground</div></div>
+                </div>
+            </div>
+        </div>
+
+        {{-- 补充图标 --}}
+        <div class="rounded-lg border bg-card p-4">
+            <h3 class="text-sm font-semibold mb-3 text-muted-foreground">补充图标（本次新增）</h3>
+            <div class="flex flex-wrap items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <x-ui.icon name="arrow-right" class="w-3.5 h-3.5 text-muted-foreground" />
+                    <div class="text-xs"><div class="font-medium">状态箭头 <code class="text-muted-foreground">arrow-right</code></div></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <x-ui.icon name="bars-3" class="w-3.5 h-3.5 text-muted-foreground" />
+                    <div class="text-xs"><div class="font-medium">拖拽手柄 <code class="text-muted-foreground">bars-3</code></div></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <x-ui.icon name="bolt" class="w-3.5 h-3.5 text-orange-600" />
+                    <div class="text-xs"><div class="font-medium">即时操作 <code class="text-muted-foreground">bolt</code></div></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <x-ui.icon name="chevron-right" class="w-3.5 h-3.5 text-muted-foreground" />
+                    <div class="text-xs"><div class="font-medium">面包屑 <code class="text-muted-foreground">chevron-right</code></div></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <x-ui.icon name="document-plus" class="w-3.5 h-3.5 text-blue-600" />
+                    <div class="text-xs"><div class="font-medium">确认下单 <code class="text-muted-foreground">document-plus</code></div></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <x-ui.icon name="inbox" class="w-3.5 h-3.5 text-muted-foreground" />
+                    <div class="text-xs"><div class="font-medium">空状态 <code class="text-muted-foreground">inbox</code></div></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <x-ui.icon name="information-circle" class="w-3.5 h-3.5 text-blue-600" />
+                    <div class="text-xs"><div class="font-medium">提示 <code class="text-muted-foreground">information-circle</code></div></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="p-1 rounded text-muted-foreground hover:bg-accent" title="关闭"><x-ui.icon name="x" class="w-3.5 h-3.5" /></button>
+                    <div class="text-xs"><div class="font-medium">关闭(x) <code class="text-muted-foreground">x</code></div></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     {{-- ==================== 采购单 + 明细示例 ==================== --}}
     <section>
         <h2 class="text-lg font-semibold mb-1">采购单管理（业务示例）</h2>
