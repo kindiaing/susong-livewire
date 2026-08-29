@@ -65,3 +65,8 @@ th.action-col {
     padding-bottom: 0.5rem; /* 8px */
 }
 
+/* Alpine x-cloak：初始化前隐藏，避免闪烁 */
+[x-cloak] {
+    display: none !important;
+}
+
