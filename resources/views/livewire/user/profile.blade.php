@@ -10,6 +10,9 @@
         <div class="flex border-b border-border mb-6">
             <x-ui.tabs-trigger value="profile">个人资料</x-ui.tabs-trigger>
             <x-ui.tabs-trigger value="password">修改密码</x-ui.tabs-trigger>
+            @can('system.trash-cleanup.view')
+            <x-ui.tabs-trigger value="trash">数据清理</x-ui.tabs-trigger>
+            @endcan
         </div>
 
         {{-- ==================== 个人资料 ==================== --}}
@@ -132,5 +135,25 @@
                 </x-ui.card-content>
             </x-ui.card>
         </x-ui.tabs-content>
+
+        {{-- ==================== 数据清理 ==================== --}}
+        @can('system.trash-cleanup.view')
+        <x-ui.tabs-content value="trash">
+            <x-ui.card class="max-w-2xl">
+                <x-ui.card-header>
+                    <x-ui.card-title>已删除单据统计与清理</x-ui.card-title>
+                </x-ui.card-header>
+                <x-ui.card-content>
+                    <div class="space-y-4">
+                        <p class="text-sm text-muted-foreground">永久清理系统中已软删除的业务单据，释放存储空间。此操作不可恢复。</p>
+                        <a href="{{ route('trash-cleanup') }}" class="inline-flex items-center gap-2 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition-colors">
+                            <x-ui.icon name="trash" class="w-4 h-4" />
+                            前往数据清理
+                        </a>
+                    </div>
+                </x-ui.card-content>
+            </x-ui.card>
+        </x-ui.tabs-content>
+        @endcan
     </x-ui.tabs>
 </div>

@@ -147,6 +147,15 @@
                         </span>
                     </a>
 
+                    @can('system.trash-cleanup.view')
+                    <a href="{{ route('trash-cleanup') }}" class="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground">
+                        <span class="flex items-center gap-2">
+                            <x-ui.icon name="trash" class="w-4 h-4" />
+                            数据清理
+                        </span>
+                    </a>
+                    @endcan
+
                     <div role="separator" class="-mx-1 my-1 h-px bg-border"></div>
 
                     <button type="button" onclick="document.getElementById('logout-form').submit();"

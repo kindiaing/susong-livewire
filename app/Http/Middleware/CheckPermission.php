@@ -126,6 +126,7 @@ class CheckPermission
         'wechat-users'        => 'system.wechat-user.view',
         'units'               => 'system.system-config.view',
         'system-notifications' => 'system.notification.view',
+        'trash-cleanup'        => 'system.trash-cleanup.view',
     ];
 
     /**
