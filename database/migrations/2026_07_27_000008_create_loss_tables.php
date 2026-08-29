@@ -51,6 +51,7 @@ return new class extends Migration
             $table->string('reason', 255)->nullable()->comment('明细损耗原因');
             $table->json('evidence_urls')->nullable()->comment('凭证图片数组');
             $table->timestamps();
+            $table->softDeletes();
             $table->index('loss_order_id');
             $table->index('sku_id');
             $table->index('loss_type');

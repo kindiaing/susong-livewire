@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
 /**
@@ -32,6 +33,7 @@ use Illuminate\Support\Carbon;
  */
 class DeliveryTask extends Model
 {
+    use SoftDeletes;
     // 状态常量（tinyint）
     public const STATUS_PENDING = 1;       // 待配送
     public const STATUS_ASSIGNED = 2;      // 已分配

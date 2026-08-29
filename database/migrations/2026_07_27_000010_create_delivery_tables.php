@@ -45,6 +45,7 @@ return new class extends Migration
 
             $table->string('remark', 500)->nullable()->comment('备注');
             $table->timestamps();
+            $table->softDeletes();
             $table->index('route_id');
             $table->index('delivery_date');
             $table->index(['route_id', 'delivery_date']);
