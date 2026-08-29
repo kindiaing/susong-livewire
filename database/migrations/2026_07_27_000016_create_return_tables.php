@@ -50,6 +50,7 @@ return new class extends Migration
             $table->bigInteger('actual_amount')->default(0)->comment('实际出库金额');
             $table->string('reason', 255)->nullable()->comment('明细原因');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('purchase_return_id');
             $table->index('purchase_order_item_id');
@@ -95,6 +96,7 @@ return new class extends Migration
             $table->bigInteger('refund_amount')->default(0)->comment('实际退款金额');
             $table->string('reason', 255)->nullable()->comment('明细原因');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('order_return_id');
             $table->index('order_item_id');

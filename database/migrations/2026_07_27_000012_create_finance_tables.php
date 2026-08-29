@@ -77,6 +77,7 @@ return new class extends Migration
             $table->unsignedBigInteger('purchase_order_id')->comment('采购单ID');
             $table->bigInteger('amount')->default(0)->comment('金额');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index('supplier_settlement_id');
             $table->index('purchase_order_id');

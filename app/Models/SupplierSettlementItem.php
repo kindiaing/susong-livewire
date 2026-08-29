@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class SupplierSettlementItem extends Model
 {
+    use SoftDeletes;
 
     protected $fillable = [
         'supplier_settlement_id',

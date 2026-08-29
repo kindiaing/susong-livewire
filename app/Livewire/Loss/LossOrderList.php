@@ -253,6 +253,7 @@ class LossOrderList extends Component
 
             return;
         }
+        $item->items()->delete();
         $item->delete();
         $this->toastSuccess('损耗单已删除');
         $this->showDeleteConfirm = false;

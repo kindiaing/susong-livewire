@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * 价格策略明细模型（已弃用 — V1.10.0 起由 PricingService + Promotion 体系替代）

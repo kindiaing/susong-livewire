@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class OrderReturnItem extends Model
 {
+    use SoftDeletes;
 
     protected $fillable = [
         'order_return_id',
