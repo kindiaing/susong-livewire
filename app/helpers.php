@@ -263,6 +263,11 @@ function status_badge(int|string $status, string $type = 'default', string $labe
             'in' => ['入库', 'bg-green-100 text-green-700'],
             'out' => ['出库', 'bg-red-100 text-red-700'],
         ],
+        'picking_task' => [
+            1 => ['待分配', 'bg-orange-100 text-orange-700'],
+            2 => ['拣货中', 'bg-blue-100 text-blue-700'],
+            3 => ['已完成', 'bg-green-100 text-green-700'],
+        ],
         'vehicle' => [
             1 => ['可用', 'bg-green-100 text-green-700'],
             2 => ['维修中', 'bg-orange-100 text-orange-700'],

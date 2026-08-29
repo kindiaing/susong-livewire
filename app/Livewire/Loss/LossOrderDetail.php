@@ -24,7 +24,7 @@ class LossOrderDetail extends Component
 
     public function loadLossOrder(int $id): void
     {
-        $this->lossOrder = LossOrder::with(['warehouse', 'items.sku', 'items.supplier', 'applicant', 'reviewer'])
+        $this->lossOrder = LossOrder::with(['warehouse', 'items.sku', 'items.supplier', 'applicant', 'reviewer', 'auditLogs.operator'])
             ->findOrFail($id);
     }
 

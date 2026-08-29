@@ -64,6 +64,7 @@ class PickingTaskDetail extends Component
             'picker',
             'items.sku',
             'items.order',
+            'auditLogs.operator',
         ])->findOrFail($this->pickingTaskId);
     }
 
@@ -503,8 +504,10 @@ class PickingTaskDetail extends Component
             ->latest('id')
             ->get();
 
+        $auditLogs = $this->pickingTask->auditLogs()->orderByDesc('id')->take(50)->get();
+
         return view('livewire.inventory.picking-task-detail', compact(
-            'pickingTask', 'skuSummary', 'merchantGroups', 'isSuperAdmin', 'discrepancies'
+            'pickingTask', 'skuSummary', 'merchantGroups', 'isSuperAdmin', 'discrepancies', 'auditLogs'
         ))
             ->layout('components.app-layout')
             ->title('拣货总单详情 - '.($pickingTask->task_no ?? ''));

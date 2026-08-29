@@ -1,4 +1,4 @@
-<div class="">
+<div class="" x-data="{ activeTab: 'items' }">
     {{-- 顶部：返回 + 单号 + 状态 + 操作按钮 --}}
     <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
@@ -49,6 +49,21 @@
         @endif
     </div>
 
+    {{-- Tab 切换 --}}
+    <div class="border-b mb-4">
+        <nav class="flex gap-6">
+            <button type="button" @click="activeTab = 'items'" :class="activeTab === 'items' ? 'border-blue-600 text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'" class="pb-2 text-sm font-medium border-b-2 transition-colors">损耗明细</button>
+            <button type="button" @click="activeTab = 'logs'" :class="activeTab === 'logs' ? 'border-blue-600 text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'" class="pb-2 text-sm font-medium border-b-2 transition-colors">
+                状态变更记录
+                @if($lossOrder->auditLogs->isNotEmpty())
+                    <span class="ml-1.5 inline-flex items-center justify-center rounded-full bg-muted text-muted-foreground text-[10px] font-medium px-1.5 py-0.5 leading-none">{{ $lossOrder->auditLogs->count() }}</span>
+                @endif
+            </button>
+        </nav>
+    </div>
+
+    {{-- Tab 内容：损耗明细 --}}
+    <div x-show="activeTab === 'items'" x-transition>
     {{-- 金额信息 --}}
     <div class="rounded-lg border bg-card mb-6">
         <div class="px-4 py-2 border-b">
@@ -120,89 +135,62 @@
         @endif
     </div>
 
-    {{-- 状态轨迹 --}}
-    <div class="rounded-lg border bg-card">
-        <div class="px-4 py-2 border-b">
-            <h2 class="text-sm font-semibold text-foreground">状态轨迹</h2>
+    </div>
+    </div>
+
+    {{-- Tab 内容：状态变更记录 --}}
+    <div x-show="activeTab === 'logs'" x-transition>
+        @if($lossOrder->auditLogs->isNotEmpty())
+        <div class="rounded-lg border bg-card">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b text-[11px] font-medium text-muted-foreground bg-muted/30">
+                        <th class="px-4 py-2 text-left w-[180px]">时间</th>
+                        <th class="px-4 py-2 text-left w-[120px]">操作</th>
+                        <th class="px-4 py-2 text-left">状态变更</th>
+                        <th class="px-4 py-2 text-left w-[120px]">操作人</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($lossOrder->auditLogs->sortByDesc('created_at') as $log)
+                    <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors">
+                        <td class="px-4 py-2 text-muted-foreground tabular-nums">{{ $log->created_at?->format('Y-m-d H:i:s') }}</td>
+                        <td class="px-4 py-2">
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium
+                                @if($log->action === 'cancel') bg-red-100 text-red-700
+                                @elseif($log->action === 'rollback') bg-purple-100 text-purple-700
+                                @elseif($log->action === 'status_change') bg-blue-100 text-blue-700
+                                @elseif($log->action === 'create') bg-green-100 text-green-700
+                                @elseif($log->action === 'approve') bg-green-100 text-green-700
+                                @elseif($log->action === 'reject') bg-red-100 text-red-700
+                                @else bg-muted text-muted-foreground
+                                @endif
+                            ">{{ $log->action_label }}</span>
+                        </td>
+                        <td class="px-4 py-2">
+                            @php
+                                $before = $log->before_data ?? [];
+                                $after = $log->after_data ?? [];
+                                $beforeStatus = $before['status'] ?? null;
+                                $afterStatus = $after['status'] ?? null;
+                            @endphp
+                            @if($beforeStatus && $afterStatus)
+                                {!! status_badge($beforeStatus, 'loss_status') !!}
+                                <x-ui.icon name="arrow-right" class="w-3.5 h-3.5 inline text-muted-foreground mx-1" />
+                                {!! status_badge($afterStatus, 'loss_status') !!}
+                            @else
+                                <span class="text-muted-foreground">-</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-2 text-foreground">{{ $log->operator?->name ?? '系统' }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
-        <div class="divide-y">
-            <div class="px-4 py-3 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <span class="w-2 h-2 rounded-full @if($lossOrder->status >= 1) bg-yellow-500 @else bg-gray-300 @endif"></span>
-                    <div>
-                        <div class="text-sm text-foreground font-medium">待审核</div>
-                        @if($lossOrder->created_at)
-                        <div class="text-xs text-muted-foreground mt-0.5">{{ $lossOrder->created_at->format('Y-m-d H:i') }}</div>
-                        @endif
-                    </div>
-                </div>
-                @if($lossOrder->status >= 1)
-                    <span class="text-green-600 text-xs">已完成</span>
-                @endif
-            </div>
-            <div class="px-4 py-3 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <span class="w-2 h-2 rounded-full @if($lossOrder->status >= 2) bg-blue-500 @else bg-gray-300 @endif"></span>
-                    <div>
-                        <div class="text-sm text-foreground font-medium">已通过</div>
-                        @if($lossOrder->reviewed_at)
-                        <div class="text-xs text-muted-foreground mt-0.5">{{ $lossOrder->reviewed_at->format('Y-m-d H:i') }}</div>
-                        @endif
-                    </div>
-                </div>
-                @if($lossOrder->status >= 2)
-                    <span class="text-green-600 text-xs">已完成</span>
-                @elseif($lossOrder->status === 1)
-                    <span class="text-yellow-600 text-xs">进行中</span>
-                @endif
-            </div>
-            @if($lossOrder->source_type !== 'purchase_order')
-            <div class="px-4 py-3 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <span class="w-2 h-2 rounded-full @if($lossOrder->status >= 3) bg-green-500 @else bg-gray-300 @endif"></span>
-                    <div>
-                        <div class="text-sm text-foreground font-medium">已执行</div>
-                        @if($lossOrder->executed_at)
-                        <div class="text-xs text-muted-foreground mt-0.5">{{ $lossOrder->executed_at->format('Y-m-d H:i') }}</div>
-                        @endif
-                    </div>
-                </div>
-                @if($lossOrder->status >= 3)
-                    <span class="text-green-600 text-xs">已完成</span>
-                @elseif($lossOrder->status === 2)
-                    <span class="text-yellow-600 text-xs">进行中</span>
-                @endif
-            </div>
-            @endif
-            <div class="px-4 py-3 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <span class="w-2 h-2 rounded-full @if($lossOrder->status >= 4) bg-gray-500 @else bg-gray-300 @endif"></span>
-                    <div>
-                        <div class="text-sm text-foreground font-medium">已关闭</div>
-                        @if($lossOrder->closed_at)
-                        <div class="text-xs text-muted-foreground mt-0.5">{{ $lossOrder->closed_at->format('Y-m-d H:i') }}</div>
-                        @endif
-                    </div>
-                </div>
-                @if($lossOrder->status >= 4)
-                    <span class="text-green-600 text-xs">已完成</span>
-                @elseif($lossOrder->status === 3 || ($lossOrder->status === 2 && $lossOrder->source_type === 'purchase_order'))
-                    <span class="text-yellow-600 text-xs">进行中</span>
-                @endif
-            </div>
-            @if($lossOrder->status === 9)
-            <div class="px-4 py-3 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <span class="w-2 h-2 rounded-full bg-red-500"></span>
-                    <div>
-                        <div class="text-sm text-foreground font-medium">已作废</div>
-                        <div class="text-xs text-muted-foreground mt-0.5">{{ $lossOrder->reviewed_at?->format('Y-m-d H:i') }}</div>
-                    </div>
-                </div>
-                <span class="text-red-600 text-xs">已终止</span>
-            </div>
-            @endif
-        </div>
+        @else
+        <div class="rounded-lg border bg-card px-6 py-12 text-center text-sm text-muted-foreground">暂无状态变更记录</div>
+        @endif
     </div>
 
     {{-- 审核弹窗 --}}

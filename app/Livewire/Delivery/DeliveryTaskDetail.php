@@ -48,6 +48,7 @@ class DeliveryTaskDetail extends Component
             'vehicle',
             'details.order',
             'sequences' => fn($q) => $q->orderBy('sequence_no'),
+            'auditLogs.operator',
         ])->findOrFail($this->taskId);
     }
 

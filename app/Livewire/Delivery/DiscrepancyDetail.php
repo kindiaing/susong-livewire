@@ -44,7 +44,7 @@ class DiscrepancyDetail extends Component
 
     public function loadDiscrepancy(int $id): void
     {
-        $this->discrepancy = Discrepancy::with(['order', 'orderItem.sku', 'sku', 'handler', 'restockReminders'])
+        $this->discrepancy = Discrepancy::with(['order', 'orderItem.sku', 'sku', 'handler', 'restockReminders', 'auditLogs.operator'])
             ->findOrFail($id);
     }
 

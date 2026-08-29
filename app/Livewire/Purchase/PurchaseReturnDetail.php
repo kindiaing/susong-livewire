@@ -52,7 +52,7 @@ class PurchaseReturnDetail extends Component
 
     public function loadReturn(int $id): void
     {
-        $this->return = PurchaseReturn::with(['purchaseOrder.items.sku.product', 'supplier', 'warehouse', 'operator', 'auditor', 'items.sku.product'])->findOrFail($id);
+        $this->return = PurchaseReturn::with(['purchaseOrder.items.sku.product', 'supplier', 'warehouse', 'operator', 'auditor', 'items.sku.product', 'auditLogs.operator'])->findOrFail($id);
         $this->items = $this->return->items;
 
         // 待审核状态同步可编辑明细行

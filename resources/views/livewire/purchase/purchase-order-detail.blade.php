@@ -84,7 +84,7 @@
         </div>
 
         {{-- 采购明细 Tab --}}
-        <div x-show="activeTab === 'items'">
+        <div x-show="activeTab === 'items'" x-transition>
         <table class="w-full text-sm">
             <thead>
                 <tr class="border-b text-[11px] font-medium text-muted-foreground bg-muted/30">
@@ -151,7 +151,7 @@
         </div>
 
         {{-- 状态变更记录 Tab --}}
-        <div x-show="activeTab === 'logs'">
+        <div x-show="activeTab === 'logs'" x-transition>
             @if($order->auditLogs->isNotEmpty())
             <div class="divide-y">
                 @foreach($order->auditLogs->sortByDesc('created_at') as $log)

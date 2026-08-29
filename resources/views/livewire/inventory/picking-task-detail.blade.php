@@ -1,4 +1,4 @@
-<div class="">
+<div class="" x-data="{ activeTab: 'sku' }">
     {{-- 页面标题 + 状态操作 --}}
     <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-3">
@@ -13,12 +13,7 @@
             </div>
         </div>
         <div class="flex items-center gap-3">
-            @php $taskStatusMap = [1 => '待分配', 2 => '拣货中', 3 => '已完成']; @endphp
-            @php $taskColorMap = [1 => 'orange', 2 => 'blue', 3 => 'green']; @endphp
-            @php $tc = $taskColorMap[$pickingTask->status] ?? 'gray'; @endphp
-            <span class="inline-flex items-center rounded px-2 py-1 text-sm font-medium bg-{{ $tc }}-100 text-{{ $tc }}-700">
-                {{ $taskStatusMap[$pickingTask->status] ?? '-' }}
-            </span>
+            {!! status_badge($pickingTask->status, 'picking_task') !!}
             @if($pickingTask->status === 1)
             <button type="button" wire:click="startPicking" class="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">开始拣货</button>
             @endif
@@ -108,20 +103,38 @@
         </div>
     </div>
 
-    {{-- 视图切换 --}}
-    <div class="flex items-center gap-2 mb-4">
-        <button type="button" wire:click="switchView('sku')"
-            class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors {{ $viewMode === 'sku' ? 'bg-blue-600 text-white' : 'bg-card border text-muted-foreground hover:text-foreground' }}">
-            SKU汇总视图
-        </button>
-        <button type="button" wire:click="switchView('merchant')"
-            class="rounded-md px-3 py-1.5 text-sm font-medium transition-colors {{ $viewMode === 'merchant' ? 'bg-blue-600 text-white' : 'bg-card border text-muted-foreground hover:text-foreground' }}">
-            商家分组视图
-        </button>
+    {{-- Tab 切换 --}}
+    <div class="border-b mb-4">
+        <nav class="flex gap-6">
+            <button type="button" @click="activeTab = 'sku'" :class="activeTab === 'sku' ? 'border-blue-600 text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'" class="pb-2 text-sm font-medium border-b-2 transition-colors">
+                SKU汇总
+                @if(count($skuSummary) > 0)
+                    <span class="ml-1.5 inline-flex items-center justify-center rounded-full bg-blue-100 text-blue-700 text-[10px] font-medium px-1.5 py-0.5 leading-none">{{ count($skuSummary) }}</span>
+                @endif
+            </button>
+            <button type="button" @click="activeTab = 'merchant'" :class="activeTab === 'merchant' ? 'border-blue-600 text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'" class="pb-2 text-sm font-medium border-b-2 transition-colors">
+                商家分组
+                @if(count($merchantGroups) > 0)
+                    <span class="ml-1.5 inline-flex items-center justify-center rounded-full bg-blue-100 text-blue-700 text-[10px] font-medium px-1.5 py-0.5 leading-none">{{ count($merchantGroups) }}</span>
+                @endif
+            </button>
+            <button type="button" @click="activeTab = 'discrepancy'" :class="activeTab === 'discrepancy' ? 'border-blue-600 text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'" class="pb-2 text-sm font-medium border-b-2 transition-colors">
+                差异单
+                @if($discrepancies->isNotEmpty())
+                    <span class="ml-1.5 inline-flex items-center justify-center rounded-full bg-orange-100 text-orange-700 text-[10px] font-medium px-1.5 py-0.5 leading-none">{{ $discrepancies->count() }}</span>
+                @endif
+            </button>
+            <button type="button" @click="activeTab = 'logs'" :class="activeTab === 'logs' ? 'border-blue-600 text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'" class="pb-2 text-sm font-medium border-b-2 transition-colors">
+                状态变更记录
+                @if($auditLogs->isNotEmpty())
+                    <span class="ml-1.5 inline-flex items-center justify-center rounded-full bg-muted text-muted-foreground text-[10px] font-medium px-1.5 py-0.5 leading-none">{{ $auditLogs->count() }}</span>
+                @endif
+            </button>
+        </nav>
     </div>
 
-    {{-- SKU汇总视图 --}}
-    @if($viewMode === 'sku')
+    {{-- Tab 内容：SKU汇总 --}}
+    <div x-show="activeTab === 'sku'" x-transition>
     <div class="rounded-lg border bg-card">
         <div class="px-6 py-4 border-b">
             <h3 class="text-sm font-semibold text-foreground">SKU汇总（{{ count($skuSummary) }} 种）</h3>
@@ -168,10 +181,10 @@
         <div class="px-6 py-8 text-center text-sm text-muted-foreground">暂无SKU汇总数据</div>
         @endif
     </div>
-    @endif
+    </div>
 
-    {{-- 商家分组视图 --}}
-    @if($viewMode === 'merchant')
+    {{-- Tab 内容：商家分组 --}}
+    <div x-show="activeTab === 'merchant'" x-transition>
     <div class="space-y-4">
         @foreach($merchantGroups as $group)
         @php $itemStatusMap = [1 => '待拣货', 2 => '已拣货', 3 => '差异']; @endphp
@@ -222,11 +235,12 @@
         </div>
         @endforeach
     </div>
-    @endif
+    </div>
 
-    {{-- 本任务差异单（就近可视） --}}
+    {{-- Tab 内容：差异单 --}}
+    <div x-show="activeTab === 'discrepancy'" x-transition>
     @if($discrepancies->isNotEmpty())
-    <div class="rounded-lg border bg-card mt-4">
+    <div class="rounded-lg border bg-card">
         <div class="px-6 py-4 border-b flex items-center justify-between">
             <h3 class="text-sm font-semibold text-foreground">本任务差异单（{{ $discrepancies->count() }}）</h3>
             <a href="{{ route('discrepancies') }}" class="text-xs text-blue-600 hover:text-blue-700 transition-colors">前往差异处理台 →</a>
@@ -266,7 +280,65 @@
         </table>
         </div>
     </div>
+    </div>
+    @else
+    <div class="rounded-lg border bg-card px-6 py-12 text-center text-sm text-muted-foreground">暂无差异单</div>
     @endif
+    </div>
+
+    {{-- Tab 内容：状态变更记录 --}}
+    <div x-show="activeTab === 'logs'" x-transition>
+        @if($auditLogs->isNotEmpty())
+        <div class="rounded-lg border bg-card">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b text-[11px] font-medium text-muted-foreground bg-muted/30">
+                        <th class="px-4 py-2 text-left w-[180px]">时间</th>
+                        <th class="px-4 py-2 text-left w-[120px]">操作</th>
+                        <th class="px-4 py-2 text-left">状态变更</th>
+                        <th class="px-4 py-2 text-left w-[120px]">操作人</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($auditLogs as $log)
+                    <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors">
+                        <td class="px-4 py-2 text-muted-foreground tabular-nums">{{ $log->created_at?->format('Y-m-d H:i:s') }}</td>
+                        <td class="px-4 py-2">
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium
+                                @if($log->action === 'cancel') bg-red-100 text-red-700
+                                @elseif($log->action === 'rollback') bg-purple-100 text-purple-700
+                                @elseif($log->action === 'status_change') bg-blue-100 text-blue-700
+                                @elseif($log->action === 'create') bg-green-100 text-green-700
+                                @elseif($log->action === 'complete') bg-green-100 text-green-700
+                                @else bg-muted text-muted-foreground
+                                @endif
+                            ">{{ $log->action_label }}</span>
+                        </td>
+                        <td class="px-4 py-2">
+                            @php
+                                $before = $log->before_data ?? [];
+                                $after = $log->after_data ?? [];
+                                $beforeStatus = $before['status'] ?? null;
+                                $afterStatus = $after['status'] ?? null;
+                            @endphp
+                            @if($beforeStatus && $afterStatus)
+                                {!! status_badge($beforeStatus, 'picking_task') !!}
+                                <x-ui.icon name="arrow-right" class="w-3.5 h-3.5 inline text-muted-foreground mx-1" />
+                                {!! status_badge($afterStatus, 'picking_task') !!}
+                            @else
+                                <span class="text-muted-foreground">-</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-2 text-foreground">{{ $log->operator?->name ?? '系统' }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @else
+        <div class="rounded-lg border bg-card px-6 py-12 text-center text-sm text-muted-foreground">暂无状态变更记录</div>
+        @endif
+    </div>
 
     {{-- 实拣录入弹窗（遮罩不可点击关闭） --}}
     @if($showPickedModal)

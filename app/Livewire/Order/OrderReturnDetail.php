@@ -41,7 +41,7 @@ class OrderReturnDetail extends Component
 
     public function loadReturn(int $id): void
     {
-        $this->return = OrderReturn::with(['order.items.sku.product', 'merchant', 'operator', 'auditor', 'items.sku.product'])->findOrFail($id);
+        $this->return = OrderReturn::with(['order.items.sku.product', 'merchant', 'operator', 'auditor', 'items.sku.product', 'auditLogs.operator'])->findOrFail($id);
         $this->items = $this->return->items;
 
         // 待审核状态同步可编辑明细行

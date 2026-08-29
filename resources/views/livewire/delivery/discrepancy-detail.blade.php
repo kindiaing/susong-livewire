@@ -1,4 +1,4 @@
-<div class="">
+<div class="" x-data="{ activeTab: 'info' }">
     {{-- 顶部：返回 + 单号 + 状态 + 操作按钮 --}}
     <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-3">
@@ -45,7 +45,28 @@
         @endif
     </div>
 
-    {{-- 差异信息 --}}
+    {{-- Tab 切换 --}}
+    <div class="border-b mb-4">
+        <nav class="flex gap-6">
+            <button type="button" @click="activeTab = 'info'" :class="activeTab === 'info' ? 'border-blue-600 text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'" class="pb-2 text-sm font-medium border-b-2 transition-colors">差异信息</button>
+            <button type="button" @click="activeTab = 'handle'" :class="activeTab === 'handle' ? 'border-blue-600 text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'" class="pb-2 text-sm font-medium border-b-2 transition-colors">处理信息</button>
+            @if($discrepancy->restockReminders->isNotEmpty())
+            <button type="button" @click="activeTab = 'restock'" :class="activeTab === 'restock' ? 'border-blue-600 text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'" class="pb-2 text-sm font-medium border-b-2 transition-colors">
+                关联补货提醒
+                <span class="ml-1.5 inline-flex items-center justify-center rounded-full bg-blue-100 text-blue-700 text-[10px] font-medium px-1.5 py-0.5 leading-none">{{ $discrepancy->restockReminders->count() }}</span>
+            </button>
+            @endif
+            <button type="button" @click="activeTab = 'logs'" :class="activeTab === 'logs' ? 'border-blue-600 text-foreground' : 'border-transparent text-muted-foreground hover:text-foreground'" class="pb-2 text-sm font-medium border-b-2 transition-colors">
+                状态变更记录
+                @if($discrepancy->auditLogs->isNotEmpty())
+                    <span class="ml-1.5 inline-flex items-center justify-center rounded-full bg-muted text-muted-foreground text-[10px] font-medium px-1.5 py-0.5 leading-none">{{ $discrepancy->auditLogs->count() }}</span>
+                @endif
+            </button>
+        </nav>
+    </div>
+
+    {{-- Tab 内容：差异信息 --}}
+    <div x-show="activeTab === 'info'" x-transition>
     <div class="rounded-lg border bg-card mb-6">
         <div class="px-4 py-2 border-b">
             <h2 class="text-sm font-semibold text-foreground">差异信息</h2>
@@ -75,8 +96,10 @@
             @endif
         </div>
     </div>
+    </div>
 
-    {{-- 处理信息 --}}
+    {{-- Tab 内容：处理信息 --}}
+    <div x-show="activeTab === 'handle'" x-transition>
     <div class="rounded-lg border bg-card mb-6">
         <div class="px-4 py-2 border-b">
             <h2 class="text-sm font-semibold text-foreground">处理信息</h2>
@@ -102,8 +125,10 @@
             @endif
         </div>
     </div>
+    </div>
 
-    {{-- 关联补货提醒 --}}
+    {{-- Tab 内容：关联补货提醒 --}}
+    <div x-show="activeTab === 'restock'" x-transition>
     @if($discrepancy->restockReminders->isNotEmpty())
     <div class="rounded-lg border bg-card mb-6">
         <div class="px-4 py-2 border-b">
@@ -130,6 +155,60 @@
         </div>
     </div>
     @endif
+    </div>
+
+    {{-- Tab 内容：状态变更记录 --}}
+    <div x-show="activeTab === 'logs'" x-transition>
+        @if($discrepancy->auditLogs->isNotEmpty())
+        <div class="rounded-lg border bg-card">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="border-b text-[11px] font-medium text-muted-foreground bg-muted/30">
+                        <th class="px-4 py-2 text-left w-[180px]">时间</th>
+                        <th class="px-4 py-2 text-left w-[120px]">操作</th>
+                        <th class="px-4 py-2 text-left">状态变更</th>
+                        <th class="px-4 py-2 text-left w-[120px]">操作人</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($discrepancy->auditLogs->sortByDesc('created_at') as $log)
+                    <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors">
+                        <td class="px-4 py-2 text-muted-foreground tabular-nums">{{ $log->created_at?->format('Y-m-d H:i:s') }}</td>
+                        <td class="px-4 py-2">
+                            <span class="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium
+                                @if($log->action === 'cancel') bg-red-100 text-red-700
+                                @elseif($log->action === 'rollback') bg-purple-100 text-purple-700
+                                @elseif($log->action === 'status_change') bg-blue-100 text-blue-700
+                                @elseif($log->action === 'create') bg-green-100 text-green-700
+                                @else bg-muted text-muted-foreground
+                                @endif
+                            ">{{ $log->action_label }}</span>
+                        </td>
+                        <td class="px-4 py-2">
+                            @php
+                                $before = $log->before_data ?? [];
+                                $after = $log->after_data ?? [];
+                                $beforeStatus = $before['status'] ?? null;
+                                $afterStatus = $after['status'] ?? null;
+                            @endphp
+                            @if($beforeStatus && $afterStatus)
+                                {!! status_badge($beforeStatus, 'discrepancy') !!}
+                                <x-ui.icon name="arrow-right" class="w-3.5 h-3.5 inline text-muted-foreground mx-1" />
+                                {!! status_badge($afterStatus, 'discrepancy') !!}
+                            @else
+                                <span class="text-muted-foreground">-</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-2 text-foreground">{{ $log->operator?->name ?? '系统' }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @else
+        <div class="rounded-lg border bg-card px-6 py-12 text-center text-sm text-muted-foreground">暂无状态变更记录</div>
+        @endif
+    </div>
 
     {{-- 处理弹窗 --}}
     @if($showProcessModal)

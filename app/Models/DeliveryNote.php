@@ -106,4 +106,12 @@ class DeliveryNote extends Model
     {
         return $this->hasMany(DeliveryNoteItem::class);
     }
+
+    /**
+     * 关联审计日志
+     */
+    public function auditLogs()
+    {
+        return $this->morphMany(AuditLog::class, 'model', 'model_type', 'model_id');
+    }
 }

@@ -63,6 +63,7 @@ class DeliveryNoteDetail extends Component
             'merchant',
             'items.sku',
             'deliveryTask',
+            'auditLogs.operator',
         ])->findOrFail($this->noteId);
     }
 

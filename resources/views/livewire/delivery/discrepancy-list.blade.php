@@ -64,7 +64,7 @@
     @endphp
 
     <div class="rounded-lg border bg-card">
-        <div class="grid gap-3 border-b px-6 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider" style="grid-template-columns: {{ $gridCols }}">
+        <div class="grid gap-3 border-b px-6 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider" style="grid-template-columns: {{ $gridCols }}">
             <div><input type="checkbox" wire:model.live="selectAllPage" class="rounded" /></div>
             <div>差异编号</div>
             @foreach($visibleCols as $col)
@@ -74,7 +74,7 @@
         </div>
 
         @forelse($items as $item)
-            <div class="grid gap-3 border-b last:border-b-0 px-6 py-3 items-center hover:bg-muted/30 transition-colors"
+            <div class="grid gap-3 border-b last:border-b-0 px-6 py-2 items-center hover:bg-muted/30 transition-colors"
                  style="grid-template-columns: {{ $gridCols }}"
                  wire:key="discrepancy-{{ $item->id }}">
                 <div><input type="checkbox" value="{{ $item->id }}" wire:model.live="selectedIds" class="rounded" /></div>
