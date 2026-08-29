@@ -203,8 +203,6 @@
         </table>
         @endif
     </div>
-
-    </div>
     </div>
 
     {{-- Tab 内容：状态变更记录 --}}
