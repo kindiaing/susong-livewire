@@ -1,24 +1,3 @@
----
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: '00c88f97-0fb4-4671-9a84-45b41ea3dc38'
-  PropagateID: '00c88f97-0fb4-4671-9a84-45b41ea3dc38'
-  ReservedCode1: '2ce82067-db3b-4f93-a22e-54be4bd8fcec'
-  ReservedCode2: '2ce82067-db3b-4f93-a22e-54be4bd8fcec'
----
-
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: '431a7897-da0d-4f35-9e85-c01fdf8658c1'
-  PropagateID: '431a7897-da0d-4f35-9e85-c01fdf8658c1'
-  ReservedCode1: 'afc85985-53f0-49e5-a7ec-3c03722bc746'
-  ReservedCode2: 'afc85985-53f0-49e5-a7ec-3c03722bc746'
----
-
 # 待开发任务清单
 > 尚未开始开发的功能项。开发完成并提交后，将对应条目移动到 `13_TaskList_开发任务清单.md` 的已完成列表中。
 > 按优先级分类：P0 > P1 > P2 > P3
