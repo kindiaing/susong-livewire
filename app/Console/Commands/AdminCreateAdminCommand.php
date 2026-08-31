@@ -28,15 +28,15 @@ class AdminCreateAdminCommand extends Command
     {
         $force = $this->option('force');
 
-        $name = $this->option('name') ?: ($force ? 'Admin' : text(
+        $name = $this->option('name') ?: ($force ? 'seeding' : text(
             label: '请输入管理员用户名',
-            placeholder: 'admin',
+            placeholder: 'seeding',
             required: true,
         ));
 
-        $email = $this->option('email') ?: ($force ? 'admin@susong.com' : text(
+        $email = $this->option('email') ?: ($force ? 'seeding@ihopeso.cn' : text(
             label: '请输入管理员邮箱',
-            placeholder: 'admin@susong.com',
+            placeholder: 'seeding@ihopeso.cn',
             required: true,
             validate: fn ($value) => filter_var($value, FILTER_VALIDATE_EMAIL) ? null : '请输入有效的邮箱地址',
         ));
