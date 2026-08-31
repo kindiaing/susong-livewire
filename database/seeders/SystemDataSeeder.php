@@ -5,7 +5,9 @@ namespace Database\Seeders;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Supplier;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * 核心数据 Seeder
@@ -14,9 +16,10 @@ use Illuminate\Database\Seeder;
  * - 创建权限树（模块 → 页面 → 按钮），三级格式命名（模块.页面.动作）
  * - 每个页面级权限自动生成对应的 .view 页面访问权限
  * - 为各角色分配对应权限
+ * - 创建默认超管用户（seeding）
  * - 创建默认供应商/仓库/单位
  *
- * 不创建用户账号——请使用 admin:create-admin 命令创建第一个管理员。
+ * 不创建普通用户账号——测试用户请使用 admin:create-user 命令或 admin:install --seed。
  *
  * 此 Seeder 由 DatabaseSeeder 自动调用，适用于生产环境。
  */
@@ -224,6 +227,7 @@ class SystemDataSeeder extends Seeder
         $this->ensureDefaultSupplier();
         $this->ensureDefaultWarehouse();
         $this->ensureDefaultUnits();
+        $this->ensureSuperAdmin();
 
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
     }
@@ -481,6 +485,38 @@ class SystemDataSeeder extends Seeder
                     'sort' => $unit['sort'],
                 ]
             );
+        }
+    }
+
+    /**
+     * 创建默认超管用户（seeding）
+     *
+     * 用户名: seeding
+     * 邮箱:   seeding@ihopeso.cn
+     * 密码:   Password
+     * 角色:   super_admin（全部权限）
+     */
+    protected function ensureSuperAdmin(): void
+    {
+        $user = User::firstOrCreate(
+            ['username' => 'seeding'],
+            [
+                'name' => 'seeding',
+                'email' => 'seeding@ihopeso.cn',
+                'password' => Hash::make('Password'),
+                'email_verified_at' => now(),
+                'status' => 1,
+            ]
+        );
+
+        $superAdminRole = Role::where('name', 'super_admin')->first();
+        if ($superAdminRole && ! $user->hasRole('super_admin')) {
+            $user->assignRole($superAdminRole);
+        }
+
+        // super_admin 分配全部权限
+        if (class_exists(\Spatie\Permission\Models\Permission::class)) {
+            $user->syncPermissions(\Spatie\Permission\Models\Permission::all());
         }
     }
 }

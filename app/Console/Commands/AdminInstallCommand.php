@@ -74,9 +74,10 @@ class AdminInstallCommand extends Command
         $this->info('╚══════════════════════════════════════╝');
         $this->newLine();
 
-        $this->warn('  尚未创建管理员账号，请执行以下命令创建：');
-        $this->line('    <info>php artisan admin:create-admin</info>          # 交互式创建超管/管理员');
-        $this->line('    <info>php artisan admin:create-admin --force</info>  # 快速创建默认超管');
+        $this->line('  超管账号已自动创建：');
+        $this->line('    用户名: <info>seeding</info>');
+        $this->line('    邮箱:   <info>seeding@ihopeso.cn</info>');
+        $this->line('    密码:   <info>Password</info>');
         $this->newLine();
 
         if ($seed) {
@@ -84,7 +85,7 @@ class AdminInstallCommand extends Command
             $this->newLine();
         }
 
-        $this->warn('  ⚠ 生产环境部署前，请修改默认管理员密码！');
+        $this->warn('  ⚠ 生产环境部署前，请修改默认超管密码！');
 
         return self::SUCCESS;
     }
