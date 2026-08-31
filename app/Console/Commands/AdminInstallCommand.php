@@ -40,11 +40,30 @@ class AdminInstallCommand extends Command
             }
         }
 
-        // 1. 迁移（始终 migrate:fresh，清空并重建）
+        // 1. 迁移
+        // 本地开发：migrate:fresh 清空并重建（admin:install 默认行为）
+        // Cloud 环境：migrate:fresh 被静默拦截（prohibited），不抛异常但也不建表，
+        //              因此必须检测表是否真正创建，失败则自动降级为 migrate（增量迁移）
         $this->newLine();
-        $this->info('[1/3] 执行数据库迁移（migrate:fresh）...');
-        $this->warn('  ⚠ 将清空所有数据并重建！');
+        $this->info('[1/3] 执行数据库迁移...');
+
         Artisan::call('migrate:fresh', ['--force' => true], $this->output);
+
+        // migrate:fresh 在某些托管环境（Laravel Cloud 等）会被静默跳过，
+        // 不抛异常也不建表，需要检测关键表是否真实存在
+        if (! Schema::hasTable('roles')) {
+            $this->warn('  ⚠ migrate:fresh 未生效（当前环境可能禁止此命令）');
+            $this->info('  → 自动降级为 migrate（增量迁移，不清空已有数据）');
+            Artisan::call('migrate', ['--force' => true], $this->output);
+
+            if (! Schema::hasTable('roles')) {
+                $this->error('  ✗ 迁移失败：roles 表仍不存在，终止安装');
+                return self::FAILURE;
+            }
+            $this->info('  ✓ migrate 完成（增量迁移）');
+        } else {
+            $this->info('  ✓ migrate:fresh 完成（已清空并重建）');
+        }
 
         $this->info('  ✓ 迁移完成（角色、审核配置、系统配置已由 Migration 自动初始化）');
 
