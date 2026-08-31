@@ -5,13 +5,23 @@ import { commandPalette } from './command-palette.js';
 window.Pusher = Pusher;
 window.commandPalette = commandPalette;
 
-window.Echo = new Echo({
-    broadcaster: 'pusher',
-    key: import.meta.env.VITE_PUSHER_APP_KEY,
-    cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
-    forceTLS: true,
-    encrypted: true,
-});
+// 广播初始化（Reverb 兼容 Pusher 协议，broadcaster 仍用 'pusher'）
+// 用 try-catch 包裹，防止 Cloud 环境构建时 VITE_REVERB_APP_KEY 为空导致异常中断整个模块
+try {
+    window.Echo = new Echo({
+        broadcaster: 'pusher',
+        key: import.meta.env.VITE_REVERB_APP_KEY,
+        cluster: import.meta.env.VITE_REVERB_APP_CLUSTER,
+        wsHost: import.meta.env.VITE_REVERB_HOST,
+        wsPort: import.meta.env.VITE_REVERB_PORT,
+        wssPort: import.meta.env.VITE_REVERB_PORT,
+        forceTLS: import.meta.env.VITE_REVERB_SCHEME === 'https',
+        disableStats: true,
+        enabledTransports: ['ws', 'wss'],
+    });
+} catch (e) {
+    console.error('Echo initialization failed:', e);
+}
 
 // searchable-select 组件 Alpine.js 逻辑
 window.__searchableSelect = (data) => ({
