@@ -12,7 +12,7 @@ use Spatie\Permission\Exceptions\UnauthorizedException;
  *
  * 根据路由名称自动匹配权限：
  * - 路由名 → 权限名映射（config 权限路由映射表）
- * - super_admin 角色自动放行
+ * - admin 角色自动放行
  * - 无匹配权限名的路由默认放行（待后续逐步收敛）
  */
 class CheckPermission
@@ -134,9 +134,6 @@ class CheckPermission
      */
     // 管理员专属路由已废弃，权限由权限表统一控制
     // 如果需要限制某路由仅管理员可访问，在权限树中只给 admin 分配即可
-    private const SUPER_ADMIN_ONLY = [
-    ];
-
     public function handle(Request $request, Closure $next)
     {
         $user = Auth::user();
@@ -152,12 +149,8 @@ class CheckPermission
             return $next($request);
         }
 
-        // 超管专属路由检查
-        if (in_array($routeName, self::SUPER_ADMIN_ONLY, true)) {
-            if (! $user->hasRole('admin')) {
-                abort(403, '仅管理员可访问此页面');
-            }
-
+        // admin 角色自动放行所有权限
+        if ($user->hasRole('admin')) {
             return $next($request);
         }
 
@@ -166,11 +159,6 @@ class CheckPermission
 
         // 未配置映射的路由：仅需登录即可访问（渐进式收敛）
         if ($permission === null) {
-            return $next($request);
-        }
-
-        // admin 角色自动放行所有权限
-        if ($user->hasRole('admin')) {
             return $next($request);
         }
 

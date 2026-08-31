@@ -1,3 +1,13 @@
+---
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: 'bf9f3f1d-3454-4956-9a05-07eddbff0e70'
+  PropagateID: 'bf9f3f1d-3454-4956-9a05-07eddbff0e70'
+  ReservedCode1: '706423a0-918a-4652-bf89-cfc265b13d38'
+  ReservedCode2: '706423a0-918a-4652-bf89-cfc265b13d38'
+---
 
 # API 前后端接口文档
 
@@ -106,11 +116,10 @@
     "expires_at": "2026-08-01T10:30:00+08:00",
     "user": {
       "id": 1,
-      "username": "seeding",
+      "username": "admin",
       "name": "系统管理员",
-      "phone": "15690631151",
       "avatar": null,
-      "roles": ["super_admin"],
+      "roles": ["admin"],
       "permissions": ["*"]
     }
   }
@@ -1636,7 +1645,7 @@
 | applicant_role_id | int | 否 | 申请人角色ID |
 | reviewer_role_id | int | 否 | 审核人角色ID |
 
-> 仅超级管理员可修改。变更即时生效，变更记录写入审计日志。
+> 仅管理员可修改。变更即时生效，变更记录写入审计日志。
 
 ### 15.2 审核列表接口
 
@@ -1697,7 +1706,7 @@
 | :--- | :--- | :--- | :--- |
 | config_value | string | 是 | 配置值 |
 
-> 仅超级管理员可操作。变更强制写入审计日志。
+> 仅管理员可操作。变更强制写入审计日志。
 
 ### 16.2 轮播广告接口
 

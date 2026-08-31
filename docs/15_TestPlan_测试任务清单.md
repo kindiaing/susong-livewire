@@ -1,3 +1,14 @@
+---
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: 'd5fc9729-b19b-48cd-91c5-4fea66e1f143'
+  PropagateID: 'd5fc9729-b19b-48cd-91c5-4fea66e1f143'
+  ReservedCode1: '3a29822f-1401-45c5-833c-9538eec602dd'
+  ReservedCode2: '3a29822f-1401-45c5-833c-9538eec602dd'
+---
+
 # 测试任务清单
 
 > 覆盖采购、订单、拣货、配送、应收应付（含差异、损耗）全链路测试流程
@@ -11,8 +22,7 @@
 | 项目 | 说明 |
 | :--- | :--- |
 | 后台地址 | http://localhost:8000 |
-| 超级管理员 | username: `seeding` / password: `Password` |
-| 管理员 | username: `admin1` / password: `Password` |
+| 管理员 | username: `admin` / password: `Password` |
 | 运营专员 | username: `operator1` / password: `Password` |
 | 运营经理 | username: `ops_manager` / password: `Password` |
 | 财务专员 | username: `finance1` / password: `Password` |
@@ -26,15 +36,15 @@
 
 ## 角色权限矩阵速查
 
-| 权限/操作 | super_admin | admin | operator | operator_manager | finance | cashier | finance_manager | picker | driver | merchant |
+| 权限/操作 | admin | operator | operator_manager | finance | cashier | finance_manager | picker | driver | merchant |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| 删除(.delete) | Y | Y | - | - | - | - | - | - | - | - |
-| 作废(.cancel) | Y | Y | - | - | - | - | - | - | - | - |
-| 状态回退 | Y | Y | - | - | - | - | - | - | - | - |
-| 审核操作(.approve) | Y | Y | - | Y(有限) | - | - | Y(有限) | - | - | - |
-| 全模块操作 | Y | Y | - | Y(除删/作废) | - | - | - | - | - | - |
+| 删除(.delete) | Y | - | - | - | - | - | - | - | - |
+| 作废(.cancel) | Y | - | - | - | - | - | - | - | - |
+| 状态回退 | Y | - | - | - | - | - | - | - | - |
+| 审核操作(.approve) | Y | - | Y(有限) | - | - | Y(有限) | - | - | - |
+| 全模块操作 | Y | - | Y(除删/作废) | - | - | - | - | - | - |
 
-> 状态回退通过 `can_rollback_status()` 硬编码角色检查，仅 super_admin 和 admin 可操作，不走权限系统
+> 状态回退通过 `can_rollback_status()` 硬编码角色检查，仅 admin 可操作，不走权限系统
 
 ---
 
@@ -60,7 +70,7 @@
 | 用例编号 | 用例名称 | 前置条件 | 操作步骤 | 预期结果 | 优先级 |
 | :--- | :--- | :--- | :--- | :--- | :---: |
 | TC-SETUP-001 | 执行数据库重建 | 命令行可用 | 运行 `php artisan admin:install --seed --reset --force` | 命令执行无错误，所有迁移和Seeder成功 | P0 |
-| TC-SETUP-002 | 验证角色数量 | 数据库已重建 | 查询 roles 表 | 10 个角色：super_admin/admin/operator/operator_manager/finance/cashier/finance_manager/picker/driver/merchant | P0 |
+| TC-SETUP-002 | 验证角色数量 | 数据库已重建 | 查询 roles 表 | 9 个角色：admin/operator/operator_manager/finance/cashier/finance_manager/picker/driver/merchant | P0 |
 | TC-SETUP-003 | 验证权限树完整性 | 数据库已重建 | 查询 permissions 表 | 三级树结构完整，含模块/页面/按钮级权限，约120+条 | P0 |
 | TC-SETUP-004 | 验证审核类型配置 | 数据库已重建 | 查询 approval_type_configs 表 | 20 条审核类型配置，diff_restock 默认关闭(enabled=0) | P0 |
 | TC-SETUP-005 | 验证测试用户 | 数据库已重建 | 查询 users 表 | 10 个测试用户均已创建且分配对应角色 | P0 |
@@ -82,7 +92,7 @@
 | TC-PERM-005 | operator_manager 无删除权限 | ops_manager 已登录 | 尝试删除任意数据 | 删除按钮不可见或报错"无权限" | P0 |
 | TC-PERM-006 | operator_manager 无作废权限 | ops_manager 已登录 | 尝试作废任意单据 | 作废按钮不可见或报错"无权限" | P0 |
 | TC-PERM-007 | admin 有状态回退权限 | admin1 已登录 | 在已提交单据上点击状态回退 | 回退成功，单据恢复为可编辑状态 | P0 |
-| TC-PERM-008 | super_admin 有全部权限 | seeding 已登录 | 执行删除/作废/状态回退操作 | 全部操作成功 | P0 |
+| TC-PERM-008 | admin 有全部权限 | admin 已登录 | 执行删除/作废/状态回退操作 | 全部操作成功 | P0 |
 | TC-PERM-009 | picker 仅可见库存模块 | picker1 已登录 | 查看左侧菜单 | 仅可见仪表盘、库存管理（仓库/库存/日志/拣货任务）、采购单（查看）、损耗单（查看） | P1 |
 | TC-PERM-010 | driver 仅可见配送模块 | driver1 已登录 | 查看左侧菜单 | 仅可见仪表盘、配送相关模块（线路/任务/送货单/签收/差异/温度/车辆故障）、订单（查看） | P1 |
 | TC-PERM-011 | merchant 仅可见订单模块 | merchant1 已登录 | 查看左侧菜单 | 仅可见仪表盘、订单/购物车/退货/签收/充值/发票 | P1 |
@@ -316,7 +326,7 @@
 | TC-UI-009 | 明细页顶部信息 | 任意详情页 | 查看顶部 | 返回箭头+单号+状态徽章 | P1 |
 | TC-UI-010 | 差异关联链接 | 差异详情页 | 查看关联补货提醒区块 | 蓝色链接可跳转 | P0 |
 | TC-UI-011 | 补货提醒差异链接 | 补货提醒列表页 | 查看差异单号列 | 蓝色链接可跳转到差异详情 | P0 |
-| TC-UI-012 | 超管回退菜单 | 已提交状态的单据 | super_admin 查看明细页 | 紫色下拉回退菜单可见 | P1 |
+| TC-UI-012 | 超管回退菜单 | 已提交状态的单据 | admin 查看明细页 | 紫色下拉回退菜单可见 | P1 |
 
 ---
 

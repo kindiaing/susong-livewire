@@ -416,7 +416,7 @@ class PurchaseService
     /**
      * 超管强制状态回退
      *
-     * 仅 super_admin 可调用，允许跳过正常流转规则。
+     * 仅 admin 可调用，允许跳过正常流转规则。
      * 但已作废的采购单不可回退。
      */
     public function forceTransition(PurchaseOrder $order, int $toStatus): PurchaseOrder

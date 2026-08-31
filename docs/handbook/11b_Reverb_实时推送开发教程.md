@@ -1,3 +1,14 @@
+---
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: '9300f201-c4f1-4628-80ee-b9af6abaf071'
+  PropagateID: '9300f201-c4f1-4628-80ee-b9af6abaf071'
+  ReservedCode1: 'aaf0db9e-d41d-4e1c-ba58-eb2833283c64'
+  ReservedCode2: 'aaf0db9e-d41d-4e1c-ba58-eb2833283c64'
+---
+
 # Laravel Reverb 实时推送 — 开发教程
 
 > 本文档面向项目新成员，系统讲解 Reverb 在项目中的完整链路：从配置、事件、服务到前端订阅，以及如何新增一个通知场景。
@@ -128,7 +139,7 @@ Broadcast::channel('notifications.{userId}', function ($user, $userId) {
 
 // 商家频道：管理员/运营/财务角色可订阅
 Broadcast::channel('merchant-notifications.{merchantId}', function ($user, $merchantId) {
-    if ($user->hasRole('super_admin') || $user->hasRole('admin')) return true;
+    if ($user->hasRole('admin')) return true;
     if ($user->hasRole('operator') || $user->hasRole('operator_manager')) return true;
     if ($user->hasRole('finance') || $user->hasRole('cashier') || $user->hasRole('finance_manager')) return true;
     return false;

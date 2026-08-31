@@ -1,3 +1,14 @@
+---
+AIGC:
+  ContentProducer: '001191110102MAD55U9H0F10002'
+  ContentPropagator: '001191110102MAD55U9H0F10002'
+  Label: '1'
+  ProduceID: '89eb736a-2db2-4016-b5a5-c59e8e5c9eb9'
+  PropagateID: '89eb736a-2db2-4016-b5a5-c59e8e5c9eb9'
+  ReservedCode1: 'acee2f33-f6ac-4083-bfbd-ebd414dade96'
+  ReservedCode2: 'acee2f33-f6ac-4083-bfbd-ebd414dade96'
+---
+
 # Setup 系统安装部署配置手册
 
 对应 PRD 版本：V1.2
@@ -531,7 +542,7 @@ sudo certbot renew --dry-run
 
 | 数据类别 | 说明 |
 | :--- | :--- |
-| 10 个系统角色 | 超级管理员、管理员、运营专员、运营经理、财务专员、出纳、财务经理、拣货员、配送司机、商家（Migration 自动创建，super_admin=1, admin=2 顺序固定） |
+| 9 个系统角色 | 管理员、运营专员、运营经理、财务专员、出纳、财务经理、拣货员、配送司机、商家（Migration 自动创建，admin=1 顺序固定） |
 | 19 个审核节点配置 | approval_type_configs 默认记录（前 10 个 P0 节点 + 第 19 条损耗审核默认开启） |
 | 6 条系统默认配置 | system_configs 默认键值（Migration 自动创建，增强后共 24 条，分 7 组：基础 8/订单 3/配送 3/财务 3/库存 3/审核 2/界面 2） |
 
@@ -602,7 +613,7 @@ php artisan admin:seed --list                # 列出所有可用 Seeder 模块
 | `admin:install` | 安装/初始化数据库（清空并重建） | `--seed` `--force` |
 | `admin:fresh` | 清空并重建数据库（admin:install 别名） | `--seed` `--force` |
 | `admin:seed` | 运行种子数据 | `--fresh` `--system` `--demo[=MODULE]` `--list` `--force` |
-| `admin:create-admin` | 创建管理员账户 | `--name=` `--email=` `--password=` `--role=super_admin` `--guard=web` |
+| `admin:create-admin` | 创建管理员账户 | `--name=` `--email=` `--password=` `--role=admin` `--guard=web` |
 | `admin:create-user` | 创建普通用户 | `--name=` `--email=` `--password=` `--role=` `--guard=web` `--active=1` |
 | `admin:reset-password` | 重置用户密码 | `--email=` `--password=` |
 | `admin:backup` | 备份 MySQL 数据库 | `--path=` `--compress` `--only-data` `--only-structure` |
@@ -640,7 +651,7 @@ php artisan admin:install --seed --force
 
 #### 10.3.2 `admin:create-admin` — 创建管理员账号
 
-交互式创建管理员（super_admin 或 admin 角色），角色列表从数据库动态读取。
+交互式创建管理员（admin 角色），角色列表从数据库动态读取。
 
 ```bash
 # 交互式创建（推荐，会提示输入姓名/邮箱/密码/角色）
@@ -648,14 +659,14 @@ php artisan admin:create-admin
 
 # 指定参数创建
 php artisan admin:create-admin --name=Admin --email=admin@example.com --password=Secret123
-php artisan admin:create-admin --name=seeding --email=seeding@ihopeso.cn --password=Password --role=super_admin --force
+php artisan admin:create-admin --name=seeding --email=seeding@ihopeso.cn --password=Password --role=admin --force
 
 
 # 快速创建默认超管（admin@example.com / Password）
 php artisan admin:create-admin --force
 
-# 指定角色（默认 super_admin）
-php artisan admin:create-admin --role=admin
+# 指定角色（默认 admin）
+php artisan admin:create-admin --role=operator
 ```
 
 | 选项 | 说明 |
@@ -663,7 +674,7 @@ php artisan admin:create-admin --role=admin
 | `--name=` | 管理员姓名（默认 Admin） |
 | `--email=` | 登录邮箱（默认 admin@example.com） |
 | `--password=` | 登录密码（默认 Password） |
-| `--role=` | 角色（默认 super_admin，可选 admin） |
+| `--role=` | 角色（默认 admin） |
 | `--force` | 跳过确认，使用默认值快速创建 |
 
 > **注意**：角色列表从数据库 `roles` 表动态读取，非硬编码。首次安装后应立即执行此命令创建管理员。
@@ -772,8 +783,8 @@ php artisan schedule:list          # 查看定时任务
 | 文件位置 | `app/Http/Middleware/CheckPermission.php` |
 | 注册方式 | `bootstrap/app.php` 中间件别名 `permission` |
 | 应用方式 | 路由组 `middleware(['auth', 'permission'])` |
-| 放行规则 | `super_admin` 角色自动放行所有权限 |
-| 专属路由 | `roles` / `permissions` / `approval-config` / `settings` 仅 `super_admin` 可访问 |
+| 放行规则 | `admin` 角色自动放行所有权限 |
+| 专属路由 | `roles` / `permissions` / `approval-config` / `settings` 仅 `admin` 可访问 |
 | 未映射路由 | 默认放行（渐进式收敛，随业务补充映射） |
 | 403 页面 | `resources/views/errors/403.blade.php` |
 | JSON 响应 | Livewire AJAX 请求返回 403 JSON（`bootstrap/app.php` AuthorizationException 渲染） |
@@ -857,7 +868,7 @@ php artisan schedule:list          # 查看定时任务
 - [ ] `storage` 和 `bootstrap/cache` 目录权限 775
 - [ ] Nginx 配置正确，前端静态资源可访问
 - [ ] HTTPS 证书已配置
-- [ ] 超级管理员密码已修改（非默认 Password）
+- [ ] 管理员密码已修改（非默认 Password）
 - [ ] 文件存储路径可写（本地或 OSS 配置正确）
 - [ ] 跨域配置匹配前端域名
 - [ ] Reverb WebSocket 服务运行中（`sudo supervisorctl status susong-reverb` 或 `php artisan reverb:start`）
