@@ -54,7 +54,7 @@
             </thead>
             <tbody>
                 @forelse($roles as $role)
-                @php $isProtectedRole = $role->name === 'super_admin' || $role->name === 'admin' @endphp
+                @php $isProtectedRole = $role->name === 'admin' @endphp
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="role-{{ $role->id }}">
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $role->id }}" wire:model.live="selectedIds" class="rounded" /></td>
                     @foreach($visibleCols as $col)
@@ -132,12 +132,12 @@
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">角色标识 <span class="text-red-500">*</span></label>
-                    <input type="text" wire:model="formName" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="如 super_admin" />
+                    <input type="text" wire:model="formName" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="如 admin" />
                     @error('formName') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">显示名称 <span class="text-red-500">*</span></label>
-                    <input type="text" wire:model="formDisplayName" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="如 超级管理员" />
+                    <input type="text" wire:model="formDisplayName" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="如 管理员" />
                     @error('formDisplayName') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>

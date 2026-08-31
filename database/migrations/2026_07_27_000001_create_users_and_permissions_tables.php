@@ -116,8 +116,7 @@ return new class extends Migration
         });
 
         DB::table('roles')->insert([
-            ['name' => 'super_admin', 'guard_name' => 'web', 'display_name' => '超级管理员', 'description' => '全部功能、系统配置、账号管理', 'created_at' => $now, 'updated_at' => $now],
-            ['name' => 'admin', 'guard_name' => 'web', 'display_name' => '管理员', 'description' => '管理后台全模块操作、状态回退、单据作废', 'created_at' => $now, 'updated_at' => $now],
+            ['name' => 'admin', 'guard_name' => 'web', 'display_name' => '管理员', 'description' => '全部功能、系统配置、账号管理、状态回退、单据作废', 'created_at' => $now, 'updated_at' => $now],
             ['name' => 'operator', 'guard_name' => 'web', 'display_name' => '运营专员', 'description' => '商品、订单、商家、供应商管理', 'created_at' => $now, 'updated_at' => $now],
             ['name' => 'operator_manager', 'guard_name' => 'web', 'display_name' => '运营经理', 'description' => '运营审核、商品/订单/价格策略审核确认', 'created_at' => $now, 'updated_at' => $now],
             ['name' => 'finance', 'guard_name' => 'web', 'display_name' => '财务专员', 'description' => '应收、结算、发票、审计', 'created_at' => $now, 'updated_at' => $now],

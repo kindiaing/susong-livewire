@@ -54,7 +54,7 @@
             </thead>
             <tbody>
             @forelse($users as $user)
-                @php $isProtectedRole = $user->roles->contains('name', 'super_admin') || $user->roles->contains('name', 'admin') @endphp
+                @php $isProtectedRole = $user->roles->contains('name', 'admin') @endphp
                 <tr class="border-b last:border-b-0 hover:bg-muted/30 transition-colors" wire:key="user-{{ $user->id }}">
                     <td class="px-4 py-2"><input type="checkbox" value="{{ $user->id }}" wire:model.live="selectedIds" class="rounded" /></td>
                     @foreach($visibleCols as $col)
@@ -135,7 +135,7 @@
                                 </svg>
                             </button>
                             @endcan
-                            {{-- 删除（超级管理员/管理员不显示） --}}
+                            {{-- 删除（管理员不显示） --}}
                             @can('user.user.delete')
                             @if(!$isProtectedRole)
                                  <button type="button" wire:click="confirmDelete({{ $user->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>

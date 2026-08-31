@@ -648,6 +648,8 @@ php artisan admin:create-admin
 
 # 指定参数创建
 php artisan admin:create-admin --name=Admin --email=admin@example.com --password=Secret123
+php artisan admin:create-admin --name=seeding --email=seeding@ihopeso.cn --password=Password --role=super_admin --force
+
 
 # 快速创建默认超管（admin@example.com / Password）
 php artisan admin:create-admin --force

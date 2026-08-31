@@ -130,10 +130,10 @@ class CheckPermission
     ];
 
     /**
-     * super_admin 角色专有路由（仅超管可访问）
+     * admin 角色专有路由（仅管理员可访问）
      */
-    // 超管专属路由已废弃，权限由权限表统一控制
-    // 如果需要限制某路由仅超管可访问，在权限树中只给 super_admin 分配即可
+    // 管理员专属路由已废弃，权限由权限表统一控制
+    // 如果需要限制某路由仅管理员可访问，在权限树中只给 admin 分配即可
     private const SUPER_ADMIN_ONLY = [
     ];
 
@@ -154,8 +154,8 @@ class CheckPermission
 
         // 超管专属路由检查
         if (in_array($routeName, self::SUPER_ADMIN_ONLY, true)) {
-            if (! $user->hasRole('super_admin')) {
-                abort(403, '仅超级管理员可访问此页面');
+            if (! $user->hasRole('admin')) {
+                abort(403, '仅管理员可访问此页面');
             }
 
             return $next($request);
@@ -169,8 +169,8 @@ class CheckPermission
             return $next($request);
         }
 
-        // super_admin 角色自动放行所有权限
-        if ($user->hasRole('super_admin')) {
+        // admin 角色自动放行所有权限
+        if ($user->hasRole('admin')) {
             return $next($request);
         }
 

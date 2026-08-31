@@ -75,9 +75,11 @@ class AdminInstallCommand extends Command
         $this->newLine();
 
         $this->line('  超管账号已自动创建：');
-        $this->line('    用户名: <info>seeding</info>');
-        $this->line('    邮箱:   <info>seeding@ihopeso.cn</info>');
+        $this->line('    用户名: <info>admin</info>');
+        $this->line('    邮箱:   <info>admin@ihopeso.cn</info>');
         $this->line('    密码:   <info>Password</info>');
+        $this->newLine();
+        $this->line('  如需创建个人超管账号，请执行: <info>php artisan admin:create-admin --force</info>');
         $this->newLine();
 
         if ($seed) {

@@ -20,8 +20,8 @@ Broadcast::channel('notifications.{userId}', function ($user, $userId) {
 
 // 商家通知频道：拥有该商家权限的用户可订阅
 Broadcast::channel('merchant-notifications.{merchantId}', function ($user, $merchantId) {
-    // 超级管理员和管理员可订阅所有商家频道
-    if ($user->hasRole('super_admin') || $user->hasRole('admin')) {
+    // 管理员可订阅所有商家频道
+    if ($user->hasRole('admin')) {
         return true;
     }
 

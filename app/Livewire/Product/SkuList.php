@@ -263,7 +263,7 @@ class SkuList extends Component
     }
 
     /**
-     * 是否为超级管理员/管理员（可删除、可状态回退）
+     * 是否为管理员（可删除、可状态回退）
      */
     public function getIsSuperAdminProperty(): bool
     {

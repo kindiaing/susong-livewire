@@ -12,22 +12,22 @@ use Illuminate\Support\Facades\Hash;
 /**
  * 核心数据 Seeder
  *
- * - 确保 10 个系统角色存在
+ * - 确保 9 个系统角色存在
  * - 创建权限树（模块 → 页面 → 按钮），三级格式命名（模块.页面.动作）
  * - 每个页面级权限自动生成对应的 .view 页面访问权限
  * - 为各角色分配对应权限
- * - 创建默认超管用户（seeding）
+ * - 创建默认管理员用户（admin）
  * - 创建默认供应商/仓库/单位
  *
  * 不创建普通用户账号——测试用户请使用 admin:create-user 命令或 admin:install --seed。
+ * 管理员（admin）用户在此 Seeder 中自动创建。
  *
  * 此 Seeder 由 DatabaseSeeder 自动调用，适用于生产环境。
  */
 class SystemDataSeeder extends Seeder
 {
     protected array $systemRoles = [
-        ['name' => 'super_admin', 'display_name' => '超级管理员', 'description' => '全部功能、系统配置、账号管理'],
-        ['name' => 'admin', 'display_name' => '管理员', 'description' => '管理后台全模块操作、状态回退、单据作废'],
+        ['name' => 'admin', 'display_name' => '管理员', 'description' => '全部功能、系统配置、账号管理、状态回退、单据作废'],
         ['name' => 'operator', 'display_name' => '运营专员', 'description' => '商品、订单、商家、供应商管理'],
         ['name' => 'operator_manager', 'display_name' => '运营经理', 'description' => '运营审核、商品/订单/价格策略审核确认'],
         ['name' => 'finance', 'display_name' => '财务专员', 'description' => '应收、结算、发票、审计'],
@@ -227,7 +227,7 @@ class SystemDataSeeder extends Seeder
         $this->ensureDefaultSupplier();
         $this->ensureDefaultWarehouse();
         $this->ensureDefaultUnits();
-        $this->ensureSuperAdmin();
+        $this->ensureAdminUser();
 
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
     }
@@ -302,17 +302,15 @@ class SystemDataSeeder extends Seeder
 
     protected function assignRolePermissions(): void
     {
-        $superAdminRole = Role::where('name', 'super_admin')->first();
-        if ($superAdminRole) {
-            $superAdminRole->syncPermissions(Permission::all());
+        $adminRole = Role::where('name', 'admin')->first();
+        if ($adminRole) {
+            $adminRole->syncPermissions(Permission::all());
         }
 
         // 为各角色分配合适的权限
         $rolePermissions = [
-            // 管理员：全业务模块操作权限 + 状态回退
-            'admin' => Permission::all()->pluck('name')->toArray(),
             // 运营专员：组织/商品/订单/采购查看/库存查看/配送查看/损耗查看/促销查看/轮播
-            // 不含作废(cancel)/删除(delete)权限——仅管理员/超级管理员可用
+            // 不含作废(cancel)/删除(delete)权限——仅管理员可用
             'operator' => [
                 'dashboard',
                 'user.user', 'user.user.view',
@@ -347,7 +345,7 @@ class SystemDataSeeder extends Seeder
                 'system.banner', 'system.banner.view', 'system.banner.create', 'system.banner.edit',
                 'system.notification', 'system.notification.view', 'system.notification.create',
             ],
-            // 运营经理：全部业务权限，排除作废(.cancel)和删除(.delete)——此两类仅管理员/超级管理员可用
+            // 运营经理：全部业务权限，排除作废(.cancel)和删除(.delete)——此两类仅管理员可用
             'operator_manager' => Permission::all()
                 ->filter(fn($p) => ! str_ends_with($p->name, '.delete') && ! str_ends_with($p->name, '.cancel'))
                 ->pluck('name')->toArray(),
@@ -489,32 +487,32 @@ class SystemDataSeeder extends Seeder
     }
 
     /**
-     * 创建默认超管用户（seeding）
+     * 创建默认管理员用户（admin）
      *
-     * 用户名: seeding
-     * 邮箱:   seeding@ihopeso.cn
+     * 用户名: admin
+     * 邮箱:   admin@ihopeso.cn
      * 密码:   Password
-     * 角色:   super_admin（全部权限）
+     * 角色:   admin（全部权限）
      */
-    protected function ensureSuperAdmin(): void
+    protected function ensureAdminUser(): void
     {
         $user = User::firstOrCreate(
-            ['username' => 'seeding'],
+            ['username' => 'admin'],
             [
-                'name' => 'seeding',
-                'email' => 'seeding@ihopeso.cn',
+                'name' => 'admin',
+                'email' => 'admin@ihopeso.cn',
                 'password' => Hash::make('Password'),
                 'email_verified_at' => now(),
                 'status' => 1,
             ]
         );
 
-        $superAdminRole = Role::where('name', 'super_admin')->first();
-        if ($superAdminRole && ! $user->hasRole('super_admin')) {
-            $user->assignRole($superAdminRole);
+        $adminRole = Role::where('name', 'admin')->first();
+        if ($adminRole && ! $user->hasRole('admin')) {
+            $user->assignRole($adminRole);
         }
 
-        // super_admin 分配全部权限
+        // admin 分配全部权限
         if (class_exists(\Spatie\Permission\Models\Permission::class)) {
             $user->syncPermissions(\Spatie\Permission\Models\Permission::all());
         }

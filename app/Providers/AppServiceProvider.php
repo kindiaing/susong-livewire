@@ -53,13 +53,13 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * 超级管理员自动通过所有权限检查（Gate::before 优先级最高）。
-     * 只要用户拥有 super_admin 角色，@can 检查一律返回 true。
+     * 管理员自动通过所有权限检查（Gate::before 优先级最高）。
+     * 只要用户拥有 admin 角色，@can 检查一律返回 true。
      */
     protected function registerSuperAdminGate(): void
     {
         Gate::before(function ($user, $ability) {
-            if ($user->hasRole('super_admin')) {
+            if ($user->hasRole('admin')) {
                 return true;
             }
         });

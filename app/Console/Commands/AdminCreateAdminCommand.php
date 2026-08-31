@@ -18,7 +18,7 @@ class AdminCreateAdminCommand extends Command
                             {--name= : 管理员用户名}
                             {--email= : 管理员邮箱}
                             {--password= : 管理员密码}
-                            {--role=super_admin : 角色（super_admin / operator / operator_manager / finance / cashier / finance_manager）}
+                            {--role=admin : 角色（admin / operator / operator_manager / finance / cashier / finance_manager）}
                             {--guard=web : 认证守卫}
                             {--force : 强制创建，不交互提示}';
 
@@ -47,10 +47,10 @@ class AdminCreateAdminCommand extends Command
             validate: fn ($value) => strlen($value) >= 8 ? null : '密码至少 8 位',
         ));
 
-        $role = $this->option('role') ?: ($force ? 'super_admin' : select(
+        $role = $this->option('role') ?: ($force ? 'admin' : select(
             label: '请选择管理角色',
             options: Role::orderBy('id')->pluck('display_name', 'name')->toArray(),
-            default: 'super_admin',
+            default: 'admin',
         ));
 
         $guard = $this->option('guard');
@@ -87,8 +87,8 @@ class AdminCreateAdminCommand extends Command
         $this->line("  邮箱:   <info>{$email}</info>");
         $this->line("  角色:   <info>{$role}</info>");
 
-        // 如果是 super_admin，自动分配所有权限
-        if ($role === 'super_admin' && class_exists(\Spatie\Permission\Models\Permission::class)) {
+        // 如果是 admin，自动分配所有权限
+        if ($role === 'admin' && class_exists(\Spatie\Permission\Models\Permission::class)) {
             $user->syncPermissions(\Spatie\Permission\Models\Permission::all());
             $this->line('  权限:   <info>全部权限已分配</info>');
         }

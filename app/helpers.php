@@ -291,7 +291,7 @@ function status_badge(int|string $status, string $type = 'default', string $labe
 }
 
 /**
- * 判断用户是否有状态回退权限（超级管理员或管理员）
+ * 判断用户是否有状态回退权限（仅管理员）
  *
  * @param  Authenticatable|null  $user
  */
@@ -302,7 +302,7 @@ function can_rollback_status($user = null): bool
         return false;
     }
 
-    return $user->hasRole('super_admin') || $user->hasRole('admin');
+    return $user->hasRole('admin');
 }
 
 /**
