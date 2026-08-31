@@ -3,10 +3,10 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '89eb736a-2db2-4016-b5a5-c59e8e5c9eb9'
-  PropagateID: '89eb736a-2db2-4016-b5a5-c59e8e5c9eb9'
-  ReservedCode1: 'acee2f33-f6ac-4083-bfbd-ebd414dade96'
-  ReservedCode2: 'acee2f33-f6ac-4083-bfbd-ebd414dade96'
+  ProduceID: 'cfea8b31-3b23-4b8d-b506-96dbc650c1b5'
+  PropagateID: 'cfea8b31-3b23-4b8d-b506-96dbc650c1b5'
+  ReservedCode1: '86af9759-a6d6-4183-8d4c-8ca17d358760'
+  ReservedCode2: '86af9759-a6d6-4183-8d4c-8ca17d358760'
 ---
 
 # Setup 系统安装部署配置手册
@@ -889,3 +889,108 @@ php artisan schedule:list          # 查看定时任务
 - [ ] 操作日志、审计日志、登录日志正常记录
 - [ ] 通知 Drawer 显示正常，点击通知可标记已读
 - [ ] Reverb 实时推送生效（操作触发通知后前端自动刷新，无需手动 F5）
+
+---
+
+## 14 Laravel Cloud 部署注意事项
+
+> 本章记录 Laravel Cloud 平台部署时与常规 Linux 部署的差异点，以及踩过的坑。
+
+### 14.1 Build Commands
+
+Build Commands 在部署构建阶段执行，用于安装依赖和编译前端资源：
+
+```bash
+# 创建运行时目录（Cloud 环境每次部署需确保目录存在）
+mkdir -p bootstrap/cache storage/framework/{cache,cache/data,sessions,views} storage/logs
+
+# 后端依赖安装（生产模式，排除 dev 依赖）
+composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+# 前端依赖安装 + 构建
+npm ci --audit false
+npm install && npm run build
+```
+
+### 14.2 Deploy Commands
+
+Deploy Commands 在部署发布阶段执行，用于数据库迁移和初始化：
+
+```bash
+# 数据库迁移（已被 admin:install 内部处理，此处无需单独执行）
+# php artisan migrate --force
+
+# 安装 Reverb（生成默认配置）
+php artisan reverb:install
+
+# 初始化数据库（迁移 + 系统数据 + 测试数据）
+php artisan admin:install --seed --force
+
+# 创建个人超管账号（seeding / seeding@ihopeso.cn）
+php artisan admin:create-admin --force
+
+# Reverb 服务由 Cloud 平台自动管理，无需手动启动
+# php artisan reverb:start
+```
+
+> **注意**：`admin:install --seed` 内部会先尝试 `migrate:fresh`，被 Cloud 禁止后自动降级为 `migrate`（详见 14.3）。首次部署时数据库为空，`migrate` 会执行全部迁移脚本建表；后续部署时 `migrate` 只执行新增的迁移。
+
+### 14.3 踩坑记录：migrate:fresh 被 Cloud 静默拦截
+
+**现象**：部署后报 `SQLSTATE[42S02]: Table 'susong.roles' doesn't exist`，所有表都没建出来。
+
+**原因**：Laravel Cloud 禁止执行 `migrate:fresh`（因为它会 DROP 所有表，生产环境危险）。但 Cloud 的拦截方式是 **静默跳过**——不抛异常、返回 exit code 0、只输出一行 warning：
+
+```
+WARN  This command is prohibited from running in this environment.
+```
+
+原代码直接认为迁移成功，继续执行 Seeder，Seeder 查询 `roles` 表就报 1146 错误。
+
+**解决方案**：`AdminInstallCommand` 增加降级逻辑——执行 `migrate:fresh` 后检测 `roles` 表是否真实存在，不存在则自动降级为 `migrate`：
+
+```php
+// 文件：app/Console/Commands/AdminInstallCommand.php
+
+// 1. 迁移
+// 本地开发：migrate:fresh 清空并重建（admin:install 默认行为）
+// Cloud 环境：migrate:fresh 被静默拦截（prohibited），不抛异常但也不建表，
+//              因此必须检测表是否真正创建，失败则自动降级为 migrate（增量迁移）
+Artisan::call('migrate:fresh', ['--force' => true], $this->output);
+
+// migrate:fresh 在某些托管环境（Laravel Cloud 等）会被静默跳过，
+// 不抛异常也不建表，需要检测关键表是否真实存在
+if (! Schema::hasTable('roles')) {
+    $this->warn('  ⚠ migrate:fresh 未生效（当前环境可能禁止此命令）');
+    $this->info('  → 自动降级为 migrate（增量迁移，不清空已有数据）');
+    Artisan::call('migrate', ['--force' => true], $this->output);
+
+    if (! Schema::hasTable('roles')) {
+        $this->error('  ✗ 迁移失败：roles 表仍不存在，终止安装');
+        return self::FAILURE;
+    }
+    $this->info('  ✓ migrate 完成（增量迁移）');
+} else {
+    $this->info('  ✓ migrate:fresh 完成（已清空并重建）');
+}
+```
+
+**降级策略对比**：
+
+| 场景 | 命令 | 行为 | 数据影响 |
+| :--- | :--- | :--- | :--- |
+| 本地开发 | `migrate:fresh` | DROP 全部表 → 重建 | 清空所有数据 |
+| Cloud 首次部署 | `migrate:fresh` 被禁 → 降级 `migrate` | 从零建表（数据库为空） | 无数据可丢，安全 |
+| Cloud 后续部署 | `migrate:fresh` 被禁 → 降级 `migrate` | 只执行新增迁移 | 保留已有数据 |
+
+> **本地开发不受影响**：本地环境没有 `migrate:fresh` 限制，`admin:install --seed` 仍然走 `migrate:fresh` 清空重建。
+
+### 14.4 其他注意事项
+
+| 序号 | 注意点 | 说明 |
+| :--- | :--- | :--- |
+| 1 | `public/build/` 不进 git | `.gitignore` 已忽略前端构建产物，Build Commands 中必须包含 `npm install && npm run build`，否则 Alpine.js 打包文件缺失，界面设置等功能无效 |
+| 2 | Reverb 由平台托管 | Cloud 自动管理 Reverb 进程，Deploy Commands 中无需 `reverb:start`，只需 `reverb:install` 生成配置 |
+| 3 | 环境变量在 Cloud 控制台配置 | `.env` 文件不跟随仓库，所有环境变量（DB/REDIS/REVERB/APP_KEY 等）需在 Cloud 环境变量面板中单独配置 |
+| 4 | `admin:install --seed` 含测试数据 | Cloud 部署时 `--seed` 会导入 DemoDataSeeder 测试数据，生产环境如不需要测试数据可去掉 `--seed` |
+| 5 | `admin:create-admin --force` 创建 seeding 超管 | `admin:install` 已自动创建 `admin` 超管，此命令额外创建 `seeding / seeding@ihopeso.cn` 个人超管账号 |
