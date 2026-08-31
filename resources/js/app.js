@@ -5,20 +5,36 @@ import { commandPalette } from './command-palette.js';
 window.Pusher = Pusher;
 window.commandPalette = commandPalette;
 
-// 广播初始化（Reverb 兼容 Pusher 协议，broadcaster 仍用 'pusher'）
-// 用 try-catch 包裹，防止 Cloud 环境构建时 VITE_REVERB_APP_KEY 为空导致异常中断整个模块
+// 广播初始化
+// 通过 VITE_BROADCAST_DRIVER 环境变量切换 Pusher 云服务 / Reverb 自建
+//   pusher = 使用 Pusher 云服务（本地开发和 Cloud 测试环境默认）
+//   reverb = 使用 Reverb 自建 WebSocket（多项目共用时切换，需部署 Reverb 服务器）
+// try-catch 防止 key 为空时异常中断整个 app.js 模块（导致 Alpine store 未注册）
 try {
-    window.Echo = new Echo({
-        broadcaster: 'pusher',
-        key: import.meta.env.VITE_REVERB_APP_KEY,
-        cluster: import.meta.env.VITE_REVERB_APP_CLUSTER,
-        wsHost: import.meta.env.VITE_REVERB_HOST,
-        wsPort: import.meta.env.VITE_REVERB_PORT,
-        wssPort: import.meta.env.VITE_REVERB_PORT,
-        forceTLS: import.meta.env.VITE_REVERB_SCHEME === 'https',
-        disableStats: true,
-        enabledTransports: ['ws', 'wss'],
-    });
+    const driver = import.meta.env.VITE_BROADCAST_DRIVER || 'pusher';
+
+    if (driver === 'reverb') {
+        // Reverb 自建（兼容 Pusher 协议）
+        window.Echo = new Echo({
+            broadcaster: 'pusher',
+            key: import.meta.env.VITE_REVERB_APP_KEY,
+            wsHost: import.meta.env.VITE_REVERB_HOST,
+            wsPort: import.meta.env.VITE_REVERB_PORT,
+            wssPort: import.meta.env.VITE_REVERB_PORT,
+            forceTLS: import.meta.env.VITE_REVERB_SCHEME === 'https',
+            disableStats: true,
+            enabledTransports: ['ws', 'wss'],
+        });
+    } else {
+        // Pusher 云服务
+        window.Echo = new Echo({
+            broadcaster: 'pusher',
+            key: import.meta.env.VITE_PUSHER_APP_KEY,
+            cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+            forceTLS: true,
+            encrypted: true,
+        });
+    }
 } catch (e) {
     console.error('Echo initialization failed:', e);
 }
