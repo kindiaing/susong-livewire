@@ -1,13 +1,3 @@
----
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: 'bf9f3f1d-3454-4956-9a05-07eddbff0e70'
-  PropagateID: 'bf9f3f1d-3454-4956-9a05-07eddbff0e70'
-  ReservedCode1: '706423a0-918a-4652-bf89-cfc265b13d38'
-  ReservedCode2: '706423a0-918a-4652-bf89-cfc265b13d38'
----
 
 # API 前后端接口文档
 
@@ -1727,9 +1717,9 @@ AIGC:
 
 ### 16.3 运营主推接口
 
-#### GET /api/v1/promotions 运营主推列表
+#### GET /api/v1/featured-promotions 运营主推列表
 
-#### POST /api/v1/promotions 新增主推配置
+#### POST /api/v1/featured-promotions 新增主推配置
 
 | 字段 | 类型 | 必填 | 说明 |
 | :--- | :--- | :--- | :--- |
@@ -1739,9 +1729,9 @@ AIGC:
 | start_at | string | 否 | 开始时间 |
 | end_at | string | 否 | 结束时间 |
 
-#### PUT /api/v1/promotions/{id} 编辑主推配置
+#### PUT /api/v1/featured-promotions/{id} 编辑主推配置
 
-#### DELETE /api/v1/promotions/{id} 删除主推配置
+#### DELETE /api/v1/featured-promotions/{id} 删除主推配置
 
 ### 16.4 操作日志接口
 
@@ -2090,6 +2080,6 @@ AIGC:
 | 价格策略 | price_strategies, price_strategy_items, price_change_logs |
 | 费用均摊 | price_apportionments |
 | 审核管理 | approvals, approval_type_configs |
-| 系统支撑 | system_configs, banners, promotions, operation_logs, audit_logs, login_logs |
+| 系统支撑 | system_configs, banners, featured_promotions, operation_logs, audit_logs, login_logs |
 | 微信商家端 | wechat_users, merchant_favorites, notifications, restock_reminders |
 | 微信司机端 | wechat_users, delivery_tracks, signatures, temperatures |

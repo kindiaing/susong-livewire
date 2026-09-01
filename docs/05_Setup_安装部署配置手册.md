@@ -1,13 +1,3 @@
----
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: 'cfea8b31-3b23-4b8d-b506-96dbc650c1b5'
-  PropagateID: 'cfea8b31-3b23-4b8d-b506-96dbc650c1b5'
-  ReservedCode1: '86af9759-a6d6-4183-8d4c-8ca17d358760'
-  ReservedCode2: '86af9759-a6d6-4183-8d4c-8ca17d358760'
----
 
 # Setup 系统安装部署配置手册
 
@@ -525,7 +515,7 @@ sudo certbot renew --dry-run
 9. 物流配送（delivery_tasks, delivery_task_orders, delivery_tracks, signatures, temperatures）
 10. 差异处理（discrepancies）
 11. 财务对账（merchant_accounts, recharges, supplier_settlements, supplier_settlement_items, settlement_payments, receivables, receivable_payments, invoices, correction_authorizations）
-12. 系统支撑（system_configs, banners, promotions, operation_logs, audit_logs, login_logs）
+12. 系统支撑（system_configs, banners, featured_promotions, operation_logs, audit_logs, login_logs）
 13. 微信（wechat_users）
 14. 价格策略（price_strategies, price_strategy_items, price_change_logs）
 15. 退货管理（purchase_returns, purchase_return_items, order_returns, order_return_items）
@@ -544,9 +534,9 @@ sudo certbot renew --dry-run
 | :--- | :--- |
 | 9 个系统角色 | 管理员、运营专员、运营经理、财务专员、出纳、财务经理、拣货员、配送司机、商家（Migration 自动创建，admin=1 顺序固定） |
 | 19 个审核节点配置 | approval_type_configs 默认记录（前 10 个 P0 节点 + 第 19 条损耗审核默认开启） |
-| 6 条系统默认配置 | system_configs 默认键值（Migration 自动创建，增强后共 24 条，分 7 组：基础 8/订单 3/配送 3/财务 3/库存 3/审核 2/界面 2） |
+| 53 条系统默认配置 | system_configs 默认键值（Migration 自动创建，分 8 组：基础 8/订单 3/配送 7/财务 6/库存 9/审计 7/界面 3/金额精度 10） |
 
-> **注意**：Migration 不再创建用户账号。安装完成后请使用 `admin:create-admin` 命令创建第一个管理员。
+> **注意**：Migration 自动创建 `admin` 超管账号（admin / admin@ihopeso.cn）。如需创建个人超管账号，请使用 `admin:create-admin --force`（默认创建 seeding / seeding@ihopeso.cn）。
 
 #### 9.2.2 Seeder 种子数据
 
@@ -662,7 +652,7 @@ php artisan admin:create-admin --name=Admin --email=admin@example.com --password
 php artisan admin:create-admin --name=seeding --email=seeding@ihopeso.cn --password=Password --role=admin --force
 
 
-# 快速创建默认超管（admin@example.com / Password）
+# 快速创建默认超管（seeding@ihopeso.cn / Password）
 php artisan admin:create-admin --force
 
 # 指定角色（默认 admin）
@@ -671,8 +661,8 @@ php artisan admin:create-admin --role=operator
 
 | 选项 | 说明 |
 |:---|:---|
-| `--name=` | 管理员姓名（默认 Admin） |
-| `--email=` | 登录邮箱（默认 admin@example.com） |
+| `--name=` | 管理员姓名（默认 seeding） |
+| `--email=` | 登录邮箱（默认 seeding@ihopeso.cn） |
 | `--password=` | 登录密码（默认 Password） |
 | `--role=` | 角色（默认 admin） |
 | `--force` | 跳过确认，使用默认值快速创建 |
