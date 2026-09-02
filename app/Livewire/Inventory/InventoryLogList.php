@@ -31,6 +31,11 @@ class InventoryLogList extends Component
         $this->initColumnVisibility();
     }
 
+    public function getBatchDeletePermission(string $modelClass): string
+    {
+        return 'inventory.inventory-log.delete';
+    }
+
     public function resetFilters(): void
     {
         $this->search = '';

@@ -23,7 +23,7 @@
         <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="arrow-up-tray" class="w-4 h-4" />导出</button>
         @if($selectedCount > 0)
             <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
-            @can('picking.picking-task.delete')
+                    @can('inventory.picking-task.delete')
             <button type="button" wire:click="batchDelete" class="inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
             @endcan
             <button type="button" wire:click="clearSelection" class="text-sm text-muted-foreground hover:text-foreground transition-colors">取消选择</button>
@@ -87,7 +87,7 @@
                     @endswitch
                 @endforeach
                 <div class="action-col flex items-center gap-2">
-                    @can('picking.picking-task.delete')
+            @can('inventory.picking-task.delete')
                     <button type="button" wire:click="confirmDelete({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
                     @endcan
                 </div>

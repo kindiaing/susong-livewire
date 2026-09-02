@@ -468,6 +468,8 @@ class PickingTaskDetail extends Component
     {
         try {
             if (str_starts_with($this->confirmAction, 'rollback_')) {
+                abort_unless(can_rollback_status(), 403, '仅超级管理员可执行状态回退');
+
                 $toStatus = (int) substr($this->confirmAction, 9);
                 $oldStatus = $this->pickingTask->status;
                 $this->pickingTask->update(['status' => $toStatus]);

@@ -30,10 +30,19 @@ class PickingTaskList extends Component
 
     public function delete(): void
     {
+        abort_unless(auth()->user()?->can('inventory.picking-task.delete'), 403, '无删除权限');
         PickingTask::findOrFail($this->deletingId)->delete();
         $this->toastSuccess('已删除');
         $this->showDeleteConfirm = false;
         $this->deletingId = null;
+    }
+
+    /**
+     * 覆盖默认推导：Picking 命名空间下页面权限挂在 inventory 模块
+     */
+    public function getBatchDeletePermission(string $modelClass): string
+    {
+        return 'inventory.picking-task.delete';
     }
 
     public function getAllColumns(): array
