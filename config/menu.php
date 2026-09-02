@@ -133,8 +133,7 @@ return [
             ['key' => 'system.login-log','label' => '登录日志', 'route' => 'login-logs',      'permission' => 'system.login-log.view',     'description' => '用户登录记录'],
             // ── 其他 ──
             ['key' => 'system.banner',   'label' => '轮播广告', 'route' => 'banners',        'permission' => 'system.banner.view',        'description' => '首页轮播图管理'],
-            ['key' => 'system.notification', 'label' => '通知管理', 'route' => 'system-notifications', 'permission' => 'system.notification.view', 'description' => '发送系统通知与广播'],
-            ['key' => 'system.notification-settings', 'label' => '通知设置', 'route' => 'notification-settings', 'permission' => 'system.notification.view', 'description' => '通知类型开关'],
+            ['key' => 'system.notification-settings', 'label' => '通知设置', 'route' => 'notification-settings', 'permission' => 'system.notification.view', 'description' => '通知类型开关/发送通知'],
             ['key' => 'system.wechat',   'label' => '微信用户', 'route' => 'wechat-users',    'permission' => 'system.wechat-user.view',   'description' => '小程序用户绑定'],
         ],
     ],

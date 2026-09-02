@@ -2,7 +2,7 @@
     {{-- 页面标题 --}}
     <div class="mb-6">
         <h1 class="text-2xl font-bold text-foreground">通知设置</h1>
-        <p class="text-muted-foreground mt-1">管理系统各类型通知的开关，关闭后对应类型的通知将不再发送推送，修改后即时生效</p>
+        <p class="text-muted-foreground mt-1">管理系统通知类型开关与通知发送，修改后即时生效</p>
     </div>
 
     <div class="flex gap-6">
