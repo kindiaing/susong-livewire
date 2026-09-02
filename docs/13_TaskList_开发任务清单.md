@@ -1,13 +1,3 @@
----
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: '74d07cbd-46d9-43cc-890f-31f6b3e046b9'
-  PropagateID: '74d07cbd-46d9-43cc-890f-31f6b3e046b9'
-  ReservedCode1: '4a54f186-3c24-40c5-8b65-f814a19aaa53'
-  ReservedCode2: '4a54f186-3c24-40c5-8b65-f814a19aaa53'
----
 
 AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'

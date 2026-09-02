@@ -70,6 +70,7 @@ use App\Livewire\System\FinanceSettings;
 use App\Livewire\System\LoginLogList;
 use App\Livewire\System\NotificationHistory;
 use App\Livewire\System\NotificationList;
+use App\Livewire\System\NotificationSettings;
 use App\Livewire\System\OperationLogs;
 use App\Livewire\System\Settings;
 use App\Livewire\System\TrashCleanup;
@@ -202,6 +203,7 @@ Route::middleware(['auth', 'permission'])->group(function () {
     Route::get('/wechat-users', WechatUserList::class)->name('wechat-users');
     Route::get('/units', UnitList::class)->name('units');
     Route::get('/system-notifications', NotificationList::class)->name('system-notifications');
+    Route::get('/notification-settings', NotificationSettings::class)->name('notification-settings');
     Route::get('/trash-cleanup', TrashCleanup::class)->name('trash-cleanup');
 });
 

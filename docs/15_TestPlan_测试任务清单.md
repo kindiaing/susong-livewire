@@ -1,13 +1,3 @@
----
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: 'd5fc9729-b19b-48cd-91c5-4fea66e1f143'
-  PropagateID: 'd5fc9729-b19b-48cd-91c5-4fea66e1f143'
-  ReservedCode1: '3a29822f-1401-45c5-833c-9538eec602dd'
-  ReservedCode2: '3a29822f-1401-45c5-833c-9538eec602dd'
----
 
 # 测试任务清单
 

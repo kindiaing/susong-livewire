@@ -1,7 +1,12 @@
 <div class="">
     {{-- 页面标题 --}}
     <div class="mb-6">
-        <h1 class="text-2xl font-bold text-foreground">审计日志</h1>
+        <div class="flex items-center gap-3 mb-1">
+            <a href="{{ route('audit-settings') }}" class="text-muted-foreground hover:text-foreground transition-colors" title="返回审计设置">
+                <x-ui.icon name="arrow-left" class="w-5 h-5" />
+            </a>
+            <h1 class="text-2xl font-bold text-foreground">审计日志</h1>
+        </div>
         <p class="text-muted-foreground mt-1">敏感操作审计记录，包含数据变更前后快照</p>
     </div>
 

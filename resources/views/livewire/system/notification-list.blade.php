@@ -1,9 +1,14 @@
 <div>
     {{-- 标题栏 --}}
     <div class="flex items-center justify-between mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-foreground">通知管理</h1>
-            <p class="text-sm text-muted-foreground mt-1">发送系统通知，支持全站广播和指定用户推送</p>
+        <div class="flex items-center gap-3">
+            <a href="{{ route('notification-settings') }}" class="text-muted-foreground hover:text-foreground transition-colors" title="返回通知设置">
+                <x-ui.icon name="arrow-left" class="w-5 h-5" />
+            </a>
+            <div>
+                <h1 class="text-2xl font-bold text-foreground">通知管理</h1>
+                <p class="text-sm text-muted-foreground mt-1">发送系统通知，支持全站广播和指定用户推送</p>
+            </div>
         </div>
         @can('system.notification.create')
         <button type="button" wire:click="openCreateModal"
