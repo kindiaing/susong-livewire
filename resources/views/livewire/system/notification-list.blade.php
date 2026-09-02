@@ -80,7 +80,7 @@
                     <td class="px-4 py-2 text-muted-foreground">{{ $item->created_at?->format('Y-m-d H:i') }}</td>
                     <td class="px-4 py-2 action-col">
                         <div class="flex items-center gap-2">
-                            @can('system.notification.create')
+                            @can('system.notification.delete')
                             <button type="button" wire:click="confirmDelete({{ $item->id }})"
                                     class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除">
                                 <x-ui.icon name="trash" class="w-3.5 h-3.5" />

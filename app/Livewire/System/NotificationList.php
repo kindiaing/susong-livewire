@@ -78,6 +78,8 @@ class NotificationList extends Component
 
     public function delete(): void
     {
+        abort_unless(auth()->user()?->can('system.notification.delete'), 403, '无删除权限');
+
         Notification::findOrFail($this->deletingId)->delete();
         $this->toastSuccess('已删除');
         $this->showDeleteConfirm = false;

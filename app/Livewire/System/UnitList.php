@@ -30,6 +30,12 @@ class UnitList extends Component
     public int $formStatus = 1;
     public int $sort = 0;
 
+    public function getBatchDeletePermission(string $modelClass): string
+    {
+        // 单位页面权限挂在 system.system-config 下
+        return 'system.system-config.delete';
+    }
+
     public function mount(): void
     {
         $this->initColumnVisibility();

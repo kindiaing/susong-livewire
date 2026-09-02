@@ -31,6 +31,12 @@ class MerchantFavoriteList extends Component
         $this->initColumnVisibility();
     }
 
+    public function getBatchDeletePermission(string $modelClass): string
+    {
+        // 商家收藏页面权限挂在 org.merchant 下
+        return 'org.merchant.delete';
+    }
+
     public function getDefaultColumns(): array
     {
         return ['merchant', 'sku', 'created_at'];

@@ -34,6 +34,12 @@ class MerchantAddressList extends Component
     public int $formIsDefault = 0;
     public int $formSort = 0;
 
+    public function getBatchDeletePermission(string $modelClass): string
+    {
+        // 商家地址页面权限挂在 org.merchant 下
+        return 'org.merchant.delete';
+    }
+
     public function mount(): void
     {
         $this->initColumnVisibility();

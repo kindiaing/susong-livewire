@@ -29,6 +29,12 @@ class OperationLogs extends Component
         $this->initColumnVisibility();
     }
 
+    public function getBatchDeletePermission(string $modelClass): string
+    {
+        // 操作日志页面权限挂在 system.audit-log 下
+        return 'system.audit-log.delete';
+    }
+
     public function getAllColumns(): array
     {
         return [
