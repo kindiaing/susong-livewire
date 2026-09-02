@@ -244,7 +244,7 @@
     @if($showModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
-        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-3xl mx-4 p-6 max-h-[85vh] overflow-y-auto">
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold text-foreground">{{ $editingId ? '编辑损耗单' : '新增损耗单' }}
                     @if($editingStatusLabel)
@@ -280,115 +280,28 @@
                         @error('formLossType') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-foreground mb-1">损耗原因</label>
-                        <input type="text" wire:model="formReason" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="可选" />
-                        @error('formReason') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-foreground mb-1">备注</label>
-                        <input type="text" wire:model="formRemark" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="可选" />
-                        @error('formRemark') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
-                </div>
-
-                {{-- 损耗明细行 --}}
                 <div>
-                    <div class="flex items-center justify-between mb-2">
-                        <label class="block text-sm font-medium text-foreground">损耗明细 <span class="text-red-500">*</span></label>
-                        <button type="button" wire:click="addItemRow" class="rounded-md border border-input px-2 py-1 text-xs hover:bg-accent transition-colors">+ 添加行</button>
-                    </div>
-                    @if(count($formItems) > 0)
-                    <div class="overflow-x-auto rounded-md border border-input">
-                        <table class="w-full text-sm min-w-[760px]">
-                            <thead>
-                                <tr class="border-b text-[11px] font-medium text-muted-foreground bg-muted/30">
-                                    <th class="px-3 py-1.5 text-left">SKU</th>
-                                    <th class="px-3 py-1.5 text-right w-[100px]">成本价（元）</th>
-                                    <th class="px-3 py-1.5 text-right w-[90px]">数量</th>
-                                    <th class="px-3 py-1.5 text-right w-[100px]">损耗金额</th>
-                                    <th class="px-3 py-1.5 text-left w-[100px]">责任方</th>
-                                    <th class="px-3 py-1.5 text-left w-[120px]">供应商</th>
-                                    <th class="px-3 py-1.5 text-left w-[120px]">原因</th>
-                                    <th class="px-3 py-1.5 text-center w-[40px]"></th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y">
-                                @foreach($formItems as $i => $row)
-                                <tr wire:key="loss-item-{{ $i }}">
-                                    <td class="px-3 py-1.5">
-                                        <select wire:model="formItems.{{ $i }}.sku_id" class="w-full h-8 rounded border border-input bg-background px-1.5 text-xs">
-                                            <option value="0">选择 SKU</option>
-                                            @foreach($skus as $sku)
-                                            <option value="{{ $sku->id }}">{{ $sku->product?->name ?? 'SKU' }}（{{ $sku->sku_code }}）</option>
-                                            @endforeach
-                                        </select>
-                                        @error("formItems.{$i}.sku_id") <p class="text-red-500 text-xs mt-0.5">{{ $message }}</p> @enderror
-                                    </td>
-                                    <td class="px-3 py-1.5">
-                                        <input type="text" wire:model="formItems.{{ $i }}.cost_price_yuan" placeholder="0.00" class="w-full h-8 rounded border border-input bg-background px-1.5 text-xs text-right" />
-                                        @error("formItems.{$i}.cost_price_yuan") <p class="text-red-500 text-xs mt-0.5">{{ $message }}</p> @enderror
-                                    </td>
-                                    <td class="px-3 py-1.5">
-                                        <input type="number" wire:model="formItems.{{ $i }}.quantity" min="1" class="w-full h-8 rounded border border-input bg-background px-1.5 text-xs text-right" />
-                                        @error("formItems.{$i}.quantity") <p class="text-red-500 text-xs mt-0.5">{{ $message }}</p> @enderror
-                                    </td>
-                                    <td class="px-3 py-1.5 text-right text-muted-foreground tabular-nums">
-                                        @php
-                                            $rowQty = (int) ($row['quantity'] ?? 0);
-                                            $rowPrice = (float) ($row['cost_price_yuan'] ?? 0);
-                                            $rowAmount = $rowQty * $rowPrice;
-                                        @endphp
-                                        {{ number_format($rowAmount, 2) }}
-                                    </td>
-                                    <td class="px-3 py-1.5">
-                                        <select wire:model="formItems.{{ $i }}.responsible_party" class="w-full h-8 rounded border border-input bg-background px-1.5 text-xs">
-                                            <option value="1">平台</option>
-                                            <option value="2">供应商</option>
-                                        </select>
-                                    </td>
-                                    <td class="px-3 py-1.5">
-                                        @if(($row['responsible_party'] ?? 1) == 2)
-                                        <select wire:model="formItems.{{ $i }}.supplier_id" class="w-full h-8 rounded border border-input bg-background px-1.5 text-xs">
-                                            <option value="0">选择供应商</option>
-                                            @foreach($suppliers as $supplier)
-                                            <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-                                            @endforeach
-                                        </select>
-                                        @else
-                                        <span class="text-xs text-muted-foreground">—</span>
-                                        @endif
-                                    </td>
-                                    <td class="px-3 py-1.5">
-                                        <input type="text" wire:model="formItems.{{ $i }}.reason" placeholder="可选" class="w-full h-8 rounded border border-input bg-background px-1.5 text-xs" />
-                                    </td>
-                                    <td class="px-3 py-1.5 text-center">
-                                        <button type="button" wire:click="removeItemRow({{ $i }})" class="text-red-500 hover:text-red-700" title="删除行"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
-                                    </td>
-                                </tr>
-                                @endforeach
-                            </tbody>
-                            <tfoot>
-                                <tr class="border-t-2">
-                                    <td colspan="3" class="px-3 py-1.5 text-right text-xs text-muted-foreground">合计</td>
-                                    <td class="px-3 py-1.5 text-right text-xs font-bold text-foreground tabular-nums">{{ money_format($formTotalAmount) }}</td>
-                                    <td colspan="4"></td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-                    <p class="text-xs text-muted-foreground mt-1">选择 SKU 后自动带出成本价（加权平均成本价，为 0 时取采购价），可手动修改。损耗金额 = 成本价 × 数量，自动计算。</p>
-                    @else
-                    <div class="rounded-md border border-dashed border-input px-4 py-8 text-center text-sm text-muted-foreground">
-                        暂无明细。点击右上角「+ 添加行」录入损耗商品。
-                    </div>
-                    @endif
+                    <label class="block text-sm font-medium text-foreground mb-1">损耗原因</label>
+                    <input type="text" wire:model="formReason" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="可选" />
+                    @error('formReason') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">备注</label>
+                    <textarea wire:model="formRemark" rows="2" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="可选"></textarea>
+                    @error('formRemark') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                @if(!$editingId)
+                <div class="rounded-md border border-blue-100 bg-blue-50/50 p-3">
+                    <div class="flex items-start gap-2">
+                        <x-ui.icon name="information-circle" class="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
+                        <p class="text-xs text-blue-800">创建后将跳转到损耗单详情页，可在详情页中添加损耗明细。</p>
+                    </div>
+                </div>
+                @endif
             </div>
             <div class="flex justify-end gap-3 mt-6">
                 <button type="button" wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button type="button" wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
+                <button type="button" wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">{{ $editingId ? '保存' : '创建并填写明细' }}</button>
             </div>
         </div>
     </div>

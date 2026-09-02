@@ -18,10 +18,10 @@
                 <button type="button" wire:click="execute" class="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">执行</button>
             @endif
             @if($lossOrder->status === \App\Models\LossOrder::STATUS_EXECUTED || ($lossOrder->status === \App\Models\LossOrder::STATUS_APPROVED && $lossOrder->source_type === 'purchase_order'))
-                <button type="button" wire:click="close" class="rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors" title="{{ $lossOrder->source_type === 'purchase_order' && $lossOrder->status === 2 ? '采购入库差异仅账务留痕不扣库存，审核后可直接关闭' : '' }}">关闭</button>
+                <button type="button" wire:click="confirmClose" class="rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors" title="{{ $lossOrder->source_type === 'purchase_order' && $lossOrder->status === 2 ? '采购入库差异仅账务留痕不扣库存，审核后可直接关闭' : '' }}">关闭</button>
             @endif
             @if($lossOrder->canEdit())
-                <a href="{{ route('loss-orders') }}?edit={{ $lossOrder->id }}" class="rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">编辑</a>
+                <a href="{{ route('loss-orders') }}?edit={{ $lossOrder->id }}" class="rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">编辑单据</a>
             @endif
             @endcan
         </div>
@@ -91,8 +91,21 @@
 
     {{-- 损耗明细 --}}
     <div class="rounded-lg border bg-card mb-6">
-        <div class="px-4 py-2 border-b">
+        <div class="px-4 py-2 border-b flex items-center justify-between">
             <h2 class="text-sm font-semibold text-foreground">损耗明细（{{ $lossOrder->items->count() }} 项）</h2>
+            @if($canEditItems)
+            <div class="flex items-center gap-2">
+                <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1 text-xs hover:bg-accent transition-colors">
+                    <x-ui.icon name="arrow-down-tray" class="w-3.5 h-3.5" />导入
+                </button>
+                <button type="button" wire:click="openExportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-2.5 py-1 text-xs hover:bg-accent transition-colors">
+                    <x-ui.icon name="arrow-up-tray" class="w-3.5 h-3.5" />导出
+                </button>
+                <button type="button" wire:click="openAddItemModal" class="inline-flex items-center gap-1 rounded-md bg-blue-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-blue-700 transition-colors">
+                    <x-ui.icon name="plus" class="w-3.5 h-3.5" />添加明细
+                </button>
+            </div>
+            @endif
         </div>
         @if($lossOrder->items->count())
         <div class="overflow-x-auto">
@@ -106,11 +119,12 @@
                         <th class="px-4 py-2 text-right">损耗金额</th>
                         <th class="px-4 py-2 text-left">责任方</th>
                         <th class="px-4 py-2 text-left">原因</th>
+                        @if($canEditItems)<th class="px-4 py-2 text-right w-20">操作</th>@endif
                     </tr>
                 </thead>
                 <tbody class="divide-y">
                     @foreach($lossOrder->items as $item)
-                    <tr class="hover:bg-muted/30 transition-colors">
+                    <tr class="hover:bg-muted/30 transition-colors" wire:key="loss-item-{{ $item->id }}">
                         <td class="px-4 py-2 text-foreground">{{ $item->sku?->name ?? "SKU-{$item->sku_id}" }}</td>
                         <td class="px-4 py-2 text-foreground">{{ $typeMap[$item->loss_type] ?? '-' }}</td>
                         <td class="px-4 py-2 text-right text-foreground">{!! format_quantity($item->sku_id, $item->quantity, $item->sku?->baseUnit?->name) !!}</td>
@@ -118,6 +132,18 @@
                         <td class="px-4 py-2 text-right text-foreground font-medium">{{ money_format($item->loss_amount) }}</td>
                         <td class="px-4 py-2 text-foreground">{{ $responsiblePartyMap[$item->responsible_party] ?? '-' }}</td>
                         <td class="px-4 py-2 text-muted-foreground truncate max-w-[200px]">{{ $item->reason ?? '-' }}</td>
+                        @if($canEditItems)
+                        <td class="px-4 py-2">
+                            <div class="flex items-center justify-end gap-0.5">
+                                <button type="button" wire:click="openEditItemModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑">
+                                    <x-ui.icon name="pencil-square" class="w-3.5 h-3.5" />
+                                </button>
+                                <button type="button" wire:click="deleteItem({{ $item->id }})" wire:confirm="确认删除此条明细？" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除">
+                                    <x-ui.icon name="trash" class="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+                        </td>
+                        @endif
                     </tr>
                     @endforeach
                 </tbody>
@@ -125,13 +151,25 @@
                     <tr class="border-t-2 font-medium">
                         <td colspan="4" class="px-4 py-2 text-right text-muted-foreground">合计</td>
                         <td class="px-4 py-2 text-right text-foreground font-bold">{{ money_format($lossOrder->total_amount) }}</td>
-                        <td colspan="2"></td>
+                        @if($canEditItems)<td colspan="2"></td>@else<td colspan="2"></td>@endif
                     </tr>
                 </tfoot>
             </table>
         </div>
         @else
-        <div class="px-4 py-8 text-center text-sm text-muted-foreground">暂无损耗明细</div>
+        <div class="px-4 py-12 text-center">
+            <p class="text-sm text-muted-foreground mb-3">暂无损耗明细</p>
+            @if($canEditItems)
+            <div class="flex items-center justify-center gap-2">
+                <button type="button" wire:click="openAddItemModal" class="inline-flex items-center gap-1 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">
+                    <x-ui.icon name="plus" class="w-4 h-4" />添加明细
+                </button>
+                <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">
+                    <x-ui.icon name="arrow-down-tray" class="w-4 h-4" />批量导入
+                </button>
+            </div>
+            @endif
+        </div>
         @endif
     </div>
 
@@ -189,6 +227,175 @@
         <div class="rounded-lg border bg-card px-6 py-12 text-center text-sm text-muted-foreground">暂无状态变更记录</div>
         @endif
     </div>
+
+    {{-- 明细新增/编辑弹窗 --}}
+    @if($showItemModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">{{ $editingItemId ? '编辑明细' : '添加明细' }}</h2>
+                <button type="button" wire:click="closeItemModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">SKU <span class="text-red-500">*</span></label>
+                    <select wire:model.live="itemSkuId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        <option value="0">请选择 SKU</option>
+                        @foreach($skus as $sku)
+                        <option value="{{ $sku->id }}">{{ $sku->product?->name ?? 'SKU' }}（{{ $sku->sku_code }}）</option>
+                        @endforeach
+                    </select>
+                    @error('itemSkuId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">成本价（元） <span class="text-red-500">*</span></label>
+                        <input type="text" wire:model="itemCostPriceYuan" placeholder="0.00" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                        @error('itemCostPriceYuan') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">数量 <span class="text-red-500">*</span></label>
+                        <input type="number" wire:model="itemQuantity" min="1" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                        @error('itemQuantity') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-foreground mb-1">责任方 <span class="text-red-500">*</span></label>
+                        <select wire:model.live="itemResponsibleParty" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                            <option value="1">平台</option>
+                            <option value="2">供应商</option>
+                        </select>
+                    </div>
+                    <div>
+                        @if($itemResponsibleParty == 2)
+                        <label class="block text-sm font-medium text-foreground mb-1">供应商</label>
+                        <select wire:model="itemSupplierId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                            <option value="0">请选择供应商</option>
+                            @foreach($suppliers as $supplier)
+                            <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+                            @endforeach
+                        </select>
+                        @else
+                        <label class="block text-sm font-medium text-foreground mb-1">供应商</label>
+                        <div class="flex h-9 items-center text-sm text-muted-foreground">—</div>
+                        @endif
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">原因</label>
+                    <input type="text" wire:model="itemReason" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="可选" />
+                </div>
+                @php
+                    $previewAmount = (float) ($itemCostPriceYuan ?: 0) * (int) ($itemQuantity ?: 0);
+                @endphp
+                @if($previewAmount > 0)
+                <div class="rounded-md border border-blue-100 bg-blue-50/50 px-3 py-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-muted-foreground">损耗金额预览</span>
+                        <span class="text-foreground font-bold">{{ number_format($previewAmount, 2) }} 元</span>
+                    </div>
+                </div>
+                @endif
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" wire:click="closeItemModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="saveItem" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">{{ $editingItemId ? '保存' : '添加' }}</button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- 明细导出弹窗 --}}
+    @if($showExportModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">导出损耗明细</h2>
+                <button type="button" wire:click="closeExportModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
+            <div class="space-y-3 mb-4">
+                @foreach($itemExportColumns as $key => $label)
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="checkbox" value="{{ $key }}" wire:click="toggleExportColumn('{{ $key }}')" @checked(in_array($key, $exportColumns)) class="rounded" />
+                    {{ $label }}
+                </label>
+                @endforeach
+            </div>
+            <div class="flex items-center gap-4 mb-4">
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="radio" wire:model="exportFormat" value="xlsx" class="rounded" /> xlsx
+                </label>
+                <label class="flex items-center gap-2 text-sm">
+                    <input type="radio" wire:model="exportFormat" value="csv" class="rounded" /> csv
+                </label>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button type="button" wire:click="closeExportModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="doExport" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">导出</button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- 明细导入弹窗 --}}
+    @if($showImportModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">导入损耗明细</h2>
+                <button type="button" wire:click="closeImportModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div class="rounded-md border border-blue-100 bg-blue-50/50 p-3">
+                    <div class="flex items-start gap-2">
+                        <x-ui.icon name="information-circle" class="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
+                        <div class="text-xs text-blue-800 space-y-1">
+                            <p>必填列：SKU编码、数量、成本价</p>
+                            <p>成本价单位为元（如 12.50），导入后自动转厘</p>
+                            <p>责任方填"平台"或"供应商"，供应商责任方需填写供应商名称</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <button type="button" wire:click="downloadImportTemplate" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors">
+                        <x-ui.icon name="arrow-down-tray" class="w-4 h-4" />下载导入模板
+                    </button>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">选择文件</label>
+                    <input type="file" wire:model="importFile" accept=".xlsx,.xls,.csv" class="block w-full text-sm" />
+                    @error('importFile') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                </div>
+                @if($importMessage)
+                <div class="rounded-md border px-3 py-2 text-sm {{ !empty($importErrors) ? 'border-red-200 bg-red-50 text-red-800' : 'border-green-200 bg-green-50 text-green-800' }}">
+                    {{ $importMessage }}
+                </div>
+                @endif
+                @if(!empty($importErrors))
+                <div class="max-h-40 overflow-y-auto rounded-md border border-red-200 bg-red-50 p-2">
+                    @foreach($importErrors as $err)
+                    <p class="text-xs text-red-700">第 {{ $err['row'] }} 行：{{ $err['error'] }}</p>
+                    @endforeach
+                </div>
+                @endif
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" wire:click="closeImportModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="doImport" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">开始导入</button>
+            </div>
+        </div>
+    </div>
+    @endif
 
     {{-- 审核弹窗 --}}
     @if($showApproveConfirm)

@@ -9,9 +9,6 @@ use App\Livewire\Traits\WithListCrud;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
 use App\Models\LossOrder;
-use App\Models\LossOrderItem;
-use App\Models\Sku;
-use App\Models\Supplier;
 use App\Models\Warehouse;
 use App\Services\LossOrderService;
 use Illuminate\Support\Facades\Auth;
@@ -53,9 +50,6 @@ class LossOrderList extends Component
 
     public string $formRemark = '';
 
-    /** @var array<int, array{sku_id: int, cost_price_yuan: string, quantity: string, responsible_party: int, supplier_id: int, reason: string}> */
-    public array $formItems = [];
-
     public function mount(): void
     {
         $this->initColumnVisibility();
@@ -64,7 +58,6 @@ class LossOrderList extends Component
     public function openCreateModal(): void
     {
         $this->resetForm();
-        $this->addItemRow();
         $this->showModal = true;
     }
 
@@ -84,81 +77,7 @@ class LossOrderList extends Component
         $this->formReason = $item->reason ?? '';
         $this->formRemark = $item->remark ?? '';
 
-        // 加载已有明细到表单
-        $this->formItems = [];
-        foreach ($item->items as $detail) {
-            $this->formItems[] = [
-                'sku_id' => $detail->sku_id,
-                'cost_price_yuan' => number_format($detail->cost_price / 1000, 2),
-                'quantity' => (string) $detail->quantity,
-                'responsible_party' => $detail->responsible_party,
-                'supplier_id' => $detail->supplier_id ?? 0,
-                'reason' => $detail->reason ?? '',
-            ];
-        }
-        if (empty($this->formItems)) {
-            $this->addItemRow();
-        }
-
         $this->showModal = true;
-    }
-
-    public function addItemRow(): void
-    {
-        $this->formItems[] = [
-            'sku_id' => 0,
-            'cost_price_yuan' => '',
-            'quantity' => '',
-            'responsible_party' => LossOrderItem::PARTY_PLATFORM,
-            'supplier_id' => 0,
-            'reason' => '',
-        ];
-    }
-
-    public function removeItemRow(int $index): void
-    {
-        unset($this->formItems[$index]);
-        $this->formItems = array_values($this->formItems);
-    }
-
-    /**
-     * SKU 选择时自动带出成本价（cost_price 为 0 时 fallback 到 purchase_price）
-     */
-    public function updatedFormItems($value, $key): void
-    {
-        if (! str_ends_with($key, '.sku_id')) {
-            return;
-        }
-
-        $index = (int) explode('.', $key)[0];
-        $skuId = (int) $value;
-
-        if ($skuId <= 0) {
-            return;
-        }
-
-        $sku = Sku::find($skuId);
-        if ($sku) {
-            $costPrice = $sku->cost_price > 0 ? $sku->cost_price : $sku->purchase_price;
-            $this->formItems[$index]['cost_price_yuan'] = number_format($costPrice / 1000, 2);
-        }
-    }
-
-    /**
-     * 计算表单明细总金额（厘）
-     */
-    public function getFormTotalAmountCentsProperty(): int
-    {
-        $total = 0;
-        foreach ($this->formItems as $row) {
-            $qty = (int) ($row['quantity'] ?? 0);
-            $priceCents = (int) round((float) ($row['cost_price_yuan'] ?? 0) * 1000);
-            if ($qty > 0 && $priceCents > 0) {
-                $total += $qty * $priceCents;
-            }
-        }
-
-        return $total;
     }
 
     public function save(): void
@@ -168,35 +87,7 @@ class LossOrderList extends Component
             'formLossType' => 'required|in:1,2,3,4,5,6',
             'formReason' => 'nullable|string|max:255',
             'formRemark' => 'nullable|string|max:500',
-            'formItems' => 'required|array|min:1',
-            'formItems.*.sku_id' => 'required|integer|min:1',
-            'formItems.*.cost_price_yuan' => 'required|numeric|min:0',
-            'formItems.*.quantity' => 'required|integer|min:1',
-            'formItems.*.responsible_party' => 'required|in:1,2',
-            'formItems.*.supplier_id' => 'nullable|integer|min:0',
-            'formItems.*.reason' => 'nullable|string|max:255',
-        ], [
-            'formItems.min' => '至少添加一条损耗明细',
-            'formItems.*.sku_id.min' => '请选择 SKU',
-            'formItems.*.quantity.min' => '数量必须大于 0',
-            'formItems.*.cost_price_yuan.required' => '成本价不能为空',
         ]);
-
-        // 组装明细数据
-        $items = [];
-        foreach ($validated['formItems'] as $row) {
-            $costPriceCents = (int) round((float) $row['cost_price_yuan'] * 1000);
-            $quantity = (int) $row['quantity'];
-            $items[] = [
-                'sku_id' => $row['sku_id'],
-                'cost_price' => $costPriceCents,
-                'quantity' => $quantity,
-                'loss_amount' => $costPriceCents * $quantity,
-                'responsible_party' => $row['responsible_party'],
-                'supplier_id' => $row['responsible_party'] === LossOrderItem::PARTY_SUPPLIER ? ($row['supplier_id'] ?: null) : null,
-                'reason' => $row['reason'] ?: null,
-            ];
-        }
 
         $service = app(LossOrderService::class);
 
@@ -210,42 +101,33 @@ class LossOrderList extends Component
                 return;
             }
 
-            DB::transaction(function () use ($item, $validated, $items) {
-                $item->update([
-                    'loss_type' => $validated['formLossType'],
-                    'reason' => $validated['formReason'],
-                    'remark' => $validated['formRemark'],
-                ]);
-                // 删除旧明细重新创建
-                $item->items()->delete();
-                $totalAmount = 0;
-                foreach ($items as $data) {
-                    $data['loss_order_id'] = $item->id;
-                    $data['loss_type'] = $validated['formLossType'];
-                    LossOrderItem::create($data);
-                    $totalAmount += $data['loss_amount'];
-                }
-                $item->update(['total_amount' => $totalAmount]);
-            });
+            $item->update([
+                'loss_type' => $validated['formLossType'],
+                'reason' => $validated['formReason'],
+                'remark' => $validated['formRemark'],
+            ]);
 
             $this->toastSuccess('损耗单已更新');
+            $this->showModal = false;
+            $this->resetForm();
         } else {
             $lossOrder = $service->create(
                 warehouseId: $validated['formWarehouseId'],
                 lossType: $validated['formLossType'],
-                items: $items,
+                items: [],
                 reason: $validated['formReason'],
                 sourceType: 'manual',
             );
-            // 更新备注（LossOrderService::create 不支持 remark 参数）
             if ($validated['formRemark']) {
                 $lossOrder->update(['remark' => $validated['formRemark']]);
             }
-            $this->toastSuccess('损耗单已创建');
-        }
 
-        $this->showModal = false;
-        $this->resetForm();
+            $this->showModal = false;
+            $this->resetForm();
+
+            // 创建后跳转详情页，继续填写明细
+            $this->redirect(route('loss-orders.detail', $lossOrder->id), navigate: true);
+        }
     }
 
     public function delete(): void
@@ -386,7 +268,6 @@ class LossOrderList extends Component
         $this->formLossType = 1;
         $this->formReason = '';
         $this->formRemark = '';
-        $this->formItems = [];
     }
 
     public function getDefaultColumns(): array
@@ -489,13 +370,10 @@ class LossOrderList extends Component
 
         $items = $query->paginate(setting('per_page', 10));
         $warehouses = Warehouse::enabled()->get();
-        $suppliers = Supplier::enabled()->get();
-        $skus = Sku::with('product')->where('status', 1)->orderBy('id', 'desc')->limit(200)->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
-        $formTotalAmount = $this->formTotalAmountCents;
 
-        return view('livewire.loss.loss-order-list', compact('items', 'warehouses', 'suppliers', 'skus', 'allColumns', 'selectedCount', 'formTotalAmount'))
+        return view('livewire.loss.loss-order-list', compact('items', 'warehouses', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('损耗管理');
     }
