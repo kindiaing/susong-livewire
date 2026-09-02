@@ -71,6 +71,9 @@ trait WithRowSelection
 
     /**
      * 批量删除 - 组件可覆盖
+     *
+     * 权限兜底：要求组件模型对应的 .delete 权限（如 product.product.delete），
+     * 未通过则中止请求；admin 经 Gate::before 天然放行。
      */
     public function batchDelete(): void
     {
@@ -80,11 +83,32 @@ trait WithRowSelection
         }
         $modelClass = property_exists($this, 'modelClass') ? $this->modelClass : null;
         if ($modelClass) {
+            $permission = $this->getBatchDeletePermission($modelClass);
+            abort_unless(
+                $permission === '' || auth()->user()?->can($permission),
+                403,
+                '无批量删除权限'
+            );
             $modelClass::destroy($this->selectedIds);
             $count = count($this->selectedIds);
             $this->clearSelection();
             $this->toastSuccess("已删除 {$count} 条数据");
         }
+    }
+
+    /**
+     * 组件可覆盖：批量删除所需权限（默认按模块.页面.delete 约定推导）
+     */
+    public function getBatchDeletePermission(string $modelClass): string
+    {
+        // 模型类名小写蛇形作为页面段：OrderItem -> order-item
+        $snake = strtolower((string) preg_replace('/(?<!^)[A-Z]/', '-$0', class_basename($modelClass)));
+
+        // 用调用类的命名空间推导模块段：App\Livewire\Order\Xxx -> order
+        $namespace = (new \ReflectionClass($this))->getNamespaceName(); // App\Livewire\Order
+        $module = strtolower(basename(str_replace('\\', '/', $namespace)));
+
+        return "{$module}.{$snake}.delete";
     }
 
     /**
