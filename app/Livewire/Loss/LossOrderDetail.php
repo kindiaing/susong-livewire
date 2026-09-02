@@ -17,6 +17,9 @@ class LossOrderDetail extends Component
     // 审核弹窗
     public bool $showApproveConfirm = false;
 
+    // 关闭确认弹窗（关闭后单据不可再操作）
+    public bool $showCloseConfirm = false;
+
     public function mount(int $id): void
     {
         $this->loadLossOrder($id);
@@ -111,7 +114,18 @@ class LossOrderDetail extends Component
         ]);
 
         $this->loadLossOrder($this->lossOrder->id);
+        $this->showCloseConfirm = false;
         $this->toastSuccess('损耗单已关闭');
+    }
+
+    public function confirmClose(): void
+    {
+        $this->showCloseConfirm = true;
+    }
+
+    public function closeCloseConfirm(): void
+    {
+        $this->showCloseConfirm = false;
     }
 
     public function render()

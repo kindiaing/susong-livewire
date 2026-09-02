@@ -210,4 +210,24 @@
         </div>
     </div>
     @endif
+
+    {{-- 关闭确认弹窗 --}}
+    @if($showCloseConfirm)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-sm mx-4 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">确认关闭损耗单</h2>
+                <button type="button" wire:click="closeCloseConfirm" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
+            <p class="text-sm text-muted-foreground mb-6">关闭后单据将无法再进行任何操作（不可编辑、执行或回退状态），请确认是否继续？</p>
+            <div class="flex justify-end gap-3">
+                <button type="button" wire:click="closeCloseConfirm" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">再想想</button>
+                <button type="button" wire:click="close" class="rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-700 transition-colors">确认关闭</button>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>

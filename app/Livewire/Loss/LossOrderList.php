@@ -40,6 +40,11 @@ class LossOrderList extends Component
 
     public string $approveRemark = '';
 
+    // 关闭确认弹窗（关闭后单据不可再操作）
+    public bool $showCloseConfirm = false;
+
+    public ?int $closingId = null;
+
     public int $formWarehouseId = 0;
 
     public int $formLossType = 1;
@@ -332,6 +337,8 @@ class LossOrderList extends Component
 
         if ($item->status !== LossOrder::STATUS_EXECUTED && ! $purchaseTraceClosable) {
             $this->toastError('只有已执行的单据可关闭');
+            $this->showCloseConfirm = false;
+            $this->closingId = null;
 
             return;
         }
@@ -342,6 +349,20 @@ class LossOrderList extends Component
         ]);
 
         $this->toastSuccess('损耗单已关闭');
+        $this->showCloseConfirm = false;
+        $this->closingId = null;
+    }
+
+    public function confirmClose(int $id): void
+    {
+        $this->closingId = $id;
+        $this->showCloseConfirm = true;
+    }
+
+    public function closeCloseConfirm(): void
+    {
+        $this->showCloseConfirm = false;
+        $this->closingId = null;
     }
 
     public function resetFilters(): void
