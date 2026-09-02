@@ -119,6 +119,8 @@ class PurchaseOrderList extends Component
 
     public function batchDelete(): void
     {
+        abort_unless(auth()->user()?->can('purchase.purchase-order.delete'), 403, '无批量删除权限');
+
         $count = count($this->selectedIds);
         if ($count === 0) {
             $this->toastWarning('请先选择要删除的采购单');

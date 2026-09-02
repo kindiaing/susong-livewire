@@ -38,6 +38,12 @@ class PurchaseItemList extends Component
     public int $formSourceType = 1;
     public bool $showGenerateConfirm = false;
 
+    public function getBatchDeletePermission(string $modelClass): string
+    {
+        // 采购明细页面权限挂在 purchase.purchase-order 下
+        return 'purchase.purchase-order.delete';
+    }
+
     public function mount(): void
     {
         $this->initColumnVisibility();

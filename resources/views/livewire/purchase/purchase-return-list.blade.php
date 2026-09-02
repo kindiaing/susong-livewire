@@ -201,14 +201,16 @@
                         <div class="flex items-center gap-1">
                             {{-- 状态流转 --}}
                             @if($item->status === 1)
-                                <button type="button" wire:click="approveReturn({{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="审核"><x-ui.icon name="check" class="w-3.5 h-3.5" /></button>
+                                <button type="button" wire:click="confirmAction('approveReturn', '确认审核通过此退货单？', '通过后进入待出库状态', {{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="审核"><x-ui.icon name="check" class="w-3.5 h-3.5" /></button>
                             @elseif($item->status === 2)
-                                <button type="button" wire:click="shipReturn({{ $item->id }})" class="p-1 rounded text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors" title="出库"><x-ui.icon name="truck" class="w-3.5 h-3.5" /></button>
+                                <button type="button" wire:click="confirmAction('shipReturn', '确认执行出库？', '出库将扣减库存', {{ $item->id }})" class="p-1 rounded text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors" title="出库"><x-ui.icon name="truck" class="w-3.5 h-3.5" /></button>
                             @elseif($item->status === 3)
-                                <button type="button" wire:click="completeReturn({{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="完成"><x-ui.icon name="check-circle" class="w-3.5 h-3.5" /></button>
+                                <button type="button" wire:click="confirmAction('completeReturn', '确认完成此退货单？', '完成后单据进入最终状态', {{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="完成"><x-ui.icon name="check-circle" class="w-3.5 h-3.5" /></button>
                             @endif
                             @if(in_array($item->status, [1, 2]))
-                                <button type="button" wire:click="cancelReturn({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="作废"><x-ui.icon name="x-circle" class="w-3.5 h-3.5" /></button>
+                            @can('purchase.purchase-return.cancel')
+                                <button type="button" wire:click="confirmAction('cancelReturn', '确认作废此退货单？', '作废后单据不可恢复', {{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="作废"><x-ui.icon name="x-circle" class="w-3.5 h-3.5" /></button>
+                            @endcan
                             @endif
                             {{-- 编辑 --}}
                             @can('purchase.purchase-return.edit')
@@ -332,4 +334,5 @@
     @include('partials.export-modal')
     @include('partials.import-modal')
     @include('partials.delete-confirm')
+    @include('partials.action-confirm')
 </div>

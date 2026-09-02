@@ -3,6 +3,7 @@
 namespace App\Livewire\Purchase;
 
 use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithConfirmAction;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithListCrud;
@@ -22,6 +23,7 @@ class PurchaseReturnList extends Component
     use WithListCrud;
     use WithPagination;
     use WithToast;
+    use WithConfirmAction;
 
     protected string $modelClass = PurchaseReturn::class;
 

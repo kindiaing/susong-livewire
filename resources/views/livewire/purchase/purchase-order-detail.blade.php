@@ -19,9 +19,11 @@
                 <button type="button" wire:click="confirmComplete" class="rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 transition-colors">完成</button>
             @endif
 
+            @can('purchase.purchase-order.cancel')
             @if(in_array($order->status, [1, 2, 3]))
                 <button type="button" wire:click="confirmCancel" class="rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">作废</button>
             @endif
+            @endcan
 
             {{-- 超管状态回退 --}}
             @if($isSuperAdmin && !in_array($order->status, [1, 9]))
