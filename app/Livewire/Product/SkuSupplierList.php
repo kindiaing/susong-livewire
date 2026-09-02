@@ -28,6 +28,12 @@ class SkuSupplierList extends Component
 
     protected string $modelClass = SkuSupplier::class;
 
+    public function getBatchDeletePermission(string $modelClass): string
+    {
+        // SKU 供应商页面权限挂在 product.product 下
+        return 'product.product.delete';
+    }
+
     public string $search = '';
 
     public int $filterStatus = -1;

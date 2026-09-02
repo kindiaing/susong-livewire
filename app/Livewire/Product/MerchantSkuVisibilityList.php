@@ -171,6 +171,8 @@ class MerchantSkuVisibilityList extends Component
 
     public function batchDelete(): void
     {
+        abort_unless(auth()->user()?->can('product.visibility.delete'), 403, '无批量删除权限');
+
         $count = count($this->selectedIds);
         if ($count === 0) {
             $this->toastWarning('请先选择要删除的记录');

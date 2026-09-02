@@ -39,7 +39,9 @@
         @if($selectedCount > 0)
             <span class="text-sm text-muted-foreground">已选 {{ $selectedCount }} 项</span>
             @if($isSuperAdmin)
+            @can('product.product.delete')
             <button type="button" wire:click="batchDelete" class="inline-flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 transition-colors">批量删除</button>
+            @endcan
             @endif
             <button type="button" wire:click="clearSelection" class="text-sm text-muted-foreground hover:text-foreground transition-colors">取消选择</button>
         @endif
@@ -111,7 +113,9 @@
                             </button>
                             @endcan
                             @if($isSuperAdmin)
+                            @can('product.product.delete')
                             <button type="button" wire:click="confirmDelete({{ $sku->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除（软删除）"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
+                            @endcan
                             @endif
                         </div>
                     </td>

@@ -45,6 +45,12 @@ class RestockReminderList extends Component
         $this->initColumnVisibility();
     }
 
+    public function getBatchDeletePermission(string $modelClass): string
+    {
+        // 页面权限挂在 purchase.restock-reminder 下
+        return 'purchase.restock-reminder.delete';
+    }
+
     public function openEditModal(int $id): void
     {
         $item = RestockReminder::findOrFail($id);
