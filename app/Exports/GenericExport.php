@@ -15,7 +15,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 /**
  * 通用导出类
- * 接受查询构建器、列定义、列标签，生成 Excel 文件
+ * 接受查询构建器、集合、列定义、列标签，生成 Excel 文件
  *
  * 金额列处理：通过 $moneyColumns 显式声明（厘→元 ÷1000），
  * 不再用正则猜测列名，避免误命中和除数错误。
@@ -23,6 +23,13 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class GenericExport implements FromCollection, ShouldAutoSize, WithChunkReading, WithHeadings, WithMapping, WithStyles
 {
     protected ?Builder $query;
+
+    /**
+     * 集合输入（Collection 模式）：详情页等非列表场景直接传入已查好的数据
+     *
+     * @var \Illuminate\Support\Collection<int, mixed>|null
+     */
+    protected ?\Illuminate\Support\Collection $staticCollection;
 
     protected array $columns;
 
@@ -62,6 +69,18 @@ class GenericExport implements FromCollection, ShouldAutoSize, WithChunkReading,
             $this->rowCallback = null;
             $this->moneyColumns = [];
             $this->requiredHeadings = $requiredHeadings;
+            $this->staticCollection = null;
+        } elseif ($queryOrData instanceof \Illuminate\Support\Collection) {
+            // Collection 输入：表头/列标签/金额列与 Builder 模式共用，行回调同样生效
+            $this->staticCollection = $queryOrData;
+            $this->query = null;
+            $this->columns = $columns;
+            $this->columnLabels = $columnLabels;
+            $this->rowCallback = $rowCallback;
+            $this->staticData = null;
+            $this->staticHeadings = null;
+            $this->moneyColumns = $moneyColumns;
+            $this->requiredHeadings = $requiredHeadings;
         } else {
             $this->query = $queryOrData;
             $this->columns = $columns;
@@ -71,6 +90,7 @@ class GenericExport implements FromCollection, ShouldAutoSize, WithChunkReading,
             $this->staticHeadings = null;
             $this->moneyColumns = $moneyColumns;
             $this->requiredHeadings = $requiredHeadings;
+            $this->staticCollection = null;
         }
     }
 
@@ -78,6 +98,9 @@ class GenericExport implements FromCollection, ShouldAutoSize, WithChunkReading,
     {
         if ($this->staticData !== null) {
             return collect($this->staticData);
+        }
+        if ($this->staticCollection !== null) {
+            return $this->staticCollection;
         }
         if (! $this->query) {
             return collect([]);
