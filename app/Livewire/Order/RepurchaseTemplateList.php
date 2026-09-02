@@ -36,6 +36,12 @@ class RepurchaseTemplateList extends Component
         $this->initColumnVisibility();
     }
 
+    public function getBatchDeletePermission(string $modelClass): string
+    {
+        // 复购模板页面权限挂在 order.order 下
+        return 'order.order.delete';
+    }
+
     public function getDefaultColumns(): array
     {
         return ['name', 'merchant', 'status', 'created_at'];

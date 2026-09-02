@@ -29,6 +29,12 @@ class FrequentlyBoughtList extends Component
         $this->initColumnVisibility();
     }
 
+    public function getBatchDeletePermission(string $modelClass): string
+    {
+        // 常购清单页面权限挂在 order.cart 下
+        return 'order.cart.delete';
+    }
+
     public function getAllColumns(): array
     {
         return [

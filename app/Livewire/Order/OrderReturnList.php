@@ -3,6 +3,7 @@
 namespace App\Livewire\Order;
 
 use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithConfirmAction;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithListCrud;
@@ -23,6 +24,7 @@ class OrderReturnList extends Component
     use WithPagination;
     use WithRowSelection;
     use WithToast;
+    use WithConfirmAction;
 
     protected string $modelClass = OrderReturn::class;
 
@@ -272,6 +274,8 @@ class OrderReturnList extends Component
      */
     public function batchDelete(): void
     {
+        abort_unless(auth()->user()?->can('order.order-return.delete'), 403, '无批量删除权限');
+
         $ids = $this->selectedIds;
         if (empty($ids)) {
             $this->toastError('请先选择数据');

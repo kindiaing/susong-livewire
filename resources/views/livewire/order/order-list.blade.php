@@ -239,9 +239,9 @@
                     <button type="button" wire:click="confirmOrder({{ $order->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="确认"><x-ui.icon name="check" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
-                    @can('order.order.create')
+                    @can('order.order.cancel')
                     @if(!in_array($order->status, [4, 5, 9]))
-                    <button type="button" wire:click="cancelOrder({{ $order->id }})" class="p-1 rounded text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors" title="作废"><x-ui.icon name="x-circle" class="w-3.5 h-3.5" /></button>
+                    <button type="button" wire:click="confirmAction('cancelOrder', '确认作废此订单？', '作废后订单不可恢复，请谨慎操作', {{ $order->id }})" class="p-1 rounded text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors" title="作废"><x-ui.icon name="x-circle" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
                     @can('order.order.create')
@@ -360,4 +360,5 @@
     @include('partials.export-modal')
     @include('partials.import-modal')
     @include('partials.delete-confirm')
+    @include('partials.action-confirm')
 </div>

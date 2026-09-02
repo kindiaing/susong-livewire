@@ -215,8 +215,8 @@
                     @endcan
                     @can('order.order-return.create')
                     @if($item->status === 1)
-                    <button type="button" wire:click="approveReturn({{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="通过"><x-ui.icon name="check" class="w-3.5 h-3.5" /></button>
-                    <button type="button" wire:click="rejectReturn({{ $item->id }})" class="p-1 rounded text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors" title="拒绝"><x-ui.icon name="x-circle" class="w-3.5 h-3.5" /></button>
+                    <button type="button" wire:click="confirmAction('approveReturn', '确认通过此退货申请？', '通过后进入待退货流程', {{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="通过"><x-ui.icon name="check" class="w-3.5 h-3.5" /></button>
+                    <button type="button" wire:click="confirmAction('rejectReturn', '确认拒绝此退货申请？', '拒绝后申请状态不可再变更', {{ $item->id }})" class="p-1 rounded text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors" title="拒绝"><x-ui.icon name="x-circle" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
                     @can('order.order-return.create')
@@ -300,4 +300,5 @@
     @include('partials.export-modal')
     @include('partials.import-modal')
     @include('partials.delete-confirm')
+    @include('partials.action-confirm')
 </div>

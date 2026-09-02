@@ -200,6 +200,8 @@ class OrderReturnDetail extends Component
 
             // 超管状态回退
             if (str_starts_with($this->confirmAction, 'rollback_')) {
+                abort_unless(can_rollback_status(), 403, '仅超级管理员可执行状态回退');
+
                 $toStatus = (int) substr($this->confirmAction, 9);
                 $oldStatus = $this->return->status;
                 $this->return->update(['status' => $toStatus]);
