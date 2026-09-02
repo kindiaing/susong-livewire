@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Price;
 
+use App\Livewire\Traits\WithConfirmAction;
 use App\Livewire\Traits\WithToast;
 use App\Models\Merchant;
 use App\Models\Promotion;
@@ -16,6 +17,7 @@ class PromotionSettings extends Component
 {
     use WithPagination;
     use WithToast;
+    use WithConfirmAction;
 
     // ── 左侧导航 ──
     public string $activeGroup = 'promotion';
@@ -120,6 +122,7 @@ class PromotionSettings extends Component
 
     public function deletePromotion(int $id): void
     {
+        abort_unless(auth()->user()?->can('price.promotion.delete'), 403, '无删除权限');
         Promotion::findOrFail($id)->delete();
         $this->toastSuccess('促销活动已删除');
     }
@@ -238,6 +241,7 @@ class PromotionSettings extends Component
 
     public function deleteStorePrice(int $id): void
     {
+        abort_unless(auth()->user()?->can('price.promotion.delete'), 403, '无删除权限');
         StoreSkuPrice::findOrFail($id)->delete();
         $this->toastSuccess('商家价格已删除');
     }
@@ -333,6 +337,7 @@ class PromotionSettings extends Component
 
     public function deleteMemberDiscount(int $id): void
     {
+        abort_unless(auth()->user()?->can('price.promotion.delete'), 403, '无删除权限');
         PromotionMemberDiscount::findOrFail($id)->delete();
         $this->toastSuccess('会员折扣已删除');
     }

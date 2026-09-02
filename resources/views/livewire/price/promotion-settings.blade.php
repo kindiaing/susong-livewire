@@ -70,11 +70,12 @@
                                 <td class="px-4 py-2 text-xs text-muted-foreground">{{ $promo->start_at?->format('Y-m-d H:i') }}</td>
                                 <td class="px-4 py-2 text-xs text-muted-foreground">{{ $promo->end_at?->format('Y-m-d H:i') }}</td>
                                 <td class="px-4 py-2 text-right">
-                                    <button type="button" wire:click="deletePromotion({{ $promo->id }})"
-                                        onclick="return confirm('确认删除？')"
+                                    @can('price.promotion.delete')
+                                    <button type="button" wire:click="confirmAction('deletePromotion', '确认删除此促销活动？', '删除后数据不可恢复', {{ $promo->id }})"
                                         class="inline-flex items-center justify-center rounded p-1 text-red-500 hover:bg-red-50 transition-colors">
                                         <x-ui.icon name="trash" class="w-4 h-4" />
                                     </button>
+                                    @endcan
                                 </td>
                             </tr>
                             @empty
@@ -232,11 +233,12 @@
                                             class="inline-flex items-center justify-center rounded p-1 text-blue-600 hover:bg-blue-50 transition-colors">
                                             <x-ui.icon name="pencil-square" class="w-4 h-4" />
                                         </button>
-                                        <button type="button" wire:click="deleteStorePrice({{ $sp->id }})"
-                                            onclick="return confirm('确认删除？')"
+                                        @can('price.promotion.delete')
+                                        <button type="button" wire:click="confirmAction('deleteStorePrice', '确认删除此门店价格？', '删除后恢复默认价格策略', {{ $sp->id }})"
                                             class="inline-flex items-center justify-center rounded p-1 text-red-500 hover:bg-red-50 transition-colors">
                                             <x-ui.icon name="trash" class="w-4 h-4" />
                                         </button>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>
@@ -401,11 +403,12 @@
                                             class="inline-flex items-center justify-center rounded p-1 text-blue-600 hover:bg-blue-50 transition-colors">
                                             <x-ui.icon name="pencil-square" class="w-4 h-4" />
                                         </button>
-                                        <button type="button" wire:click="deleteMemberDiscount({{ $md->id }})"
-                                            onclick="return confirm('确认删除？')"
+                                        @can('price.promotion.delete')
+                                        <button type="button" wire:click="confirmAction('deleteMemberDiscount', '确认删除此会员折扣？', '删除后立即失效', {{ $md->id }})"
                                             class="inline-flex items-center justify-center rounded p-1 text-red-500 hover:bg-red-50 transition-colors">
                                             <x-ui.icon name="trash" class="w-4 h-4" />
                                         </button>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>
@@ -487,4 +490,6 @@
 
         </div>
     </div>
+
+    @include('partials.action-confirm')
 </div>
