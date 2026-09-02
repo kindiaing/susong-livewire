@@ -27,9 +27,11 @@
             @if($task->status === 4)
             <button type="button" wire:click="resumeDelivery" class="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">继续配送</button>
             @endif
+            @can('delivery.delivery-task.cancel')
             @if($task->canTransitionTo(\App\Models\DeliveryTask::STATUS_CANCELLED))
-            <button type="button" wire:click="cancelDelivery" class="rounded-md border border-orange-300 px-3 py-1.5 text-sm text-orange-600 hover:bg-orange-50 transition-colors">作废任务</button>
+            <button type="button" wire:click="confirmCancelDelivery" class="rounded-md border border-orange-300 px-3 py-1.5 text-sm text-orange-600 hover:bg-orange-50 transition-colors">作废任务</button>
             @endif
+            @endcan
 
             {{-- 超管状态回退 --}}
             @if($isSuperAdmin && !in_array($task->status, [1, 6]))

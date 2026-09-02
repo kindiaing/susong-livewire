@@ -37,6 +37,12 @@ class DeliveryRouteList extends Component
     public int $formDefaultDriverId = 0;
     public int $formDefaultVehicleId = 0;
     public string $formColor = '#3b82f6';
+
+    public function getBatchDeletePermission(string $modelClass): string
+    {
+        // 线路页面权限名是 delivery.route.delete（模块段与组件命名空间不一致）
+        return 'delivery.route.delete';
+    }
     public string $formDepartureTime = '';
     public ?int $formEstimatedDuration = null;
     public ?string $formEstimatedDistance = null;

@@ -3,6 +3,7 @@
 namespace App\Livewire\Delivery;
 
 use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithConfirmAction;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithListCrud;
@@ -29,6 +30,7 @@ class DeliveryTaskList extends Component
     use WithPagination;
     use WithRowSelection;
     use WithToast;
+    use WithConfirmAction;
 
     protected string $modelClass = DeliveryTask::class;
 

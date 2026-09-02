@@ -93,6 +93,34 @@ class DeliveryNoteList extends Component
         $this->deletingId = null;
     }
 
+    /**
+     * 批量作废（覆盖 Trait 默认硬删除：送货单只应作废，不应物理删除）
+     */
+    public function batchDelete(): void
+    {
+        abort_unless(auth()->user()?->can('delivery.delivery-note.cancel'), 403, '无批量作废权限');
+
+        $ids = $this->selectedIds;
+        if (empty($ids)) {
+            $this->toastError('请先选择数据');
+
+            return;
+        }
+        $voidable = DeliveryNote::whereIn('id', $ids)
+            ->where('status', DeliveryNote::STATUS_PENDING)
+            ->pluck('id')
+            ->toArray();
+        $skipped = count($ids) - count($voidable);
+        if ($skipped > 0) {
+            $this->toastError("{$skipped} 条非待分货状态送货单不可作废，已跳过");
+        }
+        if (! empty($voidable)) {
+            DeliveryNote::whereIn('id', $voidable)->update(['status' => DeliveryNote::STATUS_CANCELLED]);
+            $this->toastSuccess('已作废 '.count($voidable).' 条送货单');
+        }
+        $this->clearSelection();
+    }
+
     public function resetFilters(): void
     {
         $this->search = '';

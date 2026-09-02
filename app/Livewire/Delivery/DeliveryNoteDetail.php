@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Delivery;
 
+use App\Livewire\Traits\WithConfirmAction;
 use App\Livewire\Traits\WithToast;
 use App\Models\DeliveryNote;
 use App\Models\DeliveryNoteItem;
@@ -13,6 +14,7 @@ use Livewire\Component;
 class DeliveryNoteDetail extends Component
 {
     use WithToast;
+    use WithConfirmAction;
 
     public int $noteId;
 
@@ -121,6 +123,11 @@ class DeliveryNoteDetail extends Component
         $note->update(['status' => DeliveryNote::STATUS_CANCELLED]);
         $this->loadNote();
         $this->toastSuccess('送货单已作废');
+    }
+
+    public function confirmCancelNote(): void
+    {
+        $this->confirmAction('cancelNote', '确认作废此送货单？', '作废后送货单不可恢复');
     }
 
     // ========== 明细操作 ==========

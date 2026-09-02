@@ -120,6 +120,13 @@ class DeliveryTaskDetail extends Component
         $this->toastSuccess('配送任务已作废');
     }
 
+    public function confirmCancelDelivery(): void
+    {
+        $this->confirmAction = 'cancel_delivery';
+        $this->confirmTitle = '确认作废此配送任务？作废后任务不可恢复。';
+        $this->showConfirmModal = true;
+    }
+
     // ── 超管状态回退 ──
 
     public bool $showConfirmModal = false;
@@ -143,7 +150,16 @@ class DeliveryTaskDetail extends Component
     public function executeConfirm(): void
     {
         try {
+            if ($this->confirmAction === 'cancel_delivery') {
+                $this->cancelDelivery();
+                $this->showConfirmModal = false;
+
+                return;
+            }
+
             if (str_starts_with($this->confirmAction, 'rollback_')) {
+                abort_unless(can_rollback_status(), 403, '仅超级管理员可执行状态回退');
+
                 $toStatus = (int) substr($this->confirmAction, 9);
                 $oldStatus = $this->task->status;
                 $this->task->update(['status' => $toStatus]);

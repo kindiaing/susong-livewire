@@ -3,6 +3,7 @@
 namespace App\Livewire\Delivery;
 
 use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithConfirmAction;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
@@ -20,6 +21,7 @@ class VehicleIssueList extends Component
     use WithExcelExport;
     use WithToast;
     use WithListCrud;
+    use WithConfirmAction;
 
     protected string $modelClass = VehicleIssue::class;
 

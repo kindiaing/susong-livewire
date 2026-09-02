@@ -263,9 +263,9 @@
                     <button type="button" wire:click="completeDelivery({{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="完成"><x-ui.icon name="check-circle" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
-                    @can('delivery.delivery-task.create')
+                    @can('delivery.delivery-task.cancel')
                     @if($item->canTransitionTo(\App\Models\DeliveryTask::STATUS_CANCELLED))
-                    <button type="button" wire:click="cancelDelivery({{ $item->id }})" class="p-1 rounded text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors" title="作废"><x-ui.icon name="x-circle" class="w-3.5 h-3.5" /></button>
+                    <button type="button" wire:click="confirmAction('cancelDelivery', '确认作废此配送任务？', '作废后任务不可恢复', {{ $item->id }})" class="p-1 rounded text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors" title="作废"><x-ui.icon name="x-circle" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
                     @can('delivery.delivery-task.delete')
@@ -484,4 +484,5 @@
     @include('partials.export-modal')
     @include('partials.import-modal')
     @include('partials.delete-confirm')
+    @include('partials.action-confirm')
 </div>

@@ -122,7 +122,7 @@
                     @endcan
                     @can('delivery.vehicle-issue.edit')
                     @if(in_array($item->status, [\App\Models\VehicleIssue::STATUS_OPEN, \App\Models\VehicleIssue::STATUS_RESOLVED]))
-                    <button type="button" wire:click="closeIssue({{ $item->id }})" class="text-orange-600 hover:text-orange-700 text-sm">关闭</button>
+                    <button type="button" wire:click="confirmAction('closeIssue', '确认关闭此故障记录？', '关闭后不可再标记解决', {{ $item->id }})" class="text-orange-600 hover:text-orange-700 text-sm">关闭</button>
                     @endif
                     @endcan
                     @can('delivery.vehicle-issue.delete')
@@ -219,4 +219,5 @@
     @include('partials.column-modal')
     @include('partials.export-modal')
     @include('partials.delete-confirm')
+    @include('partials.action-confirm')
 </div>
