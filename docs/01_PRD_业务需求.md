@@ -1,13 +1,3 @@
----
-AIGC:
-  ContentProducer: '001191110102MAD55U9H0F10002'
-  ContentPropagator: '001191110102MAD55U9H0F10002'
-  Label: '1'
-  ProduceID: '021e2737-b4cf-4a06-8545-2834e0671e04'
-  PropagateID: '021e2737-b4cf-4a06-8545-2834e0671e04'
-  ReservedCode1: '3a33e6a1-d21a-4e4e-b11e-777b2e2366fe'
-  ReservedCode2: '3a33e6a1-d21a-4e4e-b11e-777b2e2366fe'
----
 
 # PRD 业务需求说明书
 
@@ -224,7 +214,7 @@ SKU 创建/编辑 → 配置条码信息（厂家条码、供应商条码、内�
 | Spatie Permission | 最新 | RBAC 角色权限 | 菜单/按钮级权限，角色动态渲染侧边栏 |
 | cknow/laravel-money | ^8.5 | 金额整数存储 | 底层 brick/money，数据库 bigint 存分/厘/毫，Model Cast 自动转换，杜绝浮点精度丢失 |
 | Laravel Queue | 内置 | 异步任务 | 短信/消息通知、Excel 导出、对账任务 |
-| Laravel Reverb | 1.x | WebSocket 实时推送服务器 | ① 订单状态变更实时推送到管理后台 ② 配送轨迹实时推送 ③ 审核待办即时通知 ④ 库存预警弹窗 ⑤ 小程序端消息推送（通过 Laravel Echo） |
+| Laravel Reverb / Pusher | 1.x / 云服务 | WebSocket 实时推送（双模式） | ① 订单状态变更实时推送到管理后台 ② 配送轨迹实时推送 ③ 审核待办即时通知 ④ 库存预警弹窗 ⑤ 小程序端消息推送（通过 Laravel Echo）；前期用 Pusher 云服务，多项目后生产环境切 Laravel Cloud Reverb |
 
 ### 5.2 管理后台 Web 端
 
@@ -291,9 +281,22 @@ SKU 创建/编辑 → 配置条码信息（厂家条码、供应商条码、内�
 - 配置参数化（system_configs 表）
 - 支持快速迭代，预留 AI 扩展接口
 
-### 6.5 实时推送规范（Laravel Reverb + Echo）
+### 6.5 实时推送规范（Pusher 云服务 / Laravel Reverb 双模式 + Echo）
 
-系统使用 **Laravel Reverb** 作为 WebSocket 服务器，配合 **Laravel Echo**（前端）实现全站实时推送能力：
+系统采用 **Pusher 云服务 / Laravel Reverb 双模式**架构，配合 **Laravel Echo**（前端）实现全站实时推送能力，通过环境变量一键切换：
+
+**双模式演进策略：**
+
+| 阶段 | 广播方案 | 说明 |
+| :--- | :--- | :--- |
+| 前期（单项目） | **Pusher 云服务**（默认） | 免部署免运维，沙盒套餐免费额度可满足开发与初期上线；本地开发与 Laravel Cloud 测试/生产环境均使用 Pusher |
+| 后期（多项目） | **Laravel Reverb**（Laravel Cloud 原生支持） | 项目增多后为降低成本切换至 Reverb；生产环境直接使用 Laravel Cloud 内置的 Reverb 服务（无需自建服务器），本地/自托管环境可用 Supervisor 自建 |
+
+**切换机制：**
+
+- 后端：`.env` 中 `BROADCAST_CONNECTION=pusher|reverb` 控制 Laravel 广播驱动
+- 前端：`.env` 中 `VITE_BROADCAST_DRIVER=pusher|reverb` 控制 `resources/js/app.js` 中 Echo 初始化配置（Pusher 云服务与 Reverb 均走 Pusher 协议，前端事件监听代码零改动）
+- 两处变量须保持一致，修改后需执行 `php artisan config:clear` + `npm run build`
 
 **推送场景与频道规划：**
 
@@ -328,9 +331,11 @@ SKU 创建/编辑 → 配置条码信息（厂家条码、供应商条码、内�
 
 **部署要求：**
 
-- Reverb 服务独立进程运行（Supervisor 管理），默认端口 8080
-- Nginx 反向代理 WebSocket 连接（`/app` 路径 → Reverb 端口）
-- Redis 作为广播驱动（`BROADCAST_DRIVER=redis`）
+- **Pusher 模式（前期默认）**：无需自建 WebSocket 服务，配置 `PUSHER_APP_ID/KEY/SECRET/CLUSTER` 凭证即可；Nginx/Laravel Cloud 无需额外 WebSocket 反代配置
+- **Reverb 模式（后期多项目）**：
+  - Laravel Cloud 生产环境：直接启用 Cloud 内置 Reverb 服务，无需自行部署
+  - 本地/自托管环境：Reverb 服务独立进程运行（Supervisor 管理），默认端口 8080；Nginx 反向代理 WebSocket 连接（`/app` 路径 → Reverb 端口）
+- 两种模式下 Redis 均作为队列驱动承载广播任务（`QUEUE_CONNECTION=redis`），广播事件经队列异步分发
 
 ---
 
@@ -339,7 +344,7 @@ SKU 创建/编辑 → 配置条码信息（厂家条码、供应商条码、内�
 1. 全部需求功能可正常操作，无阻断性 BUG
 2. 管理后台 + 小程序商家端 + 小程序司机端三端联调通过
 3. 核心业务流程跑通：商家下单 → 拣货 → 配送 → 签收 → 结算
-4. Laravel Reverb WebSocket 实时推送正常，订单/审核/配送/库存预警推送可达
+4. 实时推送正常（Pusher 云服务或 Reverb 双模式），订单/审核/配送/库存预警推送可达
 5. 部署文档完整，可全新服务器一键安装
 6. 数据字典、接口文档齐全
 7. 提供基础初始化数据脚本（角色、管理员账号、系统配置）
@@ -363,7 +368,7 @@ flowchart TD
         E[MySQL 8.0 主数据库]
         F[Redis 缓存+队列+会话]
         G[异步队列\n消息推送/报表生成]
-        K[Laravel Reverb\nWebSocket 实时推送]
+        K[WebSocket 实时推送\nPusher 云服务 / Reverb 双模式]
     end
     subgraph 外部集成
         H[腾讯地图 API\n轨迹/导航/线路]
