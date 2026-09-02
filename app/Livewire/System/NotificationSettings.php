@@ -10,7 +10,10 @@ class NotificationSettings extends Component
 {
     use WithToast;
 
-    // ── 通知类型开关 ──
+    // ── 左侧导航 ──
+    public string $activeGroup = 'switch';
+
+    // ── 通知开关 ──
     public bool $notifySystem = true;
     public bool $notifyOrder = true;
     public bool $notifyRestock = true;
@@ -25,6 +28,19 @@ class NotificationSettings extends Component
         $this->notifyInventory = (bool) setting('notify_inventory', true);
         $this->notifyAccount = (bool) setting('notify_account', true);
     }
+
+    // ══════════════════════════════════════
+    //  导航切换
+    // ══════════════════════════════════════
+
+    public function setActiveGroup(string $group): void
+    {
+        $this->activeGroup = $group;
+    }
+
+    // ══════════════════════════════════════
+    //  通知开关
+    // ══════════════════════════════════════
 
     public function toggleSwitch(string $key): void
     {
@@ -52,8 +68,17 @@ class NotificationSettings extends Component
         $this->toastSuccess($labelMap[$key] . '已' . ($this->{$map[$key]} ? '开启' : '关闭'));
     }
 
+    // ══════════════════════════════════════
+    //  Render
+    // ══════════════════════════════════════
+
     public function render()
     {
+        $navGroups = [
+            'switch' => '通知开关',
+            'list'   => '通知管理',
+        ];
+
         $notificationTypes = [
             ['key' => 'notify_system',    'label' => '系统通知',   'desc' => '管理员手动发送的全站广播和指定用户通知', 'icon' => 'megaphone',     'color' => 'blue',   'prop' => 'notifySystem'],
             ['key' => 'notify_order',     'label' => '订单状态变更', 'desc' => '订单确认、拣货、配送、签收等状态流转通知', 'icon' => 'clipboard-document-list', 'color' => 'green',  'prop' => 'notifyOrder'],
@@ -62,7 +87,7 @@ class NotificationSettings extends Component
             ['key' => 'notify_account',   'label' => '账户变动',    'desc' => '充值到账、结算完成、收款确认等资金变动通知', 'icon' => 'banknotes',     'color' => 'purple', 'prop' => 'notifyAccount'],
         ];
 
-        return view('livewire.system.notification-settings', compact('notificationTypes'))
+        return view('livewire.system.notification-settings', compact('notificationTypes', 'navGroups'))
             ->layout('components.app-layout')
             ->title('通知设置');
     }
