@@ -3,6 +3,7 @@
 namespace App\Livewire\Finance;
 
 use App\Livewire\Traits\WithColumnVisibility;
+use App\Livewire\Traits\WithConfirmAction;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
 use App\Livewire\Traits\WithListCrud;
@@ -28,6 +29,7 @@ class RechargeList extends Component
     use WithPagination;
     use WithRowSelection;
     use WithToast;
+    use WithConfirmAction;
 
     protected string $modelClass = Recharge::class;
 
@@ -178,6 +180,7 @@ class RechargeList extends Component
 
     public function approve(int $id): void
     {
+        abort_unless(auth()->user()?->can('finance.recharge.approve'), 403, '无审核权限');
         $item = Recharge::findOrFail($id);
         if ($item->status !== 1) {
             $this->toastError('当前状态不可审核');
@@ -226,6 +229,7 @@ class RechargeList extends Component
 
     public function reject(int $id): void
     {
+        abort_unless(auth()->user()?->can('finance.recharge.approve'), 403, '无审核权限');
         $item = Recharge::findOrFail($id);
         if ($item->status !== 1) {
             $this->toastError('当前状态不可拒绝');

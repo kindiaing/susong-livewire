@@ -107,6 +107,8 @@ class PromotionActivityList extends Component
      */
     public function batchDelete(): void
     {
+        abort_unless(auth()->user()?->can('price.promotion.delete'), 403, '无批量删除权限');
+
         $ids = $this->getSelectedIds();
         if (empty($ids)) {
             $this->toastWarning('请先选择要删除的记录');
@@ -120,6 +122,7 @@ class PromotionActivityList extends Component
 
     public function delete(): void
     {
+        abort_unless(auth()->user()?->can('price.promotion.delete'), 403, '无删除权限');
         Promotion::findOrFail($this->deletingId)->delete();
         $this->toastSuccess('已删除');
         $this->showDeleteConfirm = false;

@@ -3,6 +3,7 @@
 namespace App\Livewire\Finance;
 
 use App\Models\CorrectionAuthorization;
+use App\Livewire\Traits\WithConfirmAction;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
@@ -20,6 +21,7 @@ class CorrectionAuthorizationList extends Component
     use WithMoneyConversion;
     use WithToast;
     use WithListCrud;
+    use WithConfirmAction;
 
     protected string $modelClass = CorrectionAuthorization::class;
 
@@ -105,6 +107,12 @@ class CorrectionAuthorizationList extends Component
     public function getImportMoneyFields(): array
     {
         return ['amount'];
+    }
+
+    public function getBatchDeletePermission(string $modelClass): string
+    {
+        // 页面权限挂在 finance.correction-authorization 下
+        return 'finance.correction-authorization.delete';
     }
 
     public function save(): void

@@ -95,8 +95,8 @@
                 @endforeach
                 <div class="action-col flex items-center gap-0.5">
                     @if($item->status === 1)
-                        <button type="button" wire:click="approve({{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="通过"><x-ui.icon name="check" class="w-3.5 h-3.5" /></button>
-                        <button type="button" wire:click="reject({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="拒绝"><x-ui.icon name="x-circle" class="w-3.5 h-3.5" /></button>
+                        <button type="button" wire:click="confirmAction('approve', '确认通过此改价授权？', '通过后授权生效', {{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="通过"><x-ui.icon name="check" class="w-3.5 h-3.5" /></button>
+                        <button type="button" wire:click="confirmAction('reject', '确认拒绝此改价授权？', '拒绝后申请状态不可再变更', {{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="拒绝"><x-ui.icon name="x-circle" class="w-3.5 h-3.5" /></button>
                     @endif
                     @can('finance.correction-authorization.delete')
                     <button type="button" wire:click="confirmDelete({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
@@ -154,4 +154,5 @@
     @include('partials.export-modal')
     @include('partials.import-modal')
     @include('partials.delete-confirm')
+    @include('partials.action-confirm')
 </div>

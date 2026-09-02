@@ -3,6 +3,7 @@
 namespace App\Livewire\Finance;
 
 use App\Models\PriceApportionment;
+use App\Livewire\Traits\WithConfirmAction;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
@@ -20,6 +21,7 @@ class PriceApportionmentList extends Component
     use WithMoneyConversion;
     use WithToast;
     use WithListCrud;
+    use WithConfirmAction;
 
     protected string $modelClass = PriceApportionment::class;
 
@@ -102,6 +104,12 @@ class PriceApportionmentList extends Component
     public function getImportMoneyFields(): array
     {
         return ['amount'];
+    }
+
+    public function getBatchDeletePermission(string $modelClass): string
+    {
+        // 页面权限挂在 price.price-apportionment 下
+        return 'price.price-apportionment.delete';
     }
 
     public function save(): void
