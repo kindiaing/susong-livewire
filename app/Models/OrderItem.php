@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
@@ -89,36 +90,52 @@ class OrderItem extends Model
         ];
     }
 
-    public function order()
+    /**
+     * 关联订单
+     *
+     * @return BelongsTo<Order, $this>
+     */
+    public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
     }
 
-    public function sku()
+    /**
+     * 关联 SKU
+     *
+     * @return BelongsTo<Sku, $this>
+     */
+    public function sku(): BelongsTo
     {
         return $this->belongsTo(Sku::class);
     }
 
     /**
      * 关联下单单位
+     *
+     * @return BelongsTo<Unit, $this>
      */
-    public function unit()
+    public function unit(): BelongsTo
     {
         return $this->belongsTo(Unit::class);
     }
 
     /**
      * 关联价格策略
+     *
+     * @return BelongsTo<PriceStrategy, $this>
      */
-    public function priceStrategy()
+    public function priceStrategy(): BelongsTo
     {
         return $this->belongsTo(PriceStrategy::class, 'price_strategy_id');
     }
 
     /**
      * 关联价格策略明细
+     *
+     * @return BelongsTo<PriceStrategyItem, $this>
      */
-    public function priceStrategyItem()
+    public function priceStrategyItem(): BelongsTo
     {
         return $this->belongsTo(PriceStrategyItem::class, 'price_strategy_item_id');
     }

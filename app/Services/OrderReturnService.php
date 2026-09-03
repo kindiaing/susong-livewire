@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\AuditLog;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\OrderReturn;
 use App\Models\OrderReturnItem;
 use Illuminate\Support\Facades\Auth;
@@ -88,6 +89,7 @@ class OrderReturnService
      */
     private function createItem(OrderReturn $return, Order $order, array $item): void
     {
+        /** @var OrderItem $orderItem */
         $orderItem = $order->items()->findOrFail($item['order_item_id']);
         $quantity = (int) $item['quantity'];
 

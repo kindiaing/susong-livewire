@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
@@ -127,48 +130,60 @@ class Sku extends Model
 
     /**
      * 关联商品
+     *
+     * @return BelongsTo<Product, $this>
      */
-    public function product()
+    public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
     /**
      * 关联最小计量单位
+     *
+     * @return BelongsTo<Unit, $this>
      */
-    public function baseUnit()
+    public function baseUnit(): BelongsTo
     {
         return $this->belongsTo(Unit::class, 'base_unit_id');
     }
 
     /**
      * 关联单位换算关系
+     *
+     * @return HasMany<UnitConversion, $this>
      */
-    public function unitConversions()
+    public function unitConversions(): HasMany
     {
         return $this->hasMany(UnitConversion::class, 'sku_id');
     }
 
     /**
      * 关联条码
+     *
+     * @return HasMany<SkuBarcode, $this>
      */
-    public function barcodes()
+    public function barcodes(): HasMany
     {
         return $this->hasMany(SkuBarcode::class);
     }
 
     /**
      * 关联供应商（一品多供）
+     *
+     * @return HasMany<SkuSupplier, $this>
      */
-    public function skuSuppliers()
+    public function skuSuppliers(): HasMany
     {
         return $this->hasMany(SkuSupplier::class);
     }
 
     /**
      * 关联供应商（多对多，通过 sku_suppliers 中间表）
+     *
+     * @return BelongsToMany<Supplier, $this>
      */
-    public function suppliers()
+    public function suppliers(): BelongsToMany
     {
         return $this->belongsToMany(Supplier::class, 'sku_suppliers', 'sku_id', 'supplier_id')
             ->withPivot(['is_default', 'purchase_price', 'status', 'sort'])
@@ -177,24 +192,30 @@ class Sku extends Model
 
     /**
      * 关联商家可见性
+     *
+     * @return HasMany<MerchantSkuVisibility, $this>
      */
-    public function merchantVisibilities()
+    public function merchantVisibilities(): HasMany
     {
         return $this->hasMany(MerchantSkuVisibility::class);
     }
 
     /**
      * 关联促销SKU明细
+     *
+     * @return HasMany<PromotionSku, $this>
      */
-    public function promotionSkus()
+    public function promotionSkus(): HasMany
     {
         return $this->hasMany(PromotionSku::class);
     }
 
     /**
      * 关联门店差异化价格
+     *
+     * @return HasMany<StoreSkuPrice, $this>
      */
-    public function storeSkuPrices()
+    public function storeSkuPrices(): HasMany
     {
         return $this->hasMany(StoreSkuPrice::class);
     }

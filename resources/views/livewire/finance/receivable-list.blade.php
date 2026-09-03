@@ -137,19 +137,17 @@
 
     <div class="mt-4">{{ $items->links() }}</div>
 
-    {{-- 新增/编辑弹窗 --}}
+    {{-- 编辑弹窗（仅到期日/备注） --}}
     @if($showModal)
     <div class="fixed inset-0 z-50 flex items-center justify-center">
         <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
         <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-lg mx-4 p-6 max-h-[85vh] overflow-y-auto">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-foreground">{{ $editingId ? '编辑应收' : '新增应收' }}</h2>
+                <h2 class="text-lg font-semibold text-foreground">编辑应收</h2>
                 <button type="button" wire:click="closeModal" class="text-muted-foreground hover:text-foreground transition-colors">
                     <x-ui.icon name="x-mark" class="w-5 h-5" />
                 </button>
             </div>
-            @if($editingId)
-            {{-- 编辑模式 --}}
             <div class="space-y-4">
                 <div class="rounded-md bg-muted p-3 text-xs text-muted-foreground">
                     <p>应收账款由系统自动生成或手动创建，仅可修改到期日和备注。</p>
@@ -169,40 +167,100 @@
                 <button type="button" wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
                 <button type="button" wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">更新</button>
             </div>
-            @else
-            {{-- 创建模式 --}}
-            <div class="space-y-4">
+        </div>
+    </div>
+    @endif
+
+    {{-- 新增应收大弹窗：商家筛选 → 候选订单多选 → 实时合计，按商家拆分生成汇总单 --}}
+    @if($showCreateModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-4xl mx-4 p-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">新增应收（汇总单）</h2>
+                <button type="button" wire:click="closeCreateModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
+
+            {{-- 商家筛选 --}}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">订单 <span class="text-red-500">*</span></label>
-                    <select wire:model="formOrderId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                        <option value="0">请选择订单</option>
-                        @foreach($orders as $o)
-                        <option value="{{ $o->id }}">{{ $o->order_no }}</option>
-                        @endforeach
-                    </select>
-                    @error('formOrderId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">商家 <span class="text-red-500">*</span></label>
-                    <select wire:model="formMerchantId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                        <option value="0">请选择商家</option>
+                    <label class="block text-sm font-medium text-foreground mb-1">按商家筛选</label>
+                    <select wire:model.live="createMerchantId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        <option value="0">全部商家</option>
                         @foreach($merchants as $m)
                         <option value="{{ $m->id }}">{{ $m->name }}</option>
                         @endforeach
                     </select>
-                    @error('formMerchantId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">金额（元） <span class="text-red-500">*</span></label>
-                    <input type="text" wire:model="formAmount" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="请输入应收金额（元）" />
-                    @error('formAmount') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                <div class="md:col-span-2 flex items-end">
+                    <p class="text-xs text-muted-foreground leading-relaxed">候选订单为已签收且未生成过应收单的订单；勾选多个商家的订单后，系统将按商家自动拆分生成多张汇总应收单。</p>
                 </div>
             </div>
-            <div class="flex justify-end gap-3 mt-6">
-                <button type="button" wire:click="closeModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
-                <button type="button" wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">保存</button>
+
+            {{-- 候选订单池 --}}
+            @if(count($this->candidateOrders) > 0)
+            <div class="border rounded-lg overflow-hidden mb-4">
+                <div class="bg-muted/30 px-4 py-2 flex items-center justify-between">
+                    <span class="text-sm font-medium text-foreground">候选订单（{{ count($this->candidateOrders) }} 单）</span>
+                    <div class="action-col flex items-center gap-0.5">
+                        <button type="button" wire:click="selectAllCreateOrders" class="text-xs text-blue-600 hover:text-blue-700 transition-colors">全选</button>
+                        <span class="text-muted-foreground">|</span>
+                        <button type="button" wire:click="deselectAllCreateOrders" class="text-xs text-muted-foreground hover:text-foreground transition-colors">取消全选</button>
+                    </div>
+                </div>
+                <div class="max-h-[45vh] overflow-y-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-muted/20 sticky top-0">
+                            <tr class="text-xs text-muted-foreground uppercase tracking-wider">
+                                <th class="w-10 px-3 py-2 text-left"><input type="checkbox" @if(count($createSelectedOrderIds) === count($this->candidateOrders)) checked @endif wire:click="{{ count($createSelectedOrderIds) === count($this->candidateOrders) ? 'deselectAllCreateOrders' : 'selectAllCreateOrders' }}" class="rounded" /></th>
+                                <th class="px-3 py-2 text-left">订单编号</th>
+                                <th class="px-3 py-2 text-left">商家</th>
+                                <th class="px-3 py-2 text-left">签收/送达日期</th>
+                                <th class="px-3 py-2 text-right">应收金额</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y">
+                            @foreach($this->candidateOrders as $order)
+                            <tr class="hover:bg-muted/30 transition-colors {{ in_array($order['id'], $createSelectedOrderIds) ? 'bg-blue-50/50' : '' }}">
+                                <td class="px-3 py-2"><input type="checkbox" value="{{ $order['id'] }}" @if(in_array($order['id'], $createSelectedOrderIds)) checked @endif wire:click="toggleCreateOrder({{ $order['id'] }})" class="rounded" /></td>
+                                <td class="px-3 py-2 font-mono text-xs text-foreground">{{ $order['order_no'] }}</td>
+                                <td class="px-3 py-2 text-foreground">{{ $order['merchant_name'] }}</td>
+                                <td class="px-3 py-2 text-muted-foreground">{{ $order['delivery_date'] ?? '-' }}</td>
+                                <td class="px-3 py-2 text-right text-foreground">{{ money_format($order['adjusted_amount']) }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            @else
+            <div class="border rounded-lg p-8 text-center text-muted-foreground mb-4">
+                <x-ui.icon name="inbox" class="w-8 h-8 mx-auto mb-2 text-muted-foreground/50" />
+                <p class="text-sm">没有符合条件的候选订单（需已签收且未生成应收单）</p>
             </div>
             @endif
+
+            {{-- 底部：实时合计 + 按钮 --}}
+            <div class="flex items-center justify-between gap-3 pt-2 border-t">
+                <div class="text-sm text-muted-foreground">
+                    已选 <b class="text-foreground">{{ count($createSelectedOrderIds) }}</b> 单，
+                    合计应收 <b class="text-foreground text-base">{{ money_format($this->createSelectedTotal) }}</b> 元
+                    @if(count($createSelectedOrderIds) > 0)
+                        @php
+                            $createMerchantCount = \App\Models\Order::whereIn('id', $createSelectedOrderIds)->distinct('merchant_id')->count('merchant_id');
+                        @endphp
+                        · 将按商家生成 <b class="text-foreground">{{ $createMerchantCount }}</b> 张汇总单
+                    @endif
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" wire:click="closeCreateModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                    <button type="button" wire:click="save" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors @if(empty($createSelectedOrderIds)) opacity-50 cursor-not-allowed @endif" @if(empty($createSelectedOrderIds)) disabled @endif>
+                        生成汇总单（{{ count($createSelectedOrderIds) }} 单）
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
     @endif

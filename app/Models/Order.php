@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
@@ -136,37 +139,72 @@ class Order extends Model
         return self::paymentStatusMap()[$this->payment_status] ?? '未知';
     }
 
-    public function merchant()
+    /**
+     * 关联商家
+     *
+     * @return BelongsTo<Merchant, $this>
+     */
+    public function merchant(): BelongsTo
     {
         return $this->belongsTo(Merchant::class);
     }
 
-    public function deliveryRoute()
+    /**
+     * 关联配送线路
+     *
+     * @return BelongsTo<DeliveryRoute, $this>
+     */
+    public function deliveryRoute(): BelongsTo
     {
         return $this->belongsTo(DeliveryRoute::class);
     }
 
-    public function items()
+    /**
+     * 关联订单明细
+     *
+     * @return HasMany<OrderItem, $this>
+     */
+    public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }
 
-    public function signatures()
+    /**
+     * 关联签收记录
+     *
+     * @return HasMany<Signature, $this>
+     */
+    public function signatures(): HasMany
     {
         return $this->hasMany(Signature::class);
     }
 
-    public function orderReturns()
+    /**
+     * 关联售后退货
+     *
+     * @return HasMany<OrderReturn, $this>
+     */
+    public function orderReturns(): HasMany
     {
         return $this->hasMany(OrderReturn::class);
     }
 
-    public function correctionAuthorizations()
+    /**
+     * 关联授权更正
+     *
+     * @return HasMany<CorrectionAuthorization, $this>
+     */
+    public function correctionAuthorizations(): HasMany
     {
         return $this->hasMany(CorrectionAuthorization::class);
     }
 
-    public function receivable()
+    /**
+     * 关联应收单（单个订单只对应一张应收单）
+     *
+     * @return HasOne<Receivable, $this>
+     */
+    public function receivable(): HasOne
     {
         return $this->hasOne(Receivable::class);
     }

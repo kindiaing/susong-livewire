@@ -109,7 +109,7 @@ return new class extends Migration
         Schema::create('receivables', function (Blueprint $table) {
             $table->id()->comment('主键');
             $table->string('receivable_no', 50)->unique()->comment('应收单号');
-            $table->unsignedBigInteger('order_id')->comment('订单ID');
+            $table->unsignedBigInteger('order_id')->nullable()->comment('订单ID（汇总单为空）');
             $table->unsignedBigInteger('merchant_id')->comment('商家ID');
             $table->bigInteger('original_amount')->default(0)->comment('原始金额');
             $table->bigInteger('adjusted_amount')->default(0)->comment('调整后金额');
@@ -124,7 +124,7 @@ return new class extends Migration
             $table->timestamp('closed_at')->nullable()->comment('办结时间');
             $table->unsignedBigInteger('closed_by')->nullable()->comment('办结操作人ID');
             $table->tinyInteger('approval_status')->unsigned()->default(1)->comment('审核状态：1待审核，2已通过，3已拒绝（改价折扣调整时有效）');
-            $table->string('remark', 255)->nullable()->comment('备注');
+            $table->text('remark')->nullable()->comment('备注（汇总单自动拼接订单明细）');
             $table->timestamps();
             $table->softDeletes();
 

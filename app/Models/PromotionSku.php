@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
 /**
@@ -95,12 +96,18 @@ class PromotionSku extends Model
         ];
     }
 
-    public function promotion()
+    /**
+     * @return BelongsTo<Promotion, $this>
+     */
+    public function promotion(): BelongsTo
     {
         return $this->belongsTo(Promotion::class);
     }
 
-    public function sku()
+    /**
+     * @return BelongsTo<Sku, $this>
+     */
+    public function sku(): BelongsTo
     {
         return $this->belongsTo(Sku::class);
     }

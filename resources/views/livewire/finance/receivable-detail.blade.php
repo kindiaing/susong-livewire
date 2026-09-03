@@ -23,7 +23,7 @@
 
     {{-- 单据摘要信息 --}}
     <div class="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-muted-foreground mb-6">
-        <span>订单：<b class="text-foreground"><a href="{{ route('orders.detail', $receivable->order_id) }}" class="text-blue-600 hover:text-blue-700">{{ $receivable->order?->order_no ?? '-' }}</a></b></span>
+        <span>订单：<b class="text-foreground">@if($receivable->order_id)<a href="{{ route('orders.detail', $receivable->order_id) }}" class="text-blue-600 hover:text-blue-700">{{ $receivable->order?->order_no ?? '-' }}</a>@else<span class="text-muted-foreground" title="汇总单由多个订单合并生成，备注中含订单明细">汇总单</span>@endif</b></span>
         <span>商家：<b class="text-foreground">{{ $receivable->merchant?->name ?? '-' }}</b></span>
         <span>结算方式：<b class="text-foreground">{{ $settlementMap[$receivable->settlement_type] ?? '-' }}</b></span>
         @if($receivable->due_date)
