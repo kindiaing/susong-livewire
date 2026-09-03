@@ -2,19 +2,22 @@
 
 @php
 // 从 config/menu.php 生成命令面板数据（单一数据源，与顶部导航保持一致）
+// 与顶部导航相同：按权限过滤，无权限的菜单项不显示
 $commandGroups = collect(config('menu', []))->map(function ($module) {
     return [
         'label' => $module['label'],
-        'items' => collect($module['children'] ?? [])->map(function ($item) {
-            $url = '#';
-            try { $url = route($item['route']); } catch (\Throwable $e) {}
-            return [
-                'label' => $item['label'],
-                'url'   => $url,
-            ];
-        })->values()->toArray(),
+        'items' => collect($module['children'] ?? [])
+            ->filter(fn($item) => auth()->user()?->can($item['permission'] ?? ''))
+            ->map(function ($item) {
+                $url = '#';
+                try { $url = route($item['route']); } catch (\Throwable $e) {}
+                return [
+                    'label' => $item['label'],
+                    'url'   => $url,
+                ];
+            })->values()->toArray(),
     ];
-})->values()->toArray();
+})->filter(fn($group) => ! empty($group['items']))->values()->toArray();
 @endphp
 
 {{-- 注入菜单数据到 window，供 Alpine JS 组件使用 --}}

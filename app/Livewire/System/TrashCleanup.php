@@ -121,6 +121,8 @@ class TrashCleanup extends Component
 
     public function openConfirm(string $type): void
     {
+        abort_unless(auth()->user()?->can('system.trash-cleanup.view'), 403, '无数据清理权限');
+
         $types = $this->getTrashTypes();
         if (! isset($types[$type])) {
             $this->toastError('无效的单据类型');
@@ -151,6 +153,9 @@ class TrashCleanup extends Component
 
     public function executeCleanup(): void
     {
+        // 双保险：数据清理为管理员专属，仅持有 system.trash-cleanup.view 权限（实际仅 admin）可执行
+        abort_unless(auth()->user()?->can('system.trash-cleanup.view'), 403, '无数据清理权限');
+
         if (! $this->confirmType) {
             $this->toastError('操作失败');
 
