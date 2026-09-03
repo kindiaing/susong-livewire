@@ -82,12 +82,12 @@ return [
         'label' => '财务管理',
         'icon'  => 'banknotes',
         'children' => [
-            ['key' => 'finance.account',       'label' => '客户账户',   'route' => 'merchant-accounts',       'permission' => 'finance.recharge.view',            'description' => '商家账户余额与额度'],
+            ['key' => 'finance.account',       'label' => '客户账户',   'route' => 'merchant-accounts',       'permission' => 'finance.merchant-account.view',      'description' => '商家账户余额与额度'],
             ['key' => 'finance.recharge',      'label' => '客户充值',   'route' => 'recharges',               'permission' => 'finance.recharge.view',            'description' => '充值记录与审核'],
             ['key' => 'finance.settlement',    'label' => '供应商结算', 'route' => 'supplier-settlements',     'permission' => 'finance.supplier-settlement.view', 'description' => '采购结算与付款'],
             ['key' => 'finance.receivable',    'label' => '应收账款',   'route' => 'receivables',             'permission' => 'finance.receivable.view',         'description' => '客户欠款与收款'],
             ['key' => 'finance.invoice',       'label' => '发票管理',   'route' => 'invoices',                'permission' => 'finance.invoice.view',             'description' => '开票记录与审核'],
-            ['key' => 'finance.correction',    'label' => '授权更正',   'route' => 'correction-authorizations','permission' => 'finance.recharge.view',            'description' => '账目更正审批'],
+            ['key' => 'finance.correction',    'label' => '授权更正',   'route' => 'correction-authorizations','permission' => 'finance.correction-authorization.view', 'description' => '账目更正审批'],
             ['key' => 'finance.price-strategy','label' => '促销活动',   'route' => 'promotion-activities',   'permission' => 'price.promotion.view',             'description' => '促销活动与优惠规则'],
             ['key' => 'finance.promotion-settings','label' => '促销设置',   'route' => 'promotion-settings',   'permission' => 'price.promotion.view',             'description' => '促销/商家价格/会员折扣配置'],
             ['key' => 'finance.price-log', 'label' => '改价记录',   'route' => 'price-change-logs','permission' => 'price.price-change-log.view','description' => '价格变更历史'],
@@ -122,7 +122,7 @@ return [
             // ── 配置类 ──
             ['key' => 'system.config',   'label' => '系统配置', 'route' => 'settings',       'permission' => 'system.system-config.view', 'description' => '基础/订单/配送/库存等系统配置'],
             ['key' => 'system.finance-settings', 'label' => '财务配置', 'route' => 'finance-settings', 'permission' => 'system.system-config.view', 'description' => '取价配置/财务风控/金额精度/费用均摊'],
-            ['key' => 'system.audit-settings', 'label' => '审计设置', 'route' => 'audit-settings', 'permission' => 'system.system-config.view', 'description' => '审计开关/日志保留策略'],
+            ['key' => 'system.audit-settings', 'label' => '审计设置', 'route' => 'audit-settings', 'permission' => 'system.audit-log.view', 'description' => '审计开关/日志保留策略'],
             ['key' => 'system.unit',      'label' => '单位管理', 'route' => 'units',           'permission' => 'system.system-config.view', 'description' => '单位主数据与换算配置'],
             // ── 审核类 ──
             ['key' => 'system.approval', 'label' => '审核管理', 'route' => 'approval-config', 'permission' => 'system.system-config.view',  'description' => '19个审核节点开关与列表'],

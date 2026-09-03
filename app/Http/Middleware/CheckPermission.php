@@ -92,8 +92,8 @@ class CheckPermission
         'loss-orders.detail'  => 'loss.loss-order.view',
 
         // ── 财务管理 ──
-        'merchant-accounts'   => 'finance.recharge.view',
-        'merchant-accounts.detail' => 'finance.recharge.view',
+        'merchant-accounts'   => 'finance.merchant-account.view',
+        'merchant-accounts.detail' => 'finance.merchant-account.view',
         'recharges'           => 'finance.recharge.view',
         'recharges.detail'    => 'finance.recharge.view',
         'supplier-settlements' => 'finance.supplier-settlement.view',
@@ -102,12 +102,11 @@ class CheckPermission
         'receivables.detail'  => 'finance.receivable.view',
         'invoices'            => 'finance.invoice.view',
         'invoices.detail'     => 'finance.invoice.view',
-        'correction-authorizations' => 'finance.recharge.view',
+        'correction-authorizations' => 'finance.correction-authorization.view',
         'price-apportionments' => 'price.price-apportionment.view',
         'price-change-logs'   => 'price.price-change-log.view',
         'promotion-activities' => 'price.promotion.view',
         'promotion-settings'  => 'price.promotion.view',
-        'pricing-config'      => 'price.pricing-config.view',
 
         // ── 商家扩展 ──
         'merchant-addresses'  => 'org.merchant.view',
