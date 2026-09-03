@@ -11,6 +11,7 @@ use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithToast;
 use App\Models\Invoice;
 use App\Models\Merchant;
+use Illuminate\Database\Eloquent\Builder;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -28,6 +29,15 @@ class InvoiceList extends Component
     protected string $modelClass = Invoice::class;
 
     public string $search = '';
+
+    // 筛选条件
+    public int $filterStatus = -1;
+
+    public int $filterType = -1;
+
+    public string $filterDateStart = '';
+
+    public string $filterDateEnd = '';
 
     public int $formMerchantId = 0;
 
@@ -79,14 +89,51 @@ class InvoiceList extends Component
 
     public function getExportQuery()
     {
-        return Invoice::with('merchant')
-            ->when($this->search, function ($q) {
-                $q->where(function ($q2) {
-                    $q2->where('invoice_no', 'like', "%{$this->search}%")
-                        ->orWhereHas('merchant', fn ($mq) => $mq->where('name', 'like', "%{$this->search}%"));
-                });
-            })
+        return $this->applyFilters(Invoice::query()->with('merchant'))
             ->orderBy('id', 'desc');
+    }
+
+    /**
+     * 应用筛选条件（列表/导出共用）
+     *
+     * @param Builder<Invoice> $query
+     * @return Builder<Invoice>
+     */
+    private function applyFilters(Builder $query): Builder
+    {
+        if ($this->search) {
+            $query->where(function ($q) {
+                $q->where('invoice_no', 'like', "%{$this->search}%")
+                    ->orWhereHas('merchant', fn ($mq) => $mq->where('name', 'like', "%{$this->search}%"));
+            });
+        }
+
+        if ($this->filterStatus > 0) {
+            $query->where('status', $this->filterStatus);
+        }
+
+        if ($this->filterType > 0) {
+            $query->where('type', $this->filterType);
+        }
+
+        if ($this->filterDateStart !== '') {
+            $query->whereDate('created_at', '>=', $this->filterDateStart);
+        }
+        if ($this->filterDateEnd !== '') {
+            $query->whereDate('created_at', '<=', $this->filterDateEnd);
+        }
+
+        return $query;
+    }
+
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->filterStatus = -1;
+        $this->filterType = -1;
+        $this->filterDateStart = '';
+        $this->filterDateEnd = '';
+        $this->resetPage();
     }
 
     public function getExportFileName(): string
@@ -265,14 +312,7 @@ class InvoiceList extends Component
 
     public function render()
     {
-        $query = Invoice::with('merchant')->orderBy('id', 'desc');
-
-        if ($this->search) {
-            $query->where(function ($q) {
-                $q->where('invoice_no', 'like', "%{$this->search}%")
-                    ->orWhereHas('merchant', fn ($mq) => $mq->where('name', 'like', "%{$this->search}%"));
-            });
-        }
+        $query = $this->applyFilters(Invoice::query())->with('merchant')->orderBy('id', 'desc');
 
         $items = $query->paginate(setting('per_page', 10));
         $merchants = Merchant::orderBy('name')->get();

@@ -14,6 +14,7 @@ use App\Models\Supplier;
 use App\Models\SupplierSettlement;
 use App\Services\NotificationService;
 use App\Services\SupplierSettlementService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Redirect;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -32,6 +33,13 @@ class SupplierSettlementList extends Component
     protected string $modelClass = SupplierSettlement::class;
 
     public string $search = '';
+
+    // 筛选条件
+    public int $filterStatus = -1;
+
+    public string $filterDateStart = '';
+
+    public string $filterDateEnd = '';
 
     public int $formSupplierId = 0;
 
@@ -82,13 +90,7 @@ class SupplierSettlementList extends Component
 
     public function getExportQuery()
     {
-        return SupplierSettlement::with('supplier')
-            ->when($this->search, function ($q) {
-                $q->where(function ($q2) {
-                    $q2->where('settlement_no', 'like', "%{$this->search}%")
-                        ->orWhereHas('supplier', fn ($sq) => $sq->where('name', 'like', "%{$this->search}%"));
-                });
-            })
+        return $this->applyFilters(SupplierSettlement::query()->with('supplier'))
             ->orderBy('id', 'desc');
     }
 
@@ -300,16 +302,51 @@ class SupplierSettlementList extends Component
         $this->formEditServiceFee = '';
     }
 
-    public function render()
+    /**
+     * 应用筛选条件（列表/导出/汇总共用）
+     */
+    /**
+     * 应用筛选条件（列表/导出/汇总共用）
+     *
+     * @param Builder<SupplierSettlement> $query
+     * @return Builder<SupplierSettlement>
+     */
+    private function applyFilters(Builder $query): Builder
     {
-        $query = SupplierSettlement::with(['supplier', 'payments'])->orderBy('id', 'desc');
-
         if ($this->search) {
             $query->where(function ($q) {
                 $q->where('settlement_no', 'like', "%{$this->search}%")
                     ->orWhereHas('supplier', fn ($sq) => $sq->where('name', 'like', "%{$this->search}%"));
             });
         }
+
+        if ($this->filterStatus > 0) {
+            $query->where('status', $this->filterStatus);
+        }
+
+        // 按结算周期开始日期筛选
+        if ($this->filterDateStart !== '') {
+            $query->whereDate('start_date', '>=', $this->filterDateStart);
+        }
+        if ($this->filterDateEnd !== '') {
+            $query->whereDate('start_date', '<=', $this->filterDateEnd);
+        }
+
+        return $query;
+    }
+
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->filterStatus = -1;
+        $this->filterDateStart = '';
+        $this->filterDateEnd = '';
+        $this->resetPage();
+    }
+
+    public function render()
+    {
+        $query = $this->applyFilters(SupplierSettlement::query())->with(['supplier', 'payments'])->orderBy('id', 'desc');
 
         $items = $query->paginate(setting('per_page', 10));
         $suppliers = Supplier::orderBy('name')->get();
@@ -326,13 +363,8 @@ class SupplierSettlementList extends Component
             'proxy_payment'   => $items->sum('proxy_payment'),
         ];
 
-        // 全部汇总（与列表同一查询条件，不分页）
-        $baseQuery = SupplierSettlement::query()->when($this->search, function ($q) {
-            $q->where(function ($q2) {
-                $q2->where('settlement_no', 'like', "%{$this->search}%")
-                    ->orWhereHas('supplier', fn ($sq) => $sq->where('name', 'like', "%{$this->search}%"));
-            });
-        });
+        // 全部汇总（与列表同一筛选条件，不分页）
+        $baseQuery = $this->applyFilters(SupplierSettlement::query());
         $grandTotals = [
             'total_amount'    => (clone $baseQuery)->sum('total_amount'),
             'return_amount'   => (clone $baseQuery)->sum('return_amount'),

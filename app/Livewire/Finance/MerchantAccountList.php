@@ -10,6 +10,7 @@ use App\Livewire\Traits\WithToast;
 use App\Livewire\Traits\WithListCrud;
 use App\Models\Merchant;
 use App\Models\MerchantAccount;
+use Illuminate\Database\Eloquent\Builder;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -26,6 +27,13 @@ class MerchantAccountList extends Component
     protected string $modelClass = MerchantAccount::class;
 
     public string $search = '';
+
+    // 筛选条件
+    public int $filterApprovalStatus = -1;
+
+    public string $filterDateStart = '';
+
+    public string $filterDateEnd = '';
 
     public int $formMerchantId = 0;
     public int $formCreditLimit = 0;
@@ -53,11 +61,46 @@ class MerchantAccountList extends Component
 
     public function getExportQuery()
     {
-        return MerchantAccount::with('merchant')
-            ->when($this->search, function ($q) {
-                $q->whereHas('merchant', fn($mq) => $mq->where('name', 'like', "%{$this->search}%"));
-            })
+        return $this->applyFilters(MerchantAccount::query()->with('merchant'))
             ->orderBy('id', 'desc');
+    }
+
+    /**
+     * 应用筛选条件（列表/导出共用）
+     */
+    /**
+     * 应用筛选条件（列表/导出共用）
+     *
+     * @param Builder<MerchantAccount> $query
+     * @return Builder<MerchantAccount>
+     */
+    private function applyFilters(Builder $query): Builder
+    {
+        if ($this->search) {
+            $query->whereHas('merchant', fn ($mq) => $mq->where('name', 'like', "%{$this->search}%"));
+        }
+
+        if ($this->filterApprovalStatus > 0) {
+            $query->where('approval_status', $this->filterApprovalStatus);
+        }
+
+        if ($this->filterDateStart !== '') {
+            $query->whereDate('created_at', '>=', $this->filterDateStart);
+        }
+        if ($this->filterDateEnd !== '') {
+            $query->whereDate('created_at', '<=', $this->filterDateEnd);
+        }
+
+        return $query;
+    }
+
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->filterApprovalStatus = -1;
+        $this->filterDateStart = '';
+        $this->filterDateEnd = '';
+        $this->resetPage();
     }
 
     public function getExportFileName(): string
@@ -137,11 +180,8 @@ class MerchantAccountList extends Component
 
     public function render()
     {
-        $query = MerchantAccount::with('merchant')->orderBy('id', 'desc');
-
-        if ($this->search) {
-            $query->whereHas('merchant', fn($q) => $q->where('name', 'like', "%{$this->search}%"));
-        }
+        $query = $this->applyFilters(MerchantAccount::query()->with('merchant'))
+            ->orderBy('id', 'desc');
 
         $items = $query->paginate(setting('per_page', 10));
         $merchantResults = collect();

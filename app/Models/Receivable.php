@@ -113,6 +113,20 @@ class Receivable extends Model
         ];
     }
 
+    /**
+     * 结算方式映射
+     *
+     * @return array<int, string>
+     */
+    public static function settlementTypeMap(): array
+    {
+        return [
+            self::SETTLEMENT_CASH => '现结',
+            self::SETTLEMENT_CREDIT => '账期',
+            self::SETTLEMENT_PREPAID => '预付款',
+        ];
+    }
+
     public function getStatusLabelAttribute(): string
     {
         return self::statusMap()[$this->status] ?? '未知';

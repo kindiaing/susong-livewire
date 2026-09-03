@@ -35,6 +35,13 @@ class Recharge extends Model
     public const APPROVAL_APPROVED = 2;
     public const APPROVAL_REJECTED = 3;
 
+    // 支付方式映射
+    public const PAYMENT_METHODS = [
+        self::METHOD_WECHAT => '微信支付',
+        self::METHOD_OFFLINE => '线下转账',
+        self::METHOD_MANUAL => '后台手工',
+    ];
+
     protected $fillable = [
         'merchant_id',
         'amount',

@@ -14,6 +14,7 @@ use App\Models\Order;
 use App\Models\Receivable;
 use App\Models\ReceivablePayment;
 use App\Services\NotificationService;
+use Illuminate\Database\Eloquent\Builder;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -31,6 +32,15 @@ class ReceivableList extends Component
     protected string $modelClass = Receivable::class;
 
     public string $search = '';
+
+    // 筛选条件
+    public int $filterStatus = -1;
+
+    public int $filterSettlementType = -1;
+
+    public string $filterDateStart = '';
+
+    public string $filterDateEnd = '';
 
     public int $formOrderId = 0;
     public int $formMerchantId = 0;
@@ -69,13 +79,7 @@ class ReceivableList extends Component
 
     public function getExportQuery()
     {
-        return Receivable::with(['order', 'merchant'])
-            ->when($this->search, function ($q) {
-                $q->where(function ($q2) {
-                    $q2->orWhereHas('order', fn($oq) => $oq->where('order_no', 'like', "%{$this->search}%"))
-                        ->orWhereHas('merchant', fn($mq) => $mq->where('name', 'like', "%{$this->search}%"));
-                });
-            })
+        return $this->applyFilters(Receivable::query()->with(['order', 'merchant']))
             ->orderBy('id', 'desc');
     }
 
@@ -287,16 +291,56 @@ class ReceivableList extends Component
         $this->formRemark = '';
     }
 
-    public function render()
+    /**
+     * 应用筛选条件（列表/导出共用）
+     */
+    /**
+     * 应用筛选条件（列表/导出共用）
+     *
+     * @param Builder<Receivable> $query
+     * @return Builder<Receivable>
+     */
+    private function applyFilters(Builder $query): Builder
     {
-        $query = Receivable::with(['order', 'merchant'])->orderBy('id', 'desc');
-
         if ($this->search) {
             $query->where(function ($q) {
-                $q->whereHas('order', fn($oq) => $oq->where('order_no', 'like', "%{$this->search}%"))
-                    ->orWhereHas('merchant', fn($mq) => $mq->where('name', 'like', "%{$this->search}%"));
+                $q->whereHas('order', fn ($oq) => $oq->where('order_no', 'like', "%{$this->search}%"))
+                    ->orWhereHas('merchant', fn ($mq) => $mq->where('name', 'like', "%{$this->search}%"));
             });
         }
+
+        if ($this->filterStatus > 0) {
+            $query->where('status', $this->filterStatus);
+        }
+
+        if ($this->filterSettlementType > 0) {
+            $query->where('settlement_type', $this->filterSettlementType);
+        }
+
+        // 按到期日筛选
+        if ($this->filterDateStart !== '') {
+            $query->whereDate('due_date', '>=', $this->filterDateStart);
+        }
+        if ($this->filterDateEnd !== '') {
+            $query->whereDate('due_date', '<=', $this->filterDateEnd);
+        }
+
+        return $query;
+    }
+
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->filterStatus = -1;
+        $this->filterSettlementType = -1;
+        $this->filterDateStart = '';
+        $this->filterDateEnd = '';
+        $this->resetPage();
+    }
+
+    public function render()
+    {
+        $query = $this->applyFilters(Receivable::query())->with(['order', 'merchant'])->orderBy('id', 'desc');
 
         $items = $query->paginate(setting('per_page', 10));
         $merchants = Merchant::orderBy('name')->get();

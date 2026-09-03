@@ -64,6 +64,22 @@ class MerchantAccount extends Model
     }
 
     /**
+     * 是否可编辑（待审核/已拒绝状态可编辑，已通过审核后账户基础数据锁定）
+     */
+    public function canEdit(): bool
+    {
+        return $this->approval_status !== self::APPROVAL_APPROVED;
+    }
+
+    /**
+     * 是否可删除（同编辑规则）
+     */
+    public function canDelete(): bool
+    {
+        return $this->canEdit();
+    }
+
+    /**
      * 关联商家
      */
     public function merchant()

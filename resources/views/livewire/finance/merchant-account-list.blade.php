@@ -23,6 +23,17 @@
                 </button>
             @endif
         </div>
+        <select wire:model.live="filterApprovalStatus" class="flex h-9 rounded-md border border-input bg-background px-3 text-sm">
+            <option value="-1">全部审核状态</option>
+            @foreach(\App\Models\MerchantAccount::approvalStatusMap() as $value => $label)
+            <option value="{{ $value }}">{{ $label }}</option>
+            @endforeach
+        </select>
+        <div class="flex items-center gap-1" title="按创建时间筛选">
+            <input type="date" wire:model.live="filterDateStart" class="flex h-9 rounded-md border border-input bg-background px-2 text-sm" />
+            <span class="text-muted-foreground text-sm">~</span>
+            <input type="date" wire:model.live="filterDateEnd" class="flex h-9 rounded-md border border-input bg-background px-2 text-sm" />
+        </div>
         <div class="flex-1"></div>
         <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="adjustments" class="w-4 h-4" />列配置</button>
         <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="arrow-down-tray" class="w-4 h-4" />导入</button>

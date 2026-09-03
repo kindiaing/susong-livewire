@@ -3,6 +3,7 @@
 namespace App\Livewire\Finance;
 
 use App\Models\CorrectionAuthorization;
+use Illuminate\Database\Eloquent\Builder;
 use App\Livewire\Traits\WithConfirmAction;
 use App\Livewire\Traits\WithRowSelection;
 use App\Livewire\Traits\WithColumnVisibility;
@@ -26,6 +27,15 @@ class CorrectionAuthorizationList extends Component
     protected string $modelClass = CorrectionAuthorization::class;
 
     public string $search = '';
+
+    // 筛选条件
+    public string $filterType = '';
+
+    public int $filterStatus = -1;
+
+    public string $filterDateStart = '';
+
+    public string $filterDateEnd = '';
 
     // 新增表单
     public string $formType = 'other';
@@ -69,11 +79,48 @@ class CorrectionAuthorizationList extends Component
 
     public function getExportQuery()
     {
-        return CorrectionAuthorization::with('operator')
-            ->when($this->search, function ($q) {
-                $q->where('reason', 'like', "%{$this->search}%");
-            })
+        return $this->applyFilters(CorrectionAuthorization::query()->with('operator'))
             ->orderBy('id', 'desc');
+    }
+
+    /**
+     * 应用筛选条件（列表/导出共用）
+     *
+     * @param Builder<CorrectionAuthorization> $query
+     * @return Builder<CorrectionAuthorization>
+     */
+    private function applyFilters(Builder $query): Builder
+    {
+        if ($this->search) {
+            $query->where('reason', 'like', "%{$this->search}%");
+        }
+
+        if ($this->filterType !== '') {
+            $query->where('type', $this->filterType);
+        }
+
+        if ($this->filterStatus > 0) {
+            $query->where('status', $this->filterStatus);
+        }
+
+        if ($this->filterDateStart !== '') {
+            $query->whereDate('created_at', '>=', $this->filterDateStart);
+        }
+        if ($this->filterDateEnd !== '') {
+            $query->whereDate('created_at', '<=', $this->filterDateEnd);
+        }
+
+        return $query;
+    }
+
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->filterType = '';
+        $this->filterStatus = -1;
+        $this->filterDateStart = '';
+        $this->filterDateEnd = '';
+        $this->resetPage();
     }
 
     public function getExportFileName(): string
@@ -179,11 +226,8 @@ class CorrectionAuthorizationList extends Component
 
     public function render()
     {
-        $query = CorrectionAuthorization::with('operator')->orderBy('id', 'desc');
-
-        if ($this->search) {
-            $query->where('reason', 'like', "%{$this->search}%");
-        }
+        $query = $this->applyFilters(CorrectionAuthorization::query()->with('operator'))
+            ->orderBy('id', 'desc');
 
         $items = $query->paginate(setting('per_page', 10));
         $allColumns = $this->getAllColumns();

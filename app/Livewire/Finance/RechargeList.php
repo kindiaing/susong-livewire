@@ -15,6 +15,7 @@ use App\Models\Merchant;
 use App\Models\MerchantAccount;
 use App\Models\Recharge;
 use App\Services\NotificationService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -34,6 +35,15 @@ class RechargeList extends Component
     protected string $modelClass = Recharge::class;
 
     public string $search = '';
+
+    // 筛选条件
+    public int $filterStatus = -1;
+
+    public int $filterPaymentMethod = -1;
+
+    public string $filterDateStart = '';
+
+    public string $filterDateEnd = '';
 
     public int $formMerchantId = 0;
 
@@ -76,14 +86,54 @@ class RechargeList extends Component
 
     public function getExportQuery()
     {
-        return Recharge::with('merchant')
-            ->when($this->search, function ($q) {
-                $q->where(function ($q2) {
-                    $q2->where('transaction_no', 'like', "%{$this->search}%")
-                        ->orWhereHas('merchant', fn ($mq) => $mq->where('name', 'like', "%{$this->search}%"));
-                });
-            })
+        return $this->applyFilters(Recharge::query()->with('merchant'))
             ->orderBy('id', 'desc');
+    }
+
+    /**
+     * 应用筛选条件（列表/导出共用）
+     */
+    /**
+     * 应用筛选条件（列表/导出共用）
+     *
+     * @param Builder<Recharge> $query
+     * @return Builder<Recharge>
+     */
+    private function applyFilters(Builder $query): Builder
+    {
+        if ($this->search) {
+            $query->where(function ($q) {
+                $q->where('transaction_no', 'like', "%{$this->search}%")
+                    ->orWhereHas('merchant', fn ($mq) => $mq->where('name', 'like', "%{$this->search}%"));
+            });
+        }
+
+        if ($this->filterStatus > 0) {
+            $query->where('status', $this->filterStatus);
+        }
+
+        if ($this->filterPaymentMethod > 0) {
+            $query->where('payment_method', $this->filterPaymentMethod);
+        }
+
+        if ($this->filterDateStart !== '') {
+            $query->whereDate('created_at', '>=', $this->filterDateStart);
+        }
+        if ($this->filterDateEnd !== '') {
+            $query->whereDate('created_at', '<=', $this->filterDateEnd);
+        }
+
+        return $query;
+    }
+
+    public function resetFilters(): void
+    {
+        $this->search = '';
+        $this->filterStatus = -1;
+        $this->filterPaymentMethod = -1;
+        $this->filterDateStart = '';
+        $this->filterDateEnd = '';
+        $this->resetPage();
     }
 
     public function getExportFileName(): string
@@ -279,14 +329,7 @@ class RechargeList extends Component
 
     public function render()
     {
-        $query = Recharge::with('merchant')->orderBy('id', 'desc');
-
-        if ($this->search) {
-            $query->where(function ($q) {
-                $q->where('transaction_no', 'like', "%{$this->search}%")
-                    ->orWhereHas('merchant', fn ($mq) => $mq->where('name', 'like', "%{$this->search}%"));
-            });
-        }
+        $query = $this->applyFilters(Recharge::query())->with('merchant')->orderBy('id', 'desc');
 
         $items = $query->paginate(setting('per_page', 10));
         $merchants = Merchant::orderBy('name')->get();
