@@ -26,4 +26,7 @@
 |---|---|---|
 | 2026-09-03 | 通知金额双 ¥ 符号（如 ¥¥260.00），共 5 处调用点 | 18cfe1f |
 | 2026-09-03 | 旧逻辑付款数据（审核通过即累计）在新逻辑下被误显「待执行」徽章 | 18cfe1f（数据已修正） |
-| 2026-09-03 | 客户账户列表页 500：MerchantAccount 模型从未定义 canEdit()，但 blade 自 8月24日 da1cdc2「列表页通用规范改造」起就调用它，有编辑权限的用户访问即报错（已补 canEdit()/canDelete()，待提交） | 待提交 |
+| 2026-09-03 | 客户账户列表页 500：MerchantAccount 模型从未定义 canEdit()，但 blade 自 8月24日 da1cdc2「列表页通用规范改造」起就调用它，有编辑权限的用户访问即报错（已补 canEdit()/canDelete()） | 2783701 |
+| 2026-09-03 | 发票列表/详情页 500：Invoice::merchant()/supplier() 关联带 `where('type',…)` 条件，但 merchants 表无 type 字段，with 预载即报「Unknown column 'type'」 | 待提交 |
+| 2026-09-03 | 改价记录页 500：组件用 with('sku') 但 PriceChangeLog 模型无该关联；且 blade/导出引用 field_name/before_value/after_value 等表里不存在的列（模板套用错误），实际数据是 original_price/new_price/amount_diff（已按真实表结构重写列展示，SKU 经 before_data.sku_id 取） | 待提交 |
+| 2026-09-03 | 发票创建必炸：组件表单/导入映射使用 tax_no/note 字段，但 invoices 建表迁移无这两列（本地库已 ALTER 补列并合并进 create 迁移） | 待提交 |

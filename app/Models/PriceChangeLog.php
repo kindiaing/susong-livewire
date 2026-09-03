@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * 改价记录模型
@@ -112,10 +113,58 @@ class PriceChangeLog extends Model
 
     /**
      * 关联操作人
+     *
+     * @return BelongsTo<User, $this>
      */
-    public function operator()
+    public function operator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'operator_id');
+    }
+
+    /**
+     * 获取改价关联的 SKU：price_change_logs 无 sku_id 列，
+     * 写入路径统一把 SKU ID 存在 before_data.sku_id（ PricingService::logPriceChange ）
+     */
+    public function getSkuAttribute(): ?Sku
+    {
+        $skuId = $this->before_data['sku_id'] ?? null;
+        if (! $skuId) {
+            return null;
+        }
+
+        $sku = $this->memoizeSku((int) $skuId);
+
+        return $sku instanceof Sku ? $sku : null;
+    }
+
+    /**
+     * 单请求内缓存 SKU 查询，避免列表逐行查库
+     */
+    private function memoizeSku(int $skuId): ?Sku
+    {
+        static $cache = [];
+
+        if (! array_key_exists($skuId, $cache)) {
+            $cache[$skuId] = Sku::find($skuId);
+        }
+
+        return $cache[$skuId];
+    }
+
+    /**
+     * 作用目标描述（含单号/SKU 编码，用于列表展示）
+     */
+    public function getTargetLabelAttribute(): string
+    {
+        $typeLabel = self::targetTypeMap()[$this->target_type] ?? '未知';
+
+        if ($this->target_type === self::TARGET_SKU) {
+            $sku = $this->sku;
+
+            return trim($typeLabel.' '.($sku !== null ? $sku->sku_code : '#'.$this->target_id));
+        }
+
+        return trim($typeLabel.' #'.$this->target_id.($this->target_item_id ? '-'.$this->target_item_id : ''));
     }
 
     /**

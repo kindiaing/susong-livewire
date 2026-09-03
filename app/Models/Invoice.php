@@ -113,7 +113,7 @@ class Invoice extends Model
      */
     public function merchant()
     {
-        return $this->belongsTo(Merchant::class, 'target_id')->where('type', self::TYPE_CUSTOMER);
+        return $this->belongsTo(Merchant::class, 'target_id');
     }
 
     /**
@@ -121,7 +121,7 @@ class Invoice extends Model
      */
     public function supplier()
     {
-        return $this->belongsTo(Supplier::class, 'target_id')->where('type', self::TYPE_SUPPLIER);
+        return $this->belongsTo(Supplier::class, 'target_id');
     }
 
     /**
@@ -140,9 +140,10 @@ class Invoice extends Model
     public function getTargetNameAttribute(): string
     {
         if ($this->type === self::TYPE_CUSTOMER) {
-            return Merchant::find($this->target_id)?->name ?? '-';
+            return $this->merchant?->name ?? '-';
         }
-        return Supplier::find($this->target_id)?->name ?? '-';
+
+        return $this->supplier?->name ?? '-';
     }
 
     /**

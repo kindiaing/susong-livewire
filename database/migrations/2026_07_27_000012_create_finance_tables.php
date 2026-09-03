@@ -163,8 +163,10 @@ return new class extends Migration
             $table->tinyInteger('type')->unsigned()->default(1)->comment('类型：1客户发票，2供应商发票');
             $table->unsignedBigInteger('target_id')->comment('关联对象ID');
             $table->string('title', 100)->nullable()->comment('发票抬头');
+            $table->string('tax_no', 50)->nullable()->comment('税号');
             $table->bigInteger('amount')->default(0)->comment('金额');
             $table->string('file_url', 255)->nullable()->comment('发票文件地址');
+            $table->string('note', 255)->nullable()->comment('备注');
             $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待开具，2已开具，3已寄出');
             $table->timestamp('applied_at')->nullable()->comment('申请时间');
             $table->timestamp('issued_at')->nullable()->comment('开具时间');

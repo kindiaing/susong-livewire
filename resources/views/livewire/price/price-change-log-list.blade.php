@@ -2,11 +2,12 @@
     <div class="flex items-center justify-between mb-6">
         <div>
             <h1 class="text-2xl font-bold text-foreground">改价记录</h1>
+            <p class="text-muted-foreground mt-1">记录促销、临时改价与手动改价的单价变动</p>
         </div>
     </div>
     <div class="flex items-center gap-3 mb-4">
         <div x-data class="relative">
-            <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background pl-3 pr-8 text-sm" placeholder="搜索变更字段..." />
+            <input type="text" wire:model.live="search" class="flex h-9 w-64 rounded-md border border-input bg-background pl-3 pr-8 text-sm" placeholder="搜索改价原因/操作人..." />
             @if($search)
                 <button type="button" wire:click="resetFilters" class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted transition-colors">
                     <x-ui.icon name="x-mark" class="w-3.5 h-3.5" />
@@ -48,17 +49,27 @@
                         @case('id')
                             <td class="px-4 py-2 text-muted-foreground">{{ $item->id }}</td>
                             @break
-                        @case('sku')
-                            <td class="px-4 py-2 text-foreground font-mono">{{ $item->sku?->sku_code ?? '-' }}</td>
+                        @case('source_type')
+                            <td class="px-4 py-2 text-foreground">{{ \App\Models\PriceChangeLog::sourceTypeMap()[$item->source_type] ?? '-' }}</td>
                             @break
-                        @case('field_name')
-                            <td class="px-4 py-2 text-foreground">{{ $item->field_name }}</td>
+                        @case('target_type')
+                            <td class="px-4 py-2 text-foreground">{{ $item->target_label }}</td>
                             @break
-                        @case('before_value')
-                            <td class="px-4 py-2 text-muted-foreground">{{ $item->before_value }}</td>
+                        @case('original_price')
+                            <td class="px-4 py-2 text-muted-foreground">{{ money_format($item->original_price) }}</td>
                             @break
-                        @case('after_value')
-                            <td class="px-4 py-2 text-foreground">{{ $item->after_value }}</td>
+                        @case('new_price')
+                            <td class="px-4 py-2 text-foreground">{{ money_format($item->new_price) }}</td>
+                            @break
+                        @case('quantity')
+                            <td class="px-4 py-2 text-foreground">{{ $item->quantity }}</td>
+                            @break
+                        @case('amount_diff')
+                            @php $diff = $item->amount_diff; @endphp
+                            <td class="px-4 py-2 {{ $diff > 0 ? 'text-red-600' : ($diff < 0 ? 'text-green-600' : 'text-foreground') }}">{{ money_format($diff) }}</td>
+                            @break
+                        @case('reason')
+                            <td class="px-4 py-2 text-foreground truncate max-w-[200px]" title="{{ $item->reason }}">{{ $item->reason ?? '-' }}</td>
                             @break
                         @case('operator_id')
                             <td class="px-4 py-2 text-muted-foreground">{{ $item->operator?->name ?? $item->operator_id ?? '-' }}</td>
