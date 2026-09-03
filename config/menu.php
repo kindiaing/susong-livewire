@@ -21,6 +21,7 @@ return [
             ['key' => 'product.category',  'label' => '分类管理',   'route' => 'categories',         'permission' => 'product.category.view',  'description' => '商品分类层级树'],
             ['key' => 'product.product',   'label' => '商品管理',   'route' => 'products',           'permission' => 'product.product.view',   'description' => '商品信息与图片维护'],
             ['key' => 'product.sku',       'label' => 'SKU 管理',  'route' => 'skus',               'permission' => 'product.product.view',   'description' => '规格、价格、库存单位'],
+            ['key' => 'product.unit',      'label' => '单位管理',   'route' => 'units',              'permission' => 'system.system-config.view', 'description' => '单位主数据与换算配置'],
             ['key' => 'product.visibility', 'label' => '可见性配置', 'route' => 'merchant-sku-visibility', 'permission' => 'product.visibility.view', 'description' => '商家可见SKU配置'],
             ['key' => 'product.keyword',   'label' => '关键词标签', 'route' => 'keywords',           'permission' => 'product.keyword.view',   'description' => '商品搜索与标签'],
             ['key' => 'product.barcode',   'label' => '条码管理',   'route' => 'sku-barcodes',       'permission' => 'product.product.view',   'description' => 'SKU条码绑定'],
@@ -123,7 +124,6 @@ return [
             ['key' => 'system.config',   'label' => '系统配置', 'route' => 'settings',       'permission' => 'system.system-config.view', 'description' => '基础/订单/配送/库存等系统配置'],
             ['key' => 'system.finance-settings', 'label' => '财务配置', 'route' => 'finance-settings', 'permission' => 'system.system-config.view', 'description' => '取价配置/财务风控/金额精度/费用均摊'],
             ['key' => 'system.audit-settings', 'label' => '审计设置', 'route' => 'audit-settings', 'permission' => 'system.audit-log.view', 'description' => '审计开关/日志保留策略'],
-            ['key' => 'system.unit',      'label' => '单位管理', 'route' => 'units',           'permission' => 'system.system-config.view', 'description' => '单位主数据与换算配置'],
             // ── 审核类 ──
             ['key' => 'system.approval', 'label' => '审核管理', 'route' => 'approval-config', 'permission' => 'system.system-config.view',  'description' => '19个审核节点开关与列表'],
             ['key' => 'system.approval-list', 'label' => '审核列表', 'route' => 'approvals',   'permission' => 'system.system-config.view',  'description' => '待审核与已审核记录'],

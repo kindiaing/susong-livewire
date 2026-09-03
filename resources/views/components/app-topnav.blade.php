@@ -35,7 +35,7 @@
                     $linkIconMap = [
                         'product.category' => 'swatch', 'product.product' => 'cube', 'product.sku' => 'tag',
                         'product.visibility' => 'eye', 'product.keyword' => 'hashtag', 'product.barcode' => 'qr-code',
-                        'product.supplier' => 'squares',
+                        'product.supplier' => 'squares', 'product.unit' => 'adjustments-horizontal',
                         'purchase.item' => 'clipboard-document-list', 'purchase.order' => 'document-text',
                         'purchase.return' => 'arrow-uturn-left',
                         'order.order' => 'clipboard-document-list', 'order.cart' => 'shopping-bag',
