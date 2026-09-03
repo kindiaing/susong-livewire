@@ -360,13 +360,17 @@ class SystemDataSeeder extends Seeder
                 'system.notification', 'system.notification.view', 'system.notification.create',
             ],
             // 运营经理：全部业务权限，排除作废(.cancel)和删除(.delete)——此两类仅管理员可用
+            // 另排除管理员专属页面（数据清理等）的整组权限（页面级+.view）
             'operator_manager' => Permission::all()
                 ->filter(fn($p) => ! str_ends_with($p->name, '.delete') && ! str_ends_with($p->name, '.cancel'))
+                ->filter(fn($p) => ! str_starts_with($p->name, 'system.trash-cleanup'))
                 ->pluck('name')->toArray(),
             // 财务专员：财务/价格记录/审计日志
             'finance' => [
                 'dashboard',
                 'finance.recharge', 'finance.recharge.view', 'finance.recharge.create',
+                'finance.merchant-account', 'finance.merchant-account.view',
+                'finance.correction-authorization', 'finance.correction-authorization.view',
                 'finance.supplier-settlement', 'finance.supplier-settlement.view', 'finance.supplier-settlement.create',
                 'finance.receivable', 'finance.receivable.view', 'finance.receivable.collect',
                 'finance.invoice', 'finance.invoice.view', 'finance.invoice.create', 'finance.invoice.issue',
@@ -378,6 +382,7 @@ class SystemDataSeeder extends Seeder
             'cashier' => [
                 'dashboard',
                 'finance.recharge', 'finance.recharge.view', 'finance.recharge.create',
+                'finance.merchant-account', 'finance.merchant-account.view',
                 'finance.supplier-settlement', 'finance.supplier-settlement.view', 'finance.supplier-settlement.pay',
                 'finance.receivable', 'finance.receivable.view', 'finance.receivable.collect',
                 'finance.invoice', 'finance.invoice.view',
@@ -386,6 +391,8 @@ class SystemDataSeeder extends Seeder
             'finance_manager' => [
                 'dashboard',
                 'finance.recharge', 'finance.recharge.view', 'finance.recharge.create', 'finance.recharge.approve',
+                'finance.merchant-account', 'finance.merchant-account.view',
+                'finance.correction-authorization', 'finance.correction-authorization.view',
                 'finance.supplier-settlement', 'finance.supplier-settlement.view', 'finance.supplier-settlement.create', 'finance.supplier-settlement.pay',
                 'finance.receivable', 'finance.receivable.view', 'finance.receivable.collect', 'finance.receivable.approve',
                 'finance.invoice', 'finance.invoice.view', 'finance.invoice.create', 'finance.invoice.issue', 'finance.invoice.send',
@@ -424,6 +431,7 @@ class SystemDataSeeder extends Seeder
                 'order.order-return', 'order.order-return.view',
                 'delivery.signature', 'delivery.signature.view',
                 'finance.recharge', 'finance.recharge.view',
+                'finance.merchant-account', 'finance.merchant-account.view',
                 'finance.invoice', 'finance.invoice.view',
             ],
         ];
