@@ -9,7 +9,7 @@
             {!! status_badge($settlement->status, 'supplier_settlement') !!}
         </div>
         <div class="flex items-center gap-2">
-            @can('finance.supplier-settlement.create')
+            @can('finance.supplier-settlement.pay')
             @if(in_array($settlement->status, [\App\Models\SupplierSettlement::STATUS_PENDING, \App\Models\SupplierSettlement::STATUS_PARTIAL]))
                 <button type="button" wire:click="openPaymentModal" class="rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 transition-colors">登记付款</button>
             @endif

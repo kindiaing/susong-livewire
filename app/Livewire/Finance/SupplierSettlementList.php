@@ -199,6 +199,8 @@ class SupplierSettlementList extends Component
 
     public function openPartialPayment(int $id): void
     {
+        abort_unless(auth()->user()?->can('finance.supplier-settlement.pay'), 403, '无供应商结算付款权限');
+
         $item = SupplierSettlement::findOrFail($id);
         if ($item->status !== SupplierSettlement::STATUS_PENDING && $item->status !== SupplierSettlement::STATUS_PARTIAL) {
             $this->toastError('仅待结算/部分付款状态可操作');
@@ -213,57 +215,46 @@ class SupplierSettlementList extends Component
 
     public function submitPartialPayment(): void
     {
+        abort_unless(auth()->user()?->can('finance.supplier-settlement.pay'), 403, '无供应商结算付款权限');
+
         $this->validate([
             'paymentAmount' => 'required|numeric|min:0.01',
         ]);
 
-        $item = SupplierSettlement::findOrFail($this->paymentSettlementId);
         $cents = money_to_cents($this->paymentAmount);
-
         if ($cents <= 0) {
             $this->toastError('付款金额必须大于0');
 
             return;
         }
 
-        $remaining = $item->payable_amount - $item->paid_amount - $item->proxy_payment;
-        if ($cents > $remaining) {
-            $this->toastError('付款金额超出剩余应付 '.money_format($remaining).'（已扣除代付 '.money_format($item->proxy_payment).'）');
+        try {
+            // 统一走审批流：审核开启时仅登记待审核记录（不动结算单），关闭时直接生效
+            $payment = app(SupplierSettlementService::class)->recordPayment(
+                settlementId: $this->paymentSettlementId,
+                amount: $cents,
+                paymentMethod: SettlementPayment::METHOD_MANUAL,
+                remark: $this->paymentRemark ?: null,
+            );
+
+            if ($payment->approval_status === SettlementPayment::APPROVAL_PENDING) {
+                $this->toastSuccess('付款已登记，待审核');
+            } else {
+                $settlement = SupplierSettlement::find($this->paymentSettlementId);
+                $settled = $settlement && $settlement->status === SupplierSettlement::STATUS_SETTLED;
+                if ($settled) {
+                    app(NotificationService::class)->settlementCompleted(
+                        auth()->id(),
+                        $settlement->settlement_no,
+                        money_format($settlement->payable_amount),
+                    );
+                }
+                $this->toastSuccess($settled ? '结算已结清' : '部分付款已确认');
+            }
+        } catch (\Exception $e) {
+            $this->toastError($e->getMessage());
 
             return;
-        }
-
-        $newPaidAmount = $item->paid_amount + $cents;
-        $totalPaid = $newPaidAmount + $item->proxy_payment;
-        $newStatus = $totalPaid >= $item->payable_amount
-            ? SupplierSettlement::STATUS_SETTLED
-            : SupplierSettlement::STATUS_PARTIAL;
-
-        $item->update([
-            'paid_amount' => $newPaidAmount,
-            'status' => $newStatus,
-            'settled_at' => $newStatus === SupplierSettlement::STATUS_SETTLED ? now() : null,
-        ]);
-
-        // 同时创建付款记录
-        SettlementPayment::create([
-            'settlement_id' => $item->id,
-            'amount' => $cents,
-            'payment_method' => SettlementPayment::METHOD_MANUAL,
-            'operator_id' => auth()->id(),
-            'approval_status' => SettlementPayment::APPROVAL_APPROVED,
-            'remark' => $this->paymentRemark ?: null,
-        ]);
-
-        $this->toastSuccess($newStatus === SupplierSettlement::STATUS_SETTLED ? '结算已结清' : '部分付款已确认');
-
-        // 通知当前用户：结算状态变更
-        if ($newStatus === SupplierSettlement::STATUS_SETTLED) {
-            app(NotificationService::class)->settlementCompleted(
-                auth()->id(),
-                $item->settlement_no,
-                money_format($item->payable_amount),
-            );
         }
 
         $this->showPaymentModal = false;

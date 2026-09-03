@@ -113,7 +113,7 @@
                     <button type="button" wire:click="openEditModal({{ $item->id }})" class="p-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors" title="编辑"><x-ui.icon name="pencil" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
-                    @can('finance.supplier-settlement.create')
+                    @can('finance.supplier-settlement.pay')
                     @if($item->status === 1 || $item->status === 2)
                     <button type="button" wire:click="openPartialPayment({{ $item->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="付款"><x-ui.icon name="banknotes" class="w-3.5 h-3.5" /></button>
                     @endif

@@ -43,6 +43,8 @@ class SupplierSettlementDetail extends Component
 
     public function openPaymentModal(): void
     {
+        abort_unless(auth()->user()?->can('finance.supplier-settlement.pay'), 403, '无供应商结算付款权限');
+
         if (!in_array($this->settlement->status, [SupplierSettlement::STATUS_PENDING, SupplierSettlement::STATUS_PARTIAL])) {
             $this->toastError('仅待结算/部分付款状态可操作');
 
@@ -62,6 +64,8 @@ class SupplierSettlementDetail extends Component
 
     public function submitPayment(): void
     {
+        abort_unless(auth()->user()?->can('finance.supplier-settlement.pay'), 403, '无供应商结算付款权限');
+
         $this->validate([
             'paymentAmount' => 'required|numeric|min:0.01',
         ]);
