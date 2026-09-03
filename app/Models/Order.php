@@ -16,7 +16,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $delivery_address 配送地址
  * @property string|null $contact_name 收货联系人
  * @property string|null $contact_phone 收货电话
- * @property int $status 状态：1待拣货，2拣货中，3配送中，4已签收，5已锁定，9已作废
+ * @property int $status 状态：1草稿（待提交），2待拣货，3拣货中，4配送中，5已签收，6已锁定，9已作废
  * @property int $total_amount 原始订单金额（厘）
  * @property int $adjusted_amount 调整后金额（厘）
  * @property int $final_amount 最终结算金额（厘）
@@ -36,12 +36,13 @@ class Order extends Model
 {
     use SoftDeletes;
 
-    public const STATUS_PICKING_WAIT = 1;
-    public const STATUS_PICKING = 2;
-    public const STATUS_DELIVERING = 3;
-    public const STATUS_SIGNED = 4;
-    public const STATUS_LOCKED = 5;
-    public const STATUS_CANCELLED = 9;
+    public const STATUS_DRAFT = 1;          // 草稿（待提交，可编辑）
+    public const STATUS_PICKING_WAIT = 2;   // 待拣货（已提交）
+    public const STATUS_PICKING = 3;        // 拣货中
+    public const STATUS_DELIVERING = 4;     // 配送中
+    public const STATUS_SIGNED = 5;         // 已签收
+    public const STATUS_LOCKED = 6;         // 已锁定
+    public const STATUS_CANCELLED = 9;      // 已作废
 
     public const PAYMENT_UNPAID = 1;
     public const PAYMENT_PAID = 2;
@@ -97,6 +98,7 @@ class Order extends Model
     public static function statusMap(): array
     {
         return [
+            self::STATUS_DRAFT => '草稿',
             self::STATUS_PICKING_WAIT => '待拣货',
             self::STATUS_PICKING => '拣货中',
             self::STATUS_DELIVERING => '配送中',
@@ -192,7 +194,7 @@ class Order extends Model
     }
 
     /**
-     * 是否可编辑（拣货中不允许商户编辑）
+     * 是否可编辑（拣货中/配送中不允许商户编辑）
      */
     public function isEditableByMerchant(): bool
     {
@@ -219,11 +221,12 @@ class Order extends Model
     /**
      * 是否可流转到指定状态
      *
-     * 核心规则：已签收(4)和已锁定(5)不可手动变更
+     * 核心规则：已签收(5)和已锁定(6)不可手动变更
      */
     public function canTransitionTo(int $status): bool
     {
         $flow = [
+            self::STATUS_DRAFT => [self::STATUS_PICKING_WAIT, self::STATUS_CANCELLED],
             self::STATUS_PICKING_WAIT => [self::STATUS_PICKING, self::STATUS_CANCELLED],
             self::STATUS_PICKING => [self::STATUS_DELIVERING, self::STATUS_CANCELLED],
             self::STATUS_DELIVERING => [self::STATUS_SIGNED, self::STATUS_CANCELLED],
@@ -233,19 +236,19 @@ class Order extends Model
     }
 
     /**
-     * 是否可编辑（仅初始状态可编辑）
+     * 是否可编辑（仅草稿状态可编辑，提交后锁定）
      */
     public function canEdit(): bool
     {
-        return $this->status === self::STATUS_PICKING_WAIT;
+        return $this->status === self::STATUS_DRAFT;
     }
 
     /**
-     * 是否可回退状态（除初始和作废状态外均可回退）
+     * 是否可回退状态（除草稿和作废状态外均可回退）
      */
     public function canRollbackStatus(): bool
     {
-        return !in_array($this->status, [self::STATUS_PICKING_WAIT, self::STATUS_CANCELLED]);
+        return !in_array($this->status, [self::STATUS_DRAFT, self::STATUS_CANCELLED]);
     }
 
     /**

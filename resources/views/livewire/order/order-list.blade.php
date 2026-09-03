@@ -131,11 +131,12 @@
         </div>
         <select wire:model.live="filterStatus" class="flex h-9 w-32 rounded-md border border-input bg-background px-3 text-sm">
             <option value="-1">全部状态</option>
-            <option value="1">待拣货</option>
-            <option value="2">拣货中</option>
-            <option value="3">配送中</option>
-            <option value="4">已签收</option>
-            <option value="5">已锁定</option>
+            <option value="1">草稿</option>
+            <option value="2">待拣货</option>
+            <option value="3">拣货中</option>
+            <option value="4">配送中</option>
+            <option value="5">已签收</option>
+            <option value="6">已锁定</option>
             <option value="9">已作废</option>
         </select>
         <select wire:model.live="filterPaymentStatus" class="flex h-9 w-32 rounded-md border border-input bg-background px-3 text-sm">
@@ -236,16 +237,16 @@
                     @endcan
                     @can('order.order.create')
                     @if($order->status === 1)
-                    <button type="button" wire:click="confirmOrder({{ $order->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="确认"><x-ui.icon name="check" class="w-3.5 h-3.5" /></button>
+                    <button type="button" wire:click="confirmOrder({{ $order->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="提交"><x-ui.icon name="check" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
                     @can('order.order.cancel')
-                    @if(!in_array($order->status, [4, 5, 9]))
+                    @if(!in_array($order->status, [5, 6, 9]))
                     <button type="button" wire:click="confirmAction('cancelOrder', '确认作废此订单？', '作废后订单不可恢复，请谨慎操作', {{ $order->id }})" class="p-1 rounded text-orange-600 hover:bg-orange-50 hover:text-orange-700 transition-colors" title="作废"><x-ui.icon name="x-circle" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan
                     @can('order.order.create')
-                    @if($order->status === 3)
+                    @if($order->status === 4)
                     <button type="button" wire:click="completeOrder({{ $order->id }})" class="p-1 rounded text-green-600 hover:bg-green-50 hover:text-green-700 transition-colors" title="完成"><x-ui.icon name="check-circle" class="w-3.5 h-3.5" /></button>
                     @endif
                     @endcan

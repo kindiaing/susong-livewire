@@ -404,7 +404,7 @@ class CartList extends Component
             $order = Order::create([
                 'order_no' => Order::generateOrderNo(),
                 'merchant_id' => $this->createOrderMerchantId,
-                'status' => Order::STATUS_PICKING_WAIT,
+                'status' => Order::STATUS_DRAFT,
                 'total_amount' => $totalAmount,
                 'adjusted_amount' => $totalAmount,
                 'final_amount' => $totalAmount,

@@ -56,13 +56,13 @@ class OrderList extends Component
     public string $formDeliveryAddress = '';
 
     public static array $statusMap = [
-        1 => '待拣货', 2 => '拣货中', 3 => '配送中',
-        4 => '已签收', 5 => '已锁定', 9 => '已作废',
+        1 => '草稿', 2 => '待拣货', 3 => '拣货中', 4 => '配送中',
+        5 => '已签收', 6 => '已锁定', 9 => '已作废',
     ];
 
     public static array $statusColorMap = [
-        1 => 'yellow', 2 => 'blue', 3 => 'orange',
-        4 => 'green', 5 => 'gray', 9 => 'red',
+        1 => 'gray', 2 => 'yellow', 3 => 'blue', 4 => 'orange',
+        5 => 'green', 6 => 'gray', 9 => 'red',
     ];
 
     public static array $paymentStatusMap = [
@@ -175,7 +175,7 @@ class OrderList extends Component
         }
         $this->editingId = $id;
         $this->editingStatusLabel = $order->status_label;
-        $this->editingStatusColor = 'yellow';
+        $this->editingStatusColor = 'gray';
         $this->formMerchantId = $order->merchant_id;
         $this->formSettlementType = $order->settlement_type;
         $this->formBatch = $order->batch;
@@ -244,7 +244,7 @@ class OrderList extends Component
                 'order_date' => $validated['formOrderDate'] ?? null,
                 'delivery_date' => $validated['formDeliveryDate'] ?? null,
                 'remark' => $validated['formRemark'],
-                'status' => Order::STATUS_PICKING_WAIT,
+                'status' => Order::STATUS_DRAFT,
                 'total_amount' => 0,
                 'adjusted_amount' => 0,
                 'final_amount' => 0,
@@ -268,20 +268,20 @@ class OrderList extends Component
     public function confirmOrder(int $id): void
     {
         $order = Order::findOrFail($id);
-        if ($order->status != Order::STATUS_PICKING_WAIT) {
-            $this->toastError('只有待拣货订单可确认');
+        if ($order->status != Order::STATUS_DRAFT) {
+            $this->toastError('只有草稿订单可提交');
 
             return;
         }
         $oldStatus = $order->status;
-        $order->update(['status' => Order::STATUS_PICKING]);
+        $order->update(['status' => Order::STATUS_PICKING_WAIT]);
 
         AuditLog::log(
             modelType: Order::class,
             modelId: $order->id,
             action: 'status_change',
             beforeData: ['status' => $oldStatus],
-            afterData: ['status' => Order::STATUS_PICKING],
+            afterData: ['status' => Order::STATUS_PICKING_WAIT],
         );
 
         // 通知商家：订单状态变更
@@ -290,11 +290,11 @@ class OrderList extends Component
                 $order->merchant_id,
                 $order->order_no,
                 self::$statusMap[$oldStatus] ?? '未知',
-                '拣货中',
+                '待拣货',
             );
         }
 
-        $this->toastSuccess('订单已确认');
+        $this->toastSuccess('订单已提交');
     }
 
     public function cancelOrder(int $id): void
@@ -365,7 +365,7 @@ class OrderList extends Component
     {
         $order = Order::findOrFail($this->deletingId);
         if (! $order->canEdit()) {
-            $this->toastError('当前状态不可删除，仅待拣货状态的订单可删除');
+            $this->toastError('当前状态不可删除，仅草稿状态的订单可删除');
             $this->showDeleteConfirm = false;
             $this->deletingId = null;
 
@@ -388,13 +388,13 @@ class OrderList extends Component
             return;
         }
         $protected = Order::whereIn('id', $ids)
-            ->where('status', '!=', Order::STATUS_PICKING_WAIT)
+            ->where('status', '!=', Order::STATUS_DRAFT)
             ->count();
         if ($protected > 0) {
-            $this->toastError("{$protected} 条非待拣货状态订单不可删除，已跳过");
+            $this->toastError("{$protected} 条非草稿状态订单不可删除，已跳过");
         }
         $deletableIds = Order::whereIn('id', $ids)
-            ->where('status', Order::STATUS_PICKING_WAIT)
+            ->where('status', Order::STATUS_DRAFT)
             ->pluck('id')
             ->toArray();
         if (! empty($deletableIds)) {

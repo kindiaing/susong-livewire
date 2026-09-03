@@ -90,8 +90,8 @@ class OrderDetail extends Component
 
     public function getCanEditItemsProperty(): bool
     {
-        // 仅初始状态（待拣货）可编辑；其他状态需管理员回退状态后才能修改
-        return $this->order->status === Order::STATUS_PICKING_WAIT;
+        // 仅草稿状态可编辑明细；其他状态需管理员回退状态后才能修改
+        return $this->order->status === Order::STATUS_DRAFT;
     }
 
     public function loadOrder(int $id): void
@@ -175,7 +175,7 @@ class OrderDetail extends Component
             }
 
             $newStatus = match ($this->confirmAction) {
-                'submit' => Order::STATUS_PICKING,
+                'submit' => Order::STATUS_PICKING_WAIT,
                 'pick' => Order::STATUS_PICKING,
                 'deliver' => Order::STATUS_DELIVERING,
                 'sign' => Order::STATUS_SIGNED,
@@ -385,7 +385,7 @@ class OrderDetail extends Component
      */
     public function executeSaveItem(): void
     {
-        if ($this->order->status !== Order::STATUS_PICKING_WAIT) {
+        if ($this->order->status !== Order::STATUS_DRAFT) {
             $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
             $this->showSaveConfirm = false;
 
@@ -503,7 +503,7 @@ class OrderDetail extends Component
 
     public function deleteItem(): void
     {
-        if ($this->order->status !== Order::STATUS_PICKING_WAIT) {
+        if ($this->order->status !== Order::STATUS_DRAFT) {
             $this->toastError('当前状态不可编辑，需管理员回退状态后才能修改');
             $this->showDeleteItemConfirm = false;
             $this->deletingItemId = null;

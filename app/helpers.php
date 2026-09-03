@@ -170,7 +170,7 @@ function setting(string $key, mixed $default = null): mixed
  * 状态 Badge 渲染（通用）
  *
  * @param  int  $status  状态值
- * @param  string  $type  映射类型：active/order/payment/audit/driver_online/cold_chain/visibility/loss_approval/loss_status/purchase_item/purchase_return/sku_approval/target_type/inventory_log
+ * @param  string  $type  映射类型：active/order/order_payment/payment/audit/driver_online/cold_chain/visibility/loss_approval/loss_status/purchase_item/purchase_return/sku_approval/target_type/inventory_log
  * @param  string  $label  自定义文字（覆盖映射中的默认文字）
  */
 function status_badge(int|string $status, string $type = 'default', string $label = ''): string
@@ -178,12 +178,18 @@ function status_badge(int|string $status, string $type = 'default', string $labe
     $map = match ($type) {
         'active' => [1 => ['启用', 'bg-green-100 text-green-700'], 0 => ['禁用', 'bg-gray-100 text-gray-600']],
         'order' => [
-            1 => ['待拣货', 'bg-yellow-100 text-yellow-700'],
-            2 => ['拣货中', 'bg-blue-100 text-blue-700'],
-            3 => ['配送中', 'bg-orange-100 text-orange-700'],
-            4 => ['已签收', 'bg-green-100 text-green-700'],
-            5 => ['已锁定', 'bg-gray-100 text-gray-600'],
+            1 => ['草稿', 'bg-gray-100 text-gray-600'],
+            2 => ['待拣货', 'bg-yellow-100 text-yellow-700'],
+            3 => ['拣货中', 'bg-blue-100 text-blue-700'],
+            4 => ['配送中', 'bg-orange-100 text-orange-700'],
+            5 => ['已签收', 'bg-green-100 text-green-700'],
+            6 => ['已锁定', 'bg-gray-100 text-gray-600'],
             9 => ['已作废', 'bg-red-100 text-red-700'],
+        ],
+        'order_payment' => [
+            1 => ['未支付', 'bg-yellow-100 text-yellow-700'],
+            2 => ['已支付', 'bg-green-100 text-green-700'],
+            3 => ['账期', 'bg-blue-100 text-blue-700'],
         ],
         'payment' => [
             0 => ['待支付', 'bg-yellow-100 text-yellow-700'],
