@@ -157,6 +157,17 @@ class NotificationService
     }
 
     /**
+     * 供应商付款审核通过，通知登记人（出纳）执行付款
+     */
+    public function supplierPaymentApproved(int $userId, string $settlementNo, string $amount): Notification
+    {
+        return $this->toUser($userId, Notification::TYPE_ACCOUNT, '供应商付款待执行', "结算单 {$settlementNo} 的付款（¥{$amount}）已审核通过，请到结算单详情页执行付款", [
+            'settlement_no' => $settlementNo,
+            'amount' => $amount,
+        ]);
+    }
+
+    /**
      * 应收收款确认通知
      */
     public function receivableCollected(int $userId, string $receivableNo, string $amount): Notification

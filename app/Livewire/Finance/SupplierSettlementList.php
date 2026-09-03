@@ -246,7 +246,7 @@ class SupplierSettlementList extends Component
                     app(NotificationService::class)->settlementCompleted(
                         auth()->id(),
                         $settlement->settlement_no,
-                        money_format($settlement->payable_amount),
+                        money_format($settlement->payable_amount, false),
                     );
                 }
                 $this->toastSuccess($settled ? '结算已结清' : '部分付款已确认');
@@ -302,7 +302,7 @@ class SupplierSettlementList extends Component
 
     public function render()
     {
-        $query = SupplierSettlement::with('supplier')->orderBy('id', 'desc');
+        $query = SupplierSettlement::with(['supplier', 'payments'])->orderBy('id', 'desc');
 
         if ($this->search) {
             $query->where(function ($q) {

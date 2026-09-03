@@ -226,7 +226,7 @@ class ReceivableList extends Component
             app(NotificationService::class)->receivableCollected(
                 auth()->id(),
                 $item->receivable_no,
-                money_format($item->adjusted_amount),
+                money_format($item->adjusted_amount, false),
             );
         }
 

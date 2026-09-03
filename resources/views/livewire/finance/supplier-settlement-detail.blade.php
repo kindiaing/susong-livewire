@@ -144,19 +144,21 @@
                             @if($payment->remark)
                             <div class="text-xs text-muted-foreground mt-0.5">备注：{{ $payment->remark }}</div>
                             @endif
+                            @if($payment->approval_status === \App\Models\SettlementPayment::APPROVAL_EXECUTED && $payment->transaction_no)
+                            <div class="text-xs text-muted-foreground mt-0.5">交易号：{{ $payment->transaction_no }}</div>
+                            @endif
                         </div>
                     </div>
-                    @php
-                        $approvalColors = [
-                            \App\Models\SettlementPayment::APPROVAL_PENDING => 'bg-orange-100 text-orange-700',
-                            \App\Models\SettlementPayment::APPROVAL_APPROVED => 'bg-green-100 text-green-700',
-                            \App\Models\SettlementPayment::APPROVAL_REJECTED => 'bg-gray-100 text-gray-600',
-                        ];
-                        $approvalColor = $approvalColors[$payment->approval_status] ?? 'bg-gray-100 text-gray-600';
-                    @endphp
-                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $approvalColor }}">
-                        {{ $payment->approval_status_label }}
-                    </span>
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $approvalColors[$payment->approval_status] ?? 'bg-gray-100 text-gray-600' }}">
+                            {{ $payment->approval_status_label }}
+                        </span>
+                        @if($payment->approval_status === \App\Models\SettlementPayment::APPROVAL_APPROVED)
+                            @can('finance.supplier-settlement.pay')
+                            <button type="button" wire:click="openExecuteModal({{ $payment->id }})" class="inline-flex items-center rounded-md bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-700 transition-colors">执行付款</button>
+                            @endcan
+                        @endif
+                    </div>
                 </div>
                 @endforeach
             </div>
@@ -251,6 +253,46 @@
             <div class="flex justify-end gap-3 mt-6">
                 <button type="button" wire:click="closePaymentModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
                 <button type="button" wire:click="submitPayment" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">确认付款</button>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- 执行付款弹窗 --}}
+    @if($showExecuteModal)
+    <div class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black/50" aria-hidden="true"></div>
+        <div class="relative bg-background rounded-lg border shadow-lg w-full max-w-md mx-4 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground">执行付款</h2>
+                <button type="button" wire:click="closeExecuteModal" class="text-muted-foreground hover:text-foreground transition-colors">
+                    <x-ui.icon name="x-mark" class="w-5 h-5" />
+                </button>
+            </div>
+            <div class="text-sm text-muted-foreground mb-4">
+                该笔付款已审核通过，确认实际执行付款后生效（累计已付金额）。
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">付款方式</label>
+                    <select wire:model="executePaymentMethod" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
+                        @foreach($paymentMethodMap as $value => $label)
+                            <option value="{{ $value }}">{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">交易号 <span class="text-xs text-muted-foreground">（非必填）</span></label>
+                    <input type="text" wire:model="executeTransactionNo" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="第三方交易号，如银行流水号" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">备注 <span class="text-xs text-muted-foreground">（非必填）</span></label>
+                    <textarea wire:model="executeRemark" rows="2" class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="可选"></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" wire:click="closeExecuteModal" class="rounded-md border border-input px-4 py-2 text-sm hover:bg-accent transition-colors">取消</button>
+                <button type="button" wire:click="submitExecutePayment" class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors">确认执行</button>
             </div>
         </div>
     </div>

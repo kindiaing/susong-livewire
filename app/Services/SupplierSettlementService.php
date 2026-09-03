@@ -82,8 +82,10 @@ class SupplierSettlementService
     }
 
     /**
-     * 审核通过后执行付款（由 Approvals 组件分发调用）
+     * 审核通过后标记付款记录为「已通过待执行」（由 Approvals 组件分发调用）
      * target_id 是 settlement_payments 表的 ID
+     *
+     * 注意：审核通过不直接累计已付金额，需出纳在结算单详情页执行付款后才生效。
      */
     public function applyPayment(int $paymentId): void
     {
@@ -92,27 +94,9 @@ class SupplierSettlementService
             return;
         }
 
-        $settlement = SupplierSettlement::find($payment->settlement_id);
-        if (! $settlement) {
-            return;
-        }
-
-        DB::transaction(function () use ($payment, $settlement) {
-            $payment->update([
-                'approval_status' => SettlementPayment::APPROVAL_APPROVED,
-            ]);
-
-            $newPaidAmount = $settlement->paid_amount + $payment->amount;
-            $newStatus = $newPaidAmount >= $settlement->payable_amount
-                ? SupplierSettlement::STATUS_SETTLED
-                : SupplierSettlement::STATUS_PARTIAL;
-
-            $settlement->update([
-                'paid_amount' => $newPaidAmount,
-                'status' => $newStatus,
-                'settled_at' => $newStatus === SupplierSettlement::STATUS_SETTLED ? now() : null,
-            ]);
-        });
+        $payment->update([
+            'approval_status' => SettlementPayment::APPROVAL_APPROVED,
+        ]);
     }
 
     /**
@@ -129,6 +113,59 @@ class SupplierSettlementService
         $payment->update([
             'approval_status' => SettlementPayment::APPROVAL_REJECTED,
         ]);
+    }
+
+    /**
+     * 出纳执行付款：审核通过的付款记录，由出纳确认付款信息后真正生效
+     *
+     * 只有 APPROVAL_APPROVED（已通过待执行）的付款记录才能执行；
+     * 执行后累计已付金额、更新结算单状态（部分付款/已结清）。
+     *
+     * @param  int  $paymentId  付款记录ID
+     * @param  int  $paymentMethod  付款方式：1银行转账，2线下现金，3后台手工
+     * @param  string|null  $transactionNo  第三方交易号（非必填）
+     * @param  string|null  $remark  执行备注（非必填）
+     * @param  string|null  $evidenceUrls  付款凭证图片数组 JSON 字符串（非必填）
+     *
+     * @throws \Exception 付款记录不存在、状态不允许或金额异常时抛出
+     */
+    public function executePayment(int $paymentId, int $paymentMethod = SettlementPayment::METHOD_MANUAL, ?string $transactionNo = null, ?string $remark = null, ?string $evidenceUrls = null): SettlementPayment
+    {
+        $payment = SettlementPayment::findOrFail($paymentId);
+
+        if ($payment->approval_status !== SettlementPayment::APPROVAL_APPROVED) {
+            throw new \Exception('仅已通过待执行的付款记录可执行');
+        }
+
+        $settlement = SupplierSettlement::findOrFail($payment->settlement_id);
+
+        return DB::transaction(function () use ($payment, $settlement, $paymentMethod, $transactionNo, $remark, $evidenceUrls) {
+            // 金额校验：累计后不得超过应付
+            $newPaidAmount = $settlement->paid_amount + $payment->amount;
+            if ($newPaidAmount > $settlement->payable_amount) {
+                throw new \Exception('付款金额超出剩余应付，无法执行');
+            }
+
+            $payment->update([
+                'approval_status' => SettlementPayment::APPROVAL_EXECUTED,
+                'payment_method' => $paymentMethod,
+                'transaction_no' => $transactionNo,
+                'remark' => $remark,
+                'evidence_urls' => $evidenceUrls ? json_decode($evidenceUrls, true) : null,
+            ]);
+
+            $newStatus = $newPaidAmount >= $settlement->payable_amount
+                ? SupplierSettlement::STATUS_SETTLED
+                : SupplierSettlement::STATUS_PARTIAL;
+
+            $settlement->update([
+                'paid_amount' => $newPaidAmount,
+                'status' => $newStatus,
+                'settled_at' => $newStatus === SupplierSettlement::STATUS_SETTLED ? now() : null,
+            ]);
+
+            return $payment->fresh();
+        });
     }
 
     /**
@@ -151,9 +188,10 @@ class SupplierSettlementService
         $needsApproval = ApprovalTypeConfig::isApprovalRequired('supplier_payment');
 
         return DB::transaction(function () use ($settlement, $amount, $paymentMethod, $remark, $needsApproval) {
+            // 审核开启：登记为待审核；审核关闭：直接视为已执行付款（已累计金额）
             $approvalStatus = $needsApproval
                 ? SettlementPayment::APPROVAL_PENDING
-                : SettlementPayment::APPROVAL_APPROVED;
+                : SettlementPayment::APPROVAL_EXECUTED;
 
             $payment = SettlementPayment::create([
                 'settlement_id' => $settlement->id,

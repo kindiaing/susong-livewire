@@ -27,8 +27,13 @@ class SettlementPayment extends Model
 
     // 审核状态常量
     public const APPROVAL_PENDING = 1;
+
     public const APPROVAL_APPROVED = 2;
+
     public const APPROVAL_REJECTED = 3;
+
+    /** 已执行付款（审核通过后，出纳实际执行付款完成） */
+    public const APPROVAL_EXECUTED = 4;
 
     protected $fillable = [
         'settlement_id',
@@ -72,8 +77,9 @@ class SettlementPayment extends Model
     {
         return [
             self::APPROVAL_PENDING => '待审核',
-            self::APPROVAL_APPROVED => '已通过',
+            self::APPROVAL_APPROVED => '已通过待执行',
             self::APPROVAL_REJECTED => '已拒绝',
+            self::APPROVAL_EXECUTED => '已执行',
         ];
     }
 
@@ -109,5 +115,21 @@ class SettlementPayment extends Model
     public function scopePending($query)
     {
         return $query->where('approval_status', self::APPROVAL_PENDING);
+    }
+
+    /**
+     * 作用域：已通过待执行
+     */
+    public function scopeApproved($query)
+    {
+        return $query->where('approval_status', self::APPROVAL_APPROVED);
+    }
+
+    /**
+     * 是否已执行付款
+     */
+    public function isExecuted(): bool
+    {
+        return $this->approval_status === self::APPROVAL_EXECUTED;
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -108,8 +109,10 @@ class SupplierSettlement extends Model
 
     /**
      * 关联付款记录
+     *
+     * @return HasMany<SettlementPayment, $this>
      */
-    public function payments()
+    public function payments(): HasMany
     {
         return $this->hasMany(SettlementPayment::class, 'settlement_id');
     }

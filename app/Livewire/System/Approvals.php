@@ -5,6 +5,7 @@ namespace App\Livewire\System;
 use App\Models\Approval;
 use App\Services\ApprovalService;
 use App\Services\DiscrepancyService;
+use App\Services\NotificationService;
 use App\Services\SupplierSettlementService;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -51,6 +52,11 @@ class Approvals extends Component
         if ($result) {
             // 业务联动分发：审核通过后调用对应 Service 执行业务逻辑
             $this->dispatchApprovalBusiness($approval, true);
+
+            // 供应商付款审核通过后，通知登记人（出纳）去执行付款
+            if ($approval->approval_type === 'supplier_payment') {
+                $this->notifyPaymentApproved($approval);
+            }
 
             session()->flash('success', "审批「{$approval->applicant_name}」的申请已通过");
         } else {
@@ -101,6 +107,32 @@ class Approvals extends Component
 
         $this->selectedId = 0;
         $this->reviewRemark = '';
+    }
+
+    /**
+     * 供应商付款审核通过后，通知登记人（出纳）执行付款
+     */
+    private function notifyPaymentApproved(Approval $approval): void
+    {
+        try {
+            $payment = \App\Models\SettlementPayment::query()->whereKey($approval->target_id)->first();
+            $settlement = $payment ? \App\Models\SupplierSettlement::query()->whereKey($payment->settlement_id)->first() : null;
+
+            if (! $payment || ! $settlement) {
+                return;
+            }
+
+            app(NotificationService::class)->supplierPaymentApproved(
+                $approval->applicant_id,
+                $settlement->settlement_no,
+                money_format($payment->amount, false),
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('供应商付款审核通过通知发送失败', [
+                'approval_id' => $approval->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
