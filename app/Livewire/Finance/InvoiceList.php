@@ -315,14 +315,30 @@ class InvoiceList extends Component
         $query = $this->applyFilters(Invoice::query())->with('merchant')->orderBy('id', 'desc');
 
         $items = $query->paginate(setting('per_page', 10));
-        $merchants = Merchant::orderBy('name')->get();
+        $selectedMerchant = $this->formMerchantId ? Merchant::find($this->formMerchantId) : null;
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
         $statusMap = self::$statusMap;
         $statusColorMap = self::$statusColorMap;
         $typeMap = self::$typeMap;
-        return view('livewire.finance.invoice-list', compact('items', 'merchants', 'allColumns', 'selectedCount', 'statusMap', 'statusColorMap', 'typeMap'))
+        return view('livewire.finance.invoice-list', compact('items', 'selectedMerchant', 'allColumns', 'selectedCount', 'statusMap', 'statusColorMap', 'typeMap'))
             ->layout('components.app-layout')
             ->title('发票管理');
+    }
+
+    /**
+     * 商家服务端搜索（searchable-select 调用）
+     */
+    public function searchMerchantOptions(string $keyword = ''): array
+    {
+        $keyword = trim($keyword);
+        $query = Merchant::query();
+        if ($keyword !== '') {
+            $query->where('name', 'like', "%{$keyword}%");
+        }
+
+        return $query->orderBy('name')->limit(20)->get(['id', 'name'])
+            ->map(fn ($m) => ['value' => $m->id, 'label' => $m->name])
+            ->toArray();
     }
 }

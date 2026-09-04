@@ -206,17 +206,31 @@ class MerchantAddressList extends Component
         }
 
         $items = $query->paginate(setting('per_page', 10));
-
-        $items = $query->paginate(setting('per_page', 10));
-        $merchants = \App\Models\Merchant::orderBy('name')->get();
+        $selectedMerchant = $this->formMerchantId ? \App\Models\Merchant::find($this->formMerchantId) : null;
 
         return view('livewire.merchant.merchant-address-list', [
             'items' => $items,
-            'merchants' => $merchants,
+            'selectedMerchant' => $selectedMerchant,
             'allColumns' => $this->getAllColumns(),
             'selectedCount' => $this->getSelectedCount(),
         ])
             ->layout('components.app-layout')
             ->title('商家地址');
+    }
+
+    /**
+     * 商家服务端搜索（searchable-select 调用）
+     */
+    public function searchMerchantOptions(string $keyword = ''): array
+    {
+        $keyword = trim($keyword);
+        $query = \App\Models\Merchant::query();
+        if ($keyword !== '') {
+            $query->where('name', 'like', "%{$keyword}%");
+        }
+
+        return $query->orderBy('name')->limit(20)->get(['id', 'name'])
+            ->map(fn ($m) => ['value' => $m->id, 'label' => $m->name])
+            ->toArray();
     }
 }

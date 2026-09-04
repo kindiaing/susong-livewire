@@ -13,6 +13,8 @@
     'search' => null,
     // 当前选中项的显示文本（用于服务端模式下回显，避免选中值不在 options 里时空白）
     'selectedLabel' => null,
+    // 自定义触发按钮高度等样式（如紧凑工具栏传 h-8 px-2，默认 h-9 px-3）
+    'buttonClass' => null,
 ])
 
 @php
@@ -55,7 +57,7 @@ $wrapperAttrs = $attributes->whereDoesntStartWith('wire:')->whereDoesntStartWith
         <button type="button"
                 @click="toggle()"
                 @if($disabled) disabled @endif
-                class="flex h-9 w-full items-center justify-between rounded-md border bg-background px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {{ $error ? 'border-red-600 focus-visible:ring-red-600' : 'border-input' }} {{ $disabled ? 'opacity-50 cursor-not-allowed bg-muted' : 'cursor-pointer' }}">
+                class="flex {{ $buttonClass ?? 'h-9 px-3' }} w-full items-center justify-between rounded-md border bg-background text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {{ $error ? 'border-red-600 focus-visible:ring-red-600' : 'border-input' }} {{ $disabled ? 'opacity-50 cursor-not-allowed bg-muted' : 'cursor-pointer' }}">
             <span x-text="hasSelection() ? selectedLabel : '{{ $placeholder }}'"
                   :class="hasSelection() ? 'text-foreground' : 'text-muted-foreground'"
                   class="truncate text-left flex-1"></span>

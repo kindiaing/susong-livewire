@@ -411,8 +411,9 @@ class PromotionSettings extends Component
         // 会员折扣列表
         $memberDiscounts = PromotionMemberDiscount::orderBy('id', 'desc')->paginate(10, ['*'], 'memberPage');
 
-        // 商家列表（筛选用）
-        $merchants = Merchant::enabled()->orderBy('name')->get();
+        // 选中商家回显
+        $storePriceFormMerchant = $this->storePriceFormMerchantId ? Merchant::find($this->storePriceFormMerchantId) : null;
+        $storePriceFilterMerchantName = $this->storePriceMerchantFilter ? Merchant::find($this->storePriceMerchantFilter)?->name : '';
 
         // 类型映射
         $promoTypeMap = Promotion::typeMap();
@@ -422,7 +423,23 @@ class PromotionSettings extends Component
 
         return view('livewire.price.promotion-settings', compact(
             'navGroups', 'promoItems', 'storePriceItems', 'memberDiscounts',
-            'merchants', 'promoTypeMap', 'priceTypeMap', 'adjustModeMap', 'memberLevelMap'
+            'storePriceFormMerchant', 'storePriceFilterMerchantName', 'promoTypeMap', 'priceTypeMap', 'adjustModeMap', 'memberLevelMap'
         ))->layout('components.app-layout')->title('促销设置');
+    }
+
+    /**
+     * 商家服务端搜索（searchable-select 调用）
+     */
+    public function searchMerchantOptions(string $keyword = ''): array
+    {
+        $keyword = trim($keyword);
+        $query = Merchant::enabled();
+        if ($keyword !== '') {
+            $query->where('name', 'like', "%{$keyword}%");
+        }
+
+        return $query->orderBy('name')->limit(20)->get(['id', 'name'])
+            ->map(fn ($m) => ['value' => $m->id, 'label' => $m->name])
+            ->toArray();
     }
 }

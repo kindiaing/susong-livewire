@@ -25,12 +25,7 @@
                 </button>
             @endif
         </div>
-        <select wire:model.live="filterMerchantId" class="flex h-9 rounded-md border border-input bg-background px-3 text-sm">
-            <option value="">全部商家</option>
-            @foreach($merchants as $m)
-            <option value="{{ $m->id }}">{{ $m->name }}</option>
-            @endforeach
-        </select>
+        <x-ui.searchable-select wire:model.live="filterMerchantId" placeholder="全部商家" wireModel="filterMerchantId" :value="$filterMerchantId" :selected-label="$filterMerchantName" search="searchMerchantOptions" clearable button-class="h-9 px-3" />
         <div class="flex-1"></div>
         <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="adjustments" class="w-4 h-4" />列配置</button>
         <button type="button" wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="arrow-down-tray" class="w-4 h-4" />导入</button>
@@ -153,13 +148,7 @@
             <div class="space-y-4">
                 @if(!$editingId)
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">商家 <span class="text-red-500">*</span></label>
-                    <select wire:model="formMerchantId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                        <option value="0">请选择商家</option>
-                        @foreach($merchants as $m)
-                        <option value="{{ $m->id }}">{{ $m->name }}</option>
-                        @endforeach
-                    </select>
+                    <x-ui.searchable-select label="商家 *" wire:model="formMerchantId" placeholder="搜索商家..." wireModel="formMerchantId" :value="$formMerchantId" search="searchMerchantOptions" />
                     @error('formMerchantId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>

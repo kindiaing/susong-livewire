@@ -170,13 +170,7 @@
             </div>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">商家 <span class="text-red-500">*</span></label>
-                    <select wire:model="formMerchantId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                        <option value="0">请选择商家</option>
-                        @foreach($merchants as $m)
-                        <option value="{{ $m->id }}">{{ $m->name }}</option>
-                        @endforeach
-                    </select>
+                    <x-ui.searchable-select label="商家 *" wire:model="formMerchantId" placeholder="搜索商家..." wireModel="formMerchantId" :value="$formMerchantId" :selected-label="$selectedMerchant?->name ?? ''" search="searchMerchantOptions" />
                     @error('formMerchantId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
                 <div>

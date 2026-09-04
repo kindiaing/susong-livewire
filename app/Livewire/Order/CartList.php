@@ -514,10 +514,10 @@ class CartList extends Component
     public function render()
     {
         $items = $this->buildQuery()->paginate(setting('per_page', 10));
-        $merchants = Merchant::where('status', 1)->orderBy('name')->get();
         $skus = Sku::with('product')->orderBy('sku_code')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
+        $filterMerchantName = $this->filterMerchantId ? Merchant::find($this->filterMerchantId)?->name : '';
 
         // 按商户分组
         $groupedItems = $this->getGroupedByMerchant($items->getCollection());
@@ -525,8 +525,24 @@ class CartList extends Component
         $availableUnits = $this->availableUnits;
         $unitPreview = $this->unitPreview;
 
-        return view('livewire.order.cart-list', compact('items', 'merchants', 'skus', 'allColumns', 'selectedCount', 'groupedItems', 'availableUnits', 'unitPreview'))
+        return view('livewire.order.cart-list', compact('items', 'skus', 'allColumns', 'selectedCount', 'groupedItems', 'availableUnits', 'unitPreview', 'filterMerchantName'))
             ->layout('components.app-layout')
             ->title('购物车');
+    }
+
+    /**
+     * 商家服务端搜索（searchable-select 调用）
+     */
+    public function searchMerchantOptions(string $keyword = ''): array
+    {
+        $keyword = trim($keyword);
+        $query = Merchant::where('status', 1);
+        if ($keyword !== '') {
+            $query->where('name', 'like', "%{$keyword}%");
+        }
+
+        return $query->orderBy('name')->limit(20)->get(['id', 'name'])
+            ->map(fn ($m) => ['value' => $m->id, 'label' => $m->name])
+            ->toArray();
     }
 }

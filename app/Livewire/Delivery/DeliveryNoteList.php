@@ -36,21 +36,9 @@ class DeliveryNoteList extends Component
         1 => 'orange', 2 => 'blue', 3 => 'green', 4 => 'gray',
     ];
 
-    public array $merchantOptions = [];
-
     public function mount(): void
     {
         $this->initColumnVisibility();
-        $this->loadOptions();
-    }
-
-    private function loadOptions(): void
-    {
-        $this->merchantOptions = Merchant::enabled()
-            ->orderBy('name')
-            ->get(['id', 'name'])
-            ->mapWithKeys(fn($m) => [$m->id => $m->name])
-            ->toArray();
     }
 
     // ========== 状态操作 ==========
@@ -209,13 +197,28 @@ class DeliveryNoteList extends Component
         $items = $this->items();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
-        $merchantOptions = $this->merchantOptions;
-        $filterMerchantId = $this->filterMerchantId;
+        $filterMerchantName = $this->filterMerchantId ? Merchant::find($this->filterMerchantId)?->name : '';
 
         return view('livewire.delivery.delivery-note-list', compact(
-            'items', 'allColumns', 'selectedCount', 'merchantOptions', 'filterMerchantId'
+            'items', 'allColumns', 'selectedCount', 'filterMerchantName'
         ))
             ->layout('components.app-layout')
             ->title('送货单');
+    }
+
+    /**
+     * 商家服务端搜索（searchable-select 调用）
+     */
+    public function searchMerchantOptions(string $keyword = ''): array
+    {
+        $keyword = trim($keyword);
+        $query = Merchant::enabled();
+        if ($keyword !== '') {
+            $query->where('name', 'like', "%{$keyword}%");
+        }
+
+        return $query->orderBy('name')->limit(20)->get(['id', 'name'])
+            ->map(fn ($m) => ['value' => $m->id, 'label' => $m->name])
+            ->toArray();
     }
 }

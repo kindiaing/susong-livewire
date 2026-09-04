@@ -332,14 +332,30 @@ class RechargeList extends Component
         $query = $this->applyFilters(Recharge::query())->with('merchant')->orderBy('id', 'desc');
 
         $items = $query->paginate(setting('per_page', 10));
-        $merchants = Merchant::orderBy('name')->get();
+        $selectedMerchant = $this->formMerchantId ? Merchant::find($this->formMerchantId) : null;
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
         $statusMap = self::$statusMap;
         $statusColorMap = self::$statusColorMap;
         $paymentMethodMap = self::$paymentMethodMap;
-        return view('livewire.finance.recharge-list', compact('items', 'merchants', 'allColumns', 'selectedCount', 'statusMap', 'statusColorMap', 'paymentMethodMap'))
+        return view('livewire.finance.recharge-list', compact('items', 'selectedMerchant', 'allColumns', 'selectedCount', 'statusMap', 'statusColorMap', 'paymentMethodMap'))
             ->layout('components.app-layout')
             ->title('客户充值');
+    }
+
+    /**
+     * 商家服务端搜索（searchable-select 调用）
+     */
+    public function searchMerchantOptions(string $keyword = ''): array
+    {
+        $keyword = trim($keyword);
+        $query = Merchant::query();
+        if ($keyword !== '') {
+            $query->where('name', 'like', "%{$keyword}%");
+        }
+
+        return $query->orderBy('name')->limit(20)->get(['id', 'name'])
+            ->map(fn ($m) => ['value' => $m->id, 'label' => $m->name])
+            ->toArray();
     }
 }

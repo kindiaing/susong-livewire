@@ -30,12 +30,7 @@
                 </button>
             @endif
         </div>
-        <select wire:model.live="filterMerchantId" class="flex h-9 w-44 rounded-md border border-input bg-background px-3 text-sm">
-            <option value="">全部商家</option>
-            @foreach($merchants as $merchant)
-                <option value="{{ $merchant->id }}">{{ $merchant->name }}</option>
-            @endforeach
-        </select>
+        <x-ui.searchable-select wire:model.live="filterMerchantId" placeholder="全部商家" wireModel="filterMerchantId" :value="$filterMerchantId" :selected-label="$filterMerchantName" search="searchMerchantOptions" clearable button-class="h-9 px-3 w-44" />
         <select wire:model.live="filterTargetType" class="flex h-9 w-36 rounded-md border border-input bg-background px-3 text-sm">
             <option value="">全部类型</option>
             <option value="product">商品级</option>
@@ -156,13 +151,7 @@
             <div class="space-y-4">
                 {{-- 商家选择 --}}
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">商家 <span class="text-red-500">*</span></label>
-                    <select wire:model="formMerchantId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                        <option value="0">请选择商家</option>
-                        @foreach($merchants as $merchant)
-                            <option value="{{ $merchant->id }}">{{ $merchant->name }}</option>
-                        @endforeach
-                    </select>
+                    <x-ui.searchable-select label="商家 *" wire:model="formMerchantId" placeholder="搜索商家..." wireModel="formMerchantId" :value="$formMerchantId" :selected-label="$selectedMerchant?->name ?? ''" search="searchMerchantOptions" />
                     @error('formMerchantId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                 </div>
 

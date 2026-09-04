@@ -117,12 +117,7 @@
             <option value="3">已签收</option>
             <option value="4">已作废</option>
         </select>
-        <select wire:model.live="filterMerchantId" class="flex h-9 w-40 rounded-md border border-input bg-background px-3 text-sm">
-            <option value="0">全部商户</option>
-            @foreach($merchantOptions as $id => $name)
-            <option value="{{ $id }}">{{ $name }}</option>
-            @endforeach
-        </select>
+        <x-ui.searchable-select wire:model.live="filterMerchantId" placeholder="全部商户" wireModel="filterMerchantId" :value="$filterMerchantId" :selected-label="$filterMerchantName" search="searchMerchantOptions" clearable button-class="h-9 px-3 w-40" />
         <input type="date" wire:model.live="filterDeliveryDate" class="flex h-9 w-36 rounded-md border border-input bg-background px-3 text-sm" />
         <div class="flex-1"></div>
         <button type="button" wire:click="openColumnModal" class="inline-flex items-center gap-1 rounded-md border border-input px-3 py-1.5 text-sm hover:bg-accent transition-colors"><x-ui.icon name="adjustments" class="w-4 h-4" />列配置</button>

@@ -460,16 +460,30 @@ class OrderList extends Component
     public function render()
     {
         $orders = $this->buildQuery()->paginate(setting('per_page', 10));
-        $merchants = Merchant::orderBy('name')->get();
 
         return view('livewire.order.order-list', [
             'orders' => $orders,
-            'merchants' => $merchants,
             'allColumns' => $this->getAllColumns(),
             'selectedCount' => $this->getSelectedCount(),
             'batchActions' => $this->getBatchActions(),
         ])
             ->layout('components.app-layout')
             ->title('客户订单');
+    }
+
+    /**
+     * 商家服务端搜索（searchable-select 调用）
+     */
+    public function searchMerchantOptions(string $keyword = ''): array
+    {
+        $keyword = trim($keyword);
+        $query = Merchant::query();
+        if ($keyword !== '') {
+            $query->where('name', 'like', "%{$keyword}%");
+        }
+
+        return $query->orderBy('name')->limit(20)->get(['id', 'name'])
+            ->map(fn ($m) => ['value' => $m->id, 'label' => $m->name])
+            ->toArray();
     }
 }

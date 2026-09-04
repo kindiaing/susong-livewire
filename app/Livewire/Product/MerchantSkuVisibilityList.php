@@ -318,7 +318,8 @@ class MerchantSkuVisibilityList extends Component
             ->orderByDesc('id')
             ->paginate(setting('per_page', 10));
 
-        $merchants = Merchant::where('status', 1)->orderBy('name')->get();
+        $selectedMerchant = $this->formMerchantId ? Merchant::find($this->formMerchantId) : null;
+        $filterMerchantName = $this->filterMerchantId ? Merchant::find($this->filterMerchantId)?->name : '';
         $products = Product::where('status', 1)->orderBy('name')->get();
         $skuOptions = Sku::with('product')->orderBy('sku_code')->get()->map(fn($s) => ['value' => $s->id, 'label' => $s->sku_code . ' - ' . ($s->product?->name ?? '')])->toArray();
 
@@ -329,8 +330,24 @@ class MerchantSkuVisibilityList extends Component
         $filterDateEnd = $this->filterDateEnd;
         $editingId = $this->editingId;
 
-        return view('livewire.product.merchant-sku-visibility-list', compact('records', 'merchants', 'products', 'skuOptions', 'allColumns', 'selectedCount', 'filterDateStart', 'filterDateEnd', 'editingId'))
+        return view('livewire.product.merchant-sku-visibility-list', compact('records', 'selectedMerchant', 'filterMerchantName', 'products', 'skuOptions', 'allColumns', 'selectedCount', 'filterDateStart', 'filterDateEnd', 'editingId'))
             ->layout('components.app-layout')
             ->title('可见性配置');
+    }
+
+    /**
+     * 商家服务端搜索（searchable-select 调用）
+     */
+    public function searchMerchantOptions(string $keyword = ''): array
+    {
+        $keyword = trim($keyword);
+        $query = Merchant::where('status', 1);
+        if ($keyword !== '') {
+            $query->where('name', 'like', "%{$keyword}%");
+        }
+
+        return $query->orderBy('name')->limit(20)->get(['id', 'name'])
+            ->map(fn ($m) => ['value' => $m->id, 'label' => $m->name])
+            ->toArray();
     }
 }

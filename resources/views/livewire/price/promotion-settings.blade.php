@@ -164,13 +164,7 @@
                     <div class="flex items-center gap-3">
                         <input type="text" wire:model.live="storePriceSearch" placeholder="搜索SKU编码..."
                             class="flex h-8 w-48 rounded-md border border-input bg-background px-3 text-sm" />
-                        <select wire:model.live="storePriceMerchantFilter"
-                            class="flex h-8 w-40 rounded-md border border-input bg-background px-2 text-sm">
-                            <option value="">全部商家</option>
-                            @foreach($merchants as $m)
-                                <option value="{{ $m->id }}">{{ $m->name }}</option>
-                            @endforeach
-                        </select>
+                        <x-ui.searchable-select wire:model.live="storePriceMerchantFilter" placeholder="全部商家" wireModel="storePriceMerchantFilter" :value="$storePriceMerchantFilter" :selected-label="$storePriceFilterMerchantName" search="searchMerchantOptions" clearable button-class="h-8 px-2 w-40" />
                     </div>
                     <button type="button" wire:click="openStorePriceCreateModal"
                         class="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-colors">
@@ -268,14 +262,7 @@
 
                     <div class="px-6 py-4 space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-foreground mb-1">商家 <span class="text-red-500">*</span></label>
-                            <select wire:model="storePriceFormMerchantId"
-                                class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                                <option value="">请选择商家</option>
-                                @foreach($merchants as $m)
-                                    <option value="{{ $m->id }}">{{ $m->name }}</option>
-                                @endforeach
-                            </select>
+                            <x-ui.searchable-select label="商家 *" wire:model="storePriceFormMerchantId" placeholder="搜索商家..." wireModel="storePriceFormMerchantId" :value="$storePriceFormMerchantId" :selected-label="$storePriceFormMerchant?->name ?? ''" search="searchMerchantOptions" />
                             @error('storePriceFormMerchantId') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
