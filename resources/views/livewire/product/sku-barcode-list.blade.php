@@ -145,7 +145,7 @@
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <x-ui.searchable-select label="供应商" wire-model="formSupplierId" :options="$supplierOptions" placeholder="搜索供应商..." wireModel="formSupplierId" clearable />
+                        <x-ui.searchable-select label="供应商" wire-model="formSupplierId" placeholder="搜索供应商..." wireModel="formSupplierId" search="searchSupplierOptions" clearable />
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-foreground mb-1">备注</label>

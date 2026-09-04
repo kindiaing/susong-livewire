@@ -273,12 +273,7 @@
                     <div>
                         @if($itemResponsibleParty == 2)
                         <label class="block text-sm font-medium text-foreground mb-1">供应商</label>
-                        <select wire:model="itemSupplierId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                            <option value="0">请选择供应商</option>
-                            @foreach($suppliers as $supplier)
-                            <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-                            @endforeach
-                        </select>
+                        <x-ui.searchable-select wire:model="itemSupplierId" placeholder="搜索供应商..." wireModel="itemSupplierId" :value="$itemSupplierId" search="searchSupplierOptions" />
                         @else
                         <label class="block text-sm font-medium text-foreground mb-1">供应商</label>
                         <div class="flex h-9 items-center text-sm text-muted-foreground">—</div>

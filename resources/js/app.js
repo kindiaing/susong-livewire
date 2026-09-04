@@ -54,7 +54,25 @@ window.__searchableSelect = (data) => ({
     hasSelection() {
         return this.selectedValue !== '' && this.selectedValue !== '0';
     },
+    async doServerSearch() {
+        if (!this.serverSearch || !this.$wire) return;
+        const keyword = (this.search || '').trim();
+        this.loading = true;
+        try {
+            // 服务端方法返回 [{value,label},...] 或 {options:[...]}
+            const result = await this.$wire.call(this.serverSearch, keyword);
+            const list = Array.isArray(result) ? result : (result?.options ?? []);
+            this.options = list.map(o => ({
+                value: String(o.value ?? o.id ?? ''),
+                label: String(o.label ?? o.name ?? ''),
+            }));
+            this.activeIndex = -1;
+        } finally {
+            this.loading = false;
+        }
+    },
     filteredOptions() {
+        if (this.serverSearch) return this.options;
         if (!this.search) return this.options;
         const q = this.search.toLowerCase();
         return this.options.filter(o => o.label.toLowerCase().includes(q));

@@ -224,12 +224,27 @@ class ProductList extends Component
 
         $products = $query->paginate(setting('per_page', 10));
         $categoryOptions = Category::toSelectOptions();
-        $suppliers = Supplier::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = count($this->selectedIds);
 
-        return view('livewire.product.product-list', compact('products', 'categoryOptions', 'suppliers', 'allColumns', 'selectedCount'))
+        return view('livewire.product.product-list', compact('products', 'categoryOptions', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('商品管理');
+    }
+
+    /**
+     * 供应商服务端搜索（searchable-select 调用）
+     */
+    public function searchSupplierOptions(string $keyword = ''): array
+    {
+        $keyword = trim($keyword);
+        $query = Supplier::query();
+        if ($keyword !== '') {
+            $query->where('name', 'like', "%{$keyword}%");
+        }
+
+        return $query->orderBy('name')->limit(20)->get(['id', 'name'])
+            ->map(fn ($s) => ['value' => $s->id, 'label' => $s->name])
+            ->toArray();
     }
 }

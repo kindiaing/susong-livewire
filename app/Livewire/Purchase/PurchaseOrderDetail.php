@@ -8,7 +8,6 @@ use App\Livewire\Traits\WithToast;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\Sku;
-use App\Models\Supplier;
 use App\Models\Warehouse;
 use App\Services\PurchaseService;
 use App\Services\UnitConversionService;
@@ -491,7 +490,6 @@ class PurchaseOrderDetail extends Component
 
     public function render()
     {
-        $suppliers = Supplier::orderBy('name')->get();
         $warehouses = Warehouse::enabled()->get();
         $skus = Sku::with('product')->orderBy('sku_code')->get();
 
@@ -499,7 +497,7 @@ class PurchaseOrderDetail extends Component
         $availableUnits = $this->availableUnits;
         $unitPreview = $this->unitPreview;
 
-        return view('livewire.purchase.purchase-order-detail', compact('suppliers', 'warehouses', 'skus', 'isSuperAdmin', 'availableUnits', 'unitPreview'))
+        return view('livewire.purchase.purchase-order-detail', compact('warehouses', 'skus', 'isSuperAdmin', 'availableUnits', 'unitPreview'))
             ->layout('components.app-layout')
             ->title("采购单 {$this->order->order_no}");
     }

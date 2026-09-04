@@ -282,12 +282,14 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-foreground mb-1">供应商 <span class="text-red-500">*</span></label>
-                        <select wire:model="formSupplierId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" {{ $formReturnType === 2 && ! $editingId ? 'disabled' : '' }}>
-                            <option value="0">请选择</option>
-                            @foreach($suppliers as $s)
-                                <option value="{{ $s->id }}">{{ $s->name }}</option>
-                            @endforeach
-                        </select>
+                        @if($formReturnType === 2 && ! $editingId)
+                        {{-- 关联退货：供应商由采购单自动带出，只读展示 --}}
+                        <div class="flex h-9 items-center rounded-md border border-input bg-muted px-3 text-sm text-foreground">
+                            {{ $selectedSupplier?->name ?? '请先选择关联采购单' }}
+                        </div>
+                        @else
+                        <x-ui.searchable-select wire:model="formSupplierId" placeholder="搜索供应商..." wireModel="formSupplierId" :value="$formSupplierId" search="searchSupplierOptions" :selected-label="$selectedSupplier?->name ?? ''" />
+                        @endif
                         @error('formSupplierId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>

@@ -208,10 +208,25 @@ class SkuBarcodeList extends Component
         $selectedCount = count($this->selectedIds);
 
         $skuOptions = Sku::with('product')->orderBy('sku_code')->get()->map(fn($s) => ['value' => $s->id, 'label' => $s->sku_code . ' - ' . ($s->product?->name ?? '')])->toArray();
-        $supplierOptions = Supplier::orderBy('name')->get()->map(fn($s) => ['value' => $s->id, 'label' => $s->name])->toArray();
 
-        return view('livewire.product.sku-barcode-list', compact('barcodes', 'allColumns', 'selectedCount', 'skuOptions', 'supplierOptions'))
+        return view('livewire.product.sku-barcode-list', compact('barcodes', 'allColumns', 'selectedCount', 'skuOptions'))
             ->layout('components.app-layout')
             ->title('条码管理');
+    }
+
+    /**
+     * 供应商服务端搜索（searchable-select 调用）
+     */
+    public function searchSupplierOptions(string $keyword = ''): array
+    {
+        $keyword = trim($keyword);
+        $query = Supplier::query();
+        if ($keyword !== '') {
+            $query->where('name', 'like', "%{$keyword}%");
+        }
+
+        return $query->orderBy('name')->limit(20)->get(['id', 'name'])
+            ->map(fn ($s) => ['value' => $s->id, 'label' => $s->name])
+            ->toArray();
     }
 }

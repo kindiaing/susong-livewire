@@ -170,6 +170,22 @@ class SupplierSettlementList extends Component
     }
 
     /**
+     * 供应商服务端搜索（searchable-select 调用）
+     */
+    public function searchSupplierOptions(string $keyword = ''): array
+    {
+        $keyword = trim($keyword);
+        $query = Supplier::query();
+        if ($keyword !== '') {
+            $query->where('name', 'like', "%{$keyword}%");
+        }
+
+        return $query->orderBy('name')->limit(20)->get(['id', 'name'])
+            ->map(fn ($s) => ['value' => $s->id, 'label' => $s->name])
+            ->toArray();
+    }
+
+    /**
      * 生成结算单：按周期自动汇总已入库采购单实际金额，扣减采购退货与服务费
      */
     public function save(): void
@@ -349,7 +365,6 @@ class SupplierSettlementList extends Component
         $query = $this->applyFilters(SupplierSettlement::query())->with(['supplier', 'payments'])->orderBy('id', 'desc');
 
         $items = $query->paginate(setting('per_page', 10));
-        $suppliers = Supplier::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
 
@@ -374,7 +389,7 @@ class SupplierSettlementList extends Component
             'proxy_payment'   => (clone $baseQuery)->sum('proxy_payment'),
         ];
 
-        return view('livewire.finance.supplier-settlement-list', compact('items', 'suppliers', 'allColumns', 'selectedCount', 'pageTotals', 'grandTotals'))
+        return view('livewire.finance.supplier-settlement-list', compact('items', 'allColumns', 'selectedCount', 'pageTotals', 'grandTotals'))
             ->layout('components.app-layout')
             ->title('供应商结算');
     }

@@ -8,15 +8,20 @@
     'disabled' => false,
     'value' => null,
     'wireModel' => null,
+    // 服务端搜索模式：传入 Livewire 组件方法名（如 searchSupplierOptions），
+    // 输入关键词后由服务端查询返回 [{value,label}]，替代全量 options 下发
+    'search' => null,
+    // 当前选中项的显示文本（用于服务端模式下回显，避免选中值不在 options 里时空白）
+    'selectedLabel' => null,
 ])
 
 @php
 // Resolve current label from options + value
 $currentValue = ($value && $value != 0) ? (string)$value : '';
-$currentLabel = '';
-if ($currentValue !== '') {
-    $match = collect($options)->first(fn($opt) => (string)$opt['value'] === $currentValue);
-    $currentLabel = $match ? $match['label'] : '';
+$currentLabel = (string)($selectedLabel ?? '');
+if ($currentLabel === '' && $currentValue !== '') {
+    $match = collect($options)->first(fn($opt) => (string)($opt['value'] ?? '') === $currentValue);
+    $currentLabel = $match ? (string)$match['label'] : '';
 }
 $optionsJson = collect($options)->map(fn($opt) => [
     'value' => (string)($opt['value'] ?? ''),
@@ -34,7 +39,9 @@ $wrapperAttrs = $attributes->whereDoesntStartWith('wire:')->whereDoesntStartWith
     selectedValue: '{{ $currentValue }}',
     selectedLabel: '{{ $currentLabel }}',
     options: {{ $optionsJson }},
-    wireModelProperty: '{{ $wireModel ?? '' }}'
+    wireModelProperty: '{{ $wireModel ?? '' }}',
+    serverSearch: '{{ $search ?? '' }}',
+    loading: false
 })"
     @click.outside="open = false"
     {{ $wrapperAttrs->merge(['class' => 'grid gap-1.5']) }}>
@@ -92,8 +99,13 @@ $wrapperAttrs = $attributes->whereDoesntStartWith('wire:')->whereDoesntStartWith
                        @keydown.up.prevent="navigateUp()"
                        @keydown.enter.prevent="selectActive()"
                        @keydown.escape="open = false"
+                       @input.debounce.300ms="serverSearch && doServerSearch()"
                        class="flex-1 h-9 bg-transparent px-2 text-sm outline-none placeholder:text-muted-foreground"
                        placeholder="搜索..." />
+                <svg x-show="loading" class="w-4 h-4 text-muted-foreground animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"></path>
+                </svg>
             </div>
 
             {{-- Options list --}}
@@ -116,8 +128,11 @@ $wrapperAttrs = $attributes->whereDoesntStartWith('wire:')->whereDoesntStartWith
                 </template>
 
                 {{-- No results --}}
-                <div x-show="filteredOptions().length === 0" class="px-3 py-4 text-center text-sm text-muted-foreground">
+                <div x-show="!loading && filteredOptions().length === 0" class="px-3 py-4 text-center text-sm text-muted-foreground">
                     无匹配结果
+                </div>
+                <div x-show="loading" class="px-3 py-4 text-center text-sm text-muted-foreground">
+                    加载中...
                 </div>
             </div>
         </div>

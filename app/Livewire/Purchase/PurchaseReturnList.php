@@ -350,13 +350,29 @@ class PurchaseReturnList extends Component
         // 关联退货只能选已入库/已完成的采购单
         $purchaseOrders = PurchaseOrder::whereIn('status', [PurchaseOrder::STATUS_STOCKED, PurchaseOrder::STATUS_COMPLETED])
             ->orderBy('id', 'desc')->limit(50)->get();
-        $suppliers = Supplier::enabled()->orderBy('name')->get();
+        $selectedSupplier = $this->formSupplierId ? Supplier::find($this->formSupplierId) : null;
         $warehouses = Warehouse::enabled()->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
 
-        return view('livewire.purchase.purchase-return-list', compact('items', 'purchaseOrders', 'suppliers', 'warehouses', 'allColumns', 'selectedCount'))
+        return view('livewire.purchase.purchase-return-list', compact('items', 'purchaseOrders', 'selectedSupplier', 'warehouses', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('采购退货');
+    }
+
+    /**
+     * 供应商服务端搜索（searchable-select 调用）
+     */
+    public function searchSupplierOptions(string $keyword = ''): array
+    {
+        $keyword = trim($keyword);
+        $query = Supplier::enabled();
+        if ($keyword !== '') {
+            $query->where('name', 'like', "%{$keyword}%");
+        }
+
+        return $query->orderBy('name')->limit(20)->get(['id', 'name'])
+            ->map(fn ($s) => ['value' => $s->id, 'label' => $s->name])
+            ->toArray();
     }
 }

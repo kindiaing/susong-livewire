@@ -134,7 +134,7 @@
                         @error('formSkuId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                     <div>
-                        <x-ui.searchable-select label="供应商" wire:model="formSupplierId" :options="$supplierOptions" placeholder="选择供应商..." wireModel="formSupplierId" :value="$formSupplierId" />
+                        <x-ui.searchable-select label="供应商" wire:model="formSupplierId" placeholder="搜索供应商..." wireModel="formSupplierId" :value="$formSupplierId" search="searchSupplierOptions" />
                         @error('formSupplierId') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>

@@ -347,13 +347,28 @@ class PurchaseItemList extends Component
         $selectedCount = $this->getSelectedCount();
 
         $skuOptions = Sku::with('product')->orderBy('sku_code')->get()->map(fn($s) => ['value' => $s->id, 'label' => $s->sku_code . ' - ' . ($s->product?->name ?? '')])->toArray();
-        $supplierOptions = Supplier::where('status', 1)->orderBy('name')->get()->map(fn($s) => ['value' => $s->id, 'label' => $s->name])->toArray();
 
         $availableUnits = $this->availableUnits;
         $unitPreview = $this->unitPreview;
 
-        return view('livewire.purchase.purchase-item-list', compact('items', 'allColumns', 'selectedCount', 'skuOptions', 'supplierOptions', 'availableUnits', 'unitPreview'))
+        return view('livewire.purchase.purchase-item-list', compact('items', 'allColumns', 'selectedCount', 'skuOptions', 'availableUnits', 'unitPreview'))
             ->layout('components.app-layout')
             ->title('待采清单');
+    }
+
+    /**
+     * 供应商服务端搜索（searchable-select 调用）
+     */
+    public function searchSupplierOptions(string $keyword = ''): array
+    {
+        $keyword = trim($keyword);
+        $query = Supplier::where('status', 1);
+        if ($keyword !== '') {
+            $query->where('name', 'like', "%{$keyword}%");
+        }
+
+        return $query->orderBy('name')->limit(20)->get(['id', 'name'])
+            ->map(fn ($s) => ['value' => $s->id, 'label' => $s->name])
+            ->toArray();
     }
 }

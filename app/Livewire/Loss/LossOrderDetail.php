@@ -566,16 +566,31 @@ class LossOrderDetail extends Component
         $responsiblePartyMap = LossOrderItem::responsiblePartyMap();
 
         $skus = Sku::with('product')->where('status', 1)->orderBy('id', 'desc')->limit(200)->get();
-        $suppliers = Supplier::enabled()->get();
         $itemExportColumns = $this->getItemExportColumns();
         $canEditItems = $this->lossOrder->canEdit();
 
         return view('livewire.loss.loss-order-detail', compact(
             'statusMap', 'statusColorMap', 'approvalStatusMap', 'approvalColorMap',
             'typeMap', 'sourceTypeMap', 'responsiblePartyMap',
-            'skus', 'suppliers', 'itemExportColumns', 'canEditItems'
+            'skus', 'itemExportColumns', 'canEditItems'
         ))
             ->layout('components.app-layout')
             ->title("损耗单详情 {$this->lossOrder->loss_no}");
+    }
+
+    /**
+     * 供应商服务端搜索（searchable-select 调用）
+     */
+    public function searchSupplierOptions(string $keyword = ''): array
+    {
+        $keyword = trim($keyword);
+        $query = Supplier::query();
+        if ($keyword !== '') {
+            $query->where('name', 'like', "%{$keyword}%");
+        }
+
+        return $query->orderBy('name')->limit(20)->get(['id', 'name'])
+            ->map(fn ($s) => ['value' => $s->id, 'label' => $s->name])
+            ->toArray();
     }
 }

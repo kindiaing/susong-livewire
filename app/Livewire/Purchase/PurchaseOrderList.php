@@ -238,6 +238,22 @@ class PurchaseOrderList extends Component
         return PurchaseOrder::orderBy('id', 'desc')->limit(20)->pluck('id')->toArray();
     }
 
+    /**
+     * 供应商服务端搜索（searchable-select 调用）
+     */
+    public function searchSupplierOptions(string $keyword = ''): array
+    {
+        $keyword = trim($keyword);
+        $query = Supplier::query();
+        if ($keyword !== '') {
+            $query->where('name', 'like', "%{$keyword}%");
+        }
+
+        return $query->orderBy('name')->limit(20)->get(['id', 'name'])
+            ->map(fn ($s) => ['value' => $s->id, 'label' => $s->name])
+            ->toArray();
+    }
+
     public function render()
     {
         $query = PurchaseOrder::with('supplier')
@@ -260,12 +276,11 @@ class PurchaseOrderList extends Component
         }
 
         $orders = $query->paginate(setting('per_page', 10));
-        $suppliers = Supplier::orderBy('name')->get();
         $warehouses = Warehouse::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
 
-        return view('livewire.purchase.purchase-order-list', compact('orders', 'suppliers', 'warehouses', 'allColumns', 'selectedCount'))
+        return view('livewire.purchase.purchase-order-list', compact('orders', 'warehouses', 'allColumns', 'selectedCount'))
             ->layout('components.app-layout')
             ->title('采购单管理');
     }

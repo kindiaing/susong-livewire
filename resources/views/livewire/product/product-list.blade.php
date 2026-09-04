@@ -155,13 +155,7 @@
                         />
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-foreground mb-1">默认供应商</label>
-                        <select wire:model="formSupplierId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                            <option value="0">请选择供应商</option>
-                            @foreach($suppliers as $s)
-                                <option value="{{ $s->id }}">{{ $s->name }}</option>
-                            @endforeach
-                        </select>
+                        <x-ui.searchable-select label="默认供应商" wire:model="formSupplierId" placeholder="搜索供应商..." wireModel="formSupplierId" :value="$formSupplierId" search="searchSupplierOptions" clearable />
                     </div>
                 </div>
                 <div class="grid grid-cols-3 gap-4">
