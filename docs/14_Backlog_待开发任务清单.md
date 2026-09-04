@@ -1,3 +1,4 @@
+
 # 待开发任务清单
 > 尚未开始开发的功能项。开发完成并提交后，将对应条目移动到 `13_TaskList_开发任务清单.md` 的已完成列表中。
 > 按优先级分类：P0 > P1 > P2 > P3
@@ -61,6 +62,10 @@
 | 1 | 仪表盘 | 数据大屏：订单量/销售额/损耗率等实时指标展示 | P2 | 06_Log V1.6.0 / 12_UserGuide |
 | 2 | 操作日志 | 操作日志导出：按时间范围/操作人/模块导出 | P2 | 06_Log V1.6.0 |
 | 3 | Redis | 安装 Redis PHP 扩展，替换 file 驱动 | P1 | 06_Log V1.2.0 / V1.6.0 |
+| 4 | 下拉改造 | SKU 下拉 7 处改服务端搜索选择：order/order-detail L244、purchase/purchase-order-detail L273、order/cart-list L167、product/restock-reminder-list L146、inventory/inventory-list L258、loss/loss-order-detail L245、purchase/purchase-return-detail L136 | P1 | 2026-09-04 下拉排查（全表加载，未来 600-1000 商家 SKU 量大） |
+| 5 | 下拉改造 | 商品选择 1 处改服务端搜索：merchant-sku-visibility-list L188 | P1 | 2026-09-04 下拉排查 |
+| 6 | 下拉改造 | 单号选择 2 处改服务端搜索：order-return-list L265（limit 100）、purchase-return-list L272（limit 50） | P2 | 2026-09-04 下拉排查（已有 limit 但属截断，非精确搜索） |
+| 7 | 下拉改造 | 复用 searchable-select 双模式组件（参照批次 A/B 惯例：search 方法 + selectedLabel 回显） | - | 实现方式备注 |
 
 ---
 
