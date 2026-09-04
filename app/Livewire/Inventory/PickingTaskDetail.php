@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\DiscrepancyService;
 use App\Services\InventoryService;
 use App\Services\UnitConversionService;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class PickingTaskDetail extends Component
@@ -290,6 +291,49 @@ class PickingTaskDetail extends Component
         $this->editingSkuId = null;
         $this->inputPickedQty = '';
         $this->inputDiffReason = '';
+    }
+
+    /**
+     * 一键匹配数量：将全部待拣货明细的实拣数量一键填为应拣数量
+     *
+     * - 仅处理状态为待拣货的明细，已录入实拣/差异的行保持不动
+     * - 不生成差异单、不自动完成任务，任务保持拣货中
+     * - 拣货员随后仅需对缺货行录入实际数量并登记差异
+     */
+    public function matchAllQuantities(): void
+    {
+        if ($this->pickingTask->status !== PickingTask::STATUS_PICKING) {
+            $this->toastError('仅拣货中状态可一键匹配');
+
+            return;
+        }
+
+        $updatedCount = 0;
+        $matchedQty = 0;
+
+        DB::transaction(function () use (&$updatedCount, &$matchedQty) {
+            PickingTaskItem::where('picking_task_id', $this->pickingTaskId)
+                ->where('status', PickingTaskItem::STATUS_PENDING)
+                ->orderBy('id')
+                ->chunkById(200, function ($items) use (&$updatedCount, &$matchedQty) {
+                    foreach ($items as $item) {
+                        $item->update([
+                            'picked_quantity' => $item->required_quantity,
+                            'status' => PickingTaskItem::STATUS_PICKED,
+                        ]);
+                        $updatedCount++;
+                        $matchedQty += $item->required_quantity;
+                    }
+                });
+        });
+
+        $this->loadPickingTask();
+
+        if ($updatedCount === 0) {
+            $this->toastWarning('没有待拣货明细，无需匹配');
+        } else {
+            $this->toastSuccess("已一键匹配 {$updatedCount} 条明细，共 {$matchedQty} 件，请核对差异行后完成拣货");
+        }
     }
 
     /**

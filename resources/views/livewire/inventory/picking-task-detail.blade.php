@@ -18,6 +18,7 @@
             <button type="button" wire:click="startPicking" class="rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors">开始拣货</button>
             @endif
             @if($pickingTask->status === 2)
+            <button type="button" wire:click="matchAllQuantities" wire:loading.attr="disabled" wire:target="matchAllQuantities" class="rounded-md border border-blue-300 px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors">一键匹配数量</button>
             <button type="button" wire:click="completePicking" class="rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 transition-colors">完成拣货</button>
             @endif
 
