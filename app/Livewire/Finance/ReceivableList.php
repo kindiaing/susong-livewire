@@ -185,7 +185,7 @@ class ReceivableList extends Component
     protected function saveCreate(): void
     {
         $this->validate([
-            'createMerchantId' => 'required|integer|min:1',
+            'createMerchantId' => 'nullable|integer|min:0',
             'createSelectedOrderIds' => 'required|array|min:1',
         ]);
 
