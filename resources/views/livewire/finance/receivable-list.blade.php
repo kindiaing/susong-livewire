@@ -187,7 +187,7 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">按商家筛选</label>
-                    <input type="text" wire:model.live.debounce.300ms="createMerchantSearch" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="输入商家名称搜索（可多选）..." />
+                    <input type="text" wire:model.live.debounce.300ms="createMerchantSearch" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="输入商家名称搜索（多商家逗号分隔）..." />
                     @if($this->createMerchantResults)
                     <div class="mt-1 max-h-40 overflow-y-auto rounded-md border border-input bg-background z-10">
                         @foreach($this->createMerchantResults as $m)

@@ -343,3 +343,40 @@ function generate_sequence_no(string $prefix, string $table, string $column, ?st
 
     return $prefixWithDate.str_pad((string) $seq, 5, '0', STR_PAD_LEFT);
 }
+
+/**
+ * 将搜索输入拆分为多个关键词（英文逗号分隔）
+ *
+ * 规则：
+ *   - 输入为空（或全为空白）→ 返回 []
+ *   - 不含英文逗号 → 返回 [trim 后的原文]，行为与原单关键词搜索一致
+ *   - 含英文逗号 → 按逗号拆分，逐项 trim 并过滤空项
+ *
+ * 示例：
+ *   split_search_keywords(' 张三 ')        → ['张三']
+ *   split_search_keywords('张三, 李四 ,,')  → ['张三', '李四']
+ *
+ * @param  string|null  $search  用户输入的搜索文本
+ * @return list<string> 关键词数组
+ */
+function split_search_keywords(?string $search): array
+{
+    $trimmed = trim((string) $search);
+    if ($trimmed === '') {
+        return [];
+    }
+
+    if (! str_contains($trimmed, ',')) {
+        return [$trimmed];
+    }
+
+    $keywords = [];
+    foreach (explode(',', $trimmed) as $part) {
+        $part = trim($part);
+        if ($part !== '') {
+            $keywords[] = $part;
+        }
+    }
+
+    return $keywords;
+}

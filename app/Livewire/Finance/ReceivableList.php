@@ -334,15 +334,20 @@ class ReceivableList extends Component
      */
     public function getCreateMerchantResultsProperty(): array
     {
-        $keyword = trim($this->createMerchantSearch);
-        if ($keyword === '') {
+        // 支持英文逗号分隔多商家：任一关键词命中即作为候选返回
+        $keywords = split_search_keywords($this->createMerchantSearch);
+        if ($keywords === []) {
             return [];
         }
 
         return Merchant::query()
-            ->where(function (Builder $q) use ($keyword) {
-                $q->where('name', 'like', "%{$keyword}%")
-                    ->orWhere('contact_name', 'like', "%{$keyword}%");
+            ->where(function (Builder $q) use ($keywords) {
+                foreach ($keywords as $keyword) {
+                    $q->orWhere(function (Builder $q2) use ($keyword) {
+                        $q2->where('name', 'like', "%{$keyword}%")
+                            ->orWhere('contact_name', 'like', "%{$keyword}%");
+                    });
+                }
             })
             ->whereNotIn('id', $this->createMerchantIds)
             ->orderBy('name')

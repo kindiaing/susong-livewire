@@ -87,10 +87,16 @@ class DeliveryRouteDetail extends Component
 
         $query = Merchant::whereNotIn('id', $existingIds);
 
-        if ($this->addMerchantSearch) {
-            $query->where(function ($q) {
-                $q->where('name', 'like', "%{$this->addMerchantSearch}%")
-                    ->orWhere('contact_phone', 'like', "%{$this->addMerchantSearch}%");
+        // 支持英文逗号分隔多商家：名称/手机号任一关键词命中即显示
+        $keywords = split_search_keywords($this->addMerchantSearch);
+        if ($keywords !== []) {
+            $query->where(function ($q) use ($keywords) {
+                foreach ($keywords as $keyword) {
+                    $q->orWhere(function ($q2) use ($keyword) {
+                        $q2->where('name', 'like', "%{$keyword}%")
+                            ->orWhere('contact_phone', 'like', "%{$keyword}%");
+                    });
+                }
             });
         }
 

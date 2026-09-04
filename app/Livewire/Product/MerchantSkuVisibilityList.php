@@ -285,8 +285,18 @@ class MerchantSkuVisibilityList extends Component
                 $q->where('target_type', $this->filterTargetType);
             })
             ->when($this->searchMerchant, function ($q) {
-                $q->whereHas('merchant', function ($q) {
-                    $q->where('name', 'like', "%{$this->searchMerchant}%");
+                // 支持英文逗号分隔多商家，命中任一关键词即显示
+                $keywords = split_search_keywords($this->searchMerchant);
+                if ($keywords === []) {
+                    return;
+                }
+
+                $q->whereHas('merchant', function ($q) use ($keywords) {
+                    $q->where(function ($q2) use ($keywords) {
+                        foreach ($keywords as $keyword) {
+                            $q2->orWhere('name', 'like', "%{$keyword}%");
+                        }
+                    });
                 });
             })
             ->when($this->searchTarget, function ($q) {

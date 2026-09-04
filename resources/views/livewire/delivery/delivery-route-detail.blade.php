@@ -274,7 +274,7 @@
                 </button>
             </div>
             <div class="mb-4">
-                <input type="text" wire:model.live="addMerchantSearch" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="搜索商家名称/手机号..." />
+                <input type="text" wire:model.live="addMerchantSearch" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="搜索商家名称/手机号（多商家逗号分隔）..." />
             </div>
             <div class="space-y-2 max-h-[50vh] overflow-y-auto">
                 @forelse($availableMerchants as $merchant)

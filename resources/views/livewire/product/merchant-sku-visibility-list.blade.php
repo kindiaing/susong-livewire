@@ -15,7 +15,7 @@
     {{-- 筛选区 --}}
     <div class="flex flex-wrap items-center gap-3 mb-4">
         <div x-data class="relative">
-            <input type="text" wire:model.live="searchMerchant" class="flex h-9 w-48 rounded-md border border-input bg-background pl-3 pr-8 text-sm" placeholder="搜索商家名称..." />
+            <input type="text" wire:model.live="searchMerchant" class="flex h-9 w-48 rounded-md border border-input bg-background pl-3 pr-8 text-sm" placeholder="搜索商家（逗号分隔多个）..." />
             @if($searchMerchant)
                 <button type="button" wire:click="$set('searchMerchant','')" class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded-sm text-muted-foreground/50 hover:text-muted-foreground hover:bg-muted transition-colors">
                     <x-ui.icon name="x-mark" class="w-3.5 h-3.5" />

@@ -77,7 +77,17 @@ class MerchantAccountList extends Component
     private function applyFilters(Builder $query): Builder
     {
         if ($this->search) {
-            $query->whereHas('merchant', fn ($mq) => $mq->where('name', 'like', "%{$this->search}%"));
+            // 支持英文逗号分隔多商家，命中任一关键词即显示
+            $keywords = split_search_keywords($this->search);
+            if ($keywords !== []) {
+                $query->whereHas('merchant', function ($mq) use ($keywords) {
+                    $mq->where(function ($q) use ($keywords) {
+                        foreach ($keywords as $keyword) {
+                            $q->orWhere('name', 'like', "%{$keyword}%");
+                        }
+                    });
+                });
+            }
         }
 
         if ($this->filterApprovalStatus > 0) {
@@ -186,10 +196,19 @@ class MerchantAccountList extends Component
         $items = $query->paginate(setting('per_page', 10));
         $merchantResults = collect();
         if (strlen($this->merchantSearch) >= 1 && !$this->editingId) {
-            $merchantResults = Merchant::where('name', 'like', "{$this->merchantSearch}%")
-                ->orderBy('name')
-                ->limit(10)
-                ->get();
+            // 支持英文逗号分隔多商家：弹窗输入多个名称时一次查出全部候选
+            $keywords = split_search_keywords($this->merchantSearch);
+            if ($keywords !== []) {
+                $merchantResults = Merchant::query()
+                    ->where(function ($q) use ($keywords) {
+                        foreach ($keywords as $keyword) {
+                            $q->orWhere('name', 'like', "{$keyword}%");
+                        }
+                    })
+                    ->orderBy('name')
+                    ->limit(10)
+                    ->get();
+            }
         }
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();

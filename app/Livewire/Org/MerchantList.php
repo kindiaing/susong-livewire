@@ -243,10 +243,20 @@ class MerchantList extends Component
     private function applyFilters($query)
     {
         return $query->when($this->search, function ($q) {
-            $q->where(function ($q2) {
-                $q2->where('name', 'like', "%{$this->search}%")
-                    ->orWhere('contact_name', 'like', "%{$this->search}%")
-                    ->orWhere('contact_phone', 'like', "%{$this->search}%");
+            // 支持英文逗号分隔多商家：每个关键词匹配 名称/联系人/电话 任一字段
+            $keywords = split_search_keywords($this->search);
+            if ($keywords === []) {
+                return;
+            }
+
+            $q->where(function ($q2) use ($keywords) {
+                foreach ($keywords as $keyword) {
+                    $q2->orWhere(function ($q3) use ($keyword) {
+                        $q3->where('name', 'like', "%{$keyword}%")
+                            ->orWhere('contact_name', 'like', "%{$keyword}%")
+                            ->orWhere('contact_phone', 'like', "%{$keyword}%");
+                    });
+                }
             });
         })->when($this->filterStatus !== null, function ($q) {
             $q->where('status', $this->filterStatus);
