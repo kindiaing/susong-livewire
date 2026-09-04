@@ -109,7 +109,7 @@
                             <div class="text-sm text-right {{ $item->proxy_payment > 0 ? 'text-purple-600' : 'text-muted-foreground' }}">{{ $item->proxy_payment > 0 ? money_format($item->proxy_payment) : '-' }}</div>
                             @break
                         @case('status')
-                            <div class="flex items-center gap-1.5">
+                            <div class="flex items-center gap-1.5 whitespace-nowrap">
                                 {!! status_badge($item->status, 'supplier_settlement') !!}
                                 @if($item->payments?->contains('approval_status', \App\Models\SettlementPayment::APPROVAL_APPROVED))
                                 <span class="inline-flex items-center rounded-full bg-blue-100 text-blue-700 text-[11px] font-medium px-1.5 py-0.5 leading-none" title="有已审核通过的付款待出纳执行">待执行</span>

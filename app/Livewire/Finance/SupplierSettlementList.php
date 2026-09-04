@@ -78,7 +78,7 @@ class SupplierSettlementList extends Component
             ['key' => 'payable_amount', 'label' => '应付金额', 'sortable' => true, 'exportable' => true, 'width' => '100px'],
             ['key' => 'paid_amount', 'label' => '已付金额', 'sortable' => true, 'exportable' => true, 'width' => '100px'],
             ['key' => 'proxy_payment', 'label' => '代付', 'sortable' => true, 'exportable' => true, 'width' => '80px'],
-            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true, 'width' => '70px'],
+            ['key' => 'status', 'label' => '状态', 'sortable' => false, 'exportable' => true, 'width' => '120px'],
             ['key' => 'created_at', 'label' => '创建时间', 'sortable' => true, 'exportable' => true, 'width' => '120px'],
         ];
     }
