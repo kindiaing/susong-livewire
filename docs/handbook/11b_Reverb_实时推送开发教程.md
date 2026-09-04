@@ -3,70 +3,92 @@ AIGC:
   ContentProducer: '001191110102MAD55U9H0F10002'
   ContentPropagator: '001191110102MAD55U9H0F10002'
   Label: '1'
-  ProduceID: '9300f201-c4f1-4628-80ee-b9af6abaf071'
-  PropagateID: '9300f201-c4f1-4628-80ee-b9af6abaf071'
-  ReservedCode1: 'aaf0db9e-d41d-4e1c-ba58-eb2833283c64'
-  ReservedCode2: 'aaf0db9e-d41d-4e1c-ba58-eb2833283c64'
+  ProduceID: 'f126e1dd-1ceb-4c95-b91e-e10a0a40c081'
+  PropagateID: 'f126e1dd-1ceb-4c95-b91e-e10a0a40c081'
+  ReservedCode1: '3a0c2c1a-1ecc-4b4a-864b-f20caa898fd7'
+  ReservedCode2: '3a0c2c1a-1ecc-4b4a-864b-f20caa898fd7'
 ---
 
 # Laravel Reverb 实时推送 — 开发教程
 
-> 本文档面向项目新成员，系统讲解 Reverb 在项目中的完整链路：从配置、事件、服务到前端订阅，以及如何新增一个通知场景。
+> 本文档面向项目新成员，讲解 Reverb 自建 WebSocket 在本项目中的完整链路：安装配置、事件广播、前端订阅、与 Pusher 的切换及生产部署。
+>
+> 姊妹文档：[11c Pusher 教程](11c_Pusher_云服务实时推送开发教程.md)（当前默认方案）、[11d Redis 教程](11d_Redis_缓存队列与实战.md)（缓存与队列）
 
 ---
 
 ## 1 概述
 
-**Laravel Reverb** 是 Laravel 官方的 WebSocket 服务器，用于服务端向浏览器实时推送事件（无需前端轮询）。
+**Laravel Reverb** 是 Laravel 官方自建的 WebSocket 服务器，功能与 Pusher 云服务等价（协议兼容），但跑在自己的服务器上，无按量费用。
 
-本项目中，Reverb 的核心用途是**通知实时推送**——当业务操作触发通知时，通知入库的同时通过 WebSocket 广播，前端 NotificationDrawer 自动刷新。
+本项目采用 **Pusher 云服务（默认）/ Reverb（备选）双模式** 架构：
+
+- **当前用 Pusher 云服务**：免部署免运维（详见 11c 教程）
+- **多项目后切 Reverb**：避免多项目共用云服务产生月费
+- 两者协议兼容，前端事件监听代码零改动，通过环境变量一键切换
 
 ### 数据流
 
 ```
 业务操作 → NotificationService → DB 入库 + broadcast() 触发
                 ↓                        ↓
-          notifications 表         Reverb 服务器
+          notifications 表         Reverb 服务器（本机 8080）
                                           ↓
                                     WebSocket 推送
                                           ↓
-                              前端 Echo 监听 → Livewire 刷新
+                          前端 Echo 监听 → Livewire 刷新
 ```
+
+> 与 Pusher 唯一的区别：事件分发方从 Pusher 云端换成自己服务器上的 Reverb 进程。
 
 ---
 
 ## 2 配置层
 
-### 2.1 .env 环境变量
+### 2.1 安装与生成凭证
+
+```bash
+# 安装（已装可跳过，laravel/reverb 已在 composer.json）
+composer require laravel/reverb
+
+# 首次部署执行：自动生成 REVERB_APP_ID/KEY/SECRET 追加到 .env
+php artisan reverb:install
+```
+
+### 2.2 .env 环境变量（从 Pusher 切到 Reverb）
 
 ```env
-# 广播驱动
-BROADCAST_CONNECTION=reverb
+# ── 1. 服务端广播驱动 ─────────────
+BROADCAST_CONNECTION=reverb        # 原 pusher
 
-# Reverb 凭证（首次部署执行 php artisan reverb:install 自动生成）
+# ── 2. 前端驱动（与上面必须一致）─────────
+VITE_BROADCAST_DRIVER=reverb       # 原 pusher
+
+# ── 3. Reverb 凭证（reverb:install 自动生成）──
 REVERB_APP_ID=86150937
 REVERB_APP_KEY=GDyuc59XqQdW24UliwKa
 REVERB_APP_SECRET=nx8Kv1hQ6EzfSgjPG3tquH9BZAbo7wLRXVaTpcDe
 REVERB_HOST=localhost
 REVERB_PORT=8080
-REVERB_SCHEME=http
+REVERB_SCHEME=http                # 本地 http；生产 https
 
-# Vite 前端自动读取（无需手动改）
+# ── 4. Vite 前端自动读取（无需手动改）────
 VITE_REVERB_APP_KEY="${REVERB_APP_KEY}"
 VITE_REVERB_HOST="${REVERB_HOST}"
 VITE_REVERB_PORT="${REVERB_PORT}"
 VITE_REVERB_SCHEME="${REVERB_SCHEME}"
+
+# ── 5. 注释掉 Pusher 段（避免混淆）─────
+# BROADCAST_CONNECTION=pusher / PUSHER_* / VITE_PUSHER_*
 ```
 
-> **首次部署**：先填好 `DB_*`，然后执行 `php artisan reverb:install`，会自动生成 `REVERB_APP_ID/KEY/SECRET` 并追加到 `.env`。
+> 完整切换模板见 `.env.example` 中「方案二」注释块。
 
-### 2.2 config/broadcasting.php
-
-定义广播驱动为 reverb，读取 `.env` 中的凭证：
+### 2.3 config/broadcasting.php
 
 ```php
 // config/broadcasting.php
-'default' => env('BROADCAST_CONNECTION', 'reverb'),
+'default' => env('BROADCAST_CONNECTION', 'pusher'),
 
 'connections' => [
     'reverb' => [
@@ -84,9 +106,11 @@ VITE_REVERB_SCHEME="${REVERB_SCHEME}"
 ],
 ```
 
-### 2.3 config/reverb.php
+> 服务端广播时，Laravel 向本机 Reverb 进程（`http://localhost:8080`）发 HTTP 请求，Reverb 再通过 WebSocket 分发给订阅客户端。
 
-Reverb 服务端配置，由 `composer require laravel/reverb` 自动发布，一般不需要修改。核心项：
+### 2.4 config/reverb.php
+
+由 `reverb:install` 自动发布，一般不需要修改。核心项：
 
 ```php
 // config/reverb.php
@@ -108,7 +132,7 @@ Reverb 服务端配置，由 `composer require laravel/reverb` 自动发布，�
 ],
 ```
 
-### 2.4 BroadcastServiceProvider 注册
+### 2.5 BroadcastServiceProvider 注册
 
 ```php
 // bootstrap/providers.php
@@ -122,12 +146,12 @@ return [
 // app/Providers/BroadcastServiceProvider.php
 public function boot(): void
 {
-    Broadcast::routes();                    // 注册 /broadcasting/auth 路由
-    require base_path('routes/channels.php'); // 加载频道授权
+    Broadcast::routes();                       // 注册 /broadcasting/auth 路由
+    require base_path('routes/channels.php');  // 加载频道授权
 }
 ```
 
-### 2.5 频道授权 — routes/channels.php
+### 2.6 频道授权 — routes/channels.php
 
 ```php
 // routes/channels.php
@@ -146,13 +170,15 @@ Broadcast::channel('merchant-notifications.{merchantId}', function ($user, $merc
 });
 ```
 
-> **作用**：前端通过 Echo 订阅 `private-notifications.1` 时，Reverb 会调用 `/broadcasting/auth`，Laravel 用此回调判断是否授权。返回 `true` 允许，`false` 拒绝。
+> **作用**：前端通过 Echo 订阅 `private-notifications.1` 时，Reverb 会回调 `/broadcasting/auth`，Laravel 用此回调判断是否授权。返回 `true` 允许，`false` 拒绝。
 
 ---
 
 ## 3 事件层
 
 ### 3.1 广播事件类 — app/Events/NotificationCreated.php
+
+与 Pusher 模式**共用同一个事件类**，零改动：
 
 ```php
 class NotificationCreated implements ShouldBroadcastNow
@@ -173,13 +199,13 @@ class NotificationCreated implements ShouldBroadcastNow
             $channels[] = new PrivateChannel('notifications.' . $this->notification->user_id);
         }
 
+        // 全站广播（user_id=null）→ 公共频道
         if ($this->notification->user_id === null) {
-            // 全站广播（user_id=null）→ 公共频道
             $channels[] = new Channel('notifications');
         }
 
+        // 商家通知 → 商家频道
         if ($this->notification->merchant_id) {
-            // 商家通知 → 商家频道
             $channels[] = new PrivateChannel('merchant-notifications.' . $this->notification->merchant_id);
         }
 
@@ -196,15 +222,16 @@ class NotificationCreated implements ShouldBroadcastNow
     public function broadcastWith(): array
     {
         return [
-            'id'         => $this->notification->id,
-            'type'       => $this->notification->type,
+            'id' => $this->notification->id,
+            'type' => $this->notification->type,
             'type_label' => $this->notification->type_label,
-            'title'      => $this->notification->title,
-            'content'    => $this->notification->content,
-            'data'       => $this->notification->data,
-            'is_read'    => $this->notification->is_read,
+            'type_color' => $this->notification->type_color,
+            'title' => $this->notification->title,
+            'content' => $this->notification->content,
+            'data' => $this->notification->data,
+            'is_read' => $this->notification->is_read,
             'created_at' => $this->notification->created_at?->toIso8601String(),
-            'time_ago'   => $this->notification->time_ago,
+            'time_ago' => $this->notification->time_ago,
         ];
     }
 }
@@ -233,47 +260,24 @@ class NotificationCreated implements ShouldBroadcastNow
 
 ### 4.1 NotificationService — app/Services/NotificationService.php
 
-统一入口，负责：创建通知记录 → 触发广播。
-
-**基础方法：**
+与 Pusher 模式**共用同一个服务**，业务代码零改动：
 
 ```php
-// 发送给指定用户
+// 便捷方法一览（内部走 create() → broadcast()）
 $svc->toUser(int $userId, int $type, string $title, ?string $content, ?array $data): Notification
-
-// 发送给指定商家
 $svc->toMerchant(int $merchantId, int $type, string $title, ?string $content, ?array $data): Notification
-
-// 全站广播
 $svc->broadcast(int $type, string $title, ?string $content, ?array $data): Notification
+$svc->toRole(string $roleName, ...): array
+$svc->toUsers(array $userIds, ...): array
 
-// 发送给某个角色的所有用户
-$svc->toRole(string $roleName, int $type, string $title, ?string $content, ?array $data): array
-
-// 发送给多个用户
-$svc->toUsers(array $userIds, int $type, string $title, ?string $content, ?array $data): array
-```
-
-**业务便捷方法（推荐使用）：**
-
-```php
-// 订单状态变更 → 通知商家
-$svc->orderStatusChanged(int $merchantId, string $orderNo, string $fromStatus, string $toStatus)
-
-// 充值审核通过 → 通知商家
-$svc->rechargeApproved(int $merchantId, string $rechargeNo, string $amount)
-
-// 供应商结算完成 → 通知操作用户
-$svc->settlementCompleted(int $userId, string $settlementNo, string $amount)
-
-// 应收收款确认 → 通知操作用户
-$svc->receivableCollected(int $userId, string $receivableNo, string $amount)
-
-// 库存预警 → 通知运营用户
-$svc->inventoryWarning(int $userId, string $skuName, int $currentStock, int $threshold)
-
-// 采购单提交 → 通知待审核用户
-$svc->purchaseSubmitted(int $userId, string $purchaseNo)
+// 业务场景快捷方法
+$svc->orderStatusChanged(...)       // 订单状态变更 → 商家
+$svc->rechargeApproved(...)         // 充值审核通过 → 商家
+$svc->settlementCompleted(...)      // 供应商结算完成 → 用户
+$svc->supplierPaymentApproved(...)  // 付款审核通过待执行 → 用户
+$svc->receivableCollected(...)      // 应收收款确认 → 用户
+$svc->inventoryWarning(...)         // 库存预警 → 用户
+$svc->purchaseSubmitted(...)        // 采购单待审核 → 用户
 ```
 
 **内部执行顺序：**
@@ -296,101 +300,13 @@ $svc->purchaseSubmitted(int $userId, string $purchaseNo)
 | `TYPE_INVENTORY` | 4 | 库存预警 | red |
 | `TYPE_ACCOUNT` | 5 | 账户变动 | purple |
 
----
-
-## 5 业务埋点
-
-在 Livewire 组件的状态变更方法中，调用 `NotificationService`。
-
-### 5.1 订单状态变更 — OrderList.php
-
-```php
-use App\Services\NotificationService;
-
-// 确认订单（待拣货 → 拣货中）
-public function confirmOrder(int $id): void
-{
-    $order = Order::findOrFail($id);
-    $oldStatus = $order->status;
-    $order->update(['status' => Order::STATUS_PICKING]);
-
-    // 通知商家
-    if ($order->merchant_id) {
-        app(NotificationService::class)->orderStatusChanged(
-            $order->merchant_id,
-            $order->order_no,
-            self::$statusMap[$oldStatus] ?? '未知',
-            '拣货中',
-        );
-    }
-}
-
-// 作废订单
-public function cancelOrder(int $id): void { /* ... 同上，最后参数传 '已作废' */ }
-
-// 完成订单（配送中 → 已签收）
-public function completeOrder(int $id): void { /* ... 同上，最后参数传 '已签收' */ }
-```
-
-### 5.2 充值审核通过 — RechargeList.php
-
-```php
-public function approve(int $id): void
-{
-    $item = Recharge::findOrFail($id);
-    $item->update(['status' => 2]);
-
-    if ($item->merchant_id) {
-        app(NotificationService::class)->rechargeApproved(
-            $item->merchant_id,
-            $item->transaction_no,
-            money_format($item->amount),
-        );
-    }
-}
-```
-
-### 5.3 供应商结算完成 — SupplierSettlementList.php
-
-```php
-public function submitPartialPayment(): void
-{
-    // ... 付款逻辑 ...
-    $newStatus = $newPaidAmount >= $item->payable_amount ? 3 : 2;
-
-    if ($newStatus === 3) {
-        app(NotificationService::class)->settlementCompleted(
-            auth()->id(),
-            $item->settlement_no,
-            money_format($item->payable_amount),
-        );
-    }
-}
-```
-
-### 5.4 应收收款确认 — ReceivableList.php
-
-```php
-public function submitReceive(): void
-{
-    // ... 收款逻辑 ...
-    $newStatus = $newReceived >= $item->adjusted_amount ? 3 : 2;
-
-    if ($newStatus === 3) {
-        app(NotificationService::class)->receivableCollected(
-            auth()->id(),
-            $item->receivable_no,
-            money_format($item->adjusted_amount),
-        );
-    }
-}
-```
+> 业务埋点与新增通知场景的做法与 Pusher 模式完全一致，此处不再重复，参见 [11c Pusher 教程](11c_Pusher_云服务实时推送开发教程.md) 第 5、8 章。
 
 ---
 
-## 6 前端层
+## 5 前端层
 
-### 6.1 Echo 初始化 — resources/js/app.js
+### 5.1 Echo 初始化（双模式） — resources/js/app.js
 
 ```js
 import Echo from 'laravel-echo';
@@ -398,20 +314,39 @@ import Pusher from 'pusher-js';
 
 window.Pusher = Pusher;
 
-window.Echo = new Echo({
-    broadcaster: 'reverb',
-    key: import.meta.env.VITE_REVERB_APP_KEY,
-    wsHost: import.meta.env.VITE_REVERB_HOST ?? window.location.hostname,
-    wsPort: import.meta.env.VITE_REVERB_PORT ?? 8080,
-    wssPort: import.meta.env.VITE_REVERB_PORT ?? 443,
-    forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
-    enabledTransports: ['ws', 'wss'],
-});
+// 通过 VITE_BROADCAST_DRIVER 切换 Pusher 云服务 / Reverb 自建
+// try-catch 防止 key 为空时异常中断整个 app.js 模块
+try {
+    const driver = import.meta.env.VITE_BROADCAST_DRIVER || 'pusher';
+
+    if (driver === 'reverb') {
+        // Reverb 自建（兼容 Pusher 协议，broadcaster 仍为 'pusher'）
+        window.Echo = new Echo({
+            broadcaster: 'pusher',
+            key: import.meta.env.VITE_REVERB_APP_KEY,
+            wsHost: import.meta.env.VITE_REVERB_HOST,
+            wsPort: import.meta.env.VITE_REVERB_PORT,
+            wssPort: import.meta.env.VITE_REVERB_PORT,
+            forceTLS: import.meta.env.VITE_REVERB_SCHEME === 'https',
+            disableStats: true,
+            enabledTransports: ['ws', 'wss'],
+        });
+    } else {
+        // Pusher 云服务
+        window.Echo = new Echo({
+            broadcaster: 'pusher',
+            key: import.meta.env.VITE_PUSHER_APP_KEY,
+            cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+            forceTLS: true,
+            encrypted: true,
+        });
+    }
+} catch (e) {
+    console.error('Echo initialization failed:', e);
+}
 ```
 
-> 此文件由 Vite 编译，`VITE_*` 变量从 `.env` 读取。
-
-### 6.2 用户 ID 注入 — app-layout.blade.php
+### 5.2 用户 ID 注入 — app-layout.blade.php
 
 ```html
 <script>
@@ -419,9 +354,7 @@ window.Echo = new Echo({
 </script>
 ```
 
-> 前端 Echo 订阅私有频道时，需要此 ID 构造频道名 `notifications.{userId}`。
-
-### 6.3 NotificationDrawer 监听 — notification-drawer.blade.php
+### 5.3 NotificationDrawer 监听 — notification-drawer.blade.php
 
 ```html
 <div x-data="{
@@ -446,7 +379,7 @@ window.Echo = new Echo({
 }">
 ```
 
-### 6.4 Livewire 响应 — NotificationDrawer.php
+### 5.4 Livewire 响应 — NotificationDrawer.php
 
 ```php
 class NotificationDrawer extends Component
@@ -458,19 +391,19 @@ class NotificationDrawer extends Component
     public function handleNotificationReceived(): void
     {
         $this->updateUnreadCount();
-        // Livewire 4 自动重新渲染，通知列表通过 computed property 刷新
+        // Livewire 自动重新渲染，通知列表通过 computed property 刷新
     }
 }
 ```
 
 ---
 
-## 7 完整调用链（以订单作废为例）
+## 6 完整调用链（以订单状态变更为例）
 
 ```
-1. 用户点击「作废」按钮
+1. 用户点击操作按钮
    ↓
-2. Livewire: OrderList::cancelOrder($id)
+2. Livewire: OrderList::confirmOrder($id)
    ↓
 3. 更新订单状态 → AuditLog::log()
    ↓
@@ -479,108 +412,63 @@ class NotificationDrawer extends Component
 5. NotificationService::create()
    ├── Notification::create()          → 写入 DB
    └── broadcast(new NotificationCreated($notification))
-       ↓
+        ↓
 6. NotificationCreated::broadcastOn()
    → 返回 [new PrivateChannel('merchant-notifications.{merchantId}')]
-       ↓
-7. Reverb 服务器收到广播请求
+        ↓
+7. Reverb 服务器（本机 8080）收到广播请求
    → 通过 WebSocket 推送给所有订阅该频道的客户端
-       ↓
+        ↓
 8. 前端 Echo.private('merchant-notifications.{merchantId}')
    .listen('.notification.created', callback)
-       ↓
+        ↓
 9. callback → this.$wire.handleNotificationReceived()
-       ↓
+   ↓
 10. Livewire 更新 unreadCount + 重新渲染通知列表
 ```
 
 ---
 
-## 8 如何新增一个通知场景
+## 7 启动与验证
 
-以「采购单审核通过」为例：
-
-### 步骤 1：在 NotificationService 添加便捷方法
-
-```php
-// app/Services/NotificationService.php
-public function purchaseApproved(int $userId, string $purchaseNo, string $supplierName): Notification
-{
-    return $this->toUser($userId, Notification::TYPE_SYSTEM, '采购单已审核', "采购单 {$purchaseNo}（供应商：{$supplierName}）已审核通过", [
-        'purchase_no' => $purchaseNo,
-        'supplier_name' => $supplierName,
-    ]);
-}
-```
-
-### 步骤 2：在业务代码中调用
-
-```php
-// app/Livewire/Purchase/PurchaseOrderList.php
-use App\Services\NotificationService;
-
-public function approve(int $id): void
-{
-    $item = PurchaseOrder::findOrFail($id);
-    $item->update(['status' => 3]);
-
-    app(NotificationService::class)->purchaseApproved(
-        auth()->id(),
-        $item->purchase_no,
-        $item->supplier?->name ?? '未知',
-    );
-
-    $this->toastSuccess('采购单已审核');
-}
-```
-
-### 步骤 3：无需修改前端
-
-前端已监听 `private-notifications.{userId}` 频道的 `.notification.created` 事件，新通知会自动推送并刷新。
-
-### 步骤 4：补充测试数据（可选）
-
-在 `database/seeders/Demo/SystemDemoSeeder.php` 的 `seedNotifications()` 中添加一条示例通知。
-
----
-
-## 9 启动与验证
-
-### 9.1 本地开发
+### 7.1 本地开发
 
 ```bash
-# 终端 1：Reverb WebSocket 服务（必须保持运行）
+# 终端 1：Reverb WebSocket 服务（必须保持运行，Pusher 模式下不需要）
 php artisan reverb:start
 
-# 终端 2：Vite 前端热更新（开发时）
+# 终端 2：Vite 前端热更新（改 .env 后需重启）
 npm run dev
 
 # 终端 3：Laravel 开发服务器（如果不用 Laragon）
 php artisan serve
 ```
 
-### 9.2 验证清单
+### 7.2 验证清单
 
 | 检查项 | 方法 |
 |--------|------|
-| Reverb 是否运行 | 终端窗口应显示 `Reverb server started` |
-| WebSocket 是否连接 | 浏览器 F12 → Network → WS 标签，应有 `app?...` 连接 |
+| Reverb 是否运行 | 终端窗口应显示 `INFO Server running` |
+| WebSocket 是否连接 | 浏览器 F12 → Network → WS 标签，应有 `ws://localhost:8080/app/...` 连接 |
 | 通知是否入库 | 操作后检查 `notifications` 表 |
 | 前端是否实时刷新 | 操作触发通知后，NotificationDrawer 未读数应自动更新（无需 F5） |
 
-### 9.3 常见问题
+### 7.3 常见问题
 
 | 问题 | 排查 |
 |------|------|
-| WebSocket 连接 404 | Reverb 未启动，或 Nginx 未配 `/app` 反向代理 |
+| WebSocket 连接 404 | Reverb 未启动；或 Nginx 未配 `/app` 反向代理（生产环境） |
 | 连接 403 | `routes/channels.php` 授权回调返回 false |
-| 连接成功但收不到推送 | 检查 `broadcastAs()` 返回的事件名与前端 `.listen()` 是否一致 |
-| 前端报 `Echo is not defined` | `npm run dev` 未启动，或 `app.js` 未被 Vite 编译 |
-| `.env` 改了凭证但仍连旧值 | 执行 `php artisan config:clear` 清缓存 |
+| 连接成功但收不到推送 | `broadcastAs()` 返回的事件名与前端 `.listen()` 是否一致（前端要加前导点） |
+| 前端报 `Echo is not defined` | `npm run dev` 未启动，或 `VITE_*` 变量改动后未重启 Vite |
+| `.env` 改了凭证但仍连旧值 | 前端重启 Vite（`VITE_*` 仅启动时读取）；服务端 `php artisan config:clear` |
+| 广播报 curl 连接失败 | Reverb 进程没跑（`BROADCAST_CONNECTION=reverb` 时必须启动 `reverb:start`） |
 
 ---
 
-## 10 生产环境部署
+## 8 生产环境部署
+
+### 8.1 环境变量
 
 | 配置项 | 生产环境值 |
 |--------|-----------|
@@ -588,8 +476,9 @@ php artisan serve
 | `REVERB_PORT` | 443 |
 | `REVERB_SCHEME` | https |
 
+### 8.2 Nginx 反向代理（必须）
+
 ```nginx
-# Nginx 反向代理（必须）
 location /app {
     proxy_pass http://127.0.0.1:8080;
     proxy_http_version 1.1;
@@ -600,10 +489,42 @@ location /app {
 }
 ```
 
+### 8.3 Supervisor 守护进程
+
 ```ini
-# Supervisor 守护进程（numprocs 必须为 1）
+# /etc/supervisor/conf.d/susong-reverb.conf
 [program:susong-reverb]
 command=php /var/www/susong/artisan reverb:start --port=8080
-numprocs=1
+autostart=true
 autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+numprocs=1                       # 必须为 1，Reverb 不支持多进程
+redirect_stderr=true
+stdout_logfile=/var/www/susong/storage/logs/reverb.log
+stopwaitsecs=10
 ```
+
+> 更完整的部署检查清单见 `docs/05_Setup_安装部署配置手册.md` 第 6.1.1 节。
+
+### 8.4 Laravel Cloud 部署
+
+Laravel Cloud 原生托管 Reverb，**无需** Supervisor 与 Nginx 配置：
+
+- Build 阶段无需额外命令
+- Deploy Commands 无需 `reverb:start`（平台自动管理进程）
+- 仅需 `php artisan reverb:install` 生成配置（或预先在环境变量中填好 `REVERB_*` 三件套）
+
+---
+
+## 9 与 Pusher 的对比与选型
+
+| 维度 | Pusher 云服务 | Reverb 自建 |
+|------|--------------|-------------|
+| 部署 | 零部署 | 需跑 `reverb:start` + Supervisor + Nginx 反代 |
+| 费用 | 沙盒免费（100 并发/200k 消息日）；超出付费 | 自有服务器成本，无按量费用 |
+| 运维 | 云端全托管 | 自己管理进程/重启/日志 |
+| 适用 | 前期单项目、快速上线 | 多项目、高并发、成本敏感 |
+
+**项目决策**：前期（当前）用 Pusher 云服务；多项目后生产环境切 Laravel Cloud 托管的 Reverb 或自建。切换方法见 [11c Pusher 教程](11c_Pusher_云服务实时推送开发教程.md) 第 10 章。
