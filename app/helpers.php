@@ -380,3 +380,43 @@ function split_search_keywords(?string $search): array
 
     return $keywords;
 }
+
+/**
+ * 构造搜索选择组件的分页选项数据（searchable-select 服务端搜索调用）
+ *
+ * 统一「默认展示 + 关键词搜索 + 加载更多」数据协议：
+ *   - 空关键词也返回数据（组件打开即展示默认列表）
+ *   - 每页 perPage 条，多查 1 条判断 hasMore，避免额外 count 查询
+ *
+ * 返回结构：{ options: [{value,label},...], hasMore: bool, page: int }
+ *
+ * @template TModel of \App\Models\Merchant|\App\Models\Supplier
+ *
+ * @param  \Illuminate\Database\Eloquent\Builder<TModel>  $query  已含过滤/排序的查询（取 id/name 列）
+ * @param  int  $page  页码（1 起）
+ * @param  int  $perPage  每页条数
+ * @return array{options: list<array{value: int, label: string}>, hasMore: bool, page: int}
+ */
+function build_search_options(
+    \Illuminate\Database\Eloquent\Builder $query,
+    int $page = 1,
+    int $perPage = 20,
+): array {
+    $page = max(1, $page);
+
+    $rows = $query->limit($perPage + 1)->offset(($page - 1) * $perPage)->get(['id', 'name']);
+
+    $hasMore = $rows->count() > $perPage;
+    $rows = $rows->take($perPage);
+
+    $options = [];
+    foreach ($rows as $row) {
+        $options[] = ['value' => (int) $row->id, 'label' => (string) $row->name];
+    }
+
+    return [
+        'options' => $options,
+        'hasMore' => $hasMore,
+        'page' => $page,
+    ];
+}

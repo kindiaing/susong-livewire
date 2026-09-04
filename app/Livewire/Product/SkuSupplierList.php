@@ -259,9 +259,9 @@ class SkuSupplierList extends Component
     }
 
     /**
-     * 供应商服务端搜索（searchable-select 调用）
+     * 供应商服务端搜索（searchable-select 调用，分页协议）
      */
-    public function searchSupplierOptions(string $keyword = ''): array
+    public function searchSupplierOptions(string $keyword = '', int $page = 1): array
     {
         $keyword = trim($keyword);
         $query = Supplier::query();
@@ -269,8 +269,6 @@ class SkuSupplierList extends Component
             $query->where('name', 'like', "%{$keyword}%");
         }
 
-        return $query->orderBy('name')->limit(20)->get(['id', 'name'])
-            ->map(fn ($s) => ['value' => $s->id, 'label' => $s->name])
-            ->toArray();
+        return build_search_options($query->orderBy('name'), $page);
     }
 }

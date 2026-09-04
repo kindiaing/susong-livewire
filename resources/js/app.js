@@ -42,34 +42,60 @@ try {
 // searchable-select 组件 Alpine.js 逻辑
 window.__searchableSelect = (data) => ({
     ...data,
+    page: 1,
+    hasMore: false,
     toggle() {
         if (this.$el.closest('[disabled]')) return;
         this.open = !this.open;
         if (this.open) {
             this.search = '';
             this.activeIndex = -1;
+            // 服务端搜索模式：打开即加载默认列表（第一页）
+            if (this.serverSearch && this.options.length === 0) {
+                this.doServerSearch();
+            }
             this.$nextTick(() => this.$refs.searchInput?.focus());
         }
     },
     hasSelection() {
         return this.selectedValue !== '' && this.selectedValue !== '0';
     },
-    async doServerSearch() {
+    async doServerSearch(page = 1) {
         if (!this.serverSearch || !this.$wire) return;
         const keyword = (this.search || '').trim();
         this.loading = true;
         try {
-            // 服务端方法返回 [{value,label},...] 或 {options:[...]}
-            const result = await this.$wire.call(this.serverSearch, keyword);
+            // 服务端方法返回 [{value,label},...] 或 {options:[...], hasMore:bool, page:int}
+            const result = await this.$wire.call(this.serverSearch, keyword, page);
             const list = Array.isArray(result) ? result : (result?.options ?? []);
-            this.options = list.map(o => ({
+            const mapped = list.map(o => ({
                 value: String(o.value ?? o.id ?? ''),
                 label: String(o.label ?? o.name ?? ''),
             }));
+            if (Array.isArray(result) || page === 1) {
+                this.options = mapped;
+            } else {
+                // 追加模式：过滤掉已存在的值，避免重复
+                const existing = new Set(this.options.map(o => o.value));
+                this.options = this.options.concat(mapped.filter(o => !existing.has(o.value)));
+            }
+            this.hasMore = !Array.isArray(result) && Boolean(result?.hasMore);
+            this.page = page;
             this.activeIndex = -1;
         } finally {
             this.loading = false;
         }
+    },
+    async loadMore() {
+        if (this.loading || !this.hasMore) return;
+        await this.doServerSearch(this.page + 1);
+    },
+    clearSearch() {
+        this.search = '';
+        this.doServerSearch();
+    },
+    onSearchInput() {
+        this.doServerSearch();
     },
     filteredOptions() {
         if (this.serverSearch) return this.options;

@@ -101,9 +101,20 @@ $wrapperAttrs = $attributes->whereDoesntStartWith('wire:')->whereDoesntStartWith
                        @keydown.up.prevent="navigateUp()"
                        @keydown.enter.prevent="selectActive()"
                        @keydown.escape="open = false"
-                       @input.debounce.300ms="serverSearch && doServerSearch()"
+                       @input.debounce.300ms="serverSearch && onSearchInput()"
                        class="flex-1 h-9 bg-transparent px-2 text-sm outline-none placeholder:text-muted-foreground"
                        placeholder="搜索..." />
+                {{-- 清空搜索关键词 X：恢复默认列表 --}}
+                <button type="button"
+                        x-show="search !== ''"
+                        x-cloak
+                        @click.stop="clearSearch()"
+                        class="flex items-center justify-center w-5 h-5 rounded-sm hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0 mr-1"
+                        title="清空搜索">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
                 <svg x-show="loading" class="w-4 h-4 text-muted-foreground animate-spin shrink-0" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"></path>
@@ -133,9 +144,21 @@ $wrapperAttrs = $attributes->whereDoesntStartWith('wire:')->whereDoesntStartWith
                 <div x-show="!loading && filteredOptions().length === 0" class="px-3 py-4 text-center text-sm text-muted-foreground">
                     无匹配结果
                 </div>
-                <div x-show="loading" class="px-3 py-4 text-center text-sm text-muted-foreground">
+                <div x-show="loading && filteredOptions().length === 0" class="px-3 py-4 text-center text-sm text-muted-foreground">
                     加载中...
                 </div>
+            </div>
+
+            {{-- Load more：服务端搜索模式分页追加 --}}
+            <div x-show="serverSearch && hasMore && !loading" x-cloak class="border-t">
+                <button type="button"
+                        @click="loadMore()"
+                        class="w-full px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors text-center">
+                    加载更多 (<span x-text="options.length"></span> 条已加载)
+                </button>
+            </div>
+            <div x-show="serverSearch && loading && options.length > 0" x-cloak class="border-t px-3 py-2 text-center text-xs text-muted-foreground">
+                加载中...
             </div>
         </div>
     </div>

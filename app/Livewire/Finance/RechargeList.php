@@ -344,9 +344,9 @@ class RechargeList extends Component
     }
 
     /**
-     * 商家服务端搜索（searchable-select 调用）
+     * 商家服务端搜索（searchable-select 调用，分页协议）
      */
-    public function searchMerchantOptions(string $keyword = ''): array
+    public function searchMerchantOptions(string $keyword = '', int $page = 1): array
     {
         $keyword = trim($keyword);
         $query = Merchant::query();
@@ -354,8 +354,6 @@ class RechargeList extends Component
             $query->where('name', 'like', "%{$keyword}%");
         }
 
-        return $query->orderBy('name')->limit(20)->get(['id', 'name'])
-            ->map(fn ($m) => ['value' => $m->id, 'label' => $m->name])
-            ->toArray();
+        return build_search_options($query->orderBy('name'), $page);
     }
 }
