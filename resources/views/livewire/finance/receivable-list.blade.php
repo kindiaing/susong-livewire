@@ -183,19 +183,37 @@
                 </button>
             </div>
 
-            {{-- 商家筛选 --}}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            {{-- 商家筛选（搜索多选）+ 月份筛选 --}}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
                 <div>
                     <label class="block text-sm font-medium text-foreground mb-1">按商家筛选</label>
-                    <select wire:model.live="createMerchantId" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm">
-                        <option value="0">全部商家</option>
-                        @foreach($merchants as $m)
-                        <option value="{{ $m->id }}">{{ $m->name }}</option>
+                    <input type="text" wire:model.live.debounce.300ms="createMerchantSearch" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="输入商家名称搜索（可多选）..." />
+                    @if($this->createMerchantResults)
+                    <div class="mt-1 max-h-40 overflow-y-auto rounded-md border border-input bg-background z-10">
+                        @foreach($this->createMerchantResults as $m)
+                        <button type="button" wire:click="toggleCreateMerchant({{ $m['id'] }})" class="block w-full text-left px-3 py-1.5 text-sm hover:bg-muted transition-colors">{{ $m['name'] }}</button>
                         @endforeach
-                    </select>
+                    </div>
+                    @endif
+                    @if($this->createSelectedMerchants)
+                    <div class="mt-2 flex flex-wrap gap-1.5">
+                        @foreach($this->createSelectedMerchants as $m)
+                        <span class="inline-flex items-center gap-1 rounded-md bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 text-xs">
+                            {{ $m['name'] }}
+                            <button type="button" wire:click="removeCreateMerchant({{ $m['id'] }})" class="text-blue-400 hover:text-blue-700 transition-colors" title="移除">
+                                <x-ui.icon name="x-mark" class="w-3 h-3" />
+                            </button>
+                        </span>
+                        @endforeach
+                    </div>
+                    @endif
                 </div>
-                <div class="md:col-span-2 flex items-end">
-                    <p class="text-xs text-muted-foreground leading-relaxed">候选订单为已签收且未生成过应收单的订单；勾选多个商家的订单后，系统将按商家自动拆分生成多张汇总应收单。</p>
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">送达月份</label>
+                    <input type="month" wire:model.live="createMonth" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
+                </div>
+                <div class="flex items-end">
+                    <p class="text-xs text-muted-foreground leading-relaxed">候选订单为已签收且未生成过应收单的订单；按送达月份筛选，支持多商家跨月拆分生成多张汇总应收单。</p>
                 </div>
             </div>
 

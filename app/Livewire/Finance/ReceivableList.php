@@ -45,10 +45,17 @@ class ReceivableList extends Component
     public string $filterDateEnd = '';
 
     // 新增应收大弹窗（订单多选 → 按商家拆分生成汇总单）
-    public int $createMerchantId = 0;
+    /** @var array<int, int> */
+    public array $createMerchantIds = [];
+
+    public string $createMerchantSearch = '';
+
+    public bool $createMerchantDropdownOpen = false;
 
     /** @var array<int, int> */
     public array $createSelectedOrderIds = [];
+
+    public string $createMonth = '';
 
     public bool $showCreateModal = false;
 
@@ -185,7 +192,8 @@ class ReceivableList extends Component
     protected function saveCreate(): void
     {
         $this->validate([
-            'createMerchantId' => 'nullable|integer|min:0',
+            'createMerchantIds' => 'nullable|array',
+            'createMonth' => 'nullable|date_format:Y-m',
             'createSelectedOrderIds' => 'required|array|min:1',
         ]);
 
@@ -272,29 +280,123 @@ class ReceivableList extends Component
 
     public function openCreateModal(): void
     {
-        $this->createMerchantId = 0;
+        $this->createMerchantIds = [];
+        $this->createMerchantSearch = '';
+        $this->createMerchantDropdownOpen = false;
         $this->createSelectedOrderIds = [];
+        $this->createMonth = now()->format('Y-m');
         $this->showCreateModal = true;
     }
 
     public function closeCreateModal(): void
     {
         $this->showCreateModal = false;
-        $this->createMerchantId = 0;
+        $this->createMerchantIds = [];
+        $this->createMerchantSearch = '';
+        $this->createMerchantDropdownOpen = false;
         $this->createSelectedOrderIds = [];
+        $this->createMonth = now()->format('Y-m');
         $this->resetErrorBag();
     }
 
     /**
-     * 更新商家筛选时重新加载候选订单，并清空已选
+     * 添加/移除已选商家（搜索下拉点击切换）
      */
-    public function updatedCreateMerchantId(): void
+    public function toggleCreateMerchant(int $merchantId): void
+    {
+        $idx = array_search($merchantId, $this->createMerchantIds);
+        if ($idx !== false) {
+            unset($this->createMerchantIds[$idx]);
+            $this->createMerchantIds = array_values($this->createMerchantIds);
+        } else {
+            $this->createMerchantIds[] = $merchantId;
+        }
+        $this->createSelectedOrderIds = [];
+    }
+
+    /**
+     * 移除某个已选商家标签
+     */
+    public function removeCreateMerchant(int $merchantId): void
+    {
+        $idx = array_search($merchantId, $this->createMerchantIds);
+        if ($idx !== false) {
+            unset($this->createMerchantIds[$idx]);
+            $this->createMerchantIds = array_values($this->createMerchantIds);
+            $this->createSelectedOrderIds = [];
+        }
+    }
+
+    /**
+     * 搜索结果下拉：名称/联系人模糊匹配，限 20 条，排除已选
+     *
+     * @return array<int, array{id: int, name: string}>
+     */
+    public function getCreateMerchantResultsProperty(): array
+    {
+        $keyword = trim($this->createMerchantSearch);
+        if ($keyword === '') {
+            return [];
+        }
+
+        return Merchant::query()
+            ->where(function (Builder $q) use ($keyword) {
+                $q->where('name', 'like', "%{$keyword}%")
+                    ->orWhere('contact_name', 'like', "%{$keyword}%");
+            })
+            ->whereNotIn('id', $this->createMerchantIds)
+            ->orderBy('name')
+            ->limit(20)
+            ->get(['id', 'name'])
+            ->map(fn (Merchant $m): array => ['id' => $m->id, 'name' => $m->name])
+            ->values()
+            ->toArray();
+    }
+
+    /**
+     * 已选商家标签（id+名称，按选择顺序）
+     *
+     * @return array<int, array{id: int, name: string}>
+     */
+    public function getCreateSelectedMerchantsProperty(): array
+    {
+        if ($this->createMerchantIds === []) {
+            return [];
+        }
+
+        $merchants = Merchant::whereIn('id', $this->createMerchantIds)
+            ->get(['id', 'name'])
+            ->keyBy('id');
+
+        $result = [];
+        foreach ($this->createMerchantIds as $id) {
+            $m = $merchants->get($id);
+            if ($m) {
+                $result[] = ['id' => $m->id, 'name' => $m->name];
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * 更新商家筛选时清空已选订单
+     */
+    public function updatedCreateMerchantSearch(): void
+    {
+        $this->createMerchantDropdownOpen = true;
+    }
+
+    /**
+     * 更新月份筛选时清空已选订单
+     */
+    public function updatedCreateMonth(): void
     {
         $this->createSelectedOrderIds = [];
     }
 
     /**
-     * 候选订单：已签收 + 未生成过应收单，可按商家筛选
+     * 候选订单：已签收 + 未生成过应收单，可按商家多选/月份筛选
      *
      * Livewire 计算属性（blade/组件内访问 $this->candidateOrders）
      *
@@ -309,8 +411,15 @@ class ReceivableList extends Component
             ->orderBy('merchant_id')
             ->orderBy('id');
 
-        if ($this->createMerchantId > 0) {
-            $query->where('merchant_id', $this->createMerchantId);
+        if ($this->createMerchantIds !== []) {
+            $query->whereIn('merchant_id', $this->createMerchantIds);
+        }
+
+        if ($this->createMonth !== '') {
+            $query->whereBetween('delivery_date', [
+                $this->createMonth.'-01',
+                now()->parse($this->createMonth.'-01')->endOfMonth()->toDateString(),
+            ]);
         }
 
         return $query->get()
@@ -553,12 +662,11 @@ class ReceivableList extends Component
         $query = $this->applyFilters(Receivable::query())->with(['order', 'merchant'])->orderBy('id', 'desc');
 
         $items = $query->paginate(setting('per_page', 10));
-        $merchants = Merchant::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();
         $detailItem = $this->detailId ? Receivable::with(['order', 'merchant', 'payments'])->find($this->detailId) : null;
 
-        return view('livewire.finance.receivable-list', compact('items', 'merchants', 'allColumns', 'selectedCount', 'detailItem'))
+        return view('livewire.finance.receivable-list', compact('items', 'allColumns', 'selectedCount', 'detailItem'))
             ->layout('components.app-layout')
             ->title('应收账款');
     }
