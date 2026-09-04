@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Purchase;
 
+use App\Imports\PurchaseOrderImport;
 use App\Livewire\Traits\WithColumnVisibility;
 use App\Livewire\Traits\WithExcelExport;
 use App\Livewire\Traits\WithExcelImport;
@@ -14,6 +15,7 @@ use App\Models\Warehouse;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PurchaseOrderList extends Component
 {
@@ -181,12 +183,12 @@ class PurchaseOrderList extends Component
 
     public function getImportUniqueBy(): array
     {
-        return ['order_no'];
+        return [];
     }
 
     public function getImportRequiredFields(): array
     {
-        return ['供应商ID'];
+        return ['供应商ID', '仓库ID', 'SKU ID', '采购数量', '采购单价(元)'];
     }
 
     public function getImportValueMap(): array
@@ -209,9 +211,36 @@ class PurchaseOrderList extends Component
         ];
     }
 
+    /**
+     * 构建带筛选条件的查询（列表渲染与导出共用）
+     */
+    private function buildQuery()
+    {
+        $query = PurchaseOrder::with('supplier')
+            ->withSum('items as discrepancy_total', 'discrepancy_quantity')
+            ->withCount(['items as discrepancy_item_count' => fn ($q) => $q->where('discrepancy_quantity', '>', 0)])
+            ->withCount(['items as discrepancy_loss_count' => fn ($q) => $q->where('discrepancy_quantity', '>', 0)->whereNotNull('loss_order_id')])
+            ->orderBy('id', 'desc');
+
+        if ($this->search) {
+            $query->where(function ($q) {
+                $q->where('order_no', 'like', "%{$this->search}%")
+                    ->orWhereHas('supplier', function ($sq) {
+                        $sq->where('name', 'like', "%{$this->search}%");
+                    });
+            });
+        }
+
+        if ($this->filterStatus > 0) {
+            $query->where('status', $this->filterStatus);
+        }
+
+        return $query;
+    }
+
     public function getExportQuery()
     {
-        return PurchaseOrder::with('supplier')->orderBy('id', 'desc');
+        return $this->buildQuery();
     }
 
     public function getExportFileName(): string
@@ -229,8 +258,79 @@ class PurchaseOrderList extends Component
         return [
             '采购单号' => 'order_no',
             '供应商ID' => 'supplier_id',
+            '仓库ID' => 'warehouse_id',
+            '采购日期' => 'purchase_date',
+            'SKU ID' => 'sku_id',
+            '采购数量' => 'quantity',
+            '采购单价(元)' => 'price',
+            '明细备注' => 'item_remark',
             '备注' => 'remark',
         ];
+    }
+
+    /**
+     * 模板描述行：每列对应一行描述文字，方便熟练操作人手写模板
+     * key 为中文表头，value 为描述文字
+     */
+    public function getImportTemplateDescriptionRow(): array
+    {
+        return [
+            '采购单号' => '留空自动生成，填则需唯一',
+            '供应商ID' => '系统供应商ID，必填',
+            '仓库ID' => '系统仓库ID，必填',
+            '采购日期' => '格式 2026-01-01，可空',
+            'SKU ID' => '系统SKU ID，必填',
+            '采购数量' => '最小单位数量，整数，必填',
+            '采购单价(元)' => '单位元，如 12.50，必填',
+            '明细备注' => '该行明细备注，可空',
+            '备注' => '采购单头备注，同单号取首行',
+        ];
+    }
+
+    /**
+     * 覆写导入逻辑：采购单需创建头+明细，使用专用 Import 类
+     */
+    public function doImport(): void
+    {
+        $this->validate([
+            'importFile' => 'required|file|mimes:xlsx,xls,csv|max:10240',
+        ]);
+
+        $this->importErrors = [];
+
+        try {
+            $import = new PurchaseOrderImport();
+
+            Excel::import($import, $this->importFile);
+
+            $imported = $import->getImportedCount();
+            $skipped = $import->getSkippedCount();
+            $errors = $import->getErrorRows();
+
+            $this->importErrors = $errors;
+
+            $msg = "成功导入 {$imported} 张采购单";
+            if ($skipped > 0) {
+                $msg .= "，跳过 {$skipped} 张";
+            }
+            if (! empty($errors)) {
+                $msg .= '，失败 '.count($errors).' 行';
+            }
+
+            $this->importMessage = $msg;
+            if (! empty($errors)) {
+                $this->toastError($msg);
+            } elseif ($skipped > 0) {
+                $this->toastWarning($msg);
+            } else {
+                $this->toastSuccess($msg);
+            }
+        } catch (\Exception $e) {
+            $this->importMessage = '导入失败：'.$e->getMessage();
+            $this->toastError($this->importMessage);
+        }
+
+        $this->importFile = null;
     }
 
     public function getPageIds(): array
@@ -254,26 +354,7 @@ class PurchaseOrderList extends Component
 
     public function render()
     {
-        $query = PurchaseOrder::with('supplier')
-            ->withSum('items as discrepancy_total', 'discrepancy_quantity')
-            ->withCount(['items as discrepancy_item_count' => fn ($q) => $q->where('discrepancy_quantity', '>', 0)])
-            ->withCount(['items as discrepancy_loss_count' => fn ($q) => $q->where('discrepancy_quantity', '>', 0)->whereNotNull('loss_order_id')])
-            ->orderBy('id', 'desc');
-
-        if ($this->search) {
-            $query->where(function ($q) {
-                $q->where('order_no', 'like', "%{$this->search}%")
-                    ->orWhereHas('supplier', function ($sq) {
-                        $sq->where('name', 'like', "%{$this->search}%");
-                    });
-            });
-        }
-
-        if ($this->filterStatus > 0) {
-            $query->where('status', $this->filterStatus);
-        }
-
-        $orders = $query->paginate(setting('per_page', 10));
+        $orders = $this->buildQuery()->paginate(setting('per_page', 10));
         $warehouses = Warehouse::orderBy('name')->get();
         $allColumns = $this->getAllColumns();
         $selectedCount = $this->getSelectedCount();

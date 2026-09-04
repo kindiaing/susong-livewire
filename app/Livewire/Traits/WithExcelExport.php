@@ -110,6 +110,7 @@ trait WithExcelExport
      * 下载导入模板
      * 使用 getImportColumnMap() 的中文标签作为表头，确保与导入映射一致
      * 必填列表头红色标记
+     * 可选描述行：组件覆写 getImportTemplateDescriptionRow() 返回每列描述文字
      */
     public function downloadImportTemplate()
     {
@@ -124,13 +125,30 @@ trait WithExcelExport
             ? $this->getImportRequiredFields()
             : [];
 
+        // 获取模板描述行（可选）
+        $descriptionRow = method_exists($this, 'getImportTemplateDescriptionRow')
+            ? $this->getImportTemplateDescriptionRow()
+            : [];
+
+        // 构建模板数据：如果描述行非空，插入描述行作为第一行数据
+        $templateData = [];
+        if (! empty($descriptionRow)) {
+            $headings = array_keys($columnMap);
+            $row = [];
+            foreach ($headings as $heading) {
+                $row[] = $descriptionRow[$heading] ?? '';
+            }
+            $templateData[] = $row;
+        }
+
         // columnMap 格式：['中文标签' => 'db_field', ...]
-        // 传空数据数组 + 中文标签作为 headings，走 staticHeadings 分支
+        // 传模板数据 + 中文标签作为 headings，走 staticHeadings 分支
         $export = new GenericExport(
-            queryOrData: [],
+            queryOrData: $templateData,
             columns: array_keys($columnMap),
             columnLabels: [],
             requiredHeadings: $requiredHeadings,
+            descriptionRow: $descriptionRow,
         );
 
         return Excel::download(

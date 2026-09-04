@@ -42,6 +42,12 @@ class GenericExport implements FromCollection, ShouldAutoSize, WithChunkReading,
     protected ?array $staticHeadings;
 
     /**
+     * 模板描述行（第2行，每个单元格对应列表头的描述文字）
+     * 仅在模板模式（staticData）下生效
+     */
+    protected array $descriptionRow;
+
+    /**
      * 金额列 key 列表（存储单位厘，导出时 ÷1000 转为元）
      */
     protected array $moneyColumns;
@@ -58,6 +64,7 @@ class GenericExport implements FromCollection, ShouldAutoSize, WithChunkReading,
         ?callable $rowCallback = null,
         array $moneyColumns = [],
         array $requiredHeadings = [],
+        array $descriptionRow = [],
     ) {
         // 支持纯数组数据（用于非模型导出 / 导入模板）
         if (is_array($queryOrData)) {
@@ -69,6 +76,7 @@ class GenericExport implements FromCollection, ShouldAutoSize, WithChunkReading,
             $this->rowCallback = null;
             $this->moneyColumns = [];
             $this->requiredHeadings = $requiredHeadings;
+            $this->descriptionRow = $descriptionRow;
             $this->staticCollection = null;
         } elseif ($queryOrData instanceof \Illuminate\Support\Collection) {
             // Collection 输入：表头/列标签/金额列与 Builder 模式共用，行回调同样生效
@@ -90,6 +98,7 @@ class GenericExport implements FromCollection, ShouldAutoSize, WithChunkReading,
             $this->staticHeadings = null;
             $this->moneyColumns = $moneyColumns;
             $this->requiredHeadings = $requiredHeadings;
+            $this->descriptionRow = [];
             $this->staticCollection = null;
         }
     }
@@ -130,6 +139,12 @@ class GenericExport implements FromCollection, ShouldAutoSize, WithChunkReading,
             return is_array($row) ? array_values($row) : [];
         }
 
+        // 模板描述行模式：如果行数据是描述行标记，直接输出
+        if (isset($row['__is_description']) && $row['__is_description']) {
+            unset($row['__is_description']);
+            return array_values($row);
+        }
+
         if ($this->rowCallback) {
             $result = call_user_func($this->rowCallback, $row, $this->columns);
 
@@ -166,13 +181,10 @@ class GenericExport implements FromCollection, ShouldAutoSize, WithChunkReading,
 
     /**
      * 表头样式：必填列红色加粗 + 淡红背景
+     * 模板描述行（第2行）样式：灰色斜体
      */
     public function styles(Worksheet $sheet): array
     {
-        if (empty($this->requiredHeadings)) {
-            return [];
-        }
-
         $headings = $this->headings();
         $styles = [];
 
@@ -194,6 +206,21 @@ class GenericExport implements FromCollection, ShouldAutoSize, WithChunkReading,
                     ],
                 ];
             }
+        }
+
+        // 模板描述行样式（第2行）：灰色斜体
+        if (! empty($this->descriptionRow)) {
+            $styles[2] = [
+                'font' => [
+                    'italic' => true,
+                    'size' => 10,
+                    'color' => ['rgb' => '6B7280'],
+                ],
+                'fill' => [
+                    'fillType' => Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => 'F9FAFB'],
+                ],
+            ];
         }
 
         return $styles;
