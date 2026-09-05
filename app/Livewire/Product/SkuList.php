@@ -69,6 +69,9 @@ class SkuList extends Component
 
     public string $formMaxSalePrice = '';
 
+    // 一键填充基准价（同价填满销售类字段，成本/采购/限价不参与）
+    public string $formFillPrice = '';
+
     public int $formStatus = 1;
 
     // Tab 切换
@@ -102,6 +105,7 @@ class SkuList extends Component
         $this->formDeliveryPrice = $this->centsToYuan($sku->delivery_price);
         $this->formMinSalePrice = $this->centsToYuan($sku->min_sale_price);
         $this->formMaxSalePrice = $this->centsToYuan($sku->max_sale_price);
+        $this->formFillPrice = $this->centsToYuan($sku->retail_price);
         $this->formStatus = $sku->status;
 
         // 换算配置
@@ -263,6 +267,33 @@ class SkuList extends Component
     }
 
     /**
+     * 一键填充销售类价格：以基准价同价填满吊牌/零售/批发/员工/三渠道基准价
+     * 成本、采购、限价类字段不参与
+     */
+    public function fillSalesPrices(): void
+    {
+        $validated = $this->validate([
+            'formFillPrice' => 'required|numeric|min:0',
+        ], [
+            'formFillPrice.required' => '请先填写基准价',
+            'formFillPrice.numeric' => '基准价必须是数字',
+            'formFillPrice.min' => '基准价不能为负数',
+        ]);
+
+        $price = $validated['formFillPrice'];
+
+        $this->formListPrice = $price;
+        $this->formRetailPrice = $price;
+        $this->formWholesalePrice = $price;
+        $this->formEmployeePrice = $price;
+        $this->formOfflinePrice = $price;
+        $this->formMiniappPrice = $price;
+        $this->formDeliveryPrice = $price;
+
+        $this->toastSuccess('已按基准价填充销售类价格');
+    }
+
+    /**
      * 是否为管理员（可删除、可状态回退）
      */
     public function getIsSuperAdminProperty(): bool
@@ -384,6 +415,7 @@ class SkuList extends Component
         $this->formDeliveryPrice = '';
         $this->formMinSalePrice = '';
         $this->formMaxSalePrice = '';
+        $this->formFillPrice = '';
         $this->formStatus = 1;
         $this->activeTab = 'basic';
         $this->formBaseUnitId = null;

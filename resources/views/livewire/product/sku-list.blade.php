@@ -253,7 +253,16 @@
 
                 {{-- 销售价格组 --}}
                 <div class="border rounded-lg p-4">
-                    <h3 class="text-sm font-semibold text-foreground mb-3">销售价格</h3>
+                    <div class="flex items-center justify-between mb-3 gap-4">
+                        <h3 class="text-sm font-semibold text-foreground shrink-0">销售价格</h3>
+                        <div class="flex items-center gap-2 flex-1 justify-end" x-data>
+                            <label class="text-sm text-muted-foreground shrink-0">基准价（元）</label>
+                            <input type="number" wire:model="formFillPrice" class="flex h-8 w-28 rounded-md border border-input bg-background px-2 text-sm" min="0" step="0.001" placeholder="0.000" />
+                            <button type="button" wire:click="fillSalesPrices" wire:loading.attr="disabled"
+                                class="shrink-0 rounded-md border border-blue-600 px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors whitespace-nowrap"
+                                title="以基准价同价填满吊牌价、零售价、批发团购价、员工内部价及三渠道基准价（成本、采购、限价不参与）">一键填充</button>
+                        </div>
+                    </div>
                     <div class="grid grid-cols-3 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-foreground mb-1">吊牌价（元）</label>
