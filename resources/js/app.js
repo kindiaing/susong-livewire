@@ -202,6 +202,17 @@ document.addEventListener('alpine:init', () => {
             classes.forEach(c => wrapper.classList.add(c));
         },
     });
+
+    // 全局顶部加载进度条 store — wire:navigate 整页替换后 store 依然存活，状态不丢失
+    Alpine.store('topLoadBar', {
+        state: 'idle', // idle | loading | finish
+        start() { this.state = 'loading'; },
+        finish() {
+            if (this.state !== 'loading') return;
+            this.state = 'finish';
+            setTimeout(() => { this.state = 'idle'; }, 350);
+        },
+    });
 });
 
 // $toast 全局 API — 在 Alpine 初始化后可用
@@ -237,25 +248,33 @@ document.addEventListener('alpine:initialized', () => {
 // CSRF Token 过期处理：Livewire 4 内置 419 处理机制（自动刷新页面）
 // 不再需要手动 hook，Livewire 默认行为已足够
 
-// 全局顶部加载进度条 — Alpine 数据 + Livewire commit hook 驱动
-// 用法：app-layout body 内固定定位元素 x-data="__topLoadBar()"
-window.__topLoadBar = () => ({
-    state: 'idle',
-    init() {
-        document.addEventListener('livewire:init', () => {
-            Livewire.hook('commit', ({ succeed, fail }) => {
-                this.start();
-                succeed(() => this.finish());
-                fail(() => this.finish());
-            });
-        });
-    },
-    start() {
-        this.state = 'loading';
-    },
-    finish() {
-        if (this.state !== 'loading') return;
-        this.state = 'finish';
-        setTimeout(() => { this.state = 'idle'; }, 350);
-    },
+// 全局顶部加载进度条 — Livewire commit hook + wire:navigate 事件驱动
+// 说明：监听在模块加载时一次性注册（早于 livewire:init 事件）；
+//       wire:navigate 整页替换 body 后 Alpine 组件实例会销毁，
+//       故状态存于 Alpine store（跨页面持久），DOM 元素仅作展示。
+document.addEventListener('livewire:init', () => {
+    Livewire.hook('commit', ({ succeed, fail }) => {
+        Alpine.store('topLoadBar')?.start();
+        succeed(() => Alpine.store('topLoadBar')?.finish());
+        fail(() => Alpine.store('topLoadBar')?.finish());
+    });
+});
+
+// wire:navigate 页面切换（事件由 Livewire 从 alpine:navigate* 转发）
+document.addEventListener('livewire:navigate', () => Alpine.store('topLoadBar')?.start());
+document.addEventListener('livewire:navigating', () => Alpine.store('topLoadBar')?.start());
+document.addEventListener('livewire:navigated', () => {
+    Alpine.store('topLoadBar')?.finish();
+
+    // 清理残留 Toast：导航后旧 Toast 随 DOM 消失，避免新页面重复渲染过期项
+    Alpine.store('toasts').items = [];
+
+    // 同步界面设置 store：新页面的静态宽度 class 由服务端按用户偏好渲染，
+    // 而 store 不会随导航重建，需从新页面注入的全局变量对齐，否则设置面板回显错旧值
+    const ui = Alpine.store('uiSettings');
+    if (ui) {
+        ui.closeOnOutside = window.__UI_CLOSE_ON_OUTSIDE ?? true;
+        ui.contentWidth = window.__UI_CONTENT_WIDTH ?? 'default';
+        ui.open = false;
+    }
 });

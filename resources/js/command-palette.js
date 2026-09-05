@@ -72,7 +72,12 @@ export function commandPalette() {
         goTo(item) {
             this.open = false;
             if (item.url && item.url !== '#') {
-                window.location.href = item.url;
+                // 站内地址走 wire:navigate（统一进度条与 SPA 体验），外链/异常兜底整页跳转
+                if (item.url.startsWith('/') || item.url.startsWith(window.location.origin)) {
+                    (window.Livewire?.navigate || (url => { window.location.href = url; }))(item.url);
+                } else {
+                    window.location.href = item.url;
+                }
             }
         }
     };

@@ -32,11 +32,11 @@
         window.Laravel = { userId: {{ auth()->id() ?? 'null' }} };
     </script>
 </head>
-<body class="bg-background text-foreground min-h-screen font-sans">
-    {{-- 全局顶部加载进度条（Livewire 请求期间显示） --}}
-    <div x-data="__topLoadBar()" x-cloak aria-hidden="true"
+<body class="bg-background text-foreground min-h-screen font-sans" data-no-progress-bar>
+    {{-- 全局顶部加载进度条（Livewire commit 与 wire:navigate 期间显示，状态存 Alpine store）--}}
+    <div x-data x-cloak aria-hidden="true"
          class="top-load-bar"
-         :class="{ 'is-loading': state === 'loading', 'is-finish': state === 'finish' }"></div>
+         :class="{ 'is-loading': $store.topLoadBar?.state === 'loading', 'is-finish': $store.topLoadBar?.state === 'finish' }"></div>
 
     <div class="flex min-h-screen flex-col">
         {{-- 顶部导航栏 --}}

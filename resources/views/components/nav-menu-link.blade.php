@@ -1,5 +1,5 @@
 @props(['href' => '#', 'description' => null, 'active' => false])
-<a href="{{ $href }}"
+<a href="{{ $href }}" wire:navigate.hover
    {{ $attributes->merge(['class' => 'block rounded-md p-3 transition-colors hover:bg-accent hover:text-accent-foreground ' . ($active ? 'bg-accent text-accent-foreground' : '')]) }}>
     <div class="text-sm font-medium leading-none">{{ $slot }}</div>
     @if($description)

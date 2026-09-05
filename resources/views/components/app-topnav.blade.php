@@ -7,7 +7,7 @@
     <div class="flex h-14 items-center px-4 w-full">
 
         {{-- 左侧：Logo + 系统名称（靠近左端） --}}
-        <a href="{{ route('dashboard') }}" class="flex items-center gap-2 shrink-0 mr-6">
+        <a href="{{ route('dashboard') }}" wire:navigate.hover class="flex items-center gap-2 shrink-0 mr-6">
             <div class="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
                 <x-ui.icon name="truck-delivery" class="w-5 h-5" />
             </div>
@@ -133,14 +133,14 @@
                      x-transition:leave-end="opacity-0 scale-95"
                      class="absolute right-0 top-full mt-2 z-50 min-w-[8rem] overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md origin-top-right">
 
-                    <a href="{{ route('profile') }}" class="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground">
+                    <a href="{{ route('profile') }}" wire:navigate.hover class="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground">
                         <span class="flex items-center gap-2">
                             <x-ui.icon name="user" class="w-4 h-4" />
                             个人中心
                         </span>
                     </a>
 
-                    <a href="{{ route('notifications.history') }}" class="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground">
+                    <a href="{{ route('notifications.history') }}" wire:navigate.hover class="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground">
                         <span class="flex items-center gap-2">
                             <x-ui.icon name="bell" class="w-4 h-4" />
                             历史通知
@@ -148,7 +148,7 @@
                     </a>
 
                     @can('system.trash-cleanup.view')
-                    <a href="{{ route('trash-cleanup') }}" class="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground">
+                    <a href="{{ route('trash-cleanup') }}" wire:navigate.hover class="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground">
                         <span class="flex items-center gap-2">
                             <x-ui.icon name="trash" class="w-4 h-4" />
                             数据清理

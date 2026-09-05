@@ -1,5 +1,5 @@
 @props(['href' => '#', 'icon' => null, 'description' => null, 'active' => false])
-<a href="{{ $href }}"
+<a href="{{ $href }}" wire:navigate.hover
    {{ $attributes->merge(['class' => 'flex items-center gap-3 rounded-md p-2.5 transition-colors hover:bg-accent hover:text-accent-foreground ' . ($active ? 'bg-accent text-accent-foreground' : '')]) }}>
     @if($icon)
         <span class="shrink-0 w-5 h-5 text-muted-foreground"><x-ui.icon :name="$icon" class="w-5 h-5" /></span>
