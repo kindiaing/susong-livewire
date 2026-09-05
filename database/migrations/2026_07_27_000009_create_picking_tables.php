@@ -41,6 +41,7 @@ return new class extends Migration
             $table->unsignedBigInteger('merchant_id')->nullable()->comment('商家ID（方便按商家分组汇总）');
             $table->bigInteger('required_quantity')->default(0)->comment('需求数量');
             $table->bigInteger('picked_quantity')->default(0)->comment('实际拣货数量');
+            $table->bigInteger('cost_price')->default(0)->comment('成本价快照（生成任务时订单明细成本，厘）');
             $table->tinyInteger('status')->unsigned()->default(1)->comment('状态：1待拣货，2已拣货，3差异');
             $table->timestamps();
             $table->index('picking_task_id');

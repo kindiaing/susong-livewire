@@ -18,6 +18,7 @@ use Illuminate\Support\Carbon;
  * @property array|null $specs 规格属性
  * @property int $purchase_price 标准采购价（厘）
  * @property int $cost_price 加权平均成本价（厘）
+ * @property int $last_purchase_price 最近采购价（厘，入库时回写）
  * @property int $min_purchase_price 最低采购限价（厘）
  * @property int $list_price 吊牌价（厘）
  * @property int $retail_price 标准零售价（厘）
@@ -55,6 +56,7 @@ class Sku extends Model
         'specs',
         'purchase_price',
         'cost_price',
+        'last_purchase_price',
         'min_purchase_price',
         'list_price',
         'retail_price',
@@ -78,6 +80,7 @@ class Sku extends Model
             'specs' => 'array',
             'purchase_price' => 'integer',
             'cost_price' => 'integer',
+            'last_purchase_price' => 'integer',
             'min_purchase_price' => 'integer',
             'list_price' => 'integer',
             'retail_price' => 'integer',

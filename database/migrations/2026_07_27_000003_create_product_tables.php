@@ -87,6 +87,7 @@ return new class extends Migration
             $table->json('specs')->nullable()->comment('规格属性');
             $table->bigInteger('purchase_price')->default(0)->comment('标准采购价（厘）');
             $table->bigInteger('cost_price')->default(0)->comment('加权平均成本价（厘）');
+            $table->bigInteger('last_purchase_price')->default(0)->comment('最近采购价（厘，入库时回写）');
             $table->bigInteger('min_purchase_price')->default(0)->comment('最低采购限价（厘）');
             $table->bigInteger('list_price')->default(0)->comment('吊牌价（厘）');
             $table->bigInteger('retail_price')->default(0)->comment('标准零售价（厘）');

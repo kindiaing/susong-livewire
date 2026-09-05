@@ -7,6 +7,7 @@ use App\Models\Discrepancy;
 use App\Models\PurchaseItem;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
+use App\Models\Sku;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -240,6 +241,9 @@ class PurchaseService
                         sourceId: $order->id,
                         reason: "采购单 {$order->order_no} 入库",
                     );
+
+                    // 回写成本价（加权平均）与最近采购价
+                    $this->updateSkuCostPrice($orderItem->sku_id, $actualQuantity, $actualPrice);
                 }
             }
 
@@ -260,6 +264,39 @@ class PurchaseService
 
             return $order->fresh();
         });
+    }
+
+    /**
+     * 回写 SKU 成本价（加权平均）与最近采购价
+     *
+     * 加权平均公式：(现库存 × 现成本 + 入库量 × 实际价) ÷ (现库存 + 入库量)
+     * 现库存为 0 时直接取本次采购价。
+     * 库存口径取 SKU 冗余 stock 字段（未减本次入库量）。
+     *
+     * @param  int  $skuId  SKU ID
+     * @param  int  $quantity  本次入库数量
+     * @param  int  $actualPrice  本次实际单价（厘）
+     */
+    private function updateSkuCostPrice(int $skuId, int $quantity, int $actualPrice): void
+    {
+        $sku = Sku::lockForUpdate()->find($skuId);
+        if (! $sku) {
+            return;
+        }
+
+        $currentStock = (int) $sku->stock;
+        $currentCost = (int) $sku->cost_price;
+
+        if ($currentStock <= 0) {
+            $newCost = $actualPrice;
+        } else {
+            $newCost = (int) round(($currentStock * $currentCost + $quantity * $actualPrice) / ($currentStock + $quantity));
+        }
+
+        $sku->update([
+            'cost_price' => $newCost,
+            'last_purchase_price' => $actualPrice,
+        ]);
     }
 
     /**

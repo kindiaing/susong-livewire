@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property mixed $merchant_id 商家ID
  * @property mixed $required_quantity 需求数量
  * @property mixed $picked_quantity 实际拣货数量
+ * @property mixed $cost_price 成本价快照（厘）
  * @property mixed $status 状态：1待拣货2已拣货3差异
  */
 class PickingTaskItem extends Model
@@ -31,6 +32,7 @@ class PickingTaskItem extends Model
         'merchant_id',
         'required_quantity',
         'picked_quantity',
+        'cost_price',
         'status',
     ];
 
@@ -44,6 +46,7 @@ class PickingTaskItem extends Model
             'merchant_id' => 'integer',
             'required_quantity' => 'integer',
             'picked_quantity' => 'integer',
+            'cost_price' => 'integer',
             'status' => 'integer',
         ];
     }

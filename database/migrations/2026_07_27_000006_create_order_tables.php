@@ -71,6 +71,10 @@ return new class extends Migration
             $table->unsignedBigInteger('unit_id')->nullable()->comment('下单时选择的单位ID');
             $table->bigInteger('unit_quantity')->default(0)->comment('下单时选择的单位数量（如选"箱"输入2，此字段=2）');
             $table->bigInteger('price')->default(0)->comment('下单单价');
+            $table->bigInteger('original_price')->default(0)->comment('原价快照（下单时零售价，厘）');
+            $table->bigInteger('discount_amount')->default(0)->comment('优惠金额（原价-成交价）×数量（厘）');
+            $table->string('discount_type', 30)->default('')->comment('优惠类型：promotion/store/member/channel/retail/none');
+            $table->bigInteger('cost_price')->default(0)->comment('成本价快照（下单时加权平均成本，厘）');
             $table->bigInteger('actual_quantity')->default(0)->comment('实际称重数量');
             $table->bigInteger('actual_price')->default(0)->comment('实际称重单价');
             $table->bigInteger('subtotal')->default(0)->comment('小计金额');

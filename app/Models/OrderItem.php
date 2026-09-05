@@ -18,6 +18,10 @@ use Illuminate\Support\Carbon;
  * @property int|null $unit_id 下单时选择的单位ID
  * @property int $unit_quantity 下单时选择的单位数量
  * @property int $price 下单单价（厘）
+ * @property int $original_price 原价快照（下单时零售价，厘）
+ * @property int $discount_amount 优惠金额（厘）
+ * @property string $discount_type 优惠类型
+ * @property int $cost_price 成本价快照（厘）
  * @property int $actual_quantity 实际称重数量
  * @property int $actual_price 实际称重单价（厘）
  * @property int $subtotal 小计金额（厘）
@@ -46,6 +50,10 @@ class OrderItem extends Model
         'unit_id',
         'unit_quantity',
         'price',
+        'original_price',
+        'discount_amount',
+        'discount_type',
+        'cost_price',
         'actual_quantity',
         'actual_price',
         'subtotal',
@@ -68,6 +76,10 @@ class OrderItem extends Model
             'unit_id' => 'integer',
             'unit_quantity' => 'integer',
             'price' => 'integer',
+            'original_price' => 'integer',
+            'discount_amount' => 'integer',
+            'discount_type' => 'string',
+            'cost_price' => 'integer',
             'actual_quantity' => 'integer',
             'actual_price' => 'integer',
             'subtotal' => 'integer',

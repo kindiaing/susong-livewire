@@ -282,6 +282,10 @@ class PickingTaskList extends Component
                 'sku_id' => $orderItem->sku_id,
                 'merchant_id' => $order->merchant_id,
                 'required_quantity' => $orderItem->quantity,
+                // 成本价快照：优先取订单明细快照，无快照时取 SKU 当前成本（SKU 不存在时 (int) null = 0）
+                'cost_price' => $orderItem->cost_price > 0
+                    ? (int) $orderItem->cost_price
+                    : (int) $orderItem->sku?->cost_price,
                 'status' => PickingTaskItem::STATUS_PENDING,
             ]);
         }

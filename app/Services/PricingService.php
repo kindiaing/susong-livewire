@@ -98,6 +98,36 @@ class PricingService
     }
 
     /**
+     * 计算最终售价并附加快照信息（订单明细落库用）
+     *
+     * 在 calculate() 基础上补充：
+     * - original_price：原价（标准零售价）
+     * - discount_amount：单件优惠金额 = max(0, 原价 - 成交价)
+     * - discount_type：优惠类型（命中来源，与 source 一致；原价成交时为 none）
+     * - cost_price：成本价快照（SKU 当前加权平均成本）
+     *
+     * @return array{price: int, source: string, details: array, original_price: int, discount_amount: int, discount_type: string, cost_price: int}
+     */
+    public function calculateWithSnapshot(Sku $sku, string $channel = 'miniapp', ?int $storeId = null, int $memberLevel = 1, int $quantity = 1): array
+    {
+        $result = $this->calculate($sku, $channel, $storeId, $memberLevel, $quantity);
+
+        $originalPrice = (int) $sku->retail_price;
+        $finalPrice = (int) $result['price'];
+        $discountAmount = max(0, $originalPrice - $finalPrice);
+
+        // 优惠类型：有优惠时取命中来源，无优惠时为 none
+        $discountType = $discountAmount > 0 ? (string) $result['source'] : 'none';
+
+        $result['original_price'] = $originalPrice;
+        $result['discount_amount'] = $discountAmount;
+        $result['discount_type'] = $discountType;
+        $result['cost_price'] = (int) $sku->cost_price;
+
+        return $result;
+    }
+
+    /**
      * 最低价模式：固定价来源取最低，再叠乘会员折扣
      */
     protected function calculateLowestPrice(Sku $sku, string $channel, ?int $storeId, int $memberLevel, int $quantity, array $sourceEnabled): array

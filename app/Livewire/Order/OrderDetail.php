@@ -42,6 +42,15 @@ class OrderDetail extends Component
 
     public string $formPrice = '';
 
+    // 取价快照（autoPrice 时回填，保存时落库）
+    public int $formOriginalPrice = 0;
+
+    public int $formDiscountAmount = 0;
+
+    public string $formDiscountType = 'none';
+
+    public int $formCostPrice = 0;
+
     public string $formRemark = '';
 
     public bool $showDeleteItemConfirm = false;
@@ -396,6 +405,9 @@ class OrderDetail extends Component
             $price = money_to_cents($this->formPrice);
             $subtotal = $price * $this->formQuantity;
 
+            // 价格快照：手填/改价时重新按当前价格计算优惠与成本
+            $snapshot = $this->buildPriceSnapshot($sku, $price, $this->formQuantity);
+
             if ($this->editingItemId) {
                 $item = OrderItem::findOrFail($this->editingItemId);
                 $item->update([
@@ -404,6 +416,10 @@ class OrderDetail extends Component
                     'sku_specs' => $sku->specs ?? null,
                     'quantity' => $this->formQuantity,
                     'price' => $price,
+                    'original_price' => $snapshot['original_price'],
+                    'discount_amount' => $snapshot['discount_amount'],
+                    'discount_type' => $snapshot['discount_type'],
+                    'cost_price' => $snapshot['cost_price'],
                     'subtotal' => $subtotal,
                     'actual_quantity' => $this->formQuantity,
                     'actual_price' => $price,
@@ -421,9 +437,14 @@ class OrderDetail extends Component
                 if ($existingItem) {
                     $newQuantity = $existingItem->quantity + $this->formQuantity;
                     $newSubtotal = $price * $newQuantity;
+                    // 累加时按本次价格重算优惠快照
                     $existingItem->update([
                         'quantity' => $newQuantity,
                         'price' => $price,
+                        'original_price' => $snapshot['original_price'],
+                        'discount_amount' => $snapshot['discount_amount'] * $newQuantity,
+                        'discount_type' => $snapshot['discount_type'],
+                        'cost_price' => $snapshot['cost_price'],
                         'subtotal' => $newSubtotal,
                         'actual_quantity' => $newQuantity,
                         'actual_price' => $price,
@@ -440,6 +461,10 @@ class OrderDetail extends Component
                         'sku_specs' => $sku->specs ?? null,
                         'quantity' => $this->formQuantity,
                         'price' => $price,
+                        'original_price' => $snapshot['original_price'],
+                        'discount_amount' => $snapshot['discount_amount'] * $this->formQuantity,
+                        'discount_type' => $snapshot['discount_type'],
+                        'cost_price' => $snapshot['cost_price'],
                         'actual_quantity' => $this->formQuantity,
                         'actual_price' => $price,
                         'subtotal' => $subtotal,
@@ -536,6 +561,37 @@ class OrderDetail extends Component
     }
 
     /**
+     * 构建价格快照（原价/优惠金额/优惠类型/成本价）
+     *
+     * 优先使用 autoPrice 带出的快照（成交价与快照一致时）；
+     * 手工填价或改价时按当前成交价重新计算优惠金额与类型。
+     *
+     * @return array{original_price: int, discount_amount: int, discount_type: string, cost_price: int}
+     */
+    private function buildPriceSnapshot(Sku $sku, int $price, int $quantity): array
+    {
+        $originalPrice = $this->formOriginalPrice > 0 ? $this->formOriginalPrice : (int) $sku->retail_price;
+        $costPrice = $this->formCostPrice > 0 ? $this->formCostPrice : (int) $sku->cost_price;
+        $discountType = $this->formDiscountType;
+
+        // 成交价与取价结果一致 → 直接用取价快照的优惠金额
+        if ($this->formDiscountAmount > 0 && $price === money_to_cents($this->formPrice)) {
+            $unitDiscount = $this->formDiscountAmount;
+        } else {
+            // 手填/改价：按当前成交价重算
+            $unitDiscount = max(0, $originalPrice - $price);
+            $discountType = $unitDiscount > 0 ? ($discountType !== 'none' ? $discountType : 'manual') : 'none';
+        }
+
+        return [
+            'original_price' => $originalPrice,
+            'discount_amount' => $unitDiscount,
+            'discount_type' => $discountType,
+            'cost_price' => $costPrice,
+        ];
+    }
+
+    /**
      * 通过 PricingService 自动取价
      */
     public function autoPrice(): void
@@ -547,12 +603,16 @@ class OrderDetail extends Component
         try {
             $sku = Sku::findOrFail($this->formSkuId);
             $pricingService = app(PricingService::class);
-            $result = $pricingService->calculate(
+            $result = $pricingService->calculateWithSnapshot(
                 $sku,
                 'miniapp',
                 $this->order->merchant_id,
             );
             $this->formPrice = $this->centsToYuan($result['price']);
+            $this->formOriginalPrice = (int) $result['original_price'];
+            $this->formDiscountAmount = (int) $result['discount_amount'];
+            $this->formDiscountType = (string) $result['discount_type'];
+            $this->formCostPrice = (int) $result['cost_price'];
         } catch (\Exception $e) {
             $this->toastError('取价失败：'.$e->getMessage());
         }
