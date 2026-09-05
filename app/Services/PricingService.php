@@ -106,7 +106,7 @@ class PricingService
      * - discount_type：优惠类型（命中来源，与 source 一致；原价成交时为 none）
      * - cost_price：成本价快照（SKU 当前加权平均成本）
      *
-     * @return array{price: int, source: string, details: array, original_price: int, discount_amount: int, discount_type: string, cost_price: int}
+     * @return array{price: int, source: string, details: array<string, int>, original_price: int, discount_amount: int, discount_type: string, cost_price: int}
      */
     public function calculateWithSnapshot(Sku $sku, string $channel = 'miniapp', ?int $storeId = null, int $memberLevel = 1, int $quantity = 1): array
     {

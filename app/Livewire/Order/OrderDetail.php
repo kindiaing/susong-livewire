@@ -17,6 +17,11 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Maatwebsite\Excel\Facades\Excel;
 
+/**
+ * 订单详情
+ *
+ * @property array{retail_price: int, final_price: int, member_price: int, is_promotion: bool}|null $pricePreview 价格预览（Computed，Blade 访问）
+ */
 class OrderDetail extends Component
 {
     use WithFileUploads;
@@ -41,6 +46,9 @@ class OrderDetail extends Component
     public int $formUnitQuantity = 0;
 
     public string $formPrice = '';
+
+    // autoPrice 取价结果（厘），用于判断手填价是否改动了取价结果
+    public int $formAutoPriceCents = 0;
 
     // 取价快照（autoPrice 时回填，保存时落库）
     public int $formOriginalPrice = 0;
@@ -250,7 +258,7 @@ class OrderDetail extends Component
     }
 
     /**
-     * SKU 切换时加载可用单位列表
+     * SKU 切换时加载可用单位列表，并自动取价
      */
     public function updatedFormSkuId(int $value): void
     {
@@ -260,6 +268,8 @@ class OrderDetail extends Component
         // 自动选中 base_unit 作为默认单位
         if ($value > 0) {
             $this->selectSkuUnit();
+            // 自动取价：选完 SKU 即带出成交价与快照，无需手动点「取价」
+            $this->autoPrice();
         }
     }
 
@@ -344,6 +354,12 @@ class OrderDetail extends Component
         $this->formQuantity = $item->quantity;
         $this->formPrice = $this->centsToYuan($item->price);
         $this->formRemark = '';
+        // 回填价格快照：未改价时保留原快照（discount_amount 为单价口径）
+        $this->formAutoPriceCents = (int) $item->price;
+        $this->formOriginalPrice = (int) $item->original_price;
+        $this->formDiscountAmount = $item->quantity > 0 ? (int) round($item->discount_amount / $item->quantity) : 0;
+        $this->formDiscountType = (string) $item->discount_type;
+        $this->formCostPrice = (int) $item->cost_price;
         // 回填单位信息：优先使用保存的 unit_id + unit_quantity，否则用 base_unit
         if ($item->unit_id && $item->unit_quantity) {
             $this->formUnitId = $item->unit_id;
@@ -417,7 +433,7 @@ class OrderDetail extends Component
                     'quantity' => $this->formQuantity,
                     'price' => $price,
                     'original_price' => $snapshot['original_price'],
-                    'discount_amount' => $snapshot['discount_amount'],
+                    'discount_amount' => $snapshot['discount_amount'] * $this->formQuantity,
                     'discount_type' => $snapshot['discount_type'],
                     'cost_price' => $snapshot['cost_price'],
                     'subtotal' => $subtotal,
@@ -575,7 +591,7 @@ class OrderDetail extends Component
         $discountType = $this->formDiscountType;
 
         // 成交价与取价结果一致 → 直接用取价快照的优惠金额
-        if ($this->formDiscountAmount > 0 && $price === money_to_cents($this->formPrice)) {
+        if ($this->formDiscountAmount > 0 && $price === $this->formAutoPriceCents) {
             $unitDiscount = $this->formDiscountAmount;
         } else {
             // 手填/改价：按当前成交价重算
@@ -609,6 +625,7 @@ class OrderDetail extends Component
                 $this->order->merchant_id,
             );
             $this->formPrice = $this->centsToYuan($result['price']);
+            $this->formAutoPriceCents = (int) $result['price'];
             $this->formOriginalPrice = (int) $result['original_price'];
             $this->formDiscountAmount = (int) $result['discount_amount'];
             $this->formDiscountType = (string) $result['discount_type'];
@@ -616,6 +633,43 @@ class OrderDetail extends Component
         } catch (\Exception $e) {
             $this->toastError('取价失败：'.$e->getMessage());
         }
+    }
+
+    /**
+     * 价格预览（3 价格展示）：零售价 + 成交价 + 会员价 + 是否促销
+     *
+     * 成交价：非会员口径（memberLevel=0，getMemberDiscountRate(0) 查不到记录返回 null 不打折）；
+     * 会员价：普通会员（level 1），配置了会员折扣活动时 member_price < final_price，否则与成交价一致。
+     * 返回 null 表示当前 SKU 无价格可展示（未选 SKU 或 SKU 不存在）
+     *
+     * @return array{retail_price: int, final_price: int, member_price: int, is_promotion: bool}|null
+     */
+    #[Computed]
+    public function pricePreview(): ?array
+    {
+        if ($this->formSkuId <= 0) {
+            return null;
+        }
+
+        $sku = Sku::find($this->formSkuId);
+        if (! $sku) {
+            return null;
+        }
+
+        $pricingService = app(PricingService::class);
+
+        // 非会员成交价（memberLevel=0 不命中任何会员折扣）
+        $result = $pricingService->calculate($sku, 'miniapp', $this->order->merchant_id, 0);
+
+        // 会员价（普通会员等级 1，配置了会员折扣活动时会更低）
+        $memberResult = $pricingService->calculate($sku, 'miniapp', $this->order->merchant_id, 1);
+
+        return [
+            'retail_price' => (int) $sku->retail_price,
+            'final_price' => (int) $result['price'],
+            'member_price' => (int) $memberResult['price'],
+            'is_promotion' => $result['source'] === 'promotion',
+        ];
     }
 
     // ── 导出 ──
@@ -841,8 +895,9 @@ class OrderDetail extends Component
         $canEditItems = $this->canEditItems;
         $availableUnits = $this->availableUnits;
         $unitPreview = $this->unitPreview;
+        $pricePreview = $this->pricePreview;
 
-        return view('livewire.order.order-detail', compact('skus', 'isSuperAdmin', 'canEditItems', 'availableUnits', 'unitPreview'))
+        return view('livewire.order.order-detail', compact('skus', 'isSuperAdmin', 'canEditItems', 'availableUnits', 'unitPreview', 'pricePreview'))
             ->layout('components.app-layout')
             ->title("订单 {$this->order->order_no}");
     }

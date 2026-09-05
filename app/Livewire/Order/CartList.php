@@ -16,6 +16,7 @@ use App\Models\Merchant;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Sku;
+use App\Services\PricingService;
 use App\Services\UnitConversionService;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -140,7 +141,7 @@ class CartList extends Component
     }
 
     /**
-     * SKU 切换时加载可用单位列表
+     * SKU 切换时加载可用单位列表，并自动取价
      */
     public function updatedFormSkuId(int $value): void
     {
@@ -149,6 +150,37 @@ class CartList extends Component
         $this->formQuantity = 0;
         if ($value > 0) {
             $this->selectSkuUnit();
+            $this->autoPrice();
+        }
+    }
+
+    /**
+     * 自动取价：按商家 + PricingService 计算成交价，不再手工填写
+     */
+    public function autoPrice(): void
+    {
+        if ($this->formSkuId <= 0 || $this->formMerchantId <= 0) {
+            return;
+        }
+
+        try {
+            $sku = Sku::findOrFail($this->formSkuId);
+            $pricingService = app(PricingService::class);
+            // 非会员口径（memberLevel=0），与订单明细 pricePreview 的成交价一致
+            $result = $pricingService->calculate($sku, 'miniapp', $this->formMerchantId, 0);
+            $this->formUnitPrice = $this->centsToYuan($result['price']);
+        } catch (\Exception $e) {
+            $this->toastError('取价失败：'.$e->getMessage());
+        }
+    }
+
+    /**
+     * 商家切换时重新取价（门店差异化价格依赖商家）
+     */
+    public function updatedFormMerchantId(int $value): void
+    {
+        if ($value > 0 && $this->formSkuId > 0) {
+            $this->autoPrice();
         }
     }
 
@@ -284,7 +316,7 @@ class CartList extends Component
                     'cart_id' => $cart->id,
                     'sku_id' => $validated['formSkuId'],
                     'quantity' => $validated['formQuantity'],
-                    'price' => money_to_cents($validated['formUnitPrice']),
+                    'price' => money_to_cents($this->formUnitPrice ?: '0'),
                     'unit_id' => $this->formUnitId,
                     'unit_quantity' => $this->formUnitQuantity ?: null,
                 ]);
@@ -422,6 +454,12 @@ class CartList extends Component
             // 创建订单明细
             foreach ($cartItems as $cartItem) {
                 $subtotal = $cartItem->quantity * $cartItem->price;
+
+                // 价格快照：按购物车成交价重算原价/优惠/成本（与订单明细编辑口径一致）
+                $originalPrice = (int) ($cartItem->sku->retail_price ?? 0);
+                $discountAmount = $originalPrice > 0 ? max(0, $originalPrice - $cartItem->price) : 0;
+                $discountType = $discountAmount > 0 ? 'manual' : 'none';
+
                 OrderItem::create([
                     'order_id' => $order->id,
                     'sku_id' => $cartItem->sku_id,
@@ -429,6 +467,10 @@ class CartList extends Component
                     'sku_specs' => $cartItem->sku?->specs ?? null,
                     'quantity' => $cartItem->quantity,
                     'price' => $cartItem->price,
+                    'original_price' => $originalPrice,
+                    'discount_amount' => $discountAmount * $cartItem->quantity,
+                    'discount_type' => $discountType,
+                    'cost_price' => (int) ($cartItem->sku->cost_price ?? 0),
                     'actual_quantity' => $cartItem->quantity,
                     'actual_price' => $cartItem->price,
                     'subtotal' => $subtotal,

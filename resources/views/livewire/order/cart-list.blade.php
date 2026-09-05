@@ -185,9 +185,12 @@
                 </div>
                 @if(!$editingId)
                 <div>
-                    <label class="block text-sm font-medium text-foreground mb-1">单价（元） <span class="text-red-500">*</span></label>
-                    <input type="text" wire:model="formUnitPrice" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" placeholder="请输入单价（元）" />
-                    @error('formUnitPrice') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                    <label class="block text-sm font-medium text-foreground mb-1">单价（元）</label>
+                    <div class="flex gap-2">
+                        <input type="text" wire:model="formUnitPrice" readonly class="flex h-9 w-full rounded-md border border-input bg-muted/50 px-3 text-sm text-foreground cursor-not-allowed" placeholder="选择商家和SKU后自动取价" />
+                        <button type="button" wire:click="autoPrice" class="shrink-0 rounded-md border border-blue-300 px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 transition-colors whitespace-nowrap">取价</button>
+                    </div>
+                    <p class="text-xs text-muted-foreground mt-1">按商家 + 当前价格策略自动计算，不可手工修改</p>
                 </div>
                 @endif
             </div>

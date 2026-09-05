@@ -293,6 +293,22 @@
                             <input type="number" wire:model="formPrice" min="0" step="0.01" placeholder="0.00" class="flex h-9 w-full rounded-md border border-input bg-background px-3 text-sm" />
                             <button type="button" wire:click="autoPrice" class="shrink-0 rounded-md border border-blue-300 px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 transition-colors whitespace-nowrap">取价</button>
                         </div>
+                        {{-- 3 价格展示：零售价（划线灰字）+ 成交价（加粗）+ 会员价（标签）；促销时成交价旁加促销标签 --}}
+                        @if($pricePreview && $pricePreview['retail_price'] > 0)
+                        <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs">
+                            <span class="text-muted-foreground line-through">{{ money_format($pricePreview['retail_price']) }}</span>
+                            <span class="font-bold text-foreground">{{ money_format($pricePreview['final_price']) }}</span>
+                            @if($pricePreview['is_promotion'])
+                            <span class="inline-flex items-center rounded bg-red-100 text-red-700 px-1.5 py-0.5 text-[11px] font-medium leading-none">促销</span>
+                            @endif
+                            @if($pricePreview['member_price'] > 0 && $pricePreview['member_price'] < $pricePreview['final_price'])
+                            <span class="inline-flex items-center gap-1">
+                                <span class="inline-flex items-center rounded bg-amber-100 text-amber-700 px-1.5 py-0.5 text-[11px] font-medium leading-none">会员</span>
+                                <span class="text-amber-700 font-medium">{{ money_format($pricePreview['member_price']) }}</span>
+                            </span>
+                            @endif
+                        </div>
+                        @endif
                         @error('formPrice') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
                 </div>
