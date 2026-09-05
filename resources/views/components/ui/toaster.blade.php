@@ -16,7 +16,7 @@
              x-transition:leave-start="opacity-100 translate-y-0 scale-100"
              x-transition:leave-end="opacity-0 translate-y-2 scale-95"
              @click="Alpine.store('toasts').remove(toast.id)"
-             class="pointer-events-auto group flex items-start gap-3 rounded-lg border bg-background p-4 shadow-lg cursor-default"
+             class="pointer-events-auto group relative flex items-start gap-3 rounded-lg border bg-background p-4 shadow-lg cursor-default"
              :class="{
                 'border-border': toast.type === 'default',
                 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950': toast.type === 'success',
@@ -71,6 +71,18 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
                 </svg>
             </button>
+
+            {{-- 底部倒计时条：CSS 动画随剩余时间线性缩减，与自动关闭同步；duration=0 不显示 --}}
+            <span x-show="toast.duration !== 0"
+                  class="absolute bottom-0 left-0 h-0.5 rounded-bl-lg bg-current opacity-30 pointer-events-none"
+                  :class="{
+                     'text-foreground': toast.type === 'default',
+                     'text-green-600 dark:text-green-400': toast.type === 'success',
+                     'text-red-600 dark:text-red-400': toast.type === 'error',
+                     'text-yellow-600 dark:text-yellow-400': toast.type === 'warning',
+                     'text-blue-600 dark:text-blue-400': toast.type === 'info',
+                  }"
+                  :style="`width: 100%; animation: toast-countdown ${toast.duration || 1}ms linear forwards;`"></span>
         </div>
     </template>
 </div>

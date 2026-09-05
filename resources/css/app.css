@@ -70,3 +70,37 @@ th.action-col {
     display: none !important;
 }
 
+/* 全局顶部加载进度条（app.js Livewire commit hook 驱动） */
+.top-load-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 2px;
+    width: 100%;
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    z-index: 9999;
+    pointer-events: none;
+    background: linear-gradient(90deg, #3b82f6, #6366f1);
+    opacity: 0;
+    transition: transform 0.2s ease-out, opacity 0.15s ease-out;
+}
+.top-load-bar.is-loading {
+    opacity: 1;
+    transform: scaleX(0.8);
+}
+.top-load-bar.is-finish {
+    opacity: 1;
+    transform: scaleX(1);
+}
+.top-load-bar.is-idle {
+    opacity: 0;
+    transform: scaleX(0);
+}
+
+/* Toast 底部倒计时条动画（宽度 100% → 0，时长由内联 style 指定） */
+@keyframes toast-countdown {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+

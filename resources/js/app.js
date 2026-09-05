@@ -164,10 +164,14 @@ document.addEventListener('alpine:init', () => {
         add(toast) {
             toast.id = toast.id || ++this._nextId;
             toast.show = true;
+            // 倒计时条动画时长与自动关闭时长一致（默认 3s；error/warning 特殊提醒 5s）
+            const duration = toast.duration ?? (toast.type === 'error' || toast.type === 'warning' ? 5000 : 3000);
+            toast.duration = duration;
+            toast.durationAt = Date.now();
             this.items.push(toast);
-            if (toast.duration !== 0) {
+            if (duration !== 0) {
                 const id = toast.id;
-                setTimeout(() => this.remove(id), toast.duration || 5000);
+                setTimeout(() => this.remove(id), duration);
             }
             return toast.id;
         },
@@ -209,7 +213,7 @@ document.addEventListener('alpine:initialized', () => {
                 title: o.title || '',
                 description: o.description || '',
                 type: o.type || 'default',
-                duration: o.duration ?? 5000,
+                duration: o.duration,
             });
         },
         success(title, description) { return this.show({ title, description, type: 'success' }); },
@@ -225,9 +229,33 @@ document.addEventListener('alpine:initialized', () => {
             title: detail.title || detail.message || '',
             description: detail.description || '',
             type: detail.type || 'default',
+            duration: detail.duration,
         });
     });
 });
 
 // CSRF Token 过期处理：Livewire 4 内置 419 处理机制（自动刷新页面）
 // 不再需要手动 hook，Livewire 默认行为已足够
+
+// 全局顶部加载进度条 — Alpine 数据 + Livewire commit hook 驱动
+// 用法：app-layout body 内固定定位元素 x-data="__topLoadBar()"
+window.__topLoadBar = () => ({
+    state: 'idle',
+    init() {
+        document.addEventListener('livewire:init', () => {
+            Livewire.hook('commit', ({ succeed, fail }) => {
+                this.start();
+                succeed(() => this.finish());
+                fail(() => this.finish());
+            });
+        });
+    },
+    start() {
+        this.state = 'loading';
+    },
+    finish() {
+        if (this.state !== 'loading') return;
+        this.state = 'finish';
+        setTimeout(() => { this.state = 'idle'; }, 350);
+    },
+});

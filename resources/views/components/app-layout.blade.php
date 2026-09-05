@@ -33,6 +33,11 @@
     </script>
 </head>
 <body class="bg-background text-foreground min-h-screen font-sans">
+    {{-- 全局顶部加载进度条（Livewire 请求期间显示） --}}
+    <div x-data="__topLoadBar()" x-cloak aria-hidden="true"
+         class="top-load-bar"
+         :class="{ 'is-loading': state === 'loading', 'is-finish': state === 'finish' }"></div>
+
     <div class="flex min-h-screen flex-col">
         {{-- 顶部导航栏 --}}
         <x-app-topnav />
