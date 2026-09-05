@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * 组合捆绑套餐模型
@@ -48,12 +50,18 @@ class PromotionBundle extends Model
         ];
     }
 
-    public function promotion()
+    /**
+     * @return BelongsTo<Promotion, $this>
+     */
+    public function promotion(): BelongsTo
     {
         return $this->belongsTo(Promotion::class);
     }
 
-    public function items()
+    /**
+     * @return HasMany<PromotionBundleItem, $this>
+     */
+    public function items(): HasMany
     {
         return $this->hasMany(PromotionBundleItem::class, 'bundle_id');
     }

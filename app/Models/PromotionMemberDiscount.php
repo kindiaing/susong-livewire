@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * 会员等级折扣模型
@@ -61,7 +62,10 @@ class PromotionMemberDiscount extends Model
         ];
     }
 
-    public function promotion()
+    /**
+     * @return BelongsTo<Promotion, $this>
+     */
+    public function promotion(): BelongsTo
     {
         return $this->belongsTo(Promotion::class);
     }

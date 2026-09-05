@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -137,55 +140,102 @@ class Promotion extends Model
 
     // ── 子表关联 ──────────────────────────
 
-    public function skus()
+    /**
+     * 活动商品
+     *
+     * @return HasMany<PromotionSku, $this>
+     */
+    public function skus(): HasMany
     {
         return $this->hasMany(PromotionSku::class);
     }
 
-    public function fullReductions()
+    /**
+     * 满减阶梯
+     *
+     * @return HasMany<PromotionFullReduction, $this>
+     */
+    public function fullReductions(): HasMany
     {
         return $this->hasMany(PromotionFullReduction::class);
     }
 
-    public function coupons()
+    /**
+     * 优惠券
+     *
+     * @return HasMany<PromotionCoupon, $this>
+     */
+    public function coupons(): HasMany
     {
         return $this->hasMany(PromotionCoupon::class);
     }
 
-    public function bundles()
+    /**
+     * 组合套餐
+     *
+     * @return HasMany<PromotionBundle, $this>
+     */
+    public function bundles(): HasMany
     {
         return $this->hasMany(PromotionBundle::class);
     }
 
-    public function bundleItems()
+    /**
+     * 套餐明细（跨套餐关联）
+     *
+     * @return HasManyThrough<PromotionBundleItem, PromotionBundle, $this>
+     */
+    public function bundleItems(): HasManyThrough
     {
         return $this->hasManyThrough(PromotionBundleItem::class, PromotionBundle::class);
     }
 
-    public function clearances()
+    /**
+     * 清仓临期
+     *
+     * @return HasMany<PromotionClearance, $this>
+     */
+    public function clearances(): HasMany
     {
         return $this->hasMany(PromotionClearance::class);
     }
 
-    public function groupBuys()
+    /**
+     * 拼团规则
+     *
+     * @return HasMany<PromotionGroupBuy, $this>
+     */
+    public function groupBuys(): HasMany
     {
         return $this->hasMany(PromotionGroupBuy::class);
     }
 
-    public function flashSales()
+    /**
+     * 秒杀场次
+     *
+     * @return HasMany<PromotionFlashSale, $this>
+     */
+    public function flashSales(): HasMany
     {
         return $this->hasMany(PromotionFlashSale::class);
     }
 
-    public function memberDiscounts()
+    /**
+     * 会员等级折扣
+     *
+     * @return HasMany<PromotionMemberDiscount, $this>
+     */
+    public function memberDiscounts(): HasMany
     {
         return $this->hasMany(PromotionMemberDiscount::class);
     }
 
     /**
      * 创建人
+     *
+     * @return BelongsTo<User, $this>
      */
-    public function creator()
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }

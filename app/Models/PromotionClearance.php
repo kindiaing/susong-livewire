@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $id
  * @property int $promotion_id 促销活动ID
  * @property int $clearance_type 类型：1清仓，2临期
- * @property string|null $expiry_date 临期截止日期
+ * @property \Illuminate\Support\Carbon|null $expiry_date 临期截止日期
  * @property int $discount_rate 折扣率（万分比）
  * @property int $fixed_price 清仓固定价（厘）
  * @property int $status 状态：0禁用，1启用

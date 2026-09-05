@@ -61,7 +61,13 @@
                     @foreach($visibleCols as $col)
                     @switch($col['key'])
                         @case('name')
-                            <td class="px-4 py-2 font-medium text-foreground">{{ $item->name }}</td>
+                            <td class="px-4 py-2 font-medium text-foreground">
+                                @can('price.promotion.view')
+                                <a href="{{ route('promotion-settings', ['group' => 'detail', 'promotion_id' => $item->id]) }}" class="text-blue-600 hover:text-blue-800 hover:underline">{{ $item->name }}</a>
+                                @else
+                                {{ $item->name }}
+                                @endcan
+                            </td>
                             @break
                         @case('promo_type')
                             <td class="px-4 py-2">
@@ -97,6 +103,9 @@
                     @endswitch
                     @endforeach
                     <td class="px-4 py-2 text-right action-col">
+                        @can('price.promotion.view')
+                        <a href="{{ route('promotion-settings', ['group' => 'detail', 'promotion_id' => $item->id]) }}" class="inline-flex items-center gap-1 px-2 py-1 rounded text-blue-600 hover:bg-blue-50 hover:text-blue-700 transition-colors text-xs" title="维护活动明细（活动商品/满减/优惠券等）">明细</a>
+                        @endcan
                         @can('price.promotion.delete')
                         <button type="button" wire:click="confirmDelete({{ $item->id }})" class="p-1 rounded text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors" title="删除"><x-ui.icon name="trash" class="w-3.5 h-3.5" /></button>
                         @endcan
